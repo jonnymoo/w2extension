@@ -22,30 +22,21 @@ class W2File {
     getW2Item(element) {
         let label = "";
         let type = "";
-        // If we are an attribute - name + value for now
-        if (!this._isElement(element)) {
-            label = `${element.localName} = "${element.nodeValue}"`;
-        }
-        else {
-            // We are an element - what type?
-            label = `${element.tagName} ${element.attributes.getNamedItem("name").value}`;
+        // Include the name if exists
+        label = element.tagName;
+        if (element.attributes.getNamedItem("name")) {
+            label = label + " " + element.attributes.getNamedItem("name").value;
         }
         // Work out what type of icon to show
         type = "element";
-        if (!this._isElement(element)) {
-            type = "attribute";
-        }
         return new w2item_1.W2Item(label, type);
     }
     getChildren(element) {
-        if (this._isElement(element)) {
-            return [].concat(this._getChildAttributeArray(element), this._getChildElementArray(element));
-        }
-        else if (this._xmlDocument) {
-            return [this._xmlDocument.lastChild];
+        if (element) {
+            return this._getChildElementArray(element);
         }
         else {
-            return [];
+            return [this._xmlDocument.lastChild];
         }
     }
     getNodeAtPosition(linePosition, characterPosition) {
@@ -61,33 +52,24 @@ class W2File {
             columnNumber,
             columnNumber + (this._getNodeWidthInCharacters(contextNode) - 1)
         ];
-        // for some reason, xmldom sets the column number for attributes to the "="
-        if (!this._isElement(contextNode)) {
-            columnRange[0] = columnRange[0] - contextNode.nodeName.length;
-        }
         if (this._checkRange(lineNumber, linePosition, characterPosition, columnRange)) {
             return contextNode;
         }
-        if (this._isElement(contextNode)) {
-            // if the element contains text, check to see if the cursor is present in the text
-            const textContent = contextNode.textContent;
-            if (textContent) {
-                columnRange[1] = columnRange[1] + textContent.length;
-                if (this._checkRange(lineNumber, linePosition, characterPosition, columnRange)) {
-                    return contextNode;
-                }
+        // if the element contains text, check to see if the cursor is present in the text
+        const textContent = contextNode.textContent;
+        if (textContent) {
+            columnRange[1] = columnRange[1] + textContent.length;
+            if (this._checkRange(lineNumber, linePosition, characterPosition, columnRange)) {
+                return contextNode;
             }
-            const children = [
-                ...this._getChildAttributeArray(contextNode),
-                ...this._getChildElementArray(contextNode)
-            ];
-            let result;
-            for (let i = 0; i < children.length; i++) {
-                const child = children[i];
-                result = this._getNodeAtPositionCore(linePosition, characterPosition, child);
-                if (result) {
-                    return result;
-                }
+        }
+        const children = this._getChildElementArray(contextNode);
+        let result;
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            result = this._getNodeAtPositionCore(linePosition, characterPosition, child);
+            if (result) {
+                return result;
             }
         }
         return undefined;
@@ -100,16 +82,6 @@ class W2File {
     // True if node is an element
     _isElement(node) {
         return !!node && !!node.tagName;
-    }
-    _getChildAttributeArray(node) {
-        if (!node.attributes) {
-            return [];
-        }
-        const array = new Array();
-        for (let i = 0; i < node.attributes.length; i++) {
-            array.push(node.attributes[i]);
-        }
-        return array;
     }
     _getChildElementArray(node) {
         if (!node.childNodes) {

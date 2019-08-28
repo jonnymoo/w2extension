@@ -29,35 +29,23 @@ export class W2File {
     let label: string = "";
     let type: string = "";
 
-    // If we are an attribute - name + value for now
-    if (!this._isElement(element)) {
-      label = `${element.localName} = "${element.nodeValue}"`;
-    } else {
-      // We are an element - what type?
-      label = `${element.tagName} ${
-        element.attributes.getNamedItem("name").value
-      }`;
+    // Include the name if exists
+    label = element.tagName;
+    if (element.attributes.getNamedItem("name")) {
+      label = label + " " + element.attributes.getNamedItem("name").value;
     }
 
     // Work out what type of icon to show
     type = "element";
 
-    if (!this._isElement(element)) {
-      type = "attribute";
-    }
     return new W2Item(label, type);
   }
 
-  getChildren(element?: Node): Node[] | Thenable<Node[]> {
-    if (this._isElement(element)) {
-      return [].concat(
-        this._getChildAttributeArray(<Element>element),
-        this._getChildElementArray(<Element>element)
-      );
-    } else if (this._xmlDocument) {
-      return [this._xmlDocument.lastChild];
+  getChildren(element?: Node): Node[] {
+    if (element) {
+      return this._getChildElementArray(<Element>element);
     } else {
-      return [];
+      return [this._xmlDocument.lastChild];
     }
   }
 
@@ -85,54 +73,44 @@ export class W2File {
       columnNumber + (this._getNodeWidthInCharacters(contextNode) - 1)
     ];
 
-    // for some reason, xmldom sets the column number for attributes to the "="
-    if (!this._isElement(contextNode)) {
-      columnRange[0] = columnRange[0] - contextNode.nodeName.length;
-    }
-
     if (
       this._checkRange(lineNumber, linePosition, characterPosition, columnRange)
     ) {
       return contextNode;
     }
 
-    if (this._isElement(contextNode)) {
-      // if the element contains text, check to see if the cursor is present in the text
-      const textContent = (contextNode as Element).textContent;
+    // if the element contains text, check to see if the cursor is present in the text
+    const textContent = (contextNode as Element).textContent;
 
-      if (textContent) {
-        columnRange[1] = columnRange[1] + textContent.length;
+    if (textContent) {
+      columnRange[1] = columnRange[1] + textContent.length;
 
-        if (
-          this._checkRange(
-            lineNumber,
-            linePosition,
-            characterPosition,
-            columnRange
-          )
-        ) {
-          return contextNode;
-        }
-      }
-
-      const children = [
-        ...this._getChildAttributeArray(<Element>contextNode),
-        ...this._getChildElementArray(contextNode)
-      ];
-      let result: Node;
-
-      for (let i = 0; i < children.length; i++) {
-        const child = children[i];
-
-        result = this._getNodeAtPositionCore(
+      if (
+        this._checkRange(
+          lineNumber,
           linePosition,
           characterPosition,
-          child
-        );
+          columnRange
+        )
+      ) {
+        return contextNode;
+      }
+    }
 
-        if (result) {
-          return result;
-        }
+    const children = this._getChildElementArray(contextNode);
+    let result: Node;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+
+      result = this._getNodeAtPositionCore(
+        linePosition,
+        characterPosition,
+        child
+      );
+
+      if (result) {
+        return result;
       }
     }
 
@@ -155,20 +133,6 @@ export class W2File {
   // True if node is an element
   private _isElement(node: Node): boolean {
     return !!node && !!(node as Element).tagName;
-  }
-
-  private _getChildAttributeArray(node: Element): any[] {
-    if (!node.attributes) {
-      return [];
-    }
-
-    const array = new Array<any>();
-
-    for (let i = 0; i < node.attributes.length; i++) {
-      array.push(node.attributes[i]);
-    }
-
-    return array;
   }
 
   private _getChildElementArray(node: Node): any[] {
