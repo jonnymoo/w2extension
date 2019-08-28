@@ -1,0 +1,82 @@
+{
+  "name": "w2",
+  "displayName": "w2",
+  "description": "w2 language support",
+  "version": "0.0.1",
+  "publisher": "jonnymoo",
+  "author": {
+    "name": "Jonny Muir",
+    "url": "https://github.com/jonnymoo"
+  },
+  "engines": {
+    "vscode": "^1.37.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:w2"
+  ],
+  "main": "./out/extension",
+  "contributes": {
+    "languages": [
+      {
+        "id": "w2",
+        "aliases": [
+          "w2",
+          "w2"
+        ],
+        "extensions": [
+          ".xml"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "w2",
+        "scopeName": "text.xml.w2",
+        "path": "./syntaxes/w2.tmLanguage.json"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "w2TreeView",
+          "name": "W2 Document",
+          "when": "w2TreeViewEnabled"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "w2-explorer",
+          "title": "w2 explorer",
+          "icon": "resources/xml.png"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "npm run lint && tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && mocha ./out/test/**/*.js",
+    "lint": "tslint -p tslint.json --fix"
+  },
+  "devDependencies": {
+    "@types/mocha": "^2.2.42",
+    "@types/node": "^7.0.43",
+    "@types/xmldom": "^0.1.29",
+    "tslint": "^5.9.1",
+    "typescript": "^2.6.1",
+    "vscode": "^1.1.16"
+  },
+  "dependencies": {
+    "xmldom": "^0.1.27",
+    "xpath": "0.0.27",
+    "xqlint": "^0.4.1"
+  }
+}

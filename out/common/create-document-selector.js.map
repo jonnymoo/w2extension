@@ -1,0 +1,1 @@
+{"version":3,"file":"create-document-selector.js","sourceRoot":"","sources":["../../src/common/create-document-selector.ts"],"names":[],"mappings":";;AAEA,0CAA0C;AAE1C,gCAAuC,QAAgB;IACnD,OAAO;QACH,EAAE,QAAQ,EAAE,MAAM,EAAE,SAAS,CAAC,UAAU,CAAC,IAAI,EAAE;QAC/C,EAAE,QAAQ,EAAE,MAAM,EAAE,SAAS,CAAC,UAAU,CAAC,QAAQ,EAAE;KACtD,CAAC;AACN,CAAC;AALD,wDAKC"}

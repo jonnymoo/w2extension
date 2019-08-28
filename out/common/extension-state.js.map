@@ -1,0 +1,1 @@
+{"version":3,"file":"extension-state.js","sourceRoot":"","sources":["../../src/common/extension-state.ts"],"names":[],"mappings":";;AAEA;IAGI,MAAM,KAAK,MAAM;QACb,OAAO,IAAI,CAAC,QAAQ,CAAC,WAAW,CAAC;IACrC,CAAC;IAED,MAAM,KAAK,SAAS;QAChB,OAAO,IAAI,CAAC,QAAQ,CAAC,cAAc,CAAC;IACxC,CAAC;IAED,MAAM,CAAC,SAAS,CAAC,OAAyB;QACtC,IAAI,CAAC,QAAQ,GAAG,OAAO,CAAC;IAC5B,CAAC;CACJ;AAdD,wCAcC"}
