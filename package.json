@@ -4,6 +4,10 @@
   "description": "w2 language support",
   "version": "0.0.1",
   "publisher": "jonnymoo",
+  "repository": {
+    "url": "https://github.com/jonnymoo/w2extension"
+  },
+  "license": "MIT",
   "author": {
     "name": "Jonny Muir",
     "url": "https://github.com/jonnymoo"
@@ -76,7 +80,6 @@
   },
   "dependencies": {
     "xmldom": "^0.1.27",
-    "xpath": "0.0.27",
-    "xqlint": "^0.4.1"
+    "xpath": "0.0.27"
   }
 }
