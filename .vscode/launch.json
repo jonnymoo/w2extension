@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "configurations": [
     {
-      "name": "Extension",
+      "name": "Extension Client",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -14,7 +14,15 @@
       "preLaunchTask": "npm: watch"
     },
     {
-      "name": "Run mocha",
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Language Server",
+      "port": 6009,
+      "restart": true,
+      "outFiles": ["${workspaceRoot}/out/**/*.js"]
+    },
+    {
+      "name": "Run mocha tests",
       "type": "node",
       "request": "launch",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
