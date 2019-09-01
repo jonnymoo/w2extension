@@ -13,12 +13,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode_languageserver_1 = require("vscode-languageserver");
+const w2file_1 = require("../tree-view/w2file");
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 let connection = vscode_languageserver_1.createConnection(vscode_languageserver_1.ProposedFeatures.all);
 // Create a simple text document manager. The text document manager
 // supports full document sync only
 let documents = new vscode_languageserver_1.TextDocuments();
+let opendoc = "";
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let hasDiagnosticRelatedInformationCapability = false;
@@ -95,47 +97,52 @@ documents.onDidChangeContent(change => {
 });
 function validateTextDocument(textDocument) {
     return __awaiter(this, void 0, void 0, function* () {
+        /*
         // In this simple example we get the settings for every validate run.
-        let settings = yield getDocumentSettings(textDocument.uri);
+        let settings = await getDocumentSettings(textDocument.uri);
+      
         // The validator creates diagnostics for all uppercase words length 2 and more
         let text = textDocument.getText();
         let pattern = /\b[A-Z]{2,}\b/g;
-        let m;
+        let m: RegExpExecArray | null;
+      
         let problems = 0;
-        let diagnostics = [];
+        let diagnostics: Diagnostic[] = [];
         while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
-            problems++;
-            let diagnostic = {
-                severity: vscode_languageserver_1.DiagnosticSeverity.Warning,
-                range: {
-                    start: textDocument.positionAt(m.index),
-                    end: textDocument.positionAt(m.index + m[0].length)
+          problems++;
+          let diagnostic: Diagnostic = {
+            severity: DiagnosticSeverity.Warning,
+            range: {
+              start: textDocument.positionAt(m.index),
+              end: textDocument.positionAt(m.index + m[0].length)
+            },
+            message: `${m[0]} is all uppercase.`,
+            source: "ex"
+          };
+          if (hasDiagnosticRelatedInformationCapability) {
+            diagnostic.relatedInformation = [
+              {
+                location: {
+                  uri: textDocument.uri,
+                  range: Object.assign({}, diagnostic.range)
                 },
-                message: `${m[0]} is all uppercase.`,
-                source: "ex"
-            };
-            if (hasDiagnosticRelatedInformationCapability) {
-                diagnostic.relatedInformation = [
-                    {
-                        location: {
-                            uri: textDocument.uri,
-                            range: Object.assign({}, diagnostic.range)
-                        },
-                        message: "Spelling matters"
-                    },
-                    {
-                        location: {
-                            uri: textDocument.uri,
-                            range: Object.assign({}, diagnostic.range)
-                        },
-                        message: "Particularly for names"
-                    }
-                ];
-            }
-            diagnostics.push(diagnostic);
+                message: "Spelling matters"
+              },
+              {
+                location: {
+                  uri: textDocument.uri,
+                  range: Object.assign({}, diagnostic.range)
+                },
+                message: "Particularly for names"
+              }
+            ];
+          }
+          diagnostics.push(diagnostic);
         }
+      
         // Send the computed diagnostics to VSCode.
         connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+        */
     });
 }
 connection.onDidChangeWatchedFiles(_change => {
@@ -143,22 +150,9 @@ connection.onDidChangeWatchedFiles(_change => {
     connection.console.log("We received an file change event");
 });
 // This handler provides the initial list of the completion items.
-connection.onCompletion((_textDocumentPosition) => {
-    // The pass parameter contains the position of the text document in
-    // which code complete got requested. For the example we ignore this
-    // info and always provide the same completion items.
-    return [
-        {
-            label: "TypeScript",
-            kind: vscode_languageserver_1.CompletionItemKind.Text,
-            data: 1
-        },
-        {
-            label: "JavaScript",
-            kind: vscode_languageserver_1.CompletionItemKind.Text,
-            data: 2
-        }
-    ];
+connection.onCompletion((textDocumentPosition) => {
+    const w2file = new w2file_1.W2File(opendoc);
+    return w2file.completionItems(textDocumentPosition);
 });
 // This handler resolves additional information for the item selected in
 // the completion list.
@@ -173,25 +167,23 @@ connection.onCompletionResolve((item) => {
     }
     return item;
 });
-/*
-connection.onDidOpenTextDocument((params) => {
+connection.onDidOpenTextDocument(params => {
     // A text document got opened in VSCode.
     // params.uri uniquely identifies the document. For documents store on disk this is a file URI.
     // params.text the initial full content of the document.
     connection.console.log(`${params.textDocument.uri} opened.`);
 });
-connection.onDidChangeTextDocument((params) => {
+connection.onDidChangeTextDocument(params => {
     // The content of a text document did change in VSCode.
     // params.uri uniquely identifies the document.
     // params.contentChanges describe the content changes to the document.
     connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
 });
-connection.onDidCloseTextDocument((params) => {
+connection.onDidCloseTextDocument(params => {
     // A text document got closed in VSCode.
     // params.uri uniquely identifies the document.
     connection.console.log(`${params.textDocument.uri} closed.`);
 });
-*/
 // Make the text document manager listen on the connection
 // for open, change and close text document events
 documents.listen(connection);

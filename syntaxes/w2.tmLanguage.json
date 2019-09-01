@@ -1,34 +1,540 @@
 {
-  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "information_for_contributors": [
+    "This file has been converted from https://github.com/atom/language-xml/blob/master/grammars/xml.cson",
+    "If you want to provide a fix or improvement, please create a pull request against the original repository.",
+    "Once accepted there, we are happy to receive an update request."
+  ],
+  "version": "https://github.com/atom/language-xml/commit/7bc75dfe779ad5b35d9bf4013d9181864358cb49",
   "name": "w2",
+  "scopeName": "text.xml.w2",
   "patterns": [
     {
-      "include": "#keywords"
+      "begin": "(<\\?)\\s*([-_a-zA-Z0-9]+)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.tag.xml"
+        },
+        "2": {
+          "name": "entity.name.tag.xml"
+        }
+      },
+      "end": "(\\?>)",
+      "name": "meta.tag.preprocessor.xml",
+      "patterns": [
+        {
+          "match": " ([a-zA-Z-]+)",
+          "name": "entity.other.attribute-name.xml"
+        },
+        {
+          "include": "#doublequotedString"
+        },
+        {
+          "include": "#singlequotedString"
+        }
+      ]
     },
     {
-      "include": "#strings"
+      "begin": "(<!)(DOCTYPE)\\s+([:a-zA-Z_][:a-zA-Z0-9_.-]*)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.tag.xml"
+        },
+        "2": {
+          "name": "keyword.other.doctype.xml"
+        },
+        "3": {
+          "name": "variable.language.documentroot.xml"
+        }
+      },
+      "end": "\\s*(>)",
+      "name": "meta.tag.sgml.doctype.xml",
+      "patterns": [
+        {
+          "include": "#internalSubset"
+        }
+      ]
+    },
+    {
+      "include": "#comments"
+    },
+    {
+      "begin": "(<)((?:([-_a-zA-Z0-9]+)(:))?([-_a-zA-Z0-9:]+))(?=(\\s[^>]*)?></\\2>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.xml"
+        },
+        "2": {
+          "name": "entity.name.tag.xml"
+        },
+        "3": {
+          "name": "entity.name.tag.namespace.xml"
+        },
+        "4": {
+          "name": "punctuation.separator.namespace.xml"
+        },
+        "5": {
+          "name": "entity.name.tag.localname.xml"
+        }
+      },
+      "end": "(>)(</)((?:([-_a-zA-Z0-9]+)(:))?([-_a-zA-Z0-9:]+))(>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.xml"
+        },
+        "2": {
+          "name": "punctuation.definition.tag.xml"
+        },
+        "3": {
+          "name": "entity.name.tag.xml"
+        },
+        "4": {
+          "name": "entity.name.tag.namespace.xml"
+        },
+        "5": {
+          "name": "punctuation.separator.namespace.xml"
+        },
+        "6": {
+          "name": "entity.name.tag.localname.xml"
+        },
+        "7": {
+          "name": "punctuation.definition.tag.xml"
+        }
+      },
+      "name": "meta.tag.no-content.xml",
+      "patterns": [
+        {
+          "include": "#tagStuff"
+        }
+      ]
+    },
+    {
+      "begin": "(</?)(?:([-\\w\\.]+)((:)))?([-\\w\\.:]+)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.tag.xml"
+        },
+        "2": {
+          "name": "entity.name.tag.namespace.xml"
+        },
+        "3": {
+          "name": "entity.name.tag.xml"
+        },
+        "4": {
+          "name": "punctuation.separator.namespace.xml"
+        },
+        "5": {
+          "name": "entity.name.tag.localname.xml"
+        }
+      },
+      "end": "(/?>)",
+      "name": "meta.tag.xml",
+      "patterns": [
+        {
+          "include": "#tagStuff"
+        }
+      ]
+    },
+    {
+      "include": "#entity"
+    },
+    {
+      "include": "#bare-ampersand"
+    },
+    {
+      "begin": "<%@",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.begin.xml"
+        }
+      },
+      "end": "%>",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.end.xml"
+        }
+      },
+      "name": "source.java-props.embedded.xml",
+      "patterns": [
+        {
+          "match": "page|include|taglib",
+          "name": "keyword.other.page-props.xml"
+        }
+      ]
+    },
+    {
+      "begin": "<%[!=]?(?!--)",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.begin.xml"
+        }
+      },
+      "end": "(?!--)%>",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.end.xml"
+        }
+      },
+      "name": "source.java.embedded.xml",
+      "patterns": [
+        {
+          "include": "source.java"
+        }
+      ]
+    },
+    {
+      "begin": "<!\\[CDATA\\[",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.begin.xml"
+        }
+      },
+      "end": "]]>",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.embedded.end.xml"
+        }
+      },
+      "name": "source.java.embedded.xml",
+      "patterns": [
+        {
+          "include": "#w2"
+        }
+      ]
     }
   ],
   "repository": {
-    "keywords": {
+    "EntityDecl": {
+      "begin": "(<!)(ENTITY)\\s+(%\\s+)?([:a-zA-Z_][:a-zA-Z0-9_.-]*)(\\s+(?:SYSTEM|PUBLIC)\\s+)?",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.tag.xml"
+        },
+        "2": {
+          "name": "keyword.other.entity.xml"
+        },
+        "3": {
+          "name": "punctuation.definition.entity.xml"
+        },
+        "4": {
+          "name": "variable.language.entity.xml"
+        },
+        "5": {
+          "name": "keyword.other.entitytype.xml"
+        }
+      },
+      "end": "(>)",
       "patterns": [
         {
-          "name": "keyword.control.w2",
-          "match": "\\b(if|while|for|return)\\b"
+          "include": "#doublequotedString"
+        },
+        {
+          "include": "#singlequotedString"
         }
       ]
     },
-    "strings": {
-      "name": "string.quoted.double.w2",
+    "bare-ampersand": {
+      "match": "&",
+      "name": "invalid.illegal.bad-ampersand.xml"
+    },
+    "doublequotedString": {
       "begin": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.xml"
+        }
+      },
       "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.xml"
+        }
+      },
+      "name": "string.quoted.double.xml",
       "patterns": [
         {
-          "name": "constant.character.escape.w2",
-          "match": "\\\\."
+          "include": "#entity"
+        },
+        {
+          "include": "#bare-ampersand"
+        }
+      ]
+    },
+    "entity": {
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.constant.xml"
+        },
+        "3": {
+          "name": "punctuation.definition.constant.xml"
+        }
+      },
+      "match": "(&)([:a-zA-Z_][:a-zA-Z0-9_.-]*|#[0-9]+|#x[0-9a-fA-F]+)(;)",
+      "name": "constant.character.entity.xml"
+    },
+    "internalSubset": {
+      "begin": "(\\[)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.constant.xml"
+        }
+      },
+      "end": "(\\])",
+      "name": "meta.internalsubset.xml",
+      "patterns": [
+        {
+          "include": "#EntityDecl"
+        },
+        {
+          "include": "#parameterEntity"
+        },
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "parameterEntity": {
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.constant.xml"
+        },
+        "3": {
+          "name": "punctuation.definition.constant.xml"
+        }
+      },
+      "match": "(%)([:a-zA-Z_][:a-zA-Z0-9_.-]*)(;)",
+      "name": "constant.character.parameter-entity.xml"
+    },
+    "singlequotedString": {
+      "begin": "'",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.xml"
+        }
+      },
+      "end": "'",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.xml"
+        }
+      },
+      "name": "string.quoted.single.xml",
+      "patterns": [
+        {
+          "include": "#entity"
+        },
+        {
+          "include": "#bare-ampersand"
+        }
+      ]
+    },
+    "tagStuff": {
+      "patterns": [
+        {
+          "captures": {
+            "1": {
+              "name": "entity.other.attribute-name.namespace.xml"
+            },
+            "2": {
+              "name": "entity.other.attribute-name.xml"
+            },
+            "3": {
+              "name": "punctuation.separator.namespace.xml"
+            },
+            "4": {
+              "name": "entity.other.attribute-name.localname.xml"
+            }
+          },
+          "match": "(?:^|\\s+)(?:([-\\w.]+)((:)))?([-\\w.:]+)\\s*="
+        },
+        {
+          "include": "#doublequotedString"
+        },
+        {
+          "include": "#singlequotedString"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "begin": "<%--",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.xml"
+            },
+            "end": "--%>",
+            "name": "comment.block.xml"
+          }
+        },
+        {
+          "begin": "<!--",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.xml"
+            }
+          },
+          "end": "-->",
+          "name": "comment.block.xml",
+          "patterns": [
+            {
+              "begin": "--(?!>)",
+              "captures": {
+                "0": {
+                  "name": "invalid.illegal.bad-comments-or-CDATA.xml"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "w2": {
+      "patterns": [
+        {
+          "include": "#w2comments"
+        },
+        {
+          "include": "#numbers"
+        },
+        {
+          "include": "#w2keywords"
+        },
+        {
+          "match": ",",
+          "name": "punctuation.separator.delimiter.java"
+        },
+        {
+          "match": "\\.",
+          "name": "punctuation.separator.period.java"
+        },
+        {
+          "match": ";",
+          "name": "punctuation.terminator.java"
+        }
+      ]
+    },
+    "w2comments": {
+      "patterns": [
+        {
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.java"
+            }
+          },
+          "match": "/\\*\\*/",
+          "name": "comment.block.empty.java"
+        },
+        {
+          "include": "#w2comments-inline"
+        }
+      ]
+    },
+    "w2comments-inline": {
+      "patterns": [
+        {
+          "begin": "/\\*",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.java"
+            }
+          },
+          "end": "\\*/",
+          "name": "comment.block.java"
+        },
+        {
+          "begin": "(^[ \\t]+)?(?=//)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.whitespace.comment.leading.java"
+            }
+          },
+          "end": "(?!\\G)",
+          "patterns": [
+            {
+              "begin": "//",
+              "beginCaptures": {
+                "0": {
+                  "name": "punctuation.definition.comment.java"
+                }
+              },
+              "end": "\\n",
+              "name": "comment.line.double-slash.java"
+            }
+          ]
+        }
+      ]
+    },
+    "w2keywords": {
+      "patterns": [
+        {
+          "match": "\\bthrow\\b",
+          "name": "keyword.control.throw.java"
+        },
+        {
+          "match": "\\?|:",
+          "name": "keyword.control.ternary.java"
+        },
+        {
+          "match": "\\b(return|break|case|continue|default|do|while|for|switch|if|else)\\b",
+          "name": "keyword.control.java"
+        },
+        {
+          "match": "(<<|>>>?|~|\\^)",
+          "name": "keyword.operator.bitwise.java"
+        },
+        {
+          "match": "((&|\\^|\\||<<|>>>?)=)",
+          "name": "keyword.operator.assignment.bitwise.java"
+        },
+        {
+          "match": "(===?|!=|<=|>=|<>|<|>)",
+          "name": "keyword.operator.comparison.java"
+        },
+        {
+          "match": "([+*/%-]=)",
+          "name": "keyword.operator.assignment.arithmetic.java"
+        },
+        {
+          "match": "(=)",
+          "name": "keyword.operator.assignment.java"
+        },
+        {
+          "match": "(\\-\\-|\\+\\+)",
+          "name": "keyword.operator.increment-decrement.java"
+        },
+        {
+          "match": "(\\-|\\+|\\*|\\/|%)",
+          "name": "keyword.operator.arithmetic.java"
+        },
+        {
+          "match": "(!|&&|\\|\\|)",
+          "name": "keyword.operator.logical.java"
+        },
+        {
+          "match": "(\\||&)",
+          "name": "keyword.operator.bitwise.java"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "match": "(?x)\n\\b(?<!\\$)\n0(x|X)\n(\n  (?<!\\.)[0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?[Ll]?(?!\\.)\n  |\n  (\n    [0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?\\.?\n    |\n    ([0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?)?\\.[0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?\n  )\n  [Pp][+-]?[0-9]([0-9_]*[0-9])?[FfDd]?\n)\n\\b(?!\\$)",
+          "name": "constant.numeric.hex.java"
+        },
+        {
+          "match": "\\b(?<!\\$)0(b|B)[01]([01_]*[01])?[Ll]?\\b(?!\\$)",
+          "name": "constant.numeric.binary.java"
+        },
+        {
+          "match": "\\b(?<!\\$)0[0-7]([0-7_]*[0-7])?[Ll]?\\b(?!\\$)",
+          "name": "constant.numeric.octal.java"
+        },
+        {
+          "match": "(?x)\n(?<!\\$)\n(\n  \\b[0-9]([0-9_]*[0-9])?\\.\\B(?!\\.)\n  |\n  \\b[0-9]([0-9_]*[0-9])?\\.([Ee][+-]?[0-9]([0-9_]*[0-9])?)[FfDd]?\\b\n  |\n  \\b[0-9]([0-9_]*[0-9])?\\.([Ee][+-]?[0-9]([0-9_]*[0-9])?)?[FfDd]\\b\n  |\n  \\b[0-9]([0-9_]*[0-9])?\\.([0-9]([0-9_]*[0-9])?)([Ee][+-]?[0-9]([0-9_]*[0-9])?)?[FfDd]?\\b\n  |\n  (?<!\\.)\\B\\.[0-9]([0-9_]*[0-9])?([Ee][+-]?[0-9]([0-9_]*[0-9])?)?[FfDd]?\\b\n  |\n  \\b[0-9]([0-9_]*[0-9])?([Ee][+-]?[0-9]([0-9_]*[0-9])?)[FfDd]?\\b\n  |\n  \\b[0-9]([0-9_]*[0-9])?([Ee][+-]?[0-9]([0-9_]*[0-9])?)?[FfDd]\\b\n  |\n  \\b(0|[1-9]([0-9_]*[0-9])?)(?!\\.)[Ll]?\\b\n)\n(?!\\$)",
+          "name": "constant.numeric.decimal.java"
         }
       ]
     }
-  },
-  "scopeName": "text.xml.w2"
+  }
 }

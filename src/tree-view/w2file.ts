@@ -1,6 +1,11 @@
 import * as constants from "../constants";
 import { DOMParser } from "xmldom";
 import { W2Item } from "./w2item";
+import { TextDocumentPositionParams } from "vscode-languageserver-protocol";
+import {
+  CompletionItem,
+  CompletionItemKind
+} from "vscode-languageserver-types";
 
 // An object which represents a w2 document
 export class W2File {
@@ -35,12 +40,48 @@ export class W2File {
       label = label + " " + element.attributes.getNamedItem("name").value;
     }
 
+    // Include any parameters (for methods)
+    if (element.hasChildNodes) {
+      let params: string = "";
+
+      Array.from(element.childNodes).forEach(node => {
+        const childElement = node as Element;
+        if (childElement.tagName === "param") {
+          if (params !== "") {
+            params = params + ", ";
+          }
+
+          if (childElement.attributes.getNamedItem("name")) {
+            params =
+              params + childElement.attributes.getNamedItem("name").value;
+          }
+
+          if (childElement.attributes.getNamedItem("type")) {
+            params =
+              params +
+              ": " +
+              childElement.attributes.getNamedItem("type").value;
+          }
+        }
+      });
+
+      if (params !== "") {
+        label = label + "(" + params + ")";
+      }
+    }
+
+    // Include any return items
+    if (element.attributes.getNamedItem("return")) {
+      label = label + ": " + element.attributes.getNamedItem("return").value;
+    }
+
     // Work out what type of icon to show
     type = "element";
 
     return new W2Item(label, type);
   }
 
+  // Get children of a given element (or parent if no element passed in)
   getChildren(element?: Node): Node[] {
     if (element) {
       return this._getChildElementArray(<Element>element);
@@ -49,12 +90,176 @@ export class W2File {
     }
   }
 
+  // Get the node at a given position in the file
   getNodeAtPosition(linePosition: number, characterPosition: number): Node {
     return this._getNodeAtPositionCore(
       linePosition,
       characterPosition,
       this._xmlDocument.documentElement
     );
+  }
+
+  // Get a list of completion items at a give poition in the file
+  completionItems(
+    textDocumentPosition: TextDocumentPositionParams
+  ): CompletionItem[] {
+    let items: CompletionItem[] = [];
+
+    items.push({
+      label: "itemText",
+      kind: CompletionItemKind.Text,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+
+    items.push({
+      label: "itemMethod",
+      kind: CompletionItemKind.Method,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemFunction",
+      kind: CompletionItemKind.Function,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemConstructor",
+      kind: CompletionItemKind.Constructor,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemField",
+      kind: CompletionItemKind.Field,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemVariable",
+      kind: CompletionItemKind.Variable,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemClass",
+      kind: CompletionItemKind.Class,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemInterface",
+      kind: CompletionItemKind.Interface,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemModule",
+      kind: CompletionItemKind.Module,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemProperty",
+      kind: CompletionItemKind.Property,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+
+    items.push({
+      label: "itemUnit",
+      kind: CompletionItemKind.Unit,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemValue",
+      kind: CompletionItemKind.Value,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemEnum",
+      kind: CompletionItemKind.Enum,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemKeyword",
+      kind: CompletionItemKind.Keyword,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemSnippet",
+      kind: CompletionItemKind.Snippet,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+
+    items.push({
+      label: "itemColor",
+      kind: CompletionItemKind.Color,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemFile",
+      kind: CompletionItemKind.File,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemReference",
+      kind: CompletionItemKind.Reference,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemFolder",
+      kind: CompletionItemKind.Folder,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemEnumMember",
+      kind: CompletionItemKind.EnumMember,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemConstant",
+      kind: CompletionItemKind.Constant,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemStruct",
+      kind: CompletionItemKind.Struct,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemEvent",
+      kind: CompletionItemKind.Event,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemOperator",
+      kind: CompletionItemKind.Operator,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+    items.push({
+      label: "itemTypeParameter",
+      kind: CompletionItemKind.TypeParameter,
+      detail: "something or other",
+      documentation: "some more stuff"
+    });
+
+    return items;
   }
 
   private _getNodeAtPositionCore(

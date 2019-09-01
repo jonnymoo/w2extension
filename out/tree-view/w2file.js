@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const xmldom_1 = require("xmldom");
 const w2item_1 = require("./w2item");
+const vscode_languageserver_types_1 = require("vscode-languageserver-types");
 // An object which represents a w2 document
 class W2File {
     // Creates a new instance of w2 document
@@ -27,10 +28,40 @@ class W2File {
         if (element.attributes.getNamedItem("name")) {
             label = label + " " + element.attributes.getNamedItem("name").value;
         }
+        // Include any parameters (for methods)
+        if (element.hasChildNodes) {
+            let params = "";
+            Array.from(element.childNodes).forEach(node => {
+                const childElement = node;
+                if (childElement.tagName === "param") {
+                    if (params !== "") {
+                        params = params + ", ";
+                    }
+                    if (childElement.attributes.getNamedItem("name")) {
+                        params =
+                            params + childElement.attributes.getNamedItem("name").value;
+                    }
+                    if (childElement.attributes.getNamedItem("type")) {
+                        params =
+                            params +
+                                ": " +
+                                childElement.attributes.getNamedItem("type").value;
+                    }
+                }
+            });
+            if (params !== "") {
+                label = label + "(" + params + ")";
+            }
+        }
+        // Include any return items
+        if (element.attributes.getNamedItem("return")) {
+            label = label + ": " + element.attributes.getNamedItem("return").value;
+        }
         // Work out what type of icon to show
         type = "element";
         return new w2item_1.W2Item(label, type);
     }
+    // Get children of a given element (or parent if no element passed in)
     getChildren(element) {
         if (element) {
             return this._getChildElementArray(element);
@@ -39,8 +70,164 @@ class W2File {
             return [this._xmlDocument.lastChild];
         }
     }
+    // Get the node at a given position in the file
     getNodeAtPosition(linePosition, characterPosition) {
         return this._getNodeAtPositionCore(linePosition, characterPosition, this._xmlDocument.documentElement);
+    }
+    // Get a list of completion items at a give poition in the file
+    completionItems(textDocumentPosition) {
+        let items = [];
+        items.push({
+            label: "itemText",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Text,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemMethod",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Method,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemFunction",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Function,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemConstructor",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Constructor,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemField",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Field,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemVariable",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Variable,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemClass",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Class,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemInterface",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Interface,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemModule",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Module,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemProperty",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Property,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemUnit",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Unit,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemValue",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Value,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemEnum",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Enum,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemKeyword",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Keyword,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemSnippet",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Snippet,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemColor",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Color,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemFile",
+            kind: vscode_languageserver_types_1.CompletionItemKind.File,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemReference",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Reference,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemFolder",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Folder,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemEnumMember",
+            kind: vscode_languageserver_types_1.CompletionItemKind.EnumMember,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemConstant",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Constant,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemStruct",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Struct,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemEvent",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Event,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemOperator",
+            kind: vscode_languageserver_types_1.CompletionItemKind.Operator,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        items.push({
+            label: "itemTypeParameter",
+            kind: vscode_languageserver_types_1.CompletionItemKind.TypeParameter,
+            detail: "something or other",
+            documentation: "some more stuff"
+        });
+        return items;
     }
     _getNodeAtPositionCore(linePosition, characterPosition, contextNode) {
         if (!contextNode) {

@@ -17,6 +17,8 @@ import {
   TextDocumentPositionParams
 } from "vscode-languageserver";
 
+import { W2File } from "../tree-view/w2file";
+
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 let connection = createConnection(ProposedFeatures.all);
@@ -24,6 +26,7 @@ let connection = createConnection(ProposedFeatures.all);
 // Create a simple text document manager. The text document manager
 // supports full document sync only
 let documents: TextDocuments = new TextDocuments();
+let opendoc: string = "";
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -127,6 +130,7 @@ documents.onDidChangeContent(change => {
 });
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+  /*
   // In this simple example we get the settings for every validate run.
   let settings = await getDocumentSettings(textDocument.uri);
 
@@ -171,6 +175,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
   // Send the computed diagnostics to VSCode.
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+  */
 }
 
 connection.onDidChangeWatchedFiles(_change => {
@@ -180,22 +185,9 @@ connection.onDidChangeWatchedFiles(_change => {
 
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
-  (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    // The pass parameter contains the position of the text document in
-    // which code complete got requested. For the example we ignore this
-    // info and always provide the same completion items.
-    return [
-      {
-        label: "TypeScript",
-        kind: CompletionItemKind.Text,
-        data: 1
-      },
-      {
-        label: "JavaScript",
-        kind: CompletionItemKind.Text,
-        data: 2
-      }
-    ];
+  (textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
+    const w2file = new W2File(opendoc);
+    return w2file.completionItems(textDocumentPosition);
   }
 );
 
@@ -214,25 +206,27 @@ connection.onCompletionResolve(
   }
 );
 
-/*
-connection.onDidOpenTextDocument((params) => {
-	// A text document got opened in VSCode.
-	// params.uri uniquely identifies the document. For documents store on disk this is a file URI.
-	// params.text the initial full content of the document.
-	connection.console.log(`${params.textDocument.uri} opened.`);
+connection.onDidOpenTextDocument(params => {
+  // A text document got opened in VSCode.
+  // params.uri uniquely identifies the document. For documents store on disk this is a file URI.
+  // params.text the initial full content of the document.
+  connection.console.log(`${params.textDocument.uri} opened.`);
 });
-connection.onDidChangeTextDocument((params) => {
-	// The content of a text document did change in VSCode.
-	// params.uri uniquely identifies the document.
-	// params.contentChanges describe the content changes to the document.
-	connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
+connection.onDidChangeTextDocument(params => {
+  // The content of a text document did change in VSCode.
+  // params.uri uniquely identifies the document.
+  // params.contentChanges describe the content changes to the document.
+  connection.console.log(
+    `${params.textDocument.uri} changed: ${JSON.stringify(
+      params.contentChanges
+    )}`
+  );
 });
-connection.onDidCloseTextDocument((params) => {
-	// A text document got closed in VSCode.
-	// params.uri uniquely identifies the document.
-	connection.console.log(`${params.textDocument.uri} closed.`);
+connection.onDidCloseTextDocument(params => {
+  // A text document got closed in VSCode.
+  // params.uri uniquely identifies the document.
+  connection.console.log(`${params.textDocument.uri} closed.`);
 });
-*/
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events
