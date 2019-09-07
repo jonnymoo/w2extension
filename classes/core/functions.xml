@@ -1,0 +1,482 @@
+<class name="functions" topmost="1" fauthor="$Author: Jonathan Muir $" fdate="$Date: 11/08/04 9:57 $" frevision="$Revision: 5 $">
+<members />
+<static>
+<method name="BroadCast">
+<param name="Message" type="object" />
+<param name="P1" type="object" />
+<param name="P2" type="object" />
+<param name="P3" type="object" />
+<param name="P4" type="object" />
+<param name="P5" type="object" />
+<![CDATA[//@cmember BroadCast
+//@param object | Message |
+//@param object | P1 |
+//@param object | P2 |
+//@param object | P3 |
+//@param object | P4 |
+//@param object | P5 |
+//@version Nick Gomm | 03-10-01 12:39 |
+//@version chris.moran | 22-11-01 17:42 |
+//@version sorina.grave | 27-11-01 15:57 |
+//@version Jonathan.Muir | 04-02-02 14:08 |
+//@version Darren.Ball | 23-09-02 15:41 |
+//@version Jonny Moo | 15-01-03 16:58 |
+//@version Jonathan.Muir | 22-08-03 14:51 |
+
+// Get all open windows
+int i;
+
+while (1)
+{
+    // Get next window
+
+    Object F = Sys::GetOpenWindow(i);
+
+    String szClassName = F.ClassName();
+
+    if(F==NULL) break;
+    if(!(szClassName.IndexOf("wclassview",0,1)>0||szClassName.indexof("::virt",0,1) > 0||szClassName.indexof("/virt",0,1) > 0))
+    {
+        if (TraverseWindows(F, Message, P1, P2, P3, P4, P5) == 0)
+        {
+            // We have exhausted all the windows so break
+            break;
+        }
+    }
+
+    // Next window
+    i++;
+}]]>
+</method>
+<method name="Traverse">
+<param name="F" type="object" />
+<param name="Message" type="object" />
+<param name="P1" type="object" />
+<param name="P2" type="object" />
+<param name="P3" type="object" />
+<param name="P4" type="object" />
+<param name="P5" type="object" />
+<![CDATA[//@cmember Traverse
+//@param object | F |
+//@param object | Message |
+//@param object | P1 |
+//@param object | P2 |
+//@param object | P3 |
+//@param object | P4 |
+//@param object | P5 |
+//@version chris.moran | 22-11-01 16:43 |
+//@version Phil Shippam | 29-01-02 18:00 |
+//@version Darren.Ball | 23-09-02 15:41 |
+//@version Jonny Moo | 15-01-03 16:45 |
+
+// Check control type
+if (F.isType("MultiPane"))
+{
+    // Multipane control - Check all panes for method name
+    int i = 0;
+    while (1)
+    {
+        // Get the next pane
+        Object P = F.GetPane(i);
+        if (P == NULL) break;
+        if (P.ClassName().indexof("virt",0) > 0) break;
+        // Has the pane got the required method
+        if (P.HasMethod(Message))
+        {
+            // Execute the method passing the parameters
+            P.ExecMethod(Message, P1, P2, P3, P4, P5);
+        }
+
+        // Traverse all the controls - Some may be components or other multipanes
+        // Now check for sub-components etc
+        int j = 0;
+        Object C = P.GetControl(j);
+        while (C != NULL)
+        {
+           Traverse(C, Message, P1, P2, P3, P4, P5);
+           j++;
+           C = P.GetControl(j);
+        }
+
+        // Get next pane
+        i++;
+    }
+}
+else if (F.isType("Component"))
+{
+    // Check that the component is loaded
+    if (F.CompClass() != "")
+    {
+        // Has the component class got the required method
+        if (F.HasMethod(Message))
+        {
+            // Execute the method passing the parameters
+            F.ExecMethod(Message, P1, P2, P3, P4, P5);
+        }
+
+        // Now check for sub-components etc
+        int i = 0;
+        Object C = F.GetControl(i);
+        while (C != NULL)
+        {
+           Traverse(C, Message, P1, P2, P3, P4, P5);
+           i++;
+           C = F.GetControl(i);
+        }
+    }
+}]]>
+</method>
+<method name="TraverseWindows">
+<param name="TheWindow" type="object" />
+<param name="Message" type="object" />
+<param name="P1" type="object" />
+<param name="P2" type="object" />
+<param name="P3" type="object" />
+<param name="P4" type="object" />
+<param name="P5" type="object" />
+<![CDATA[//@cmember TraverseWindows
+//@param object | TheWindow |
+//@param object | Message |
+//@param object | P1 |
+//@param object | P2 |
+//@param object | P3 |
+//@param object | P4 |
+//@param object | P5 |
+//@version chris.moran | 22-11-01 17:42 |
+//@version Darren.Ball | 20-09-02 11:41 |
+//@i
+
+
+// Check if this window has the required method
+if (TheWindow.HasMethod(Message))
+{
+    // Execute the method passing the parameters
+    TheWindow.ExecMethod(Message, P1, P2, P3, P4, P5);
+}
+
+// Now check for components and multipanes - They may also have the method in their class
+for (int j=0;j<TheWindow.ControlCount();j++)
+{
+    Object C = TheWindow.GetControl(j);
+    Traverse(C, Message, P1, P2, P3, P4, P5);
+}
+
+
+for(int i=0;;i++)
+{
+
+    Object TheChildWindow = TheWindow.GetPopup(i);
+
+    if(TheChildWindow==NULL) break;
+
+
+    TraverseWindows(TheChildWindow, Message, P1, P2, P3, P4, P5);
+
+}
+
+return 1;]]>
+</method>
+<method name="IndexOfOneOf" return="int">
+<param name="S" type="object" />
+<param name="SearchList" type="object" />
+<param name="ind" type="object" />
+<![CDATA[//@cmember IndexOfOneOf
+//@param object | S | The String to search through
+//@param object | SearchList | List of characters to look for
+//@param object | ind | Start from index
+//@return int | index (-1 if not found)
+//@version Jonathan.Muir | 03-01-02 16:11 |
+//@i  Search a string for one of many characters
+
+for(int i=ind;i<S.Length();i++)
+{
+    for(int j=0;j<SearchList.Length();j++)
+    {
+        if(S[i]==SearchList[j])
+        {
+            return i;
+        }
+    }
+
+}
+
+return -1;]]>
+</method>
+<method name="ReportError" return="string">
+<param name="Res" type="object" />
+<param name="szSQL" type="string" />
+<param name="bQuiet" type="int" />
+<![CDATA[//@cmember ReportError
+//@param object | Res |
+//@param string | szSQL |
+//@param int | bQuiet | 1 to not give user interaction - error will returned
+//@return string | The error message
+//@version Jonathan.Muir | 12-02-02 10:07 |
+//@version Simon.Hickling | 08-05-02 16:55 |
+//@version Matt.Plaxton | 06-06-02 16:03 |
+//@version Jonathan.Muir | 22-08-03 14:51 |
+//@i
+
+string szAttrs = "";
+string szPreMessage = "";
+if(Res.GetMember("ErrorAttrs")!=NULL) szAttrs = Res.ErrorAttrs;
+
+// Do we need to offer the ViewDCHInfo window?
+
+/*
+int ID = 0;
+string szTab = "";
+for(int i=0;i<=classes::UPM2::Global::StringFunctions::CountToken(szAttrs,",");i++)
+{
+    string TheTok = szAttrs.GetToken(i);
+    if(TheTok.GetToken(0,"=").eq("TAB"))
+    {
+        szTab = TheTok.GetToken(1,"=");
+    }
+    if(TheTok.GetToken(0,"=").eq("ID"))
+    {
+        ID = TheTok.GetToken(1,"=").Val();
+    }
+    if(TheTok.GetToken(0,"=").eq("FOLDERID"))
+    {
+        ID = TheTok.GetToken(1,"=").Val();
+        classes::upm2::baseclasses::folder F;
+        F.SetPKValue(ID);
+        F.RefreshObject();
+        if(F.IsEmpty())
+        {
+            szPreMessage=classes::UPM2::Global::Environment::ParseText("[FOLDER] ID="+ID+": ");
+        }
+        else
+        {
+            szPreMessage=classes::UPM2::Global::Environment::ParseText("[FOLDER] Details="+F.GetContentsDesc()+": ");
+        }
+    }
+}
+
+if(ID>0&&szTab!="")
+{
+    // Offer the DCH Info Viewer
+
+    // Use the active window to get the ClientID
+
+    object TheKO = classes::UPM2::Global::Environment::GetKeyObject(sys::ActiveWindow());
+    int ClientID = 0;
+    if(TheKO != NULL) ClientID = TheKO.ClientID;
+
+    if(bQuiet==NULL||bQuiet!=1)
+    {
+        if (message(
+            szPreMessage+classes::UPM2::Global::Environment::ParseText(""+Res.Error,ClientID)+"\r\nPress Yes To View DCH Information",
+            "Datachange",
+            classes::core::windows::MB_YESNO+classes::Core::Windows::MB_DEFBUTTON2+classes::Core::windows::MB_ICONSTOP)
+            == classes::core::windows::IDYES)
+        {
+            classes::UPM2::Creators::wDCHInfoViewer::OpenWindow(szTab,id, sys::ActiveWindow() );
+        }
+    }
+
+    return szPreMessage+classes::UPM2::Global::Environment::ParseText(""+Res.Error,ClientID);
+
+}
+*/
+// If we have related SQL then offer to copy to clipboard (unless NoClipBoard)
+
+string szLastSQL = "";
+if(Res.GetMember("LastSQL")!=NULL) szLastSQL = Res.LastSQL;
+if(szSQL!=NULL) szLastSQL = szSQL;
+
+if(szLastSQL==""||szAttrs.FindToken("NoClipBoard")>=0)
+{
+    if(bQuiet==NULL||bQuiet!=1)
+    {
+        message(""+Res.Error,"Error",classes::Core::windows::MB_ICONSTOP);
+    }
+
+    return ""+Res.Error;
+
+}
+else
+{
+
+    if(bQuiet==NULL||bQuiet!=1)
+    {
+
+        if (message(
+            szPreMessage+Res.Error+"\r\nPress Yes To Copy SQL to clipboard",
+            "Database Error",
+            classes::core::windows::MB_YESNO+classes::Core::Windows::MB_DEFBUTTON2+classes::Core::windows::MB_ICONSTOP)
+            == classes::core::windows::IDYES)
+        {
+            sys::CopyToClipBoard(szLastSQL);
+        }
+
+    }
+
+    return szPreMessage+Res.Error;
+
+}]]>
+</method>
+<method name="isObjectEmpty">
+<param name="obj" type="object" />
+<![CDATA[//@cmember IsObjectEmpty
+//@param  Obj | Object | Object to be checked
+//@return integer | 1 if object is empty and 0 if not
+//@version Simon Carroll | 06-02-02 10:17 | 21/05/2001
+//@version sorina.grave | 30-04-02 15:58 |
+//@version Jonny Moo | 25-10-02 12:47 |
+//@i Checks each member of the object to see if it is empty.  If so returns 1 otherwise returns 0
+//@i (became necessary as using "if (obj == null)" would not work if the system knew the class of the object ????
+
+if (obj != null)
+{
+    for(int n=0;;n++)
+    {
+        Object M = Obj.MemberDef(n);
+
+        if (M==null) break;
+
+        string membername = M.Name();
+
+        If (M.IsList())  //If list, check rows.
+        {
+            Object ThisList = Obj.Getmember(n);
+            If (ThisList.Count()>0)
+                return 0;
+
+            continue;
+        }
+        else if (M.IsObject()&&!M.ClassName().eq("Blob")&&!M.ClassName().eq("XML")) //If Object - run this for that object
+        {
+            if(isObjectEmpty(Obj.getMember(n))==0) return 0;
+        }
+        else if(M.ClassName().eq("XML"))
+        {
+            if(Obj.GetMember(n).Count()!=0) return 0;
+
+        }
+        else if(M.ClassName().eq("Blob"))
+        {
+            if(Obj.GetMember(n).Length()!=0) return 0;
+        }
+        else
+        {
+            if (!Obj.GetMember(n).IsBlank())
+            {
+                //object debug = Obj.GetMember(n);
+                return 0;
+            }
+        }
+    }
+}
+
+
+return 1;]]>
+</method>
+<method name="IsSame">
+<param name="Obj1" type="Object" />
+<param name="Obj2" type="Object" />
+<param name="SQLOnly" type="int" />
+<![CDATA[//@cmember IsSame
+//@param Object | Obj1 |
+//@param Object | Obj2 |
+//@param int | SQLOnly |
+//@version jonathan.wright | 18-02-02 12:48 |
+//@version Nick.Gomm | 25-07-02 18:17 |
+//@i        Compares two objects to check if they are the same
+
+// Check for nulls
+if (Obj1 == NULL || Obj2 == NULL) return 0;
+
+// Check class names
+if (Obj1.ClassName() != Obj2.ClassName()) return 0;
+
+// Now go through members
+for (int i = 0; i < Obj1.MemberCount(); i++)
+{
+    // Don't check lists
+    if (!Obj1.GetMember(i).IsList())
+    {
+        // Only check SQL (table column) members
+        if (SQLOnly && (Obj1.GetMember(i).SQLName() == "" || Obj1.GetMember(i).SQLName() == "~")) continue;
+
+        // Recurse if required
+        if (Obj1.GetMember(i).IsObject())
+        {
+            int ok = IsSame(Obj1.GetMember(i), Obj2.GetMember(i), SQLOnly);
+            if (!ok) return 0;
+        }
+        else if (Obj1.GetMember(i).toString() != Obj2.GetMember(i).toString())
+        {
+            // Do not check audit history changes
+            if (Obj1.GetMemberDef(i).Name().toUpper() != "MODDATE" &&
+                Obj1.GetMemberDef(i).Name().toUpper() != "MODUSER" &&
+                Obj1.GetMemberDef(i).Name().toUpper() != "PROCESSNO" &&
+                Obj1.GetMemberDef(i).Name().toUpper() != "MODTYPE")
+            {
+                // Different members
+                return 0;
+            }
+        }
+    }
+}
+
+// Ok
+return 1;]]>
+</method>
+<method name="debugobj">
+<param name="TheObj" type="object" />
+<param name="FileName" type="object" />
+<![CDATA[//@cmember debugobj
+//@param object | TheObj |
+//@param object | FileName |
+//@version Administrator | 29-12-02 14:55 |
+//@version Jonny Moo | 28-01-03 13:24 |
+//@i
+
+File F;
+
+F.CreateFile(FileName);
+
+F.WriteXML("DEBUG OBJECT",TheObj);
+
+F.Close();]]>
+</method>
+<method name="AskQuestion" return="object">
+<param name="Question" type="string" />
+<param name="AnswerList" type="string" />
+<param name="Form" type="object" />
+<param name="TheDefault" type="object" />
+<param name="bMakeNotModal" type="integer" />
+<param name="PL" type="object" />
+<param name="bIWantADate" type="object" />
+<param name="iWidth" type="integer" />
+<![CDATA[//@cmember AskQuestion
+//@param string | Question |
+//@param string | AnswerList | Pipe delimitted set of answers
+//@param object | Form | Pass form if you want to open as a child window
+//@param object | TheDefault | Default Answer
+//@param integer | bMakeNotModal |
+//@param object | PL | Can Pass a pick list (as a list) instead of an Answer list
+//@param object | bIWantADate | Set To 1 to get a date back
+//@param integer | iWidth |
+//@return object | The Answer
+//@version Jonathan.Muir | 28-03-02 11:00 |
+//@version chris.moran | 15-05-02 10:12 |
+//@version Jonathan.Muir | 15-05-02 16:19 |
+//@version Administrator | 23-06-02 19:54 |
+//@version chris.moran | 12-09-02 14:37 |
+//@version Jonny Moo | 11-11-02 11:36 |
+//@version Richard.Lee | 26-11-02 11:44 |
+//@version Jonathan.Muir | 19-07-04 15:12 |
+//@i This has now been moved to classes::UPM2::Letters::wLetterQuestion
+
+return classes::core::WQuestion::AskQuestion(Question,AnswerList,Form,TheDefault,bMakeNotModal,PL,bIWantADate,iWidth);]]>
+</method>
+</static>
+<return>
+<rmeth name="IndexOfOneOf" cls="int" />
+<rmeth name="ReportError" cls="string" />
+<rmeth name="AskQuestion" cls="object" />
+</return>
+</class>

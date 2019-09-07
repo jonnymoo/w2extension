@@ -1,0 +1,236 @@
+<form name="wxmlparam" margin="0" closeondeactivate="1" nocaption="1" esccancel="1" fauthor="$Author: Simon.c $" fdate="$Date: 29/01/03 12:55 $" frevision="$Revision: 1 $">
+<members>
+<List name="AvailableMessages" cls="xmlAction" />
+<String name="parameter" />
+<String name="messageTosend" />
+<String name="Address" />
+<String name="MessageParameters" />
+<method name="init">
+<param name="param" type="object" />
+<param name="reftype" type="object" />
+<![CDATA[//@cmember init
+//@param object | param |
+//@param object | reftype |
+//@version Simon Carroll | 28-01-03 15:38 |
+//@i
+
+xmlAction::GetMessagesForRefType(reftype, AvailableMessages);
+
+if (AvailableMessages.Count() == 0)
+{
+    close();
+    message("There are no xml messages currently set up for "+reftype);
+    return;
+}
+
+parameter = param;
+
+DeconstructParameters();
+
+string helptext;
+Object A = AvailableMessages.FindRow(MessageTosend.val());
+if (A == null)
+    return;
+
+Object Handler = A.returnHandler();
+helptext = Handler.getHelpText();
+
+idHelptext.setText(helptext);
+
+SizeToFit();]]>
+</method>
+<method name="onClose">
+<param name="ctrl" type="image" />
+<![CDATA[//@cmember onClose
+//@param image | ctrl |
+//@version Simon Carroll | 27-01-03 16:17 |
+//@i
+
+close();]]>
+</method>
+<method name="DoParam">
+<param name="ctrl" type="image" />
+<![CDATA[//@cmember DoParam
+//@param image | ctrl |
+//@version Simon Carroll | 28-01-03 10:35 |
+//@i
+
+Object C = AvailableMessages.FindRow(idMessage.getText().val());
+
+if (C==null)
+    return;
+
+Object Hdl = C.ReturnHandler();
+
+Hdl.DoParam(idparam, this);]]>
+</method>
+<method name="OnChange">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember OnChange
+//@param edit | ctrl |
+//@version Simon Carroll | 28-01-03 10:22 |
+//@i
+string g = ctrl.GetText();
+
+if (ctrl == idmessage)
+{
+    string helptext;
+    string address;
+    if (g != "")
+    {
+        Object A = AvailableMessages.FindRow(ctrl.getText().val());
+        Object Handler = A.returnHandler();
+        helptext = Handler.getHelpText();
+        address = Handler.GetAddress();
+        AvailableMessages.setCurrent(AvailableMessages.FindIndex(A));
+    }
+    else
+    {
+        helptext = "";
+        address = "";
+    }
+
+    idHelptext.setText(helptext);
+    idadd.SetText(address);
+}
+
+reconstructParameters();
+FitRecursive(1);
+SizeToFit();]]>
+</method>
+<method name="DeconstructParameters">
+<![CDATA[//@cmember DeconstructParameters
+//@param
+//@return
+//@version Simon Carroll | 28-01-03 10:18 |
+//@i
+
+for (int i = 0;; i++)
+{
+    string thisparam = Parameter.getToken(i,"|");
+    if (!thisparam) break;
+    if (thisparam.BeginsWith("M:"))
+        messageTosend = thisParam.Right(thisparam.length()-2);
+    else if (thisparam.BeginsWith("A:"))
+        address = thisparam.Right(thisparam.length()-2);
+    else if (thisparam.BeginsWith("P:"))
+        MessageParameters = thisparam.Right(thisparam.length()-2);
+
+}]]>
+</method>
+<method name="ReconstructParameters">
+<![CDATA[//@cmember ReconstructParameters
+//@param
+//@return
+//@version Simon Carroll | 28-01-03 15:47 |
+//@i
+
+parameter.Reset();
+
+if (messageTosend)
+    parameter.AddToken("M:"+messageTosend,"|");
+
+if (Address)
+    parameter.AddToken("A:"+Address,"|");
+
+if (MessageParameters)
+    parameter.AddToken("P:"+MessageParameters,"|");
+
+GetParent().idParam.settext(parameter);
+GetParent().onChange();]]>
+</method>
+</members>
+<static>
+<method name="OpenWin">
+<param name="par" type="object" />
+<param name="param" type="object" />
+<param name="rt" type="object" />
+<![CDATA[//@cmember OpenWin
+//@param object | par |
+//@param object | param |
+//@param object | rt |
+//@version simon.carroll | 13-11-01 12:43 |
+//@version Simon Carroll | 27-01-03 15:48 |
+//@i
+
+Object W = par.GetPopUp("XMLParam");
+If (W!= null)
+{
+    W.Show(0);
+    W.Init(rt, param);
+}
+
+wxmlparam X;
+X.dialog(par);
+X.SetWindowName("XMLParam");
+X.Init(param,rt);]]>
+</method>
+</static>
+<grid>
+<row>
+<col tpad="1" rpad="8" bpad="1" align="W" bk="0,128,128">
+<grid>
+<row>
+<col lpad="5" tpad="1" rpad="8" bpad="1" align="W" bk="0,128,128">
+<Label name="DRAG_ME" text="XML Message Parameter Form" tx="255,255,255" style="b" />
+</col>
+<col />
+<col>
+<Image text="Image" img="classes::resource::standard::brw_close2.bmp" onclick="onClose" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="5" tpad="10" rpad="5" bpad="10" align="WH" bk="231,241,241">
+<grid>
+<row>
+<col rpad="3" align="V">
+<Label text="Select an xml message to send" />
+</col>
+<col lpad="3" tpad="1" bpad="1" align="W">
+<Edit name="idMessage" w="200" border="0" pick="AvailableMessages" onchange="OnChange" bind="messageTosend" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Select the Address " />
+</col>
+<col lpad="3" tpad="1" bpad="1" align="W">
+<Edit name="idadd" w="200" border="0" bind="Address" onchange="ReconstructParameters" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Parameters" />
+</col>
+<col tpad="1" bpad="1" align="W">
+<grid>
+<row>
+<col lpad="3" bpad="1" align="W">
+<Edit name="idParam" w="200" border="0" bind="MessageParameters" onchange="ReconstructParameters" />
+</col>
+<col lpad="2" align="V" bk="255,255,255" bksel="255,255,255">
+<Image text="Image" img="classes::resource::standard::blip.bmp" onRightClick="DoParam" onClick="DoParam" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="16" tpad="8" rpad="8" bpad="8" bk="231,241,241" imgtile="8">
+<grid>
+<row>
+<col lpad="12" tpad="12" rpad="21" bpad="21" bk="231,241,241" imgtile="8">
+<Label name="idHelpText" text="Please choose an xml message to send from&#13;&#10;one of the options above." />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

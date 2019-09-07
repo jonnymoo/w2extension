@@ -1,0 +1,195 @@
+<form name="wmessage" thinframe="1" nocaption="1" esccancel="1" fauthor="$Author: Simon.c $" fdate="$Date: 14/07/03 11:30 $" frevision="$Revision: 2 $">
+<members>
+<method name="start">
+<param name="msg" type="object" />
+<param name="from" type="object" />
+<param name="frompc" type="object" />
+<param name="dsent" type="object" />
+<param name="button" type="string" />
+<![CDATA[//@cmember start
+//@param object | msg |
+//@param object | from |
+//@param object | frompc |
+//@param object | dsent |
+//@param string | button |
+//@version Simon Carroll | 11-07-03 16:52 |
+//@i
+
+idFromPc.setText(frompc);
+Object U = classes::workers::all::getuser(from);
+idSentBy.SetText((U != NULL ? U.User_name : "User not Found")+"     ("+from+")");
+idSent.Settext(dsent);
+idMessage.setText( classes::worktray::proc::cwdetails::SplitString(msg,70));
+
+if (button != "")
+{
+    idCancel.SetVisible(1);
+    idOk.SetText(button.GetToken(0,";"));
+    idOk.SetAttr("OnClick","ExecPress");
+    idOk.SetAttr("cls",button.GetToken(1,";"));
+    idOk.SetAttr("method",button.GetToken(2,";"));
+    idOk.SetAttr("params",button.GetToken(3,";"));
+}]]>
+</method>
+<method name="DoClose">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember DoClose
+//@param label | ctrl |
+//@version Simon Carroll | 12-06-03 16:47 |
+//@i
+
+Close();]]>
+</method>
+<method name="ExecPress">
+<param name="ctrl" type="object" />
+<![CDATA[//@cmember ExecPress
+//@param object | ctrl |
+//@version Simon Carroll | 11-07-03 16:57 |
+//@i
+
+string cls = idOk.GetControlAttr("cls");
+string method = idOk.GetControlAttr("method");
+string param = idOK.GetControlAttr("params");
+
+object o;
+
+o = Sys::LoadClass( cls );
+
+if (o==null)
+{
+    message("ERROR IN message - CLASS UNKNOWN");
+    return;
+}
+
+if (!method) method="OpenWin";      // Method defaults to 'OpenWin'
+
+SetWaitCursor();
+
+if (!param)
+    o.ExecMethod( method );
+else
+if (!param.beginsWith("#"))       // Params beginning with a # are passed as a numeric type
+    o.ExecMethod( method, param );
+else
+    o.ExecMethod( method, param.subString(1).val() );]]>
+</method>
+</members>
+<static>
+<method name="main">
+<![CDATA[//@cmember main
+//@version Simon Carroll | 12-06-03 16:32 |
+//@i
+
+wmessage Q;
+Q.Open();
+Q.SizeToFit();
+
+int dtw = Q.DeskTopW();
+int dth = Q.DeskTopH();
+
+int formw = Q.XSize();
+int formh = Q.YSize();
+
+
+Q.SetPos( (dtw - formw) / 2, (dth - formh) / 2);
+Q.SetTopMost(1);]]>
+</method>
+<method name="DisplayMessage">
+<param name="theMessage" type="XML" />
+<![CDATA[//@cmember DisplayMessage
+//@param XML | theMessage |
+//@version Simon Carroll | 11-07-03 16:41 |
+//@i
+
+blob Results;
+
+xml xmlData=classes::core::xml::globalxml::findTag("data",theMessage);
+
+// Kick out user
+
+wMessage Q;
+
+Q.Open();
+
+results.writeXML("success","");
+
+Q.start(xmlData.GetAttr("msg"), xmlData.GetAttr("fromuser"), xmlData.GetAttr("fromhostname"), xmlData.GetAttr("datesent"), xmldata.GetAttr("button"));
+
+Q.SizeToFit();
+
+Q.CenterForm();
+
+Q.SetTopMost(1);
+
+return(results.GetXMLObject());]]>
+</method>
+</static>
+<grid>
+<row>
+<col lpad="5" tpad="2" bpad="2" align="WH" bk="200,224,224">
+<Label name="DRAG_ME" text="Message Received" style="b" />
+</col>
+</row>
+<row>
+<col lpad="2" tpad="4" bpad="2" align="WH">
+<grid>
+<row>
+<col lpad="3" tpad="1" rpad="3" bpad="1">
+<Label text="Sent By:" />
+</col>
+<col lpad="3" tpad="1" rpad="3" bpad="1">
+<Label name="idSentBy" text="SIMON.CARROLL" />
+</col>
+</row>
+<row>
+<col lpad="3" tpad="1" rpad="3" bpad="1">
+<Label text="From PC:" />
+</col>
+<col lpad="3" tpad="1" rpad="3" bpad="1">
+<Label name="idFromPc" text="SIMON.CARROLL" />
+</col>
+</row>
+<row>
+<col lpad="3" tpad="1" rpad="3" bpad="1">
+<Label text="Sent:" />
+</col>
+<col lpad="3" tpad="1" rpad="3" bpad="1">
+<Label name="idSent" text="12/06/2003 15:06:45" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="10" tpad="10" align="WH" imgtile="8">
+<grid>
+<row>
+<col lpad="12" tpad="12" rpad="21" bpad="21" align="WH" bkimg="classes::resource::standard::notelette.bmp" imgtile="8">
+<grid>
+<row>
+<col align="WH">
+<Label name="idMessage" text=".." />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="10" tpad="10" align="RB" imgtile="8">
+<grid>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" w="75" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label name="idOk" text="OK" tx="255,255,255" txsel="FFFF00" style="b" onclick="DoClose" />
+</col>
+<col lpad="12" tpad="3" rpad="12" bpad="6" w="75" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label name="idCancel" text="Close" tx="255,255,255" txsel="FFFF00" style="b" onclick="DoClose" hide="Y" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

@@ -1,0 +1,62 @@
+<class name="MMember">
+<members>
+<method name="DispText">
+<![CDATA[// String DispText(  );
+//
+// Comments :  display text from pick list
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="GetRefObject">
+<![CDATA[// Object GetRefObject(  );
+//
+// Comments :  get object referenced, or null
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="IsBlank">
+<![CDATA[// int IsBlank(  );
+//
+// Comments :  1 if content is SQL null
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="sql">
+<![CDATA[// String sql(  );
+//
+// Comments :  sql value, ie: OReilly or d 2000-04-21
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+</members>
+<return>
+<rmeth name="DispText" cls="String" />
+<rmeth name="GetRefObject" cls="Object" />
+<rmeth name="IsBlank" cls="int" />
+<rmeth name="sql" cls="String" />
+</return>
+</class>

@@ -1,0 +1,42 @@
+<class name="wPopupMenu" base="InternalCode::baseWPopup" browseBase="0" margin="0" sizeable="2" toolwindow="1" hidden="1" topmost="1" nocaption="1" esccancel="1" fauthor="$Author: Andrew.g $" fdate="$Date: 25/07/02 15:39 $" frevision="$Revision: 3 $">
+<members>
+<method name="add">
+<param name="dispText" type="string" />
+<param name="code" type="string" />
+<param name="icon" type="string" />
+<![CDATA[//@cmember add
+//@param string | dispText | Menu text or another wPopup object
+//@param string | code | Code to be returned or the menu text to display next to the submenu
+//@param string | icon | optional Icon filename
+//@version Andrew Griffin | 23-05-02 15:30 |
+
+super.add( dispText, code, icon );]]>
+</method>
+<method name="addSeparator">
+<![CDATA[//@cmember addSeparator
+//@version Andrew Griffin | 23-05-02 15:22 |
+
+super.addSeparator();]]>
+</method>
+<method name="track">
+<param name="mode" type="int" />
+<param name="ctrl" type="control" />
+<param name="offx" type="int" />
+<param name="offy" type="int" />
+<param name="tabIcon" type="int" />
+<param name="colour" type="string" />
+<![CDATA[//@cmember track
+//@param int | mode |
+//@param control | ctrl |
+//@param int | offx |
+//@param int | offy |
+//@param int | tabIcon |
+//@param string | colour |
+//@version Andrew Griffin | 27-05-02 15:37 |
+//@i
+
+return super.track( mode, ctrl, offx, offy, tabIcon, colour );]]>
+</method>
+</members>
+<static />
+</class>

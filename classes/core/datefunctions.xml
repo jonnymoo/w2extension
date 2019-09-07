@@ -1,0 +1,67 @@
+<class name="datefunctions" fauthor="$Author: Jonathan Muir $" fdate="$Date: 30/09/03 15:51 $" frevision="$Revision: 1 $">
+<members />
+<static>
+<method name="MonthsBetween" return="int">
+<param name="earlierdate" type="object" />
+<param name="laterdate" type="object" />
+<param name="roundup" type="int" />
+<![CDATA[//@cmember MonthsBetween
+//@param object | earlierdate |
+//@param object | laterdate |
+//@param int | roundup | Pass a 1 if wanting to round up to the next full month
+//@return int |
+//@version Jonathan.Muir | 17-04-02 15:34 |
+//@version chris.moran | 12-08-02 14:26 |
+//@version Jonny Moo | 03-03-03 16:30 |
+//@i Returns whole months between
+
+int iRoundUp = 0;
+
+if (roundup != NULL) iRoundUp = roundup;
+
+int i = 1;
+if(laterdate<earlierdate)
+{
+    i = -1;
+
+    date tmp = Earlierdate;
+    earlierdate = laterdate;
+    laterdate = tmp;
+
+}
+
+int iMonths = ((laterdate.Year()*12)+laterdate.Month())-((earlierdate.Year()*12)+EarlierDate.Month());
+
+if(LaterDate.Day()<EarlierDate.Day()) iMonths--;
+
+if (iRoundUp && (LaterDate.Day() != EarlierDate.Day())) iMonths++;
+
+return iMonths*i;]]>
+</method>
+<method name="IsLeapYear">
+<param name="dDateParam" type="Date" />
+<![CDATA[//@cmember IsLeapYear
+//@param Date | dDateParam |
+//@version chris.moran | 01-05-02 16:57 |
+//@i       Will return 1 for a leap year and 0 otherwise
+
+
+Date tmp = dDateParam;
+
+
+int iYear = tmp.Year();
+
+if (((iYear%4 == 0) && (iYear%100 != 0)) || (iYear%400 == 0))
+{
+    return 1;
+}
+else
+{
+    return 0;
+}]]>
+</method>
+</static>
+<return>
+<rmeth name="MonthsBetween" cls="int" />
+</return>
+</class>

@@ -1,0 +1,369 @@
+<form name="cwGraphics" margin="0" fauthor="$Author: Andrew.g $" fdate="$Date: 13/09/02 16:30 $" frevision="$Revision: 1 $">
+<members>
+<Double name="imgW" />
+<Double name="imgH" />
+<Double name="imgOrgX" />
+<Double name="imgOrgY" />
+<Double name="imgOrgZ" />
+<List name="polyList" cls="aPoly" />
+<String name="imgName" />
+<List name="scale" cls="aScale" />
+<Integer name="persp" />
+<Integer name="dontUseSolids" />
+<method name="init" return="int">
+<param name="backImage" type="string" />
+<param name="squareAspect" type="int" />
+<param name="perspective" type="int" />
+<param name="force" type="int" />
+<![CDATA[//@cmember init
+//@param string | backImage | background image filename (optional)
+//@param int | squareAspect | 1 = square (optional)
+//@param int | perspective | 1 = perspective (optional, defaults to 1)
+//@param int | force | set to 1 to force a reload of the background (optional)
+//@return int | success
+//@version Andrew Griffin | 13-09-02 15:44 |
+
+persp = (perspective==null) ? 1 : perspective;
+
+string img =
+    (backImage==null)
+    ? "classes::resource::standard::graphBack2.jpg"
+    : backImage;
+
+img = sys::MakeFullName( path(), img );
+
+if (!imgName.eq( img ) || force!=null && force==1)
+{
+    idImage.Reset();
+    polyList.reset();
+
+    HTTPConnection Con;
+    blob b = &Con.GetFile( img );
+
+    idImage.SetImage(
+        b
+    );
+    imgName = img;
+}
+else
+{
+    while (idImage.GetNote( 0 )!=null)
+        idImage.RemoveNote( 0 );
+
+    polyList.reset();
+}
+
+image theImage = &idImage.GetImage();
+if (theImage==null) return 0;
+
+//
+// Get size of image
+
+imgW = ((double)idImage.GetImage().getWidth() / idImage.GetImage().getXResolution()) * 100.0;
+imgH = ((double)idImage.getImage().getHeight() / idImage.GetImage().getYResolution()) * 100.0;
+
+imgOrgX = imgW / 2;
+imgOrgY = imgH / 2;
+
+double minS = (imgOrgX<imgOrgY) ? imgOrgX : imgOrgY;
+
+imgOrgZ = minS;     // the depth at which shapes are of scale 1:1
+
+scale.reset();
+
+if (squareAspect!=null && squareAspect)
+{
+    //
+    // Init a screen scaler with 1:1 aspect ratio
+
+    scale.CreateRow().setTo(
+        imgOrgX - minS, imgOrgY - minS, imgOrgZ - minS,
+        imgOrgX + minS, imgOrgY + minS, imgOrgZ + minS,
+        1, 1, 1
+    );
+}
+else
+{
+    //
+    // Init a screen scaler stretching to an iregular aspect ratio
+
+    scale.CreateRow().setTo(
+        0, 0, 0,
+        imgW, imgH, minS*2,
+        1, 1, 1
+    );
+}
+
+idImage.setEnabled( 0 );
+if (!dontUseSolids) idImage.setSolidPolygons( 1 );
+
+return 1;]]>
+</method>
+<method name="addPoly" return="aPoly">
+<![CDATA[//@cmember addPoly
+//@return aPoly |
+//@version Andrew Griffin | 11-09-02 16:43 |
+
+return polyList.CreateRow();]]>
+</method>
+<method name="render">
+<param name="angX" type="double" />
+<param name="angY" type="double" />
+<param name="angZ" type="double" />
+<param name="stepBack" type="double" />
+<![CDATA[//@cmember render
+//@param double | angX |
+//@param double | angY |
+//@param double | angZ |
+//@param double | stepBack |
+//@version Andrew Griffin | 13-09-02 11:29 |
+
+int max = polyList.Count();
+
+for (int i=0; i<max; i++)
+    polyList[i].preRender(
+        imgOrgX, imgOrgY, imgOrgZ,
+        angX, angY, angZ,
+        persp,
+        stepBack
+    );
+
+polyList.OrderBy( "zBase", "DESC" );
+polyList.OrderList();
+
+for (i=0; i<max; i++)
+    polyList[i].render( idImage );]]>
+</method>
+<method name="add_Line" return="aPoly">
+<param name="x" type="double" />
+<param name="y" type="double" />
+<param name="x2" type="double" />
+<param name="y2" type="double" />
+<param name="colour" type="int" />
+<param name="caption" type="string" />
+<param name="z" type="double" />
+<param name="z2" type="double" />
+<![CDATA[//@cmember add_Line
+//@param double | x |
+//@param double | y |
+//@param double | x2 |
+//@param double | y2 |
+//@param int | colour |
+//@param string | caption | (optional)
+//@param double | z | (optional)
+//@param double | z2 | (optional)
+//@return aPoly | Initialised Poygon object
+//@version Andrew Griffin | 12-09-02 11:16 |
+
+classes::core::graphing::apoly p = &addPoly();
+
+p.setTo( 0, colour, caption, z!=null );
+p.addLine( x, y, x2, y2, z, z2 );
+
+return p;]]>
+</method>
+<method name="add_Rectangle" return="aPoly">
+<param name="x" type="double" />
+<param name="y" type="double" />
+<param name="x2" type="double" />
+<param name="y2" type="double" />
+<param name="colour" type="int" />
+<param name="caption" type="string" />
+<param name="z" type="double" />
+<![CDATA[//@cmember add_Rectangle
+//@param double | x |
+//@param double | y |
+//@param double | x2 |
+//@param double | y2 |
+//@param int | colour |
+//@param string | caption | (optional)
+//@param double | z | (optional)
+//@return aPoly | Initialised Poygon object
+//@version Andrew Griffin | 12-09-02 09:54 |
+
+classes::core::graphing::apoly p = &addPoly();
+
+p.setTo( 1, colour, caption, z!=null );
+p.addRectangle( x, y, x2, y2, z );
+
+return p;]]>
+</method>
+<method name="add_Sector" return="aPoly">
+<param name="x" type="double" />
+<param name="y" type="double" />
+<param name="radius" type="double" />
+<param name="angFrom" type="double" />
+<param name="angTo" type="double" />
+<param name="offset" type="double" />
+<param name="colour" type="int" />
+<param name="caption" type="string" />
+<param name="z" type="double" />
+<![CDATA[//@cmember add_Sector
+//@param double | x |
+//@param double | y |
+//@param double | radius |
+//@param double | angFrom |
+//@param double | angTo |
+//@param double | offset | offset from 0 to 1 (1 is full radius offset) (optional)
+//@param int | colour |
+//@param string | caption | (optional)
+//@param double | z | (optional)
+//@return aPoly | Initialised Poygon object
+//@version Andrew Griffin | 13-09-02 15:54 |
+
+classes::core::graphing::apoly p = &addPoly();
+
+p.setTo( 1, colour, NULL, z!=null );
+p.addSector( x, y, radius, angFrom.round(), angTo.round(), offset, z, caption );
+
+return p;]]>
+</method>
+<method name="add_Text" return="aPoly">
+<param name="x" type="double" />
+<param name="y" type="double" />
+<param name="caption" type="string" />
+<param name="z" type="double" />
+<![CDATA[//@cmember add_Text
+//@param double | x |
+//@param double | y |
+//@param string | caption |
+//@param double | z | (optional)
+//@return aPoly | Initialised Poygon object
+//@version Andrew Griffin | 12-09-02 09:56 |
+
+classes::core::graphing::apoly p = &addPoly();
+
+p.setTo( 0, NULL, caption, z!=null );
+p.addPoint( x, y, z );
+
+return p;]]>
+</method>
+<method name="add_Polygon" return="aPoly">
+<param name="x" type="double" />
+<param name="y" type="double" />
+<param name="colour" type="int" />
+<param name="caption" type="string" />
+<param name="isFilled" type="int" />
+<param name="z" type="double" />
+<![CDATA[//@cmember add_Polygon
+//@param double | x |
+//@param double | y |
+//@param int | colour |
+//@param string | caption | (optional)
+//@param int | isFilled | (optional) defualts to 1
+//@param double | z | (optional)
+//@return aPoly | Initialised Poygon object (use addPoint() to add more points)
+//@version Andrew Griffin | 12-09-02 16:36 |
+
+classes::core::graphing::apoly p = &addPoly();
+
+p.setTo( (isFilled==null) ? 1 : isFilled, colour, caption, z!=null );
+p.addPoint( x, y, z );
+
+return p;]]>
+</method>
+<method name="push_Scaler" return="aScale">
+<param name="x" type="double" />
+<param name="y" type="double" />
+<param name="z" type="double" />
+<param name="x2" type="double" />
+<param name="y2" type="double" />
+<param name="z2" type="double" />
+<param name="nx" type="double" />
+<param name="ny" type="double" />
+<param name="nz" type="double" />
+<param name="nx2" type="double" />
+<param name="ny2" type="double" />
+<param name="nz2" type="double" />
+<![CDATA[//@cmember push_Scaler
+//@param double | x | new left border
+//@param double | y | new top border
+//@param double | z |
+//@param double | x2 | new right border
+//@param double | y2 | new bottom border
+//@param double | z2 |
+//@param double | nx |
+//@param double | ny |
+//@param double | nz |
+//@param double | nx2 | Width of new virtual view
+//@param double | ny2 | Height of new virtual view
+//@param double | nz2 |
+//@return aScale |
+//@version Andrew Griffin | 12-09-02 13:46 |
+
+ascale scl = &scale.CreateRow(0);
+
+scl.setTo(
+    scale[1].scaleX( x ),
+    scale[1].scaleY( y ),
+    scale[1].scaleZ( z ),
+
+    scale[1].scaleX( x2 ),
+    scale[1].scaleY( y2 ),
+    scale[1].scaleZ( z2 ),
+
+    nx, ny, nz,
+    nx2, ny2, nz2
+);
+
+return scl;]]>
+</method>
+<method name="pop_Scaler" return="aScale">
+<![CDATA[//@cmember pop_Scaler
+//@return aScale |
+//@version Andrew Griffin | 12-09-02 10:49 |
+
+if (scale.Count()<=1) return;   // can't pop last scaler
+
+scale.DeleteRow(0);
+return scale[0];]]>
+</method>
+</members>
+<static>
+<List name="cols" cls="classes::cpicks">
+<item code="" desc="200" PickType="" />
+<item code="" desc="010" PickType="" />
+<item code="" desc="112" PickType="" />
+<item code="" desc="110" PickType="" />
+<item code="" desc="022" PickType="" />
+<item code="" desc="101" PickType="" />
+<item code="" desc="020" PickType="" />
+<item code="" desc="002" PickType="" />
+<item code="" desc="220" PickType="" />
+<item code="" desc="100" PickType="" />
+<item code="" desc="210" PickType="" />
+<item code="" desc="011" PickType="" />
+<item code="" desc="120" PickType="" />
+<item code="" desc="001" PickType="" />
+<item code="" desc="201" PickType="" />
+<item code="" desc="111" PickType="" />
+<item code="" desc="211" PickType="" />
+<item code="" desc="021" PickType="" />
+<item code="" desc="121" PickType="" />
+<item code="" desc="221" PickType="" />
+<item code="" desc="102" PickType="" />
+<item code="" desc="202" PickType="" />
+<item code="" desc="012" PickType="" />
+<item code="" desc="212" PickType="" />
+<item code="" desc="122" PickType="" />
+</List>
+</static>
+<grid>
+<row>
+<col w="128" h="96" align="WH">
+<ImageViewer name="idImage" text="ImageViewer" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="init" cls="int" />
+<rmeth name="addPoly" cls="aPoly" />
+<rmeth name="add_Line" cls="aPoly" />
+<rmeth name="add_Rectangle" cls="aPoly" />
+<rmeth name="add_Sector" cls="aPoly" />
+<rmeth name="add_Text" cls="aPoly" />
+<rmeth name="add_Polygon" cls="aPoly" />
+<rmeth name="push_Scaler" cls="aScale" />
+<rmeth name="pop_Scaler" cls="aScale" />
+</return>
+</form>

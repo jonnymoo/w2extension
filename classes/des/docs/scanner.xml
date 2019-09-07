@@ -1,0 +1,92 @@
+<class name="Scanner" description="W2 Script Reference">
+<members>
+<method name="Enable">
+<param name="bEnable" type="int" />
+<![CDATA[//@cmember int Enable( int bEnable );
+//@param int | bEnable | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetExtraInfo">
+<![CDATA[//@cmember string GetExtraInfo(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetColourDepth">
+<![CDATA[//@cmember int GetColourDepth(  );
+//@return int | number of colours; 1 = black/white 
+//@i returns a number > 1 for coloured images
+]]>
+ />
+</method>
+<method name="GetFilename">
+<![CDATA[//@cmember string GetFilename(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetFixFg">
+<![CDATA[//@cmember string GetFixFg(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetPosition">
+<![CDATA[//@cmember int GetPosition(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Register">
+<param name="Form" type="object" />
+<![CDATA[//@cmember object Register( object Form );
+//@param object | Form | 
+//@return object | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetPageSelected">
+<param name="PageSelected" type="int" />
+<![CDATA[//@cmember void SetPageSelected( int PageSelected );
+//@param int | PageSelected | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="ToString">
+<![CDATA[//@cmember string ToString(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="UnRegister">
+<![CDATA[//@cmember void UnRegister(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Enable" cls="int" />
+<rmeth name="GetColourDepth" cls="int" />
+<rmeth name="GetExtraInfo" cls="string" />
+<rmeth name="GetFilename" cls="string" />
+<rmeth name="GetFixFg" cls="string" />
+<rmeth name="GetPosition" cls="int" />
+<rmeth name="Register" cls="object" />
+<rmeth name="SetPageSelected" cls="void" />
+<rmeth name="ToString" cls="string" />
+<rmeth name="UnRegister" cls="void" />
+</return>
+</class>

@@ -1,0 +1,148 @@
+<class name="maintenancelock" fauthor="$Author: Simon.c $" fdate="$Date: 11/02/03 11:39 $" frevision="$Revision: 5 $">
+<members>
+<Object name="Lock" cls="classes::core::objectlock" sql="~" />
+<String name="ObjectMessageDesc" sql="~" />
+<String name="ObjectMessageKey" sql="~" />
+<String name="ObjectDesc" sql="~" />
+<Integer name="ObjectnKey" sql="~" />
+<String name="objectStrKey" sql="~" />
+<String name="OverrideLockAttr" sql="~" />
+<Integer name="LockAttrGot" sql="~" />
+<Date name="LastUpdated" />
+<Date name="MaintUpdated" />
+<method name="Lock">
+<param name="qut" type="integer" />
+<![CDATA[//@cmember Lock
+//@param integer | [qut] | No message displayed
+//@version Simon Carroll | 07-02-03 09:51 |
+//@i
+
+int quiet = (qut == null ? 0 : qut);
+
+//First check to see if it is locked
+if (!LockAttrGot)
+    GetLockAttributes();
+
+GetLock();
+
+//is it locked by the current user - if so, no need to lock again
+if( Lock.ModUser == classes::core::global::UserId)
+    return 1;
+
+if (Lock.LockId > 0)
+{
+    if (quiet) return 0;
+    if (Lock.LockStatus == "L")
+        message("The "+ObjectMessageDesc+" "+ObjectMessageKey+" is currently locked for editing by \n"+Lock.modUser.Disptext()+" on worksation "+Lock.WorkStation,"Unable To Lock",classes::core::windows::MB_ICONSTOP|classes::core::windows::MB_OK);
+    else if (Lock.LockStatus == "U")
+        message("The "+ObjectMessageDesc+" "+ObjectMessageKey+" has been locked, updated and unlocked while this \nscreen has been open.  As a consequence,  you will need to refresh before changing the\n"+ObjectMessageDesc+" "+ObjectMessageKey,"Unable To lock",classes::core::windows::MB_ICONEXCLAMATION|classes::core::windows::MB_OK);
+
+        return 0;
+}
+
+int ok = Lock.CreateLock(Objectdesc,ObjectnKey, ObjectStrKey);
+if (!ok)
+{
+    if (quiet) return 0;
+    message("Unable to lock "+ObjectMessageDesc+" for editing");
+}
+
+return ok;]]>
+</method>
+<method name="GetLock">
+<![CDATA[//@cmember GetLock
+//@param
+//@return
+//@version Simon Carroll | 13-01-03 14:14 |
+//@i
+
+if (!LockAttrGot)
+    GetLockAttributes();
+
+Object L = classes::core::objectLock::Returnlock(ObjectDesc,ObjectnKey,objectStrKey);
+if( L!=null )
+    Lock = L;
+else
+{
+    if (LastUpdated.Valid())
+    {
+        L = classes::core::objectlock::GetLastLockAfterDate(ObjectDesc,ObjectnKey,objectStrKey, LastUpdated, MaintUpdated);
+        if (L!=NULL)
+        {
+            if (L.modDate > LastUpdated && L.Moddate > MaintUpdated && L.modUser != classes::core::global::userid)
+            {
+                Lock = L;
+                return;
+            }
+        }
+    }
+
+    Lock.Reset();
+
+}]]>
+</method>
+<method name="UnLock">
+<param name="moddate" type="object" />
+<![CDATA[//@cmember UnLock
+//@param object | moddate |
+//@version Simon Carroll | 22-11-02 13:16 |
+//@i
+
+date modifiedDate;
+modifieddate = (moddate != null ? moddate : classes::core::global::getTimeFromServer());
+
+if (!LockAttrGot)
+    GetLockAttributes();
+
+if(Lock.LockId == 0)
+    getLock();
+
+int ok = Lock.Unlock(modifiedDate);
+if (ok)
+    Lock.reset();
+else
+    message("Unable to unlock "+ObjectMessageDesc);
+
+return ok;]]>
+</method>
+<method name="LockStillValid">
+<![CDATA[//@cmember LockStillValid
+//@version Simon Carroll | 11-11-02 14:40 |
+//@i
+
+if (!LockAttrGot)
+    GetLockAttributes();
+
+GetLock();
+
+int overwritten;
+
+if (Lock.LockId>0) // lock still exists
+{
+    if (Lock.ModUser != classes::core::global::userid) //lock has been overwritten
+    {
+        OverWritten = 1;
+    }
+}
+else
+{
+    Lock.reset();
+    OverWritten = 1;
+    Object L = classes::core::objectLock::GetLastLock(ObjectDesc,ObjectnKey,ObjectStrKey);
+    if (L!=null)
+        Lock = L;
+}
+
+return !overwritten;]]>
+</method>
+<method name="GetLockAttributes">
+<![CDATA[//@cmember GetLockAttributes
+//@version Simon Carroll | 11-11-02 14:39 |
+//@i
+
+if (this.hasMethod("GetlockAttr"))
+    this.GetLockAttr();]]>
+</method>
+</members>
+<static />
+</class>

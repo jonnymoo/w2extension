@@ -1,0 +1,315 @@
+<class name="MAPISession" description="W2 Script Reference">
+<members sub="Addressing (sending)">
+
+<method name="AddressDetails">
+<param name="iAddr" type="int" />
+<![CDATA[//@cmember int AddressMail( iAddr );
+//@param int | iAddr | 
+//@return int | 1=success, 0=failure
+//@i Displays the properties window for the address iAddr 
+]]>
+ />
+</method>
+
+<method name="AddressMail">
+<param name="nFields" type="int" />
+<![CDATA[//@cmember int AddressMail( nFields );
+//@param int | nFields  | 
+//@return int | the number of send recipients
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetMailToAddress">
+<param name="index" type="int" />
+<![CDATA[//@cmember int GetMailToAddress( index );
+//@param int | index | 
+//@return int | 
+//@i  "justin.s@ise.co.uk"
+]]>
+ />
+</method>
+
+<method name="GetMailToCount">
+<![CDATA[//@cmember int GetMailToCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetMailToName">
+<param name="" type="index" />
+<![CDATA[//@cmember String GetMailToName( index );
+//@param index |  | 
+//@return String |  e.g."Justin Sanders"
+//@i  
+]]>
+ />
+</method>
+
+<method name="GetMailToType">
+<param name="" type="index" />
+<![CDATA[//@cmember int GetMailToType( index );
+//@param index |  | 
+//@return int | 
+//@i  1=to, 2=CC, 3=BCC
+]]>
+ />
+</method>
+
+<method name="ResetAddress">
+<![CDATA[//@cmember void ResetAddress(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="ResolveName">
+<param name="Name" type="string" />
+<![CDATA[//@cmember int ResolveName( string Name );
+//@param string | Name | 
+//@return int | 1 - name found on the local domain, 0 - name not found
+//@i 
+]]>
+ />
+</method>
+</members>
+
+<members sub="Addressing (receiving)">
+
+<method name="CountRecipients">
+<![CDATA[//@cmember int CountRecipients( );
+//@return int | the number of recipients 
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetRecipientClass">
+<param name="index" type="int" />
+<![CDATA[//@cmember int GetRecipientClass( index );
+//@param index |  | 
+//@return int | 
+//@i  1=to, 2=CC, 3=BCC
+]]>
+ />
+</method>
+
+<method name="GetRecipientName">
+<param name="index" type="int" />
+<![CDATA[//@cmember String GetRecipientName( index );
+//@param int | index | 
+//@return String | 
+//@i  "Justin Sanders"
+]]>
+ />
+</method>
+</members>
+<members sub="Connection">
+<method name="Logoff">
+<![CDATA[//@cmember void Logoff(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Logon">
+<param name="User" type="string" />
+<param name="Pwd" type="string" />
+<param name="" type="Window" />
+<param name="bDownload" type="int" />
+<param name="bNewSession" type="int" />
+<![CDATA[//@cmember int Logon( string User, string Pwd, Window, int bDownload, int bNewSession );
+//@param string | User | 
+//@param string | Pwd | 
+//@param Window |  | 
+//@param int | bDownload | 
+//@param int | bNewSession | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="LastError">
+<![CDATA[//@cmember int LastError(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Deleting Mail">
+<method name="DeleteMail">
+<param name="MsgID" type="int" />
+<param1 name="" type="null" />
+<![CDATA[//@cmember void DeleteMail( {"MsgID"} and {null} );
+//@param "MsgID" |  | 
+//@param null |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Reading Mail">
+<method name="CountFiles">
+<![CDATA[//@cmember int CountFiles(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="FindFirst">
+<![CDATA[//@cmember int FindFirst(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="FindNext">
+<![CDATA[//@cmember int FindNext(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetDateReceived">
+<![CDATA[//@cmember String GetDateReceived(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetFilePath">
+<param name="index" type="int" />
+<![CDATA[//@cmember String GetFilePath( int index );
+//@param int | index | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetMessageID">
+<![CDATA[//@cmember String GetMessageID(  );
+//@return String | 
+//@i  this can be used by DeleteMail(..)
+]]>
+ />
+</method>
+<method name="GetMessageFlags">
+<![CDATA[//@cmember int GetMessageFlags(  );
+//@return int | message binary flags
+//@i int nUnRead = M.getMessageFlags()&1;
+]]>
+ />
+</method>
+
+<method name="GetOriginator">
+<![CDATA[//@cmember String GetOriginator(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetSubject">
+<![CDATA[//@cmember String GetSubject(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetText">
+<![CDATA[//@cmember String GetText(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="MarkRead">
+<![CDATA[//@cmember int MarkRead(  );
+//@return int | 
+//@i 1=success, -1=failure
+]]>
+ />
+</method>
+</members>
+
+<members sub="Sending Mail">
+<method name="AttachFile">
+<param name="" type="filename" />
+<![CDATA[//@cmember void AttachFile( filename );
+//@param filename |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="ResetFiles">
+<![CDATA[//@cmember void ResetFiles(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Send">
+<param name="MailTo" type="string" />
+<param name="Subject" type="string" />
+<param name="Message" type="string" />
+<![CDATA[//@cmember int Send( string MailTo, string Subject, string Message );
+//@param string | MailTo | 
+//@param string | Subject | 
+//@param string | Message | 
+//@return int | 
+//@i MailTo = "ed.c@ise.co.uk"
+]]>
+ />
+</method>
+<method name="SendMail">
+<param name="Subject" type="string" />
+<param name="Message" type="string" />
+<![CDATA[//@cmember int SendMail( string Subject, string Message );
+//@param string | Subject | 
+//@param string | Message | 
+//@return int | 
+//@i uses addressing
+]]>
+ />
+</method>
+</members>
+
+<return>
+<rmeth name="AttachFile" cls="void" />
+<rmeth name="AddressDetails" cls="int" />
+<rmeth name="CountRecipients" cls="int" />
+<rmeth name="GetRecipientClass" cls="int" />
+<rmeth name="GetRecipientName" cls="int" />
+<rmeth name="ResetFiles" cls="void" />
+<rmeth name="Send" cls="int" />
+<rmeth name="SendMail" cls="int" />
+<rmeth name="CountFiles" cls="int" />
+<rmeth name="FindFirst" cls="int" />
+<rmeth name="FindNext" cls="int" />
+<rmeth name="GetDateReceived" cls="String" />
+<rmeth name="GetFilePath" cls="String" />
+<rmeth name="GetMessageID" cls="String" />
+<rmeth name="GetOriginator" cls="String" />
+<rmeth name="GetSubject" cls="String" />
+<rmeth name="GetText" cls="String" />
+<rmeth name="AddressMail" cls="int" />
+<rmeth name="GetMailToAddress" cls="int" />
+<rmeth name="GetMailToCount" cls="int" />
+<rmeth name="GetMailToName" cls="int" />
+<rmeth name="GetMailToType" cls="int" />
+<rmeth name="ResetAddress" cls="void" />
+<rmeth name="Logoff" cls="void" />
+<rmeth name="Logon" cls="int" />
+<rmeth name="DeleteMail" cls="void" />
+<rmeth name="LastError" cls="int" />
+<rmeth name="ResolveName" cls="int" />
+<rmeth name="MarkRead" cls="int" />
+<rmeth name="GetMessageFlags" cls="int" />
+</return>
+</class>

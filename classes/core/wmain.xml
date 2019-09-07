@@ -1,0 +1,228 @@
+<form name="wmain" caption="Output Document" savepos="core_outgoing_wmain" fauthor="$Author: Andrew.b $" fdate="$Date: 20/08/01 15:51 $" frevision="$Revision: 1 $">
+<members>
+<Integer name="stage" />
+<String name="refType" />
+<String name="source" />
+<Object name="docType" cls="classes::callcentre::areadef::calltype" />
+<method name="init">
+<![CDATA[//@cmember init
+//@version Andrew Barrett | 20-08-01 14:51 | 
+//@i
+
+docTypeComp.SourceType = source;
+
+switch (source)
+{
+    case "O": createComp.SetComp("cwRTF"); break;
+    case "E": createComp.SetComp("cwEmail"); break;
+}
+
+classes::core::global::InitFormControls(this,0);
+
+changeStage();
+
+
+
+
+
+]]>
+</method>
+<method name="changeStage">
+<![CDATA[//@cmember changeStage
+//@version Andrew Barrett | 20-08-01 14:50 | 
+//@i
+
+showGroup("ALL",0);
+idPrevious.setEnabled(1);
+idNext.SetVisible(1);
+        
+if (stage>4) stage=4;
+if (stage<0) stage=0;
+
+switch (stage)
+{
+    case 0:
+    {
+        idPrevious.setEnabled(0);
+        ShowGroup("ADDRESS",1); break;
+    }
+    case 1: 
+    {
+        ShowGroup("DOCTYPE",1);
+        if (createComp.hasMethod("merge")>0) showGroup("QUESTION",1);
+    } break;
+    case 2: ShowGroup("CREATE",1); break;
+    case 3: ShowGroup("PROCESS",1); break;
+    case 4:
+    {
+        idNext.setVisible(0);
+        ShowGroup("DOCUMENT",1);
+    } break;
+}
+
+object parent=getParent();
+if (parent!=null)
+    parent.fitRecursive();
+
+fitRecursive(1);
+]]>
+</method>
+<method name="DoAction">
+<param name="con" type="control" />
+<![CDATA[//@cmember DoAction
+//@param control | con | 
+//@version Andrew Barrett | 17-08-01 11:45 | 
+//@i
+
+
+switch (con)
+{
+    case idPrevious: stage--; changeStage(); break;
+    case idNext: stage++; changeStage(); break;
+
+    case idsearch: addressComp.searchContacts(); break;
+
+}]]>
+</method>
+<method name="OnDocTypeChange">
+<param name="newDocType" type="classes::callcentre::areadef::calltype" />
+<![CDATA[//@cmember OnDocTypeChange
+//@param classes::callcentre::areadef::calltype | newDocType | 
+//@version Andrew Barrett | 20-08-01 14:54 | 
+//@i
+
+if (createComp.hasMethod("setDocType")>0)
+{
+    if (createComp.setDocType(newDocType)<0)
+    {
+        docTypeComp.SelectRow(docType);
+        return(-1);
+    }
+}
+
+questionComp.SetComp( "classes::core::wblank" );
+questionComp.SetComp( "classes::callcentre::design::wtester" );
+questionComp.OnWhite = 1;
+if ( questionComp.InitialiseForQandA( newDocType ) == 0 )
+    questionComp.SetComp( "classes::core::wblank" );
+
+docType=newDocType;]]>
+</method>
+</members>
+<static>
+<method name="openPane">
+<param name="parent" type="form" />
+<param name="ref" type="string" />
+<param name="source" type="string" />
+<![CDATA[//@cmember openPane
+//@param form | parent | 
+//@param string | ref | 
+//@param string | source | 
+//@version Andrew Barrett | 15-08-01 16:36 | 
+//@i
+
+
+If ((classes::workers::currentuser::issys) || (classes::workers::currentuser::HasToken("INDEX$",ref)))
+{
+    Object X = parent.FindPane(path());
+    if (X!=null){
+        parent.ShowPane(X,"max");
+        return X;
+        }
+    
+    
+    wMain W;
+    parent.AddPane(W,"max");
+    W.SetWindowName(path());
+    
+    W.RefType = ref;
+    
+    W.init();
+    return W;
+}
+else
+{
+
+    string k = classes::callcentre::clientobjects::GetObjectType(ref).desc;
+    MessageBox( "You do not have the appropriate security level to index documents against this reference type. \nAs a consequece you cannot create a letter for a "+k,
+                "Insufficient security rights",
+                classes::core::windows::MB_ICONSTOP );
+}]]>
+</method>
+<method name="main">
+<![CDATA[//@cmember main
+//@version Andrew Barrett | 20-08-01 11:29 | 
+//@i
+
+object thisContact=classes::callcentre::cviewer::wcontact::OpenContactWin(41);
+wMain W;
+
+W.source="O";
+
+W.dialog(thisContact);
+W.RefType = "contact";
+W.init();
+]]>
+</method>
+</static>
+<grid>
+<row>
+<col>
+<grid>
+<row>
+<col lpad="8" tpad="2" rpad="8" bpad="4" w="48" h="22" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="8">
+<Label name="idPrevious" text="&lt; Previous" tx="255,255,255" onClick="DoAction" style="b" txsel="FFFF00" param="SaveNow" />
+</col>
+</row>
+<row>
+<col lpad="8" tpad="2" rpad="8" bpad="4" w="48" h="22" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="8">
+<Label name="idNext" text="Next &gt;" tx="255,255,255" onClick="DoAction" style="b" txsel="FFFF00" param="Letter" />
+</col>
+</row>
+<row>
+<col lpad="8" tpad="2" rpad="8" bpad="4" w="48" h="12" align="CV" imgtile="8" />
+</row>
+<row>
+<col lpad="8" tpad="2" rpad="8" bpad="4" w="48" h="22" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="8">
+<Label name="idSearch" text="Search" tx="255,255,255" onClick="DoAction" style="b" txsel="FFFF00" param="Print" groups="ALL,ADDRESS" />
+</col>
+</row>
+</grid>
+</col>
+<col align="WH">
+<grid>
+<row>
+<col tpad="4">
+<Component name="addressComp" cls="cwaddress" groups="ALL,ADDRESS" hide="Y" />
+</col>
+</row>
+<row>
+<col tpad="4" h="250" align="WY">
+<Component name="docTypeComp" h="250" cls="classes::callcentre::areadef::WDocTypeComp" groups="ALL,DOCTYPE" hide="Y" />
+</col>
+</row>
+<row>
+<col>
+<Component name="QuestionComp" cls="classes::core::wblank" groups="ALL,QUESTION" hide="Y" />
+</col>
+</row>
+<row>
+<col tpad="4" align="WH">
+<Component name="createComp" cls="cwRTF" groups="ALL,CREATE" hide="Y" />
+</col>
+</row>
+<row>
+<col tpad="4" align="W">
+<Component name="documentComp" cls="core::index::cwdocument" groups="ALL,DOCUMENT" hide="Y" />
+</col>
+</row>
+<row>
+<col>
+<Component name="processComp" cls="core::index::process::cwmain" groups="ALL,PROCESS" hide="Y" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

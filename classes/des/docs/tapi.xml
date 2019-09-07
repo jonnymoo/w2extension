@@ -1,0 +1,460 @@
+<class name="TAPI" description="W2 Script Reference">
+<members>
+<method name="AbortTransfer">
+<![CDATA[//@cmember int AbortTransfer(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Answer">
+<param name="Call" type="int" />
+<![CDATA[//@cmember int Answer( int Call );
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Bind">
+<param name="Number" type="string" />
+<![CDATA[//@cmember int Bind( string Number );
+//@param string | Number | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="BlindTransfer">
+<param name="Address" type="string" />
+<param name="Call" type="int" />
+<![CDATA[//@cmember int BlindTransfer( string Address, int Call );
+//@param string | Address | 
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="CallSetTerminal">
+<param name="Mode" type="int" />
+<param name="Resource" type="int" />
+<param name="Enable" type="bool" />
+<param name="Call" type="int" />
+<![CDATA[//@cmember int CallSetTerminal( int Mode, int Resource, bool Enable, int Call );
+//@param int | Mode | 
+//@param int | Resource | 
+//@param bool | Enable | 
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="CloseLine">
+<![CDATA[//@cmember int CloseLine(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="CompleteConference">
+<![CDATA[//@cmember int CompleteConference(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="CompleteTransfer">
+<![CDATA[//@cmember int CompleteTransfer(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Dial">
+<param name="Number" type="string" />
+<param name="Call" type="int" />
+<![CDATA[//@cmember int Dial( string Number, int Call );
+//@param string | Number | 
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCalled">
+<param name="Call" type="int" />
+<![CDATA[//@cmember string GetCalled( int Call );
+//@param int | Call | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCaller">
+<param name="Call" type="int" />
+<![CDATA[//@cmember string GetCaller( int Call );
+//@param int | Call | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCallID">
+<param name="Call" type="int" />
+<![CDATA[//@cmember int GetCallID( int Call );
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCallReason">
+<param name="Call" type="int" />
+<![CDATA[//@cmember int GetCallReason( int Call );
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCallState">
+<param name="Call" type="int" />
+<![CDATA[//@cmember int GetCallState( int Call );
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetConnected">
+<param name="Call" type="int" />
+<![CDATA[//@cmember string GetConnected( int Call );
+//@param int | Call | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetDND">
+<![CDATA[//@cmember int GetDND(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetForward">
+<![CDATA[//@cmember string GetForward(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetInService">
+<![CDATA[//@cmember int GetInService(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetLastError">
+<![CDATA[//@cmember int GetLastError(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetLineAddress">
+<param name="Line" type="int" />
+<![CDATA[//@cmember string GetLineAddress( int Line );
+//@param int | Line | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetLineName">
+<param name="Line" type="int" />
+<![CDATA[//@cmember string GetLineName( int Line );
+//@param int | Line | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetLineProvider">
+<param name="Line" type="int" />
+<![CDATA[//@cmember string GetLineProvider( int Line );
+//@param int | Line | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetNumLines">
+<![CDATA[//@cmember int GetNumLines(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetUUI">
+<param name="Call" type="int" />
+<![CDATA[//@cmember string GetUUI( int Call );
+//@param int | Call | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="Hangup">
+<param name="Call" type="int" />
+<![CDATA[//@cmember int Hangup( int Call );
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Hold">
+<param name="Call" type="int" />
+<![CDATA[//@cmember int Hold( int Call );
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="InvadeSpecific">
+<param name="Request" type="int" />
+<param name="Param1" type="int" />
+<param name="Param2" type="inr" />
+<param name="Param3" type="int" />
+<![CDATA[//@cmember int InvadeSpecific( int Request, int Param1, inr Param2, int Param3 );
+//@param int | Request | 
+//@param int | Param1 | 
+//@param inr | Param2 | 
+//@param int | Param3 | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="IsCallValid">
+<param name="Call" type="int" />
+<![CDATA[//@cmember int IsCallValid( int Call );
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="LineSetTerminal">
+<param name="Mode" type="int" />
+<param name="Resource" type="int" />
+<param name="bEnable" type="int" />
+<param name="Call" type="int" />
+<![CDATA[//@cmember int LineSetTerminal( int Mode, int Resource, int bEnable, int Call );
+//@param int | Mode | 
+//@param int | Resource | 
+//@param int | bEnable | 
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="OpenAddress">
+<param name="Address" type="string" />
+<param name="Priv" type="int" />
+<![CDATA[//@cmember int OpenAddress( string Address, int Priv );
+//@param string | Address | 
+//@param int | Priv | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="OpenLine">
+<param name="Line" type="int" />
+<param name="Priv" type="int" />
+<![CDATA[//@cmember int OpenLine( int Line, int Priv );
+//@param int | Line | 
+//@param int | Priv | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="PickUp">
+<param name="Address" type="string" />
+<param name="Group" type="string" />
+<![CDATA[//@cmember int PickUp( string Address, string Group );
+//@param string | Address | 
+//@param string | Group | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="RemoveForward">
+<![CDATA[//@cmember int RemoveForward(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SendUUI">
+<param name="UUI" type="string" />
+<param name="Call" type="int" />
+<![CDATA[//@cmember int SendUUI( string UUI, int Call );
+//@param string | UUI | 
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetDND">
+<param name="DND" type="int" />
+<![CDATA[//@cmember int SetDND( int DND );
+//@param int | DND | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetForward">
+<param name="Forward" type="string" />
+<![CDATA[//@cmember int SetForward( string Forward );
+//@param string | Forward | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetNotificationEvent">
+<param name="TAPIEvent" type="string" />
+<![CDATA[//@cmember void SetNotificationEvent( string TAPIEvent );
+//@param string | TAPIEvent | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetUpConference">
+<param name="Number" type="string" />
+<![CDATA[//@cmember int SetUpConference( string Number );
+//@param string | Number | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SilentMonitor">
+<param name="Address" type="string" />
+<![CDATA[//@cmember void SilentMonitor( string Address );
+//@param string | Address | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="StartTransfer">
+<param name="Address" type="string" />
+<![CDATA[//@cmember int StartTransfer( string Address );
+//@param string | Address | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SwapHold">
+<![CDATA[//@cmember int SwapHold(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Transfer">
+<param name="Number" type="string" />
+<![CDATA[//@cmember int Transfer( string Number );
+//@param string | Number | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="UnBind">
+<![CDATA[//@cmember int UnBind(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="UnHold">
+<param name="Call" type="int" />
+<![CDATA[//@cmember int UnHold( int Call );
+//@param int | Call | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Valid">
+<![CDATA[//@cmember int Valid(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AbortTransfer" cls="int" />
+<rmeth name="Answer" cls="int" />
+<rmeth name="Bind" cls="int" />
+<rmeth name="BlindTransfer" cls="int" />
+<rmeth name="CallSetTerminal" cls="int" />
+<rmeth name="CloseLine" cls="int" />
+<rmeth name="CompleteConference" cls="int" />
+<rmeth name="CompleteTransfer" cls="int" />
+<rmeth name="Dial" cls="int" />
+<rmeth name="GetCalled" cls="string" />
+<rmeth name="GetCaller" cls="string" />
+<rmeth name="GetCallID" cls="int" />
+<rmeth name="GetCallReason" cls="int" />
+<rmeth name="GetCallState" cls="int" />
+<rmeth name="GetConnected" cls="string" />
+<rmeth name="GetDND" cls="int" />
+<rmeth name="GetForward" cls="string" />
+<rmeth name="GetInService" cls="int" />
+<rmeth name="GetLastError" cls="int" />
+<rmeth name="GetLineAddress" cls="string" />
+<rmeth name="GetLineName" cls="string" />
+<rmeth name="GetLineProvider" cls="string" />
+<rmeth name="GetNumLines" cls="int" />
+<rmeth name="GetUUI" cls="string" />
+<rmeth name="Hangup" cls="int" />
+<rmeth name="Hold" cls="int" />
+<rmeth name="InvadeSpecific" cls="int" />
+<rmeth name="IsCallValid" cls="int" />
+<rmeth name="LineSetTerminal" cls="int" />
+<rmeth name="OpenAddress" cls="int" />
+<rmeth name="OpenLine" cls="int" />
+<rmeth name="PickUp" cls="int" />
+<rmeth name="RemoveForward" cls="int" />
+<rmeth name="SendUUI" cls="int" />
+<rmeth name="SetDND" cls="int" />
+<rmeth name="SetForward" cls="int" />
+<rmeth name="SetNotificationEvent" cls="void" />
+<rmeth name="SetUpConference" cls="int" />
+<rmeth name="SilentMonitor" cls="void" />
+<rmeth name="StartTransfer" cls="int" />
+<rmeth name="SwapHold" cls="int" />
+<rmeth name="Transfer" cls="int" />
+<rmeth name="UnBind" cls="int" />
+<rmeth name="UnHold" cls="int" />
+<rmeth name="Valid" cls="int" />
+</return>
+</class>

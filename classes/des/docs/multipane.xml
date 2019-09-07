@@ -1,0 +1,58 @@
+<class name="MultiPane" description="W2 Script Reference" base="Control">
+<members>
+<method name="AddPane">
+<param name="X" type="Object" />
+<param name="mode" type="String" />
+<![CDATA[//@cmember void AddPane( Object X, String mode );
+//@param Object | X | 
+//@param String | mode | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CountPanes">
+<![CDATA[//@cmember int CountPanes(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="FindPane">
+<param name="wname" type="String" />
+<![CDATA[//@cmember Object FindPane( String wname );
+//@param String | wname | 
+//@return Object | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetPane">
+<param name="idx" type="int" />
+<![CDATA[//@cmember Object GetPane( int idx );
+//@param int | idx | 
+//@return Object | 
+//@i 
+]]>
+ />
+</method>
+<method name="ShowPane">
+<param name="X" type="Object" />
+<param name="mode" type="String" />
+<![CDATA[//@cmember void ShowPane( Object X, String mode );
+//@param Object | X | 
+//@param String | mode | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddPane" cls="void" />
+<rmeth name="CountPanes" cls="int" />
+<rmeth name="FindPane" cls="Object" />
+<rmeth name="GetPane" cls="Object" />
+<rmeth name="ShowPane" cls="void" />
+</return>
+</class>

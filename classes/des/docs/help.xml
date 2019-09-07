@@ -1,0 +1,106 @@
+<class name="help" description="W2 Script Reference Index">
+<members sub="Built-In" catID="B">
+<w2class name="" cls="Blob" />
+<w2class name="" cls="Compile" />
+<w2class name="" cls="DBConnection" />
+<w2class name="" cls="DBQuery" />
+<w2class name="" cls="DDE" />
+<w2class name="" cls="DDEConversation" />
+<w2class name="" cls="File" />
+<w2class name="" cls="FileFinder" />
+<w2class name="" cls="HTTPConnection" />
+<w2class name="" cls="ISAPIExtension" />
+<w2class name="" cls="MAPISession" />
+<w2class name="" cls="OutputStream" />
+<w2class name="" cls="Printer" />
+<w2class name="" cls="Socket" />
+<w2class name="" cls="StringArray" />
+<w2class name="" cls="Sys" />
+<w2class name="" cls="XML" />
+</members>
+<members sub="Control" catID="C">
+<w2class name="" cls="Button" />
+<w2class name="" cls="CheckBox" />
+<w2class name="" cls="Component" />
+<w2class name="" cls="Control" />
+<w2class name="" cls="EdGrid" />
+<w2class name="" cls="EdGridCell" />
+<w2class name="" cls="Edit" />
+<w2class name="" cls="EdObject" />
+<w2class name="" cls="GridEditor" />
+<w2class name="" cls="Hierarchy" />
+<w2class name="" cls="Label" />
+<w2class name="" cls="ListBox" />
+<w2class name="" cls="Map" />
+<w2class name="" cls="MultiPane" />
+<w2class name="" cls="PickQuery" />
+<w2class name="" cls="Radio" />
+<w2class name="" cls="Route" />
+<w2class name="" cls="SourceEditor" />
+<w2class name="" cls="Stage" />
+</members>
+<members sub="General" catID="G">
+<w2class name="" cls="COM" />
+<w2class name="" cls="ImageBarCode" />
+<w2class name="" cls="ImageFile" />
+<w2class name="" cls="ImageNoteObj" />
+<w2class name="" cls="ImageObj" />
+<w2class name="" cls="ImageServer" />
+<w2class name="" cls="ImageViewer" />
+<w2class name="" cls="HTMLViewer" />
+<w2class name="" cls="Registry" />
+<w2class name="" cls="RTFEditor" />
+<w2class name="" cls="RTFMerge" />
+<w2class name="" cls="Scanner" />
+<w2class name="" cls="TAPI" />
+</members>
+<members sub="Memory" catID="M">
+<w2class name="" cls="ClassDef" />
+<w2class name="" cls="List" />
+<w2class name="" cls="Member" />
+<w2class name="" cls="MemberDef" />
+<w2class name="" cls="Object" />
+<w2class name="" cls="ObjectRoot" />
+</members>
+<members sub="Primitive" catID="P">
+<w2class name="" cls="Date" />
+<w2class name="" cls="Double" />
+<w2class name="" cls="Integer" />
+<w2class name="" cls="String" />
+</members>
+<members sub="User Interface" catID="U">
+<w2class name="" cls="DynaMenu" />
+<w2class name="" cls="Form" />
+<w2class name="" cls="Grid" />
+<w2class name="" cls="GridCell" />
+<w2class name="" cls="GridRow" />
+<w2class name="" cls="PopUpMenu" />
+</members>
+<members sub="CAF Local Classes">
+<w2class name="" cls="classes::core::global" />
+<w2class name="" cls="classes::core::globalObject" />
+<w2class name="" cls="classes::core::globalList" />
+<w2class name="" cls="classes::core::globalForm" />
+<w2class name="" cls="classes::core::globalString" />
+<w2class name="" cls="classes::core::xml::globalXML" />
+<w2class name="" cls="classes::core::srvsqlinfo" />
+<w2class name="" cls="classes::core::windows" />
+<w2class name="" cls="classes::core::winputbox" />
+<w2class name="" cls="classes::core::wmagiclist" />
+</members>
+<members sub="CAF Server Classes">
+<w2class name="" cls="classes::core::srvdeleteobject" />
+<w2class name="" cls="classes::core::srvdirectorylisting" />
+<w2class name="" cls="classes::core::srvGetObject" />
+<w2class name="" cls="classes::core::srvglobal" />
+<w2class name="" cls="classes::core::srvinsertlist" />
+<w2class name="" cls="classes::core::srvinsertobject" />
+<w2class name="" cls="classes::core::srvlistquery" />
+<w2class name="" cls="classes::core::srvmethod" />
+<w2class name="" cls="classes::core::srvobjectquery" />
+<w2class name="" cls="classes::core::srvsaveblob" />
+<w2class name="" cls="classes::core::srvsqlquery" />
+<w2class name="" cls="classes::core::srvupdatelist" />
+<w2class name="" cls="classes::core::srvupdateobject" />
+</members>
+</class>

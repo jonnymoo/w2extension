@@ -1,0 +1,544 @@
+<class name="globalForm" fauthor="$Author: Andrew.broad$" fdate="$Date: 10/03/03 11:53$" frevision="$Revision: 17$">
+<members>
+<Integer name="child" />
+<Object name="par" />
+<String name="callback" />
+</members>
+<static>
+<List name="modalList" cls="globalForm" />
+<method name="checkInitialSize" return="int">
+<param name="window" type="form" />
+<param name="sizeX" type="int" />
+<param name="sizeY" type="int" />
+<![CDATA[//@cmember checkInitialSize
+//@param form | window | The form window to be sized so it is't smaller than a sizeX x sizeY
+//@param int | sizeX | Minimum width in pixels
+//@param int | sizeY | Minimum height in pixels
+//@return int | Sized Successfully
+//@version Andrew Griffin | 16-08-01 10:44 |
+//@version Jonathan.Muir | 07-09-16 17:42 |
+//@i
+
+if (sys::Version() < 2086) return 0;
+
+int sx = window.XSize(),
+    sy = window.YSize(),
+    upd = 0;
+
+if (sx<sizeX) { sx=sizeX; upd = 1; }
+if (sy<sizeY) { sy=sizeY; upd = 1; }
+
+if (upd) window.setSize( sx, sy );
+
+return 1;]]>
+</method>
+<method name="moveIntoFullView" return="int">
+<param name="window" type="form" />
+<![CDATA[//@cmember moveIntoFullView
+//@param form | window | The form window to be moved so it doesn't overlap the desktop boundaries
+//@return int | Moved Successfully
+//@version Andrew Griffin | 16-08-01 10:44 |
+//@version Jonathan.Muir | 08-09-16 15:16 |
+//@i
+
+window.MoveIntoView();
+
+return 1;]]>
+</method>
+<method name="sizeIntoFullView" return="int">
+<param name="window" type="form" />
+<param name="minW" type="int" />
+<param name="minH" type="int" />
+<![CDATA[//@cmember sizeIntoFullView
+//@param form | window | The form window to be sized (cropped) to fit it into the desktop boundaries
+//@param int | minW | optional minimum width in pixels
+//@param int | minH | optional minimum height in pixels
+//@return int | Sized Successfully
+//@version Andrew Griffin | 16-08-01 10:44 |
+//@version Jonathan.Muir | 07-09-16 17:53 |
+//@i
+
+int cw = window.xsize(),
+    ch = window.ysize(),
+    usize = 0;
+
+if (minW!=null && cw<minW) { cw=minW; usize = 1; }
+if (minH!=null && ch<minH) { ch=minH; usize = 1; }
+
+if (usize) window.setSize( cw, ch );
+
+window.MoveIntoView();
+
+return 1;]]>
+</method>
+<method name="openModal" return="object">
+<param name="modalForm" type="form" />
+<param name="parent" type="form" />
+<![CDATA[//@cmember openModal
+//@param form | modalForm | A non-opened form to open modally
+//@param form | parent | An optional parent form (will be diabled)
+//@return object | returns modalForm.getReturn() or NULL
+//@version Andrew Griffin | 07-08-02 12:13 |
+//@i
+
+// disable parent form and open new modal window
+if (parent!=null) {
+    parent.EnableForm( 0 );
+    modalForm.dialog( parent );
+} else modalForm.open();
+
+// wait until it closes...
+//while (modalForm.isVisible()) sys::Wait( 100 );
+modalForm.waitOnClose();
+
+// enable parent form once more
+if (parent!=null) {
+    parent.EnableForm( 1 );
+    parent.show(1);
+    parent.ToTop();
+    parent.SetFocus();
+}
+
+if (modalForm.hasMethod( "getReturn" ))
+    return modalForm.getReturn();
+else
+    return null;]]>
+</method>
+<method name="waitModal" return="object">
+<param name="modalForm" type="form" />
+<param name="parent" type="form" />
+<![CDATA[//@cmember waitModal
+//@param form | modalForm | Method will return only when this form is closed
+//@param form | parent | An optional parent form, will be brought to forground on modal closure
+//@return object | returns modalForm.getReturn() or NULL
+//@version Andrew Griffin | 20-12-01 15:55 |
+//@version Andrew.Broad | 02-01-02 15:28 |
+//@version Andrew Griffin | 07-08-02 12:13 |
+//@i
+
+if (parent!=null) {
+    parent.EnableForm( 0 );
+}
+
+// wait until it closes...
+//while (modalForm.isVisible()) sys::Wait( 100 );
+modalForm.waitOnClose();
+
+// enable parent form once more
+if (parent!=null) {
+    parent.EnableForm( 1 );
+    parent.show(1);
+    parent.ToTop();
+}
+
+if (modalForm.hasMethod( "getReturn" ))
+    return modalForm.getReturn();
+else
+    return null;]]>
+</method>
+<method name="initModal">
+<param name="modalForm" type="form" />
+<param name="parent" type="form" />
+<param name="callback" type="string" />
+<![CDATA[//@cmember initModal
+//@param form | modalForm | A form to open modally
+//@param form | parent | The Parent Form to be disabled...
+//@param string | callback | A method to call on closure of the modal form
+//@version Andrew Griffin | 25-04-02 12:24 |
+//@i
+//@i You must place a method in the parent form like this:
+//@i
+//@i   OnChildClosed( Form Who )
+//@i   {
+//@i        classes::core::globalForm::closeModal( who );
+//@i   }
+//@i
+//@i When the child is closed, the callback is called with the first parameter containing
+//@i the closed child object and the optional second parameter is the result of calling
+//@i "getReturn()" on the modal form (if it has one).
+
+// disable parent form and open new modal window
+
+parent.EnableForm( 0 );
+if (!modalForm.IsVisible())
+    modalForm.dialog( parent );     // if not open... then open
+else
+    modalForm.SetParent( parent );  // otherwise assign parent
+
+globalform row = &modalList.CreateRow();
+row.par.setMagicPointer( &parent );
+row.child = modalForm.GetHWND();
+if (callback!=null) row.callback = callback;]]>
+</method>
+<method name="closeModal" return="object">
+<param name="modalForm" type="form" />
+<![CDATA[//@cmember closeModal
+//@param form | modalForm | The window being closed...
+//@version Andrew Griffin | 25-04-02 12:24 |
+//@i see "initModal" above
+
+globalform row = &modalList.FindRow( modalForm.GetHWND() );
+if (row==null) return;
+
+form parent = &row.par;
+
+// enable parent form once more
+if (parent!=null) {
+    parent.EnableForm( 1 );
+    parent.show(1);
+    parent.ToTop();
+}
+
+object param;
+
+if (modalForm.hasMethod( "getReturn" ))
+    param = &modalForm.getReturn();
+
+if (row.callback && parent.HasMethod( row.callback ))
+    parent.ExecMethod( row.callback, modalForm, param );]]>
+</method>
+<method name="areYouSure" return="int">
+<param name="msg" type="string" />
+<param name="title" type="string" />
+<![CDATA[//@cmember areYouSure
+//@param string | msg | Message to display to user
+//@param string | title | Message box Caption
+//@return int | 1 == Yes, 0 = No
+//@version Andrew Griffin | 16-01-02 13:32 |
+
+return (
+    message( msg,
+             title,
+             classes::core::windows::MB_ICONQUESTION |
+             classes::core::windows::MB_YESNO
+    ) == classes::core::windows::IDYES
+);]]>
+</method>
+<method name="cvColour_Brightness" return="int">
+<param name="colour" type="int" />
+<param name="percent" type="double" />
+<![CDATA[//@cmember cvColour_Brightness
+//@param int | colour |
+//@param double | percent |
+//@return int |
+//@version Andrew Griffin | 06-06-02 10:38 |
+//@i
+
+int r = colour.getrvalue() * percent;
+int g = colour.getgvalue() * percent;
+int b = colour.getbvalue() * percent;
+
+if (r>255) r=255;
+if (g>255) g=255;
+if (b>255) b=255;
+
+return (r<<16) + (g<<8) + b;]]>
+</method>
+<method name="cvColour_White" return="int">
+<param name="colour" type="int" />
+<param name="percent" type="double" />
+<![CDATA[//@cmember cvColour_White
+//@param int | colour |
+//@param double | percent |
+//@return int |
+//@version Andrew Griffin | 06-06-02 10:38 |
+//@i
+
+int r = 255 - (255-colour.getrvalue()) * percent;
+int g = 255 - (255-colour.getgvalue()) * percent;
+int b = 255 - (255-colour.getbvalue()) * percent;
+
+if (r<0) r=0;
+if (g<0) g=0;
+if (b<0) b=0;
+
+return (r<<16) + (g<<8) + b;]]>
+</method>
+<method name="GetFormXML" return="xml">
+<param name="theForm" type="form" />
+<![CDATA[//@cmember GetFormXML
+//@param form | theForm | a w2 form - an xml snapshot of the form will be returned
+//@return xml | xml snapshot
+//@version Andrew.Barrett | 09-07-02 12:57 |
+//@version Andrew Barrett | 16-07-02 23:49 |
+//@i produces an XML snapshot of a form.  DisplayFormXML can be used for redisplaying the snapshot.
+
+if (theForm.hasMethod("BeforeTransfer")) theForm.BeforeTransfer();
+
+xml formXML;
+formXML.SetTag("Form");
+
+
+
+// Add the instance of the form
+blob theFormData;
+theFormData.WriteXML("TheForm",theForm);
+formXML.AddElement(theFormData.GetXMLObject().GetElement(0));
+
+
+
+// Add extra form data
+XML formData=&formXML.CreateElement("ExtraFormData");
+formData.addAttr("windowname",theForm.GetWindowName());
+formData.addAttr("text",theForm.getText());
+formData.AddAttr("visible",theForm.isVisible());
+
+
+
+// Add extra control data
+XML controlXML=&formXML.CreateElement("Controls");
+
+for (int nControl=0;;nControl++)
+{
+    control thisControl=&theForm.GetControl(nControl);
+    if (thisControl==null) break;
+
+    XML thisControlXML=&controlXML.CreateElement("Control");
+    thisControlXML.AddAttr("text",thisControl.getText());
+    thisControlXML.AddAttr("visible",thisControl.isVisible());
+    thisControlXML.AddAttr("enabled",thisControl.isEnabled());
+}
+
+
+
+// Add popups
+XML popupXML=&formXML.CreateElement("Popups");
+for (int nPopup=0;;nPopup++)
+{
+    form thisPopup=&theForm.GetPopup(nPopup);
+    if (thisPopup==null) break;
+
+    popupXML.AddElement(GetFormXML(thisPopup));
+}
+
+return(formXML);]]>
+</method>
+<method name="DisplayFormXML">
+<param name="theFormData" type="xml" />
+<param name="theParent" type="form" />
+<![CDATA[//@cmember DisplayFormXML
+//@param xml | theFormData |
+//@param form | theParent |
+//@version Andrew.Barrett | 09-07-02 12:58 |
+//@version Andrew Barrett | 16-07-02 23:49 |
+//@version Andrew.Barrett | 09-01-03 00:25 |
+//@i istanciates a form snapshot produced using GetFormXML()
+
+// Get form element
+xml thisFormXML=&classes::core::xml::globalxml::findTag("form",theFormData);
+if (thisFormXML==null) return(null);
+
+// Get the instance of the form and open it
+xml formXML=&classes::core::XML::globalXML::findTag("Object",thisFormXML);
+if (formXML==null) return(null);
+
+blob formData;
+formData.writeXML(formXML);
+form formObject = &formData.GetObjects(path()).theForm;
+
+if (theParent==null)
+    formObject.open();
+else
+    formObject.dialog(theParent);
+
+// Get the extra form detail and use it
+xml extraFormData=&classes::core::XML::globalXML::findTag("ExtraFormData",thisFormXML);
+if (extraFormData!=null)
+{
+    formObject.SetText(extraFormData.GetAttr("text"));
+    formObject.SetWindowName(extraFormData.GetAttr("windowname"));
+    formObject.Show(extraFormData.GetAttr("visible").val());
+}
+
+
+// Get the extra control data and use it
+xml controlData=&classes::core::XML::globalXML::findTag("Controls",thisFormXML);
+if (controlData!=null)
+{
+    for (int nControl;;nControl++)
+    {
+        xml thisControlDef=&controlData.GetElement(nControl);
+        if (thisControlDef==null) break;
+
+        control thisControl=&formObject.GetControl(nControl);
+        if (thisControl==null) break;
+
+        thisControl.setText(thisControlDef.GetAttr("text"));
+        thisControl.SetVisible(thisControlDef.GetAttr("visible").val());
+        thisControl.setEnabled(thisControlDef.GetAttr("enabled").val());
+    }
+}
+
+// Get the extra popups and use them
+xml popupData=&classes::core::XML::globalXML::findTag("Popups",thisFormXML);
+if (popupData!=null)
+{
+    for (int nPopup;;nPopup++)
+    {
+        xml thisPopupXML=&popupData.GetElement(nPopup);
+        if (thisPopupXML==null) break;
+
+        form popupForm=&DisplayFormXML(thisPopupXML,formObject);
+    }
+}
+
+// All done, better run the onTransfer method
+formObject.fitRecursive();
+if (formObject.hasmethod("OnTransfer")) formObject.onTransfer();
+formObject.fitRecursive();
+
+return(formObject);]]>
+</method>
+<method name="Broadcast">
+<param name="parentForm" type="form" />
+<param name="methodname" type="string" />
+<param name="allowAbort" type="int" />
+<param name="param1" type="object" />
+<param name="param2" type="object" />
+<param name="param3" type="object" />
+<param name="param4" type="object" />
+<param name="param5" type="object" />
+<param name="param6" type="object" />
+<![CDATA[//@cmember Broadcast
+//@param form | parentForm |
+//@param string | methodname |
+//@param int | allowAbort |
+//@param object | param1 |
+//@param object | param2 |
+//@param object | param3 |
+//@param object | param4 |
+//@param object | param5 |
+//@param object | param6 |
+//@version Andrew.Barrett | 14-10-02 12:32 |
+//@i
+
+
+if (parentForm==null)
+{
+
+    // Close all naughty windows
+    for(int n=sys::GetWindowCount()-1; n>=0;n--)
+    {
+        Object X = Sys::GetOpenWindow(n);
+        if (X!=null)
+        {
+            int nOK=globalForm::Broadcast(x,methodname,allowabort,param1,param2,param3,param4,param5,param6);
+            if (!nOK) return(0);
+        }
+    }
+}
+else
+{
+    if (parentForm.hasMethod(methodname))
+    {
+
+        if (allowAbort!=null && allowAbort)
+        {
+            int nOK=ExecReturnMethod(parentForm,methodname,param1,param2,param3,param4,param5,param6);
+            if (!nOK) return(0);
+        }
+        else
+            parentForm.ExecMethod(methodname,param1,param2,param3,param4,param5,param6);
+    }
+
+
+    // Count popups
+    int nNoPopups;
+    for(int n=0;;n++)
+    {
+        Object X = parentForm.GetPopup(n);
+        if (X==null) break;
+        nNoPopups++;
+    }
+
+    for(n=nNoPopups-1; n>=0;n--)
+    {
+        Object X = parentForm.GetPopup(n);
+        if (X!=null)
+        {
+           int nOK=globalForm::Broadcast(x,methodname,allowabort,param1,param2,param3,param4,param5,param6);
+            if (!nOK) return(0);
+        }
+    }
+}
+
+return(1);]]>
+</method>
+<method name="SortList">
+<param name="Con" type="Control" />
+<![CDATA[//@cmember SortList
+//@param Control | Con |
+//@version Simon Carroll | 03-09-02 14:43 | Rewritten so more general
+//@i          Allows users to sort by the label title
+
+
+Object LX = Con.GetList();
+
+//get a list of ordering
+
+classes::cpicks OrderOfList[];
+
+for (int i = 1;; i++)
+{
+    string orderby = Con.getControlAttr("orderby"+i);
+    if (!orderby) break;
+    Object C = OrderOfList.CreateRow();
+    C.desc = Con.GetControlAttr("ordertype"+i);
+    C.code = orderby;
+}
+
+//check that this selection of ordering is not already in there.
+
+string thisorderby = Con.CurrentCellId();
+
+Object CurrOrd = &OrderOfList.FindRow(thisorderby);
+
+if (CurrOrd == null) //Not there already - add to front
+{
+    Object C = OrderOfList.CreateRow(0);
+    C.code = thisorderby;
+    C.desc = "asc";
+}
+else //is already there
+{
+    int idx = OrderOfList.FindIndex(CurrOrd);
+    if (idx == 0) // first on the list - change asc to desc or vice versa
+        CurrOrd.desc = (CurrOrd.Desc == "asc" ? "desc" : "asc");
+    else //delete from list and add it again
+    {
+        OrderOfList.deleteRow(idx);
+        Object C = OrderOfList.CreateRow(0);
+        C.code = thisorderby;
+        C.Desc = "asc";
+    }
+}
+
+//Now we have the list we can put these as attributes on the list control
+
+for (i = 0; i<OrderOfList.count(); i++)
+{
+    Con.setAttr("orderby"+(i+1), OrderofList[i].Code);
+    Con.setAttr("ordertype"+(i+1), OrderOfList[i].desc);
+}
+
+LX.ResetOrder();
+
+for (i = 0; i<OrderofList.Count(); i++)
+    LX.OrderBy(OrderOfList[i].code,OrderofList[i].desc);
+
+LX.OrderList();]]>
+</method>
+</static>
+<return>
+<rmeth name="checkInitialSize" cls="int" />
+<rmeth name="moveIntoFullView" cls="int" />
+<rmeth name="sizeIntoFullView" cls="int" />
+<rmeth name="openModal" cls="object" />
+<rmeth name="waitModal" cls="object" />
+<rmeth name="closeModal" cls="object" />
+<rmeth name="areYouSure" cls="int" />
+<rmeth name="cvColour_Brightness" cls="int" />
+<rmeth name="cvColour_White" cls="int" />
+<rmeth name="GetFormXML" cls="xml" />
+</return>
+</class>

@@ -1,0 +1,165 @@
+<form name="CImage" base="CtrlBase" bk="Face" margin="0" fauthor="$Author: Andrew.g $" fdate="$Date: 5/04/01 16:34 $" frevision="$Revision: 2 $">
+<members>
+<String name="ImgFile" />
+<String name="ImgAttr" />
+<method name="Init">
+<![CDATA[
+SetWindowName("LabelEditor");
+//SetYesNo(idEnabled);
+//SetYesNo(idVisible);
+//SizeToFit();
+
+super.Init();
+]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" />
+<![CDATA[
+// THIS IS CALLED FROM THE GRID EDITOR
+//idName.setText( Ctrl.Name );
+//idOnClick.setText( Ctrl.GetAttr("onClick") );
+
+ImgFile = Ctrl.img; // CURRENTLY RETURNS "classes::resource::xyz.bmp"
+ImgAttr = Ctrl.GetAttr("img");
+
+idOnRightClick.setText( Ctrl.GetAttr("onRightClick") );
+
+idParam.setText( Ctrl.GetAttr("param") );
+
+super.ShowCtrl(Ctrl);]]>
+</method>
+<method name="DoImage">
+<![CDATA[string fn = GetOpenFileName("Select Image","Image Files|*.bmp;*.ico;|All|*.*", ImgAttr);
+if (!fn) return;
+
+ImgFile = fn;
+ImgAttr = fn;
+
+GetParent().SetCtrlAttr("img","file::"+fn);
+]]>
+</method>
+<method name="DoOnClick">
+<![CDATA[
+SetAttr("onClick",idOnClick.getText());
+]]>
+</method>
+<method name="DoOnRightClick">
+<![CDATA[
+SetAttr("onRightClick",idOnRightClick.getText());]]>
+</method>
+<method name="GetImageInfo">
+<![CDATA[
+PopupMenu P;
+P.Add( ImgFile );
+P.Add( ImgAttr );
+P.Track(0);]]>
+</method>
+<method name="DoOption">
+<param name="Ctrl" />
+<![CDATA[String attr = Ctrl.ControlID();
+
+attr = attr.right( attr.length()-2 );
+
+GetParent().SetCtrlAttr(attr,Ctrl.getText());]]>
+</method>
+<method name="findMethod">
+<param name="src" />
+<![CDATA[object ob=null;
+
+switch (src.getText()) {
+    case "OnClick" : ob=&idOnClick; break;
+    case "OnRightClick" : ob=&idOnRightClick; break;
+    default: message("TBD"); return;
+}
+
+::AdvSearch::findMethod(getParent().getParent().getParent(), ob.getText(), ob);
+]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[switch (attrName.lower()) {
+  case  "img", "onrightclick", "param", "onclick" : return 1;
+}
+
+return 0;]]>
+</method>
+</members>
+<static />
+<grid rpad="2" bpad="1" bk="224,224,192">
+<row>
+<col align="V">
+<Label text="Name" />
+</col>
+<col align="W">
+<Edit name="idName" w="120" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Enabled" />
+</col>
+<col>
+<Edit name="idEnabled" combo="2" border="0" onChange="DoEnabled" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Visible" />
+</col>
+<col>
+<Edit name="idVisible" combo="2" border="0" onChange="DoVisible" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups" />
+</col>
+<col align="W">
+<Edit name="idGroups" w="120" onChange="DoGroups" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Image" onClick="GetImageInfo" />
+</col>
+<col>
+<Button text="----" w="22" h="14" onClick="DoImage" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="OnClick" onClick="findMethod" />
+</col>
+<col align="W">
+<Edit name="idOnClick" w="120" onChange="DoOnClick" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="OnRightClick" onClick="findMethod" />
+</col>
+<col align="W">
+<Edit name="idOnRightClick" w="120" onChange="DoOnRightClick" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Param" />
+</col>
+<col align="W">
+<Edit name="idParam" w="120" onChange="DoOption" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Help" />
+</col>
+<col align="W">
+<Edit name="idHelp" w="120" onChange="DoHelp" border="0" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

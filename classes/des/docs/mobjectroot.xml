@@ -1,0 +1,139 @@
+<class name="MObjectRoot" base="MClassDef">
+<members>
+<method name="class">
+<![CDATA[// ClassDef class(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="CompileAndExecute">
+<param name="Source" type="string" />
+<![CDATA[// int CompileAndExecute( string Source );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="ExecMethod">
+<param name="name" type="String" />
+<param name="" type="..." />
+<![CDATA[// bool ExecMethod( String name, ... );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="GetMember">
+<param name="i" type="int" />
+<![CDATA[// MMember GetMember( int i );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="IsList">
+<![CDATA[// bool IsList(  );
+//
+// Comments : Always false.
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="isObject">
+<![CDATA[// bool isObject(  );
+//
+// Comments : Always True.
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="NewThread">
+<param name="Name" type="string" />
+<![CDATA[// bool NewThread( string Name );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="setmember">
+<param name="Name" type="string" />
+<param name="Value" type="string" />
+<![CDATA[// bool setmember( string Name, string Value );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="Show">
+<![CDATA[// void Show(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+</members>
+<return>
+<rmeth name="class" cls="ClassDef" />
+<rmeth name="CompileAndExecute" cls="int" />
+<rmeth name="ExecMethod" cls="bool" />
+<rmeth name="GetMember" cls="MMember" />
+<rmeth name="IsList" cls="bool" />
+<rmeth name="isObject" cls="bool" />
+<rmeth name="NewThread" cls="bool" />
+<rmeth name="setmember" cls="bool" />
+<rmeth name="Show" cls="void" />
+</return>
+</class>

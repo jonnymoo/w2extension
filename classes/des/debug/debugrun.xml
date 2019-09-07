@@ -1,0 +1,15 @@
+<class name="debugRun" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<method name="NewMethod">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Simon Carroll | 14-01-03 11:47 |
+//@i
+
+
+sys::BrowseForFolder();]]>
+</method>
+</members>
+<static />
+</class>

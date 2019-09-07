@@ -1,0 +1,99 @@
+<class name="MenuHead" HierImage="hMenuH.bmp" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:40 $" frevision="$Revision: 2 $">
+<members>
+<String name="Caption" />
+<String name="Name" />
+<List name="mItems" cls="MenuItem" />
+<method name="Init">
+<![CDATA[Caption="New Menu Header";]]>
+</method>
+<method name="SetTo">
+<param name="X" type="object" />
+<![CDATA[
+SetQueried(1);
+
+Caption = X.GetAttr("text");
+Name = X.GetAttr("name");
+
+for(int e=0;;e++)
+{
+    Object EX = &X.Element(e);
+    if (EX==null) break;
+    mItems.CreateRow().SetTo( EX );
+}]]>
+</method>
+<method name="GetXML">
+<param name="X" type="object" />
+<![CDATA[
+X.SetTag("Popup");
+
+X.AddAttr("text", Caption);
+if (Name!="") X.AddAttr("name", Name);
+
+for (int n=0;n<mItems.Count();n++)
+{
+    XML EX;
+    X.AddElement(EX);
+    mItems[n].GetXML(EX);
+}]]>
+</method>
+<method name="reset">
+<![CDATA[mItems.Reset();]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[
+Hier.GetParent().EditMenu(this);]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:03 |
+
+classes::core::wpopupmenu P;
+P.Add("New Menu Item","NI");
+P.Add("New Menu Separator","NS");
+P.Add("Delete Menu Header","DH");
+String s = P.Track(1);
+
+if (s=="NI") {
+    MenuItem NI = &mItems.CreateRow();
+    NI.Init(1);
+    Hier.SelectRow(NI);
+    NI.EventHierMouseSelect(Hier);  // select itself
+    Hier.GetParent().SetMod();
+} else
+
+if (s=="NS") {
+    MenuItem NS = &mItems.CreateRow();
+    NS.Init(0);
+    Hier.SelectRow(NS);
+    NS.EventHierMouseSelect(Hier);  // select itself
+    Hier.GetParent().SetMod();
+} else
+
+if (s=="DH") {
+    Hier.getParent().idMulti.FindPane("MenuEdit").doBlank();
+    Hier.GetParent().SetMod();
+    RemoveFromList();
+}]]>
+</method>
+<method name="EventHierDrop">
+<param name="Hier" type="object" />
+<![CDATA[Object HFrom = Hier.DropSource();
+if (HFrom==null) { Message("HFrom error!!!"); return; }
+
+Object R = HFrom.CurrentRow(); // current row in source hierarchy
+
+if (R.ClassName()==ClassName())
+  { // same class
+  if (HFrom==Hier){
+    Object L = OwnerList();
+    int from = L.FindIndex( R );
+    int to   = L.FindIndex( this );
+    L.MoveRow(from,to);
+    Hier.SelectRow( R );
+    }
+  }]]>
+</method>
+</members>
+<static />
+</class>

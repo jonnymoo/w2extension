@@ -1,0 +1,147 @@
+<class name="BaseXML" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members>
+<method name="SetToXML">
+<param name="X" type="object" />
+<![CDATA[
+// attributes
+for(int n=0;;n++)
+    {
+    String attr = X.AttrName(n); if (!attr) break;
+    Object M = &GetMemberWithAttr( "xa", attr );
+    if (M==null) continue;
+    M = X.AttrVal(n);
+    }
+// elements
+for(n=0;;n++)
+    {
+    Object EX = &X.Element(n); if (EX==null) break;
+    if (EX.Tag()=="CDATA"){
+        Object M = &GetMemberWithAttr( "xa", "CDATA" );
+        if (M==null) continue;
+        M = EX.Content();
+        }
+    else{
+        Object L = FindListForTag( EX.Tag() );
+        if (L==null) continue;
+        L.CreateRow().SetToXML(EX);
+        }
+    }]]>
+</method>
+<method name="GetXML">
+<![CDATA[
+XML X;
+X.SetTag( GetObjAttr(this,"xtag") );
+for(int n=0;;n++)
+    {
+    Object MD = &MemberDef(n); if (MD==null) break;
+    if (MD.IsList()){
+        Object L = GetMember(n);
+        for(int c=0;c<L.Count();c++){
+            Object EX = L[c].GetXML();
+            if (EX!=null) X.AddElement(EX);
+            }
+        }
+    else if (MD.IsObject()){
+        }
+    else{
+        String attr = GetMemberAttr(MD,"xa");
+        if (attr=="CDATA"){
+            String v = "" + GetMember(n);
+            if (!v) continue;
+            XML EX;
+            EX.SetTag("CDATA");
+            EX.SetContent( v );
+            X.AddElement(EX);
+            }
+        else if (attr){
+            String v = "" + GetMember(n);
+            if (v) X.AddAttr( attr, v );
+            }
+        }
+    }
+return X;]]>
+</method>
+<method name="GetObjAttr">
+<param name="Obj" type="object" />
+<param name="attr" type="object" />
+<![CDATA[
+for(int n=0;;n++)
+{
+String q = Obj.AttrName(n); if (!q) break;
+if (attr==q) return Obj.AttrVal(n);
+}
+return "";]]>
+</method>
+<method name="GetMemberAttr">
+<param name="MD" type="object" />
+<param name="attr" type="object" />
+<![CDATA[
+// String s = GetMemberAttr( MemberDef, "xa" );
+for(int n=0;;n++)
+    {
+    String q = MD.AttrName(n); if (!q) break;
+    if (attr==q) return MD.AttrVal(n);
+    }
+return "";]]>
+</method>
+<method name="GetMemberWithAttr">
+<param name="attr" type="object" />
+<param name="val" type="object" />
+<![CDATA[
+// Member z = GetMemberWithAttr( "xa", "cls" );
+for(int n=0;;n++)
+    {
+    Object MD = &MemberDef(n); if (MD==null) break;
+    String q = GetMemberAttr(MD,attr);
+    if (q==val)
+        return &GetMember(n);
+    }
+return null;]]>
+</method>
+<method name="FindListForTag">
+<param name="tag" type="object" />
+<![CDATA[
+// List L = FindListForTag( "Keys" );
+for(int n=0;;n++)
+    {
+    Object MD = &MemberDef(n); if (MD==null) break;
+    if (MD.IsList()){
+        Object Cls = &MD.MemberClass();
+        String q = GetObjAttr(Cls,"xtag");
+        if (q==tag){
+            return &GetMember(n);
+            }
+        }
+    }
+/*
+Object L = &GetMemberWithAttr( "xtag", tag );
+if (L==null) return null;
+if (L.IsList()) return L;
+*/
+return null;]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 15:59 |
+
+classes::core::wpopupmenu P;
+for(int n=0;;n++)
+    {
+    Object MD = &MemberDef(n); if (MD==null) break;
+    if (MD.IsList()){
+        P.Add( "Add " + MD.Description() );
+        }
+    }
+if (OwnerList()!=null){
+    P.Add("Delete","DelThis");
+    }
+String s = P.Track(1);]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[
+// Hier.GetParent().EditMethod(this);]]>
+</method>
+</members>
+<static />
+</class>

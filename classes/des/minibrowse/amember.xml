@@ -1,0 +1,193 @@
+<class name="aMember" HierImageField="icon" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:40 $" frevision="$Revision: 2 $">
+<members>
+<String name="typ" />
+<String name="name" />
+<String name="fullname" />
+<String name="icon" />
+<List name="members" cls="aMember" />
+<List name="static" cls="aMember" />
+<String name="objFilename" />
+<method name="EventHierQuery">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember EventHierQuery
+//@param hierarchy | Hier |
+//@version Andrew Griffin | 09-11-01 09:47 |
+//@i
+
+string fname = objFilename;
+
+while (fname) {
+
+    xml x = &::globalxml::LoadXML( fname );
+    if (x.tag()=="error") {
+        aMember m = &members.CreateRow();
+        m.name = "File not found";
+        m.icon = "::browse::hError.bmp";
+        m.SetContentIndicator( 0 );
+        m.SetQueried( 1 );
+        Hier.Update();
+        return;
+    }
+
+    x = &x[0];  // <class>
+    for (int s=0; s<x.count(); s++) {   // sections
+        xml sec = &x[s];
+        if (sec.tag()=="members" || sec.tag()=="static") {
+          int nonstatic = (sec.tag()=="members");
+          for (int m=0; m<sec.Count(); m++) {   // members
+            addTo( objFilename, (nonstatic ? members : static),
+                   fullname + ".",
+                   sec[m] );
+          }
+        }
+    }
+
+    if (x.base) fname = sys::MakeFullName( fname, x.base ) + ".xml"; // base class
+           else fname = "";
+}
+
+Hier.Update();]]>
+</method>
+<method name="EventHierDoubleClick">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember EventHierDoubleClick
+//@param hierarchy | Hier |
+//@version Andrew Griffin | 08-11-01 13:50 |
+//@i
+
+wbindTo w = &Hier.GetParent();
+
+if (w.preState) {
+    if (fullname.lower().beginswith( w.preState )) {
+        fullname = fullname.subString( w.preState.length() );
+    } else return 0;
+}
+
+w.getparent().ExecMethod(
+    w.callback,
+    w.param,
+    fullname
+);
+
+w.settimer(10);]]>
+</method>
+<method name="findCurr">
+<param name="state" type="string" />
+<param name="hier" type="hierarchy" />
+<![CDATA[//@cmember findCurr
+//@param string | state |
+//@param hierarchy | hier |
+//@version Andrew Griffin | 08-11-01 13:58 |
+//@i
+
+list l = &members;
+
+while (1) {
+
+    for (int i=0; i<l.Count(); i++) {
+
+        if (state.eq( l[i].fullname )) {
+            Hier.SelectRow( l[i] );
+            return;
+        }
+        if (state.beginsWith( l[i].fullname.lower()+"." )) {
+            l[i].EventHierQuery( Hier );
+            l[i].setOpen( 1 );
+            l[i].findCurr( state, hier );
+            return;
+        }
+
+    }
+
+    if (l==members) l = &static; else return;
+}]]>
+</method>
+</members>
+<static>
+<method name="addTo">
+<param name="myFilename" type="string" />
+<param name="memList" type="aMember[]" />
+<param name="addname" type="string" />
+<param name="mem" type="xml" />
+<![CDATA[//@cmember addTo
+//@param string | myFilename |
+//@param aMember[] | memList |
+//@param string | addname |
+//@param xml | mem |
+//@version Andrew Griffin | 08-11-01 12:40 |
+//@i
+
+string typ = mem.tag().lower();
+string icon, filename;
+
+switch (typ) {
+  case "integer" :
+    typ = "int";    // purposly no break...
+  case "int" :
+    icon = "..\\h123.bmp";
+    break;
+
+  case "string" :
+    icon = "..\\habc.bmp";
+    break;
+
+  case "date", "double" :
+    icon = "..\\hfloat.bmp";
+    break;
+
+  case "list", "object" :
+    if (typ=="list") icon = "..\\hlist.bmp";
+                else icon = "..\\hobject.bmp";
+
+    // prepare for child class recursion...
+
+      filename = sys::MakeFullName( myfilename, mem.cls+".xml" );
+    break;
+
+  default :
+    return;
+}
+
+if (addname==".") addname = "";
+
+aMember nm = &memList.CreateRow();
+
+nm.typ = typ + formatRType( typ );
+nm.name = mem.name;
+nm.fullname = addname + nm.name;
+nm.icon = icon;
+nm.objFilename = filename;
+
+nm.SetContentIndicator( filename );
+if (!filename)
+    nm.SetQueried( 1 );]]>
+</method>
+<method name="formatRType" return="string">
+<param name="rType" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 08-11-01 12:30 |
+//@i
+
+switch (rType.Lower()) {
+  case "int":     return "         "; break;
+  case "string" : return "    "; break;
+  case "object" : return "   "; break;
+  case "double" : return "  "; break;
+  case "date" :   return "      "; break;
+  case "list" :   return "         "; break;
+  case "date" :   return "      "; break;
+}
+
+return "      ";]]>
+</method>
+</static>
+<disp>
+<e f="typ" />
+<e f="name" />
+</disp>
+<return>
+<rmeth name="formatRType" cls="string" />
+</return>
+</class>

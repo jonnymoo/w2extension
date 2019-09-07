@@ -1,0 +1,57 @@
+<class name="xmlsaxreader" description="MSXML4 XML SAX Reader" base="MSXML4Base">
+<members>
+<method name="SetErrorCallbackObject">
+<param name="MyObject" type="object" />
+<param name="CallBackFunction" type="string" />
+<param name="bExhaustiveErrors]" type="[int" />
+<![CDATA[//@cmember int SetErrorCallbackObject( object MyObject, string CallBackFunction, int bExhaustiveErrors  );
+//@param object | MyObject | An instance of an object you want the parser to callback errors to
+//@param string | CallBackFunction | The callback function name (will be passed a SAXErrorWrapper object as the first parameter)
+//@param [int | bExhaustievErrors] | Set to 1 if you want to report on all errors (don't stop at the first one)
+//@return int | 0 = Failed, 1 = Passed
+//@i This sets the error callback object for the parser.
+//@i The function specified will be called on an error with a SAXErrorWrapper object
+//@i See help for SAXErrorWrapper for how errors are reported.
+]]>
+ />
+</method>
+<method name="SetContentCallbackObject">
+<param name="MyObject" type="object" />
+<param name="CallBackFunction" type="string" />
+<![CDATA[//@cmember int SetContentCallbackObject( object MyObject, string CallBackFunction  );
+//@param object | MyObject | An instance of an object you want the parser to callback to
+//@param string | CallBackFunction | The callback function name (will be passed a SAXContentWrapper object as the first parameter)
+//@return int | 0 = Failed, 1 = Passed
+//@i This sets the content callback object for the parser.
+//@i The function specified will be called on content with a SAXContentWrapper object
+//@i See help for SAXContentWrapper for how content is reported.
+]]>
+ />
+</method>
+<method name="SetSchemas">
+<param name="SchemaCollection" type="XMLSchemaCollection" />
+<![CDATA[//@cmember int SetSchemas( XMLSchemaCollection schemaCollection  );
+//@param XMLSchemaCollection | schemaCollection | the collection of XSD/Namespaces you wish to validate the XML against
+//@return int | 0 = Failed, 1 = Passed
+//@i This sets XSD validation for your XML.  Do not use if you do not wish to validate against a schema.
+]]>
+ />
+</method>
+<method name="parse">
+<param name="XMLFileName" type="string" />
+<![CDATA[//@cmember int parse( string XMLFileName  );
+//@param string | XMLFileName | The XML File to parse
+//@return int | 0 = Failed, 1 = Passed
+//@i This will call the SAX Parser
+]]>
+ />
+</method>
+
+</members>
+<return>
+<rmeth name="SetErrorCallbackObject" cls="int" />
+<rmeth name="SetContentCallbackObject" cls="int" />
+<rmeth name="SetSchemas" cls="int" />
+<rmeth name="parse" cls="int" />
+</return>
+</class>

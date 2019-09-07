@@ -1,0 +1,449 @@
+<form name="findClass" savepos="findClassNamed" margin="0" toolwindow="1" thinframe="1" closeondeactivate="1" nocaption="1" esccancel="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:41$" frevision="$Revision: 2$">
+<members>
+<Integer name="stop" />
+<String name="pth" />
+<String name="clsname" />
+<String name="typed" />
+<String name="typedFlash" />
+<Integer name="chkTimer" />
+<List name="found" cls="classes::cpicks" />
+<Integer name="progress" pick="progShow" />
+<Integer name="sely" />
+<Object name="par" />
+<Integer name="cpos" />
+<Integer name="cend" />
+<Integer name="done" />
+<Integer name="frac" />
+<method name="doSearch">
+<param name="pathS" type="string" />
+<![CDATA[//@cmember startSearch
+//@param
+//@return
+//@version Andrew Griffin | 19-06-02 09:41 | Search trial
+//@version Jonathan.Muir | 26-02-10 12:11 |
+//
+
+//if (!searchInDesigner()/* && pathS.indexOf("\\des\\",0,1)>=0*/) return;
+
+int i = pathS.lastIndexOf( "\\" );
+if (i==-1) return;
+string pathP = pathS.left( i+1 );
+
+FileFinder FF = &sys::NewFileFinder();
+int ok = FF.FindFirst( pathS + clsName + ".xml" , "" );    // look in sub folders too
+
+while (ok && !stop && !chkTimer) {
+
+  if (!FF.IsDir) doFound( pathS + FF.FileName );
+  ok = FF.FindNext();
+
+}
+
+/*frac++;
+if (frac>40)*/
+if (sys::TickCount() > frac)
+{
+    progress++;
+    if (progress>3) progress=0;
+    sys::wait( 0 );
+    //frac=0;
+    frac = sys::TickCount() + 150;
+}
+
+ok = FF.FindFirst( pathS+"*.*" , "D" );    // look in sub folders too
+
+while (ok && !stop && !chkTimer) {
+
+    if (FF.IsDir && FF.FileName[0]!='.') {
+        doSearch( pathP + FF.FileName + "\\" );
+    }
+
+    ok = FF.FindNext();
+}]]>
+</method>
+<method name="doFound">
+<param name="FileName" type="string" />
+<![CDATA[//@cmember doFound
+//@param string | FileName |
+//@version Andrew Griffin | 04-02-02 15:52 |
+//@version Jonathan.Muir | 10-09-03 16:00 |
+//@i
+
+string rel = "classes::" + sys::MakeRelativeName( pth, FileName );
+int i = rel.lastindexof( ".xml", rel.length(), 1 );
+if (i>=0) rel = rel.left( i );
+
+int rowNo = found.count();
+
+classes::cpicks n = found.CreateRow().setTo( rel, "" );
+
+rel = rel.substring( 9 );
+if (rel.length()>48) rel = "..." + rel.right( 48 );
+
+idResults.DuplicateRow( rowNo );
+gridrow nRow = &idResults.GetRow( rowNo );
+label l = &nRow.GetCell( 0 ).Control;
+
+l.setText( rel );
+l.setVisible( 1 );
+l.SetAttr( "myCls", n.code );
+
+if (sely == rowNo) selRow( sely );
+
+SizeFormToContent();
+sys::Wait( 0 );]]>
+</method>
+<method name="selRow">
+<param name="nRow" type="int" />
+<![CDATA[//@cmember selRow
+//@param int | nRow |
+//@version Andrew Griffin | 17-05-02 12:39 |
+//@i
+
+gridrow cRow = &idResults.GetRow( sely );
+gridcell gc = &cRow.GetCell( 0 );
+gc.setBK( -1 );
+gc.Control.setTxColor( 0 );
+
+sely = nRow;
+
+cRow = &idResults.GetRow( sely );
+gc = &cRow.GetCell( 0 );
+gc.setBK( "3F4BA7" );
+gc.Control.setTxColor( 0xFFFFFF /*sys::rgb( 255,255,255 )*/ );]]>
+</method>
+<method name="onCharDown">
+<param name="Key" type="int" />
+<param name="State" type="int" />
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember onCharDown
+//@param int | Key |
+//@param int | State |
+//@param control | Ctrl |
+//@version Andrew Griffin | 17-05-02 11:02 |
+//@version tim.simpson | 27-07-11 12:17 |
+//@i
+
+switch (Key) {
+
+    case 38 :                   // Up
+        if (sely>0) selRow( selY-1 );
+        break;
+
+    case 40 :                   // Down
+        if (sely<found.Count()-1) selRow( selY+1 );
+        break;
+
+    case 13, 32 :               // Enter or Space
+        if (sely<found.Count() && par!=null)
+        {
+            done = 1;
+            setTimer(50);
+        }
+        break;
+
+//
+
+    case 08 :                   // Back space
+        if (!idSearch.isVisibleReally()) return;
+        setTimer( 500 );
+        if (typed) typed = typed.left( typed.length()-1 );
+        typedFlash = typed;
+        chkTimer = 1;
+        break;
+
+    case 46 :                   // Del
+        if (!idSearch.isVisibleReally()) return;
+        setTimer( 500 );
+        typed = "";
+        typedFlash = typed;
+        chkTimer = 1;
+        break;
+
+    case 189:
+        if (state==3)          //fix "_" in search
+        {
+            typed += "_";
+        }
+        typedFlash = typed;
+        chkTimer = 1;
+        break;
+
+    default :
+        if (!idSearch.isVisibleReally()) return;
+        string k = Key.charstring().lower();
+        if (k>="a" && k<="z" || k>="0" && k<="9" || k=="½") {
+            setTimer( 500 );
+            if (k=="½") k = "-";
+            if (State==3) {
+                if (k=="-") k="_"; else
+                if (k=="8") k="*";
+            }
+            typed += k;
+            typedFlash = typed;
+            chkTimer = 1;
+        }
+
+}]]>
+</method>
+<method name="doClicked">
+<param name="con" type="label" />
+<![CDATA[//@cmember doClicked
+//@param label | con |
+//@version Andrew Griffin | 04-02-02 16:17 |
+//@i
+
+if (par!=null) {
+    par.pathChosen( con.GetControlAttr( "myCls" ), cpos, cend );
+}
+close();]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember onTimer
+//@version Andrew Griffin | 17-05-02 10:42 |
+//@i
+
+// See:  SetTimer( time_in_milliseconds );
+
+if (done) {
+    killtimer();
+    close();
+    par.pathChosen( found[sely].code, cpos, cend );
+}
+
+if (typedFlash.endsWith( "I" ))
+    typedFlash = typedFlash.left( typedFlash.length()-1 );
+else
+    typedFlash += "I";
+
+if (!chkTimer) return;
+
+chkTimer--;
+if (chkTimer) return;
+
+//
+// Just hit zero so start search
+
+sely = 0;
+clsname = typed;
+idResultMsg.setText( "Searching..." );
+showgroup( "found", 1 );
+SizeFormToContent();
+for (int i=idResults.RowCount()-2; i>=0; i--)
+    idResults.DeleteRow( i );
+SizeFormToContent();
+SizeFormToContent();
+found.reset();
+
+progress = 0;
+
+if (clsname) doSearch( pth );
+
+progress = 4;
+
+if (!found.Count())
+{
+    if (clsname)
+        idResultMsg.setText( "No classes found..." );
+    else
+        idResultMsg.setText( "Enter Search String..." );
+    showgroup( "found", 0 );
+}
+else
+{
+    idResultMsg.setText( "Search Complete." );
+}
+
+SizeFormToContent();
+SizeFormToContent();]]>
+</method>
+<method name="DEBUG">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember DEBUG
+//@param label | ctrl |
+//@version Jonathan.Muir | 10-09-03 15:49 |
+//@i
+
+
+This.Show();]]>
+</method>
+</members>
+<static>
+<List name="progShow" cls="classes::cpickn">
+<item code="0" desc="|" PickType="" />
+<item code="1" desc="/" PickType="" />
+<item code="2" desc="-" PickType="" />
+<item code="3" desc="\" PickType="" />
+<item code="4" desc=" " PickType="" />
+</List>
+<Integer name="inDes" constval="-1" />
+<method name="FindClasses">
+<param name="className" type="string" />
+<param name="par" type="form" />
+<param name="x" type="int" />
+<param name="y" type="int" />
+<param name="cpos" type="int" />
+<param name="cend" type="int" />
+<![CDATA[//@cmember FindClasses
+//@param string | className |
+//@param form | par |
+//@param int | x |
+//@param int | y |
+//@param int | cpos |
+//@param int | cend |
+//@version Andrew Griffin | 17-05-02 10:59 |
+//@i
+
+findClass me = &CreateInstance();
+
+me.clsname = className;
+if (par==null) me.open();
+else {
+    me.dialog( par );
+    me.par.setMagicPointer( &par );
+}
+
+me.SizeFormToContent();
+sys::Wait( 0 );
+
+if (x!=null && y!=null) me.SetPos( x, y );
+
+me.pth = classes::cpicks::classname();
+int i = me.pth.lastindexof( "\\" );
+me.pth = me.pth.left( i+1 );
+
+if (cpos!=null && cend!=null) {
+    me.cpos = cpos;
+    me.cend = cend;
+}
+
+me.idResultMsg.setText( "Searching..." );
+me.showgroup( "found", 1 );
+
+me.progress = 0;
+me.doSearch( me.pth );
+me.progress = 4;    // Complete...
+
+if (!me.found.Count())
+{
+    me.idResultMsg.setText( "No classes found..." );
+    me.showgroup( "found", 0 );
+}
+else
+{
+    me.idResultMsg.setText( "Search Complete." );
+}
+
+me.FitRecursive();
+me.SizeFormToContent();]]>
+</method>
+<method name="typeSearch">
+<param name="par" type="form" />
+<![CDATA[//@cmember typeSearch
+//@param form | par |
+//@version Andrew Griffin | 17-05-02 11:00 |
+//@version Jonathan.Muir | 11-09-03 16:25 |
+//@i
+
+findClass me = &CreateInstance();
+me.showgroup( "search", 1 );
+
+if (par==null) me.open();
+else {
+    me.dialog( par );
+    me.par.setMagicPointer( &par );
+}
+
+me.progress = 4;    // Complete...
+me.SizeFormToContent();
+me.SizeFormToContent();
+sys::Wait( 0 );
+
+me.SnapToCursor( 24, 0 );
+
+if(par.FileName)
+{
+    me.pth = par.FileName.lower();
+    int i = me.pth.indexof( "\\classes\\" );
+    me.pth = me.pth.left( i+9 );
+}
+else
+{
+    me.pth = classes::cpicks::classname();
+    int i = me.pth.lastindexof( "\\" );
+    me.pth = me.pth.left( i+1 );
+}
+
+me.SetTimer( 500 ); // for cursor flashing]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 04-02-02 15:53 |
+//@i
+
+FindClasses( "p*" );]]>
+</method>
+<method name="searchInDesigner" return="int">
+<![CDATA[//@cmember searchInDesigner
+//@return int | 1 if we want to be able to search for designer specific classes...
+//@version Andrew Griffin | 19-06-02 09:47 |
+
+if (inDes==-1)
+{
+    String ini = Sys::MakeFullName(Path(),"::des.ini");
+    inDes = Sys::GetPrivateProfileString("ide","DesignerDevelopment",ini).val();
+}
+
+return inDes;]]>
+</method>
+</static>
+<grid bk="FF00000F">
+<row>
+<col lpad="3" tpad="3" rpad="3" bpad="3" h="17" align="W" bk="224,192,128" bkimg="des::res::faderight.bmp" imgtile="1">
+<grid hide="Y" groups="search">
+<row>
+<col lpad="2" tpad="2" rpad="2" bpad="2" h="17" align="W" bk="255,255,255">
+<Label name="idSearch" h="13" bind="typedFlash" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col w="160" h="1" align="W" bk="FF000010" />
+</row>
+<row>
+<col lpad="4" tpad="4" rpad="4" bpad="4" w="160" align="W">
+<grid name="idResults" hide="Y" groups="found">
+<row>
+<col lpad="4" tpad="1" rpad="4" bpad="2" align="W">
+<Label text="&gt;&gt;" hide="Y" onclick="doClicked" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col w="160" h="1" align="W" bk="FF000014" />
+</row>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2" w="160" align="W" bk="224,192,128" bkimg="des::res::faderight.bmp" imgtile="1">
+<grid>
+<row>
+<col w="160" align="WV" imgtile="1">
+<Label name="idResultMsg" text="Enter Search String..." onrightclick="DEBUG" />
+</col>
+<col w="12" align="CV">
+<Label text="*" font="Courier New" size="10" bind="progress" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="searchInDesigner" cls="int" />
+</return>
+</form>

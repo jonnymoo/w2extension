@@ -1,0 +1,91 @@
+<class name="debugxmlobj" HierImageField="Icon" fauthor="$Author: Andrew.g$" fdate="$Date: 24/06/02 9:39$" frevision="$Revision: 4$">
+<members>
+<String name="Name" />
+<String name="justName" />
+<String name="Icon" />
+<List name="elements" cls="debugxmlObj" />
+<Object name="TheXml" />
+<method name="setTo">
+<param name="X" type="XML" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 21-06-02 14:05 |
+//@version Jonathan.Muir | 26-02-10 13:53 |
+//@i
+
+elements.reset();
+justName = X.tag();
+
+TheXML.SetMagicPointer(X);
+
+if (X.content()!="") {
+    name = (justName=="" ? "" : justName + " ") + "content: \"" + X.content() + "\"";
+    if (ownerList()!=null)
+        ownerList().ownerRow().name += " <" + X.content() + ">";
+} else {
+    Icon="classes::resource::standard::arrowhier.bmp";
+    Name = justName;
+}
+
+for (int i=0; i<X.attrCount(); i++)
+    name += " " + X.AttrName(i) + "=\"" + X.AttrVal(i) + "\"";
+
+for (i=0; i<X.count(); i++)
+    elements.createRow().setTo( X[i] );
+
+if (X.count()==1) elements[0].setOpen(1);
+setQueried(1);]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember EventHierRightClick
+//@param hierarchy | Hier |
+//@version Jonathan.Muir | 26-02-10 13:54 |
+//@version andrew.banyard | 17-04-15 14:00 |
+//@i
+
+
+PopupMenu p;
+p.Add("Inspect","I");
+p.Add("Copy Value To Clipboard","V");
+p.Add("Copy To Clipboard","C");
+
+string cmd = p.track();
+if(cmd)
+{
+    switch(cmd){
+        case "I":
+         EventHierDoubleClick(hier);
+        break;
+        case "C":
+         blob b;
+         b.WriteXML(TheXML);
+         sys::CopyToClipboard(b.toString());
+        break;
+        case "V":
+         if(null==TheXML.GetElement(0)){
+            sys::CopyToClipboard("");
+         } else {
+           sys::CopyToClipboard(TheXML.GetElement(0).Content());
+         }
+        break;
+    }
+
+}]]>
+</method>
+<method name="EventHierDoubleClick">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember EventHierDoubleClick
+//@param hierarchy | Hier |
+//@version jonathan.muir | 18-02-10 15:25 |
+//@i
+
+hier.getParent().EventHierDoubleClick(this);]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="Name" />
+</disp>
+</class>

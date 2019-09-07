@@ -1,0 +1,420 @@
+<class name="StringFunctions" fauthor="$Author: Jonathan Muir $" fdate="$Date: 11/08/04 9:58 $" frevision="$Revision: 1 $">
+<members />
+<static>
+<method name="CountToken">
+<param name="MainString" type="String" />
+<param name="SubString" type="String" />
+<param name="IgnoreCase" type="Int" />
+<![CDATA[//@cmember CountToken
+//@param String | MainString | The main string
+//@param String | SubString | The substring that is being searched, default ','
+//@param Int | IgnoreCase |
+//@version sorina.grave | 30-01-03 14:40 |
+//@version Darren.Ball | 04-03-03 15:00 |
+//@version Steve Burden | 15-03-04 10:12 |
+//@i Returns the number of Occurences of a substring in a string, 0 for no occurences, -1 for error - one of the strings is empty
+
+int n = 0;
+int i = 0;
+
+if (MainString.EQ("")||MainString==NULL) Return 0;
+
+Int iIgnoreCase = (IgnoreCase==NULL ? 1 : IgnoreCase);
+String szSubString = (SubString == NULL ? "," : SubString);
+
+
+
+While (1==1)
+{
+    Int iIndex = MainString.IndexOf(szSubString,i,iIgnoreCase);
+    if (iIndex == -1) Break;
+    n++;
+    i = iIndex + szSubString.Length();
+
+}
+
+return n;]]>
+</method>
+<method name="WordWrap" return="string">
+<param name="TheString" type="string" />
+<param name="iLength" type="int" />
+<param name="bIgnoreMultiLine" type="int" />
+<param name="iNumberOfLines" type="object" />
+<![CDATA[//@cmember WordWrap
+//@param string | TheString |
+//@param int | iLength | (optional) Max Length of a line (null if using number of lines
+//@param int | bIgnoreMultiLine | (optional) Don't split if multiline already
+//@param object | iNumberOfLines | (optional) Or NULL if using length
+//@return string |
+//@version Jonathan.Muir | 13-02-02 12:03 |
+//@version Darren.Ball | 16-08-02 16:39 |
+//@version Jonny Moo | 27-12-02 10:44 |
+//@version Jonathan.Muir | 10-08-04 09:38 |
+//@i
+
+TheString = TheString.Trim();
+TheString = TheString.Replace("\r\n","\n");
+TheString = TheString.Replace("\r","\n");
+if(bIgnoreMultiLine!=NULL&&bIgnoreMultiLine==1)
+{
+    // New Lines already ?
+    if(TheString.IndexOf("\n")>=0) return TheString;
+
+}
+
+int Length;
+
+if(iNumberOfLines!=NULL)
+{
+    // Use Number Of Lines
+    Length = TheString.Length()/iNumberOfLines;
+
+}
+
+if(iLength!=NULL)
+{
+    if(iLength>Length)
+    {
+        Length = iLength;
+    }
+}
+
+
+// Split up string
+
+int i = 0;
+string NewString = "";
+while(1==1)
+{
+
+    int bIsOpenBracket = 0;
+    int Nexti = TheString.findCharInRange("  ((,,..;;//\\\\::",i+Length);
+    int NextNl = TheString.IndexOf("\n",i+1);
+    if(NextNl>=0&&(Nexti<0||NextNl<Nexti)) Nexti=NextNl;
+    if(Nexti<0)
+    {
+        Nexti = TheString.Length();
+    }
+    else
+    {
+        if((TheString.CharAt(Nexti)=='('))
+        {
+            bIsOpenBracket = 1;
+        }
+    }
+
+
+    NewString+=TheString.SubString(i,Nexti).Trim();
+
+    if(Nexti==TheString.Length()) break;
+
+    NewString +="\r\n";
+
+    if(bIsOpenBracket)
+    {
+        i = Nexti;
+    }
+    else
+    {
+        i=Nexti+1;
+    }
+
+}
+
+return NewString;]]>
+</method>
+<method name="IsInteger">
+<param name="TheString" type="object" />
+<![CDATA[//@cmember IsInteger
+//@param object | TheString |
+//@version Jonathan.Muir | 11-03-02 17:35 |
+//@i
+
+if(TheString=="") return 0;
+
+for(int i=0;i<TheString.Length();i++)
+{
+    if(TheString[i]<'0'||TheString[i]>'9')
+    {
+        return 0;
+    }
+}
+
+return 1;]]>
+</method>
+<method name="rpad" return="string">
+<param name="TheString" type="string" />
+<param name="Length" type="int" />
+<param name="pad" type="int" />
+<![CDATA[//@cmember rpad
+//@param string | TheString | Input string
+//@param int | Length | Total length of return string
+//@param int | pad | Character to pad with (as a character e.g. 'A')
+//@return string | The padded string
+//@version Andy.Smith | 13-05-02 16:28 |
+//@version Darren.Ball | 01-08-02 11:25 |
+//@i if string length is greater than the pad length
+//@i then truncate to length
+
+string szReturnString = TheString.ToString();
+
+if(szReturnString.Length()>Length) return szReturnString.Left(Length);
+
+while(szReturnString.Length()<Length) szReturnString += pad.CharString();
+
+return szReturnString;]]>
+</method>
+<method name="FormatOutput" return="String">
+<param name="szValue" type="object" />
+<param name="Length" type="object" />
+<param name="Justification" type="object" />
+<param name="Filler" type="object" />
+<![CDATA[//@cmember FormatOutput
+//@param object | szValue | Value
+//@param object | Length | Length of Return String.
+//@param object | Justification | Left = 1/NULL, Right = 2; Left by Default.
+//@param object | Filler | Padding Character i.e space , Zeros. Space by Default
+//@return String | Formatted String
+//@version Darren.Ball | 01-08-02 11:25 |
+//@version Jonathan.Muir | 20-07-04 17:01 |
+//@i
+String szTheValue = SzValue.ToString();
+Int szJustification = 1; // Left Justification by default
+if (Justification != NULL) szJustification = Justification;
+
+String szFiller = " ";
+if(Filler != NULL) szFiller = Filler;
+
+If(Length==NULL) Return szValue;
+Int pLength = Length;
+if(pLength < szTheValue.Length())
+{
+    if (szJustification == 1) Return szTheValue.Left(pLength);
+    Return szTheValue.Right(pLength);
+}
+
+
+Int ValueLength = szTheValue.Length();
+String FillerString = "";
+
+FillerString = rPad("",pLength-ValueLength,szFiller.CharAt(0));
+if (szJustification == 1) Return szTheValue+FillerString;
+Return FillerString+szTheValue;]]>
+</method>
+<method name="FormatDP" return="String">
+<param name="oValue" type="object" />
+<param name="DP" type="object" />
+<param name="Commas" type="object" />
+<param name="Precision" type="object" />
+<![CDATA[//@cmember FormatDP
+//@param object | oValue | Value
+//@param object | DP | Decimal Places (Leave NULL or set to -1 for all decimal places)
+//@param object | Commas | 1 to put commas at the 1000's
+//@param object | Precision | (Optional) Defaults to 10 DP
+//@return String | Formatted String
+//@version Darren.Ball | 25-09-02 12:29 |
+//@version Jonny Moo | 17-10-02 17:33 |
+//@version Jonathan.Muir | 20-07-04 17:01 |
+//@i
+
+int iPrecision = 10;
+if(Precision!=NULL) iPrecision = Precision;
+if(iPrecision<=DP) iPrecision = DP+1;
+
+double o;
+if(oValue.ClassName().eq("STRING"))
+{
+    o = oValue.Val();
+}
+else
+{
+    o = oValue;
+}
+if(DP!=NULL&&DP>=0) o= classes::core::NumberFunctions::Round(o,DP,iPrecision);
+
+string sz = o.ToString();
+
+string szsign = "";
+
+if(sz.CharAt(0)=='-')
+{
+    szsign = "-";
+    sz = sz.SubString(1);
+}
+
+int e = sz.IndexOf("e");
+
+if(e>=0)
+{
+    // Move decimal places to the left or right i.e. 1e+15
+    int Magnitude = sz.SubString(e+1).Val();
+    sz = sz.Substring(0,e);
+
+    int Dot = sz.IndexOf(".");
+    if(Dot==-1)
+    {
+        Dot = sz.Length();
+        sz+=".";
+    }
+
+    // Work out where dot should go
+    int newDot = Dot+Magnitude;
+
+    sz = sz.Replace(".","");
+    if(NewDot<0)
+    {
+        // Decimal Point before the beginning
+        string Newsz = "0.";
+        // Need to put in 0. and (-NewDot) 0's
+        for(int i=NewDot;i<0;i++)
+        {
+            Newsz+="0";
+        }
+        sz = Newsz+sz;
+    }
+    else if(NewDot==0)
+    {
+        // Decimal point at the beginning
+        sz = "0."+sz;
+    }
+    else if(NewDot<sz.Length())
+    {
+        // Decimal Point during the number
+        sz = sz.SubString(0,NewDot)+"."+sz.SubString(NewDot);
+    }
+    else
+    {
+        // No Decimal Point
+        int Zeros = NewDot-sz.Length();
+        for(int i=0;i<zeros;i++)
+        {
+            sz+="0";
+        }
+    }
+
+}
+
+// sz is now the number we want - Do we need to pad with .0's
+
+if(DP!=NULL&&DP>=0)
+{
+
+    // How many decimals have we after the .
+
+    int Decimals = 0;
+    int Dot = sz.IndexOf(".");
+    if(DP!=0||Dot!=-1)
+    {
+        if(Dot==-1)
+        {
+            sz+=".";
+        }
+        else
+        {
+            Decimals = (sz.Length()-Dot)-1;
+        }
+
+        for(int i=0;i<(DP-Decimals);i++)
+        {
+            sz+="0";
+        }
+    }
+}
+
+if(Commas!=NULL&&Commas==1)
+{
+    // Put in comma's at the thousands
+    String szL = sz.GetToken(0,".");
+    string szNew = "";
+    for(int i=szL.Length()-3;i>0;i=i-3)
+    {
+        szNew = ","+szL.Substring(i,i+3)+szNew;
+    }
+    szNew = sz.SubString(0,i+3)+szNew;
+    if(sz.GetToken(1,"."))
+    {
+        sz = szNew+"."+sz.GetToken(1,".");
+    }
+    else
+    {
+        sz = szNew;
+    }
+}
+
+return szSign+sz;]]>
+</method>
+<method name="GetSQL">
+<param name="szValue" type="object" />
+<param name="szType" type="object" />
+<![CDATA[//@cmember GetSQL
+//@param object | szValue |
+//@param object | szType |
+//@version Jonny Moo | 05-06-02 10:35 |
+//@i
+
+
+switch(szType.Upper())
+{
+    case "NUMBER":
+    case "INTEGER":
+    case "DOUBLE":
+    case "INT":
+    {
+        double o  = szValue.Val();
+        return o.SQL();
+    } break;
+    case "STRING":
+    {
+        return szValue.SQL();
+    } break;
+    case "DATE":
+    {
+        date d;
+        d.FromString(szValue);
+        return d.SQL();
+    } break;
+}
+
+return szValue.SQL();]]>
+</method>
+<method name="TokenCount" return="int">
+<param name="pTheString" type="String" />
+<param name="pTheDelimiter" type="String" />
+<![CDATA[//@cmember TokenCount
+//@param String | pTheString |
+//@param String | pTheDelimiter |
+//@return int | the number of tokens
+//@version Steve Burden | 15-03-04 10:33 |
+//@i       This Method counts the number of tokens in a given string.
+//@i       Uses param2 as token delimiter if supplied, otherwise uses
+//@i       a comma.
+
+string szTheDelimiter = ",";
+if (pTheDelimiter != NULL && !pTheDelimiter.Eq(""))
+{
+    szTheDelimiter = pTheDelimiter;
+}
+
+if (pTheString == NULL || pTheString.Eq(""))
+{
+    Return -1;
+}
+
+int i = 0;
+
+while (!pTheString.GetToken(i,szTheDelimiter).Eq(""))
+{
+    i++;
+}
+
+return i;]]>
+</method>
+</static>
+<return>
+<rmeth name="WordWrap" cls="string" />
+<rmeth name="rpad" cls="string" />
+<rmeth name="FormatOutput" cls="String" />
+<rmeth name="FormatDP" cls="String" />
+<rmeth name="TokenCount" cls="int" />
+</return>
+</class>

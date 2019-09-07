@@ -1,0 +1,605 @@
+<form name="wCustomColor" bk="E0E0C0" margin="2" sizeable="0" toolwindow="1" hidden="1" thinframe="1" nocaption="1" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:39 $" frevision="$Revision: 2 $">
+<members>
+<Integer name="selCol" />
+<Integer name="moreOpts" />
+<Integer name="mod" />
+<Integer name="defCol" />
+<method name="setup">
+<param name="defaultCol" type="int" />
+<![CDATA[//@cmember setup
+//@param int | defaultCol |
+//@version Andrew Griffin | 11-06-02 16:03 |
+
+//
+// Populate colors...
+
+defCol = defaultCol;
+selCol = -1;
+
+for (int i=0; i<colList.Count(); i++)
+{
+    grid g = &idColors.DuplicateRow( 0, 0, i+1 ).GetCell(0).Control;
+    g.setvisible( 1 );
+
+    g.GetCell(0,0).control.SetAttr( "rowNo", ""+i );
+    g.GetCell(0,0).setBK( colList[i].code.tostring( "08X" ) );
+
+    if (colList[i].code == defaultCol)
+        g.GetCell(0,1).Control.setAttr( "style", "b" );
+
+    g.GetCell(0,1).Control.setText( colList[i].desc );
+
+}
+
+SizeFormToContent();]]>
+</method>
+<method name="onMouseOver">
+<param name="ctrl" type="label" />
+<param name="PStr" type="string" />
+<![CDATA[//@cmember onMouseOver
+//@param label | ctrl |
+//@param string | PStr |
+//@version Andrew Griffin | 11-06-02 12:15 |
+
+if (moreOpts==2) return;
+
+gridRow gr = &ctrl.GetRow();
+int colNum = gr.GetCell( 0 ).control.GetControlAttr( "rowNo" ).val();
+
+string col = "B6BDD2";
+
+if (PStr=="0" && colNum != selCol) col = "";
+
+gr.GetCell( 1 ).setBK( col );]]>
+</method>
+<method name="onClick">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember onClick
+//@param label | ctrl |
+//@version Andrew Griffin | 11-06-02 12:15 |
+//@i
+
+if (moreOpts==2) return;
+
+SelectCol( "" );
+
+gridRow gr = &ctrl.GetRow();
+selCol = gr.GetCell( 0 ).control.GetControlAttr( "rowNo" ).val();
+
+if (!moreOpts)
+{
+    askclose();
+    return;
+}
+
+selectCol( "B6BDD2" );
+
+//
+// Set up colour editing boxes
+
+classes::cpickn colr = &colList[selCol];
+
+string hex = colr.code.tostring( "08X" );
+if (hex.beginsWith( "00" )) hex = hex.substring( 2 );
+idColBox.GetCell().setBK( hex );
+idColName.setText( colr.desc );
+idColHex.setText( hex );]]>
+</method>
+<method name="doMoreOptions">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doMoreOptions
+//@param label | ctrl |
+//@version Andrew Griffin | 11-06-02 12:15 |
+
+if (moreOpts==2) return;
+
+moreOpts = !moreOpts;
+
+idMoreOptions.setvisible( moreOpts );
+
+selectCol( "" );
+selCol = -1;
+
+SizeFormToContent();
+classes::core::globalForm::moveIntoFullView( this );]]>
+</method>
+<method name="SelectCol">
+<param name="colStr" type="string" />
+<![CDATA[//@cmember SelectCol
+//@param string | colStr |
+//@version Andrew Griffin | 11-06-02 12:15 |
+
+if (moreOpts==2) return;
+
+if (selCol==-1) return;
+
+gridRow gr = &idColors.GetCell( selCol+1, 0 ).control.GetRow(0);
+int colNum = gr.GetCell( 0 ).control.GetControlAttr( "rowNo" ).val();
+
+gr.GetCell( 1 ).setBK( colStr );]]>
+</method>
+<method name="doNewColour">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doNewColour
+//@param label | ctrl |
+//@version Andrew Griffin | 11-06-02 12:58 |
+
+if (moreOpts==2) return;
+
+SelectCol( "" );
+
+int c = (selCol==-1) ? defCol : colList[ selCol ].code;
+
+colList.CreateRow().setTo( c, "New Colour" );
+
+selCol = colList.Count()-1;
+int i = selCol;
+
+grid g = &idColors.DuplicateRow( 0, 0, i+1 ).GetCell(0).Control;
+g.setvisible( 1 );
+
+g.GetCell(0,0).control.SetAttr( "rowNo", ""+i );
+g.GetCell(0,0).setBK( colList[i].code.tostring( "08X" ) );
+g.GetCell(0,1).Control.setText( colList[i].desc );
+
+if (selCol!=-1)
+{
+    gridRow gr = &idColors.GetCell( selCol+1, 0 ).control.GetRow(0);
+    onClick( gr.GetCell( 0 ).Control );
+}
+
+SizeFormToContent();
+
+mod=1;]]>
+</method>
+<method name="doDeleteColour">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doDeleteColour
+//@param label | ctrl |
+//@version Andrew Griffin | 11-06-02 12:15 |
+
+if (moreOpts==2) return;
+
+if (selCol==-1) return;
+
+colList.DeleteRow( selCol );
+
+idColors.DeleteRow( selCol+1 );
+
+//
+// Update grid row attributes...
+
+for (int i=0; i<colList.Count(); i++)
+{
+    grid g = &idColors.GetCell( i+1, 0 ).Control;
+    g.GetCell(0,0).control.SetAttr( "rowNo", ""+i );
+}
+
+selCol--;
+if (selCol==-1 && colList.Count()) selCol = 0;
+
+if (selCol!=-1)
+{
+    gridRow gr = &idColors.GetCell( selCol+1, 0 ).control.GetRow(0);
+    onClick( gr.GetCell( 0 ).Control );
+}
+
+SizeFormToContent();
+
+mod=1;]]>
+</method>
+<method name="doNameChange">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember doNameChange
+//@param edit | ctrl |
+//@version Andrew Griffin | 11-06-02 12:15 |
+
+if (selCol==-1) return;
+
+classes::cpickn colr = &colList[selCol];
+
+colr.desc = ctrl.getText();
+
+gridRow gr = &idColors.GetCell( selCol+1, 0 ).control.GetRow(0);
+gr.GetCell( 1 ).control.setText( colr.desc );
+SizeFormToContent();
+classes::core::globalForm::moveIntoFullView( this );
+
+mod=1;]]>
+</method>
+<method name="doHexChange">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember doHexChange
+//@param edit | ctrl |
+//@version Andrew Griffin | 11-06-02 11:45 |
+
+if (selCol==-1) return;
+
+classes::cpickn colr = &colList[selCol];
+
+colr.code = ColorToInt( ctrl.getText() );
+
+string hex = colr.code.tostring( "08X" );
+if (hex.beginsWith( "00" )) hex = hex.substring( 2 );
+
+idColBox.GetCell().setBK( hex );
+
+gridRow gr = &idColors.GetCell( selCol+1, 0 ).control.GetRow(0);
+gr.GetCell( 0 ).setBK( hex );
+
+mod=1;]]>
+</method>
+<method name="doColourChange">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doColourChange
+//@param label | ctrl |
+//@version Andrew Griffin | 11-06-02 14:47 |
+
+if (selCol==-1) return;
+
+classes::cpickn colr = &colList[selCol];
+
+moreOpts = 2;
+int col = sys::GetColor( colr.code );
+moreOpts = 1;
+
+if (col==-1) return;
+
+colr.code = col;
+
+string hex = colr.code.tostring( "08X" );
+if (hex.beginsWith( "00" )) hex = hex.substring( 2 );
+idColBox.GetCell().setBK( hex );
+idColHex.setText( hex );
+
+gridRow gr = &idColors.GetCell( selCol+1, 0 ).control.GetRow(0);
+gr.GetCell( 0 ).setBK( hex );
+
+mod=1;
+
+SetForeground();
+SetFocus();
+
+idMoreOptions.setvisible( 0 );
+idMoreOptions.setvisible( 1 );]]>
+</method>
+<method name="moveColour">
+<param name="ctrl" type="image" />
+<param name="PStr" type="string" />
+<![CDATA[//@cmember moveColour
+//@param image | ctrl |
+//@param string | PStr |
+//@version Andrew Griffin | 11-06-02 12:15 |
+
+if (moreOpts==2) return;
+
+if (selCol==-1) return;
+
+int dest = selCol + PStr.val();
+if (dest<0 || dest>=colList.Count()) return;    // out of range
+
+SelectCol( "" );
+
+//
+// Swap colours...
+
+classes::cpickn tmp = colList[ selCol ];
+colList[selCol] = colList[ dest ];
+colList[dest] = tmp;
+
+idColors.MoveRow( selCol+1, dest+1 );
+FitRecursive();
+
+selCol = dest;
+
+//
+// Update grid row attributes...
+
+for (int i=0; i<colList.Count(); i++)
+{
+    grid g = &idColors.GetCell( i+1, 0 ).Control;
+    g.GetCell(0,0).control.SetAttr( "rowNo", ""+i );
+}
+
+selectCol( "B6BDD2" );
+
+mod=1;]]>
+</method>
+<method name="onDeactivate">
+<![CDATA[//@cmember onDeactivate
+//@version Andrew Griffin | 11-06-02 11:49 |
+
+if (!moreOpts)
+{
+    selCol=-1;
+    askclose();
+}]]>
+</method>
+<method name="onCharDown">
+<param name="Key" type="int" />
+<param name="State" type="int" />
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember onCharDown
+//@param int | Key |
+//@param int | State |
+//@param control | Ctrl |
+//@version Andrew Griffin | 11-06-02 12:24 |
+
+if (moreOpts==2) return;
+
+if (Key==27)
+{
+    selCol = -1;
+    askclose();
+}]]>
+</method>
+<method name="askClose">
+<![CDATA[//@cmember askClose
+//@param
+//@return
+//@version Andrew Griffin | 11-06-02 16:00 |
+
+if (moreOpts==2) return;
+
+moreOpts = 1;
+
+if (!mod)
+{
+    close();
+    return;
+}
+
+mod = 0;
+
+SetForeground();
+SetFocus();
+
+if (classes::core::globalForm::areYouSure( "Save colour profile?", "Colour profile has changed" ))
+{
+    classes::core::xml::globalxml::SaveXML(
+        classes::core::global::ListToXML( colList ),
+        "classes::des::customColors.ini",
+        path()
+    );
+}
+else
+{   // if not saving then reload original palette
+    colList.reset();
+    colList.ReadFromFile( "classes::des::customColors.ini", path() );
+}
+
+close();]]>
+</method>
+<method name="doQuickColour">
+<param name="ctrl" type="image" />
+<![CDATA[//@cmember doQuickColour
+//@param image | ctrl |
+//@version Andrew Griffin | 11-06-02 13:13 |
+
+int mo = moreOpts;
+moreOpts = 2;
+int col = sys::GetColor( defcol );
+moreOpts = mo;
+
+if (col==-1) return;
+
+selCol = -3;
+defCol = col;
+
+askClose();]]>
+</method>
+<method name="quit">
+<![CDATA[//@cmember quit
+//@param
+//@return
+//@version Andrew Griffin | 11-06-02 14:51 |
+//@i
+
+selCol = -1;
+askClose();]]>
+</method>
+</members>
+<static>
+<List name="colList" cls="classes::cpickn" lsrc="classes::des::customColors.ini" />
+<method name="getColor" return="int">
+<param name="defaultCol" type="int" />
+<param name="par" type="form" />
+<param name="gcell" type="gridcell" />
+<![CDATA[//@cmember getColor
+//@param int | defaultCol |
+//@param form | par |
+//@param gridcell | gcell |
+//@return int |
+//@version Andrew Griffin | 11-06-02 15:52 |
+
+wCustomColor me;
+if (par!=null) me.dialog( par );
+          else me.open();
+
+me.setup( (defaultCol!=null) ? defaultCol : -1 );
+
+if (gcell==null) me.SnapToCursor();
+            else me.SnapToCell( gcell );
+
+me.Show( 1 );
+me.SetFocus();
+
+me.waitOnClose();
+
+if (me.selCol==-1) return -1;
+if (me.selCol==-2) return -2;
+if (me.selCol==-3) return me.defCol;
+
+return colList[ me.selCol ].code;]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 11-06-02 12:08 |
+//@i
+
+getColor( 0xFF0000 );]]>
+</method>
+<method name="ColorToInt" return="int">
+<param name="col" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 18-09-01 11:01 |
+//@i
+
+if (col=="") return -1;
+
+if (col.indexOf(",")==-1) return HexToInt( col );
+
+return (col.getToken(0).val()*256 + col.getToken(1).val())*256 + col.getToken(2).val();]]>
+</method>
+<method name="HexToInt" return="int">
+<param name="hex" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+int t, c;
+hex = hex.trim().upper();
+
+for (int i=0; i<hex.length(); i++) {
+
+    c = hex[i];
+    t = t * 16 + ( c<'A' ? c-'0' : (c-'A')+10 );
+
+}
+
+return t;]]>
+</method>
+</static>
+<grid>
+<row>
+<col lpad="1" tpad="1" rpad="1" bpad="1" align="W" bk="173,170,48">
+<grid>
+<row>
+<col lpad="2" tpad="1" rpad="2" bpad="1" align="W" bk="247,247,238">
+<grid name="idColors">
+<row>
+<col lpad="1" tpad="1" rpad="1" bpad="1" align="W">
+<grid hide="Y">
+<row>
+<col w="24" align="WH">
+<Label onmouseover="onMouseOver 1" onmouseout="onMouseOver 0" onclick="onClick" />
+</col>
+<col lpad="6" w="80" h="11" align="WV">
+<Label text="Colour Name" onmouseover="onMouseOver 1" onmouseout="onMouseOver 0" onclick="onClick" txsel="000000" font="Tahoma" size="7" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid>
+<row>
+<col lpad="2" align="Y">
+<Image text="Image" img="des::res::grid::image.ico" smallIcon="1" onclick="doQuickColour" help="Choose a colour not in the list" />
+</col>
+<col lpad="2" align="WY" />
+<col lpad="2" tpad="2" rpad="2" bpad="2" align="R">
+<Label text="More options &gt;&gt;" tx="117,115,32" font="Tahoma" style="i" onclick="doMoreOptions" help="Show/Hide colour customisation toolbox" size="8" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="2" tpad="6" rpad="2" bpad="2" align="W" bk="255,255,255">
+<grid name="idMoreOptions" hide="Y">
+<row>
+<col lpad="1" tpad="1" rpad="1" bpad="1" align="WH">
+<grid>
+<row>
+<col align="V" imgtile="32">
+<grid>
+<row>
+<col lpad="1" tpad="1" rpad="1" bpad="1" align="CV" imgtile="32">
+<Image text="Image" img="classes::resource::standard::blip_up.bmp" onclick="moveColour -1" help="Move the selected colour up the list" />
+</col>
+<col lpad="1" tpad="1" rpad="1" bpad="1" align="CV" imgtile="32">
+<Image text="Image" img="classes::resource::standard::blip_down.bmp" onclick="moveColour 1" help="Move the selected colour down the list" />
+</col>
+</row>
+</grid>
+</col>
+<col lpad="1" tpad="1" rpad="1" bpad="1" align="WH" bk="0,0,0">
+<grid>
+<row>
+<col h="14" align="WH" bk="255,255,255">
+<Label name="idColBox" onclick="doColourChange" help="Click to change the colour of this custom colour" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col tpad="1" rpad="4" align="V">
+<Label text="Name:" />
+</col>
+<col tpad="1" w="128" align="W">
+<Edit name="idColName" onchange="doNameChange" />
+</col>
+</row>
+<row>
+<col rpad="4" align="V">
+<Label text="Colour:" />
+</col>
+<col align="W">
+<Edit name="idColHex" onchange="doHexChange" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="8" />
+</row>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Add Colour" tx="255,255,255" txsel="FFFF00" style="b" onclick="doNewColour" help="Add a new colour to the custom colour list" />
+</col>
+</row>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Delete Colour" tx="255,255,255" txsel="FFFF00" style="b" onclick="doDeleteColour" help="Delete the currently selected custom colour" />
+</col>
+</row>
+<row>
+<col h="8" align="CV" imgtile="32" />
+</row>
+<row>
+<col align="R" imgtile="32">
+<grid>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Close" tx="255,255,255" txsel="FFFF00" style="b" onclick="quit" help="Close the custom colour dialog without selecting a colour" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="getColor" cls="int" />
+<rmeth name="ColorToInt" cls="int" />
+<rmeth name="HexToInt" cls="int" />
+</return>
+</form>

@@ -1,0 +1,614 @@
+<class name="standard" fauthor="$Author: Andrew.b $" fdate="$Date: 8/30/01 4:17p $" frevision="$Revision: 1 $">
+<members />
+<static>
+<Object name="phone" cls="::phoneData" />
+<List name="callList" cls="::call" />
+<Object name="TAPI" cls="classes::tapi" />
+<List name="capabilityPL" cls="classes::cpicks">
+<item code="LN" desc="LOGON" />
+<item code="LF" desc="LOGOFF" />
+<item code="MC" desc="MAKECALL" />
+<item code="AN" desc="ANSWER" />
+<item code="HA" desc="HANGUP" />
+<item code="HO" desc="HOLD" />
+<item code="UH" desc="UNHOLD" />
+<item code="TR" desc="TRANSFER" />
+<item code="XT" desc="CANCELTRANSFER" />
+<item code="CT" desc="COMPLETETRANSFER" />
+<item code="DN" desc="DNDON" />
+<item code="DF" desc="DNDOFF" />
+<item code="SR" desc="SAVERECORDING" />
+<item code="SW" desc="SWAPHOLD" />
+</List>
+<Object name="ddeServer" cls="::phoneDDE" />
+<method name="SetUUI">
+<param name="data" type="string" />
+<![CDATA[//@cmember SetUUI
+//@param string | data |
+//@version Andrew Barrett | 28-08-01 15:48 |
+//@i sets user definable information for the first connected call
+
+// Find the first connected call
+::call connectedCall = &getCall(256);
+if (connectedCall==null)
+    return(0);
+
+connectedCall.uui=data+"";]]>
+</method>
+<method name="Logon">
+<param name="agentaddress" type="string" />
+<param name="machineaddress" type="string" />
+<![CDATA[//@cmember Logon
+//@param string | agentaddress | the address of the phone associated with the user
+//@param string | machineaddress | the address of the phone associated with the pc
+//@version Andrew Barrett | 28-08-01 13:07 |
+//@i called to log on to the phone system
+
+if (machineaddress=="")
+{
+    message("The configured driver requires a machine address to be assigned on the PC telephone configuration screen.");
+    return(0);
+}
+
+// Open the TAPI line
+int nOK = tapi.OpenAddress(machineaddress+"",4);
+if (nOK<0)
+{
+    onError("Could not logon to extension: " + machineaddress);
+    return(nOK);
+}
+
+// Setup the event notification
+tapi.SetNotificationEvent("tapiEvent",this);
+
+phone.address = machineaddress;
+
+updateApps();
+
+return(1);]]>
+</method>
+<method name="Logoff">
+<![CDATA[//@cmember Logoff
+//@version Andrew Barrett | 29-11-01 10:42 |
+//@version Administrator | 08-01-02 13:17 |
+//@version Andrew Barrett | 28-08-01 09:01 |
+//@i called to log off the phone system
+
+// Close line
+int nOK = tapi.CloseLine();
+if (nOK<0) return(nOK);
+
+// Turn off the event notification
+tapi.SetNotificationEvent("",null);
+
+// Reset phone
+phone.capabilities="LN";
+callList.reset();
+phone.address="";
+
+// Inform all apps
+updateApps();
+
+return(1);]]>
+</method>
+<method name="MakeCall">
+<param name="number" type="string" />
+<![CDATA[//@cmember MakeCall
+//@param string | number | phone number to dial
+//@version Andrew Barrett | 13-01-02 16:10 |
+//@i used to make a call
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("MC")<0)
+{
+    onError("Could not make call.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(-1);
+}
+
+// Try dialling number on all phones with a dialtone state
+int nOK;
+for (int nCall=0; nCall<callList.count(); nCall++)
+{
+    if (callList[nCall].state==8)
+    {
+        nOK = tapi.Dial(number+"",callList[nCall].handle);
+        if (nOK==0) return(1);
+    }
+}
+
+// If no dialtone states exist let's make a new call
+nOK = tapi.Dial(number);
+if (nOK!=0)
+{
+    onError("Error dialing number: " + number + "\nError code" + nOK);
+    return(nOK);
+}
+
+return(1);]]>
+</method>
+<method name="Answer">
+<![CDATA[//@cmember Answer
+//@version Andrew Barrett | 08-01-02 14:55 |
+//@i answers an incoming call
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("AN")<0)
+{
+    onError("Could not answer call.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(-1);
+}
+
+// Answer the call
+int nOK = tapi.Answer();
+if (nOK<0) return(nOK);
+
+return(1);]]>
+</method>
+<method name="Hangup">
+<![CDATA[//@cmember Hangup
+//@version Andrew Barrett | 29-11-01 15:16 |
+//@version Administrator | 18-12-01 11:40 |
+//@version Andrew Barrett | 08-01-02 14:55 |
+//@i Hangs up the current call
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("HA")<0)
+{
+    onError("Could not hangup call.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(-1);
+}
+
+int nOK = tapi.Hangup();
+if (nOK<0) return(nOK);
+
+return(1);]]>
+</method>
+<method name="Hold">
+<![CDATA[//@cmember Hold
+//@version Andrew Barrett | 28-08-01 12:55 |
+//@i put's the first connected call on gold
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("HO")<0)
+{
+    onError("Could not hold call.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(-1);
+}
+
+// Find the first connected call
+call connectedCall = &getCall(256);
+if (connectedCall==null)
+{
+    onError("Cannot not hold call.  No calls are connected");
+    return(-1);
+}
+
+// Pu t call on hold
+int nOK = tapi.Hold(connectedCall.handle);
+if (nOK<0) return(nOK);
+
+return(1);]]>
+</method>
+<method name="Unhold">
+<![CDATA[//@cmember Unhold
+//@version Andrew Barrett | 08-01-02 14:55 |
+//@i Unholds the first held call
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("UH")<0)
+{
+    onError("Could not unhold call.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(-1);
+}
+
+// Find the first held call
+call heldCall = &getCall(1024);
+if (heldCall==null)
+{
+    onError("Cannot unhold call.  No call is held");
+    return(-1);
+}
+
+// Unhold it
+int nOK = tapi.Unhold(heldCall.handle);
+if (nOK<0) return(nOK);
+
+return(1);]]>
+</method>
+<method name="Transfer">
+<param name="number" type="string" />
+<param name="user" type="string" />
+<![CDATA[//@cmember Transfer
+//@param string | number | the number to transfer to
+//@param string | user |
+//@version Andrew Barrett | 28-08-01 20:31 |
+//@i Starts transfering the current call
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("TR")<0)
+{
+    onError("Could not make call.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(0);
+}
+
+// Find the first connected call
+call connectedCall = &getCall(256);
+if (connectedCall==null)
+{
+    onError("Cannot transfer call.  No calls are connected");
+    return(0);
+}
+
+int nOK = tapi.StartTransfer(number,connectedCall.handle);
+if (nOK<0) return(0);
+
+return(1);]]>
+</method>
+<method name="CancelTransfer">
+<![CDATA[//@cmember CancelTransfer
+//@version Andrew Barrett | 27-08-01 23:12 |
+//@i cancels the current transfer
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("XT")<0 && phone.capabilities.findToken("HO")<0)
+{
+    onError("Could not cancel transfer.  Has the caller hung up?");
+    return(-1);
+}
+
+int nOK = tapi.AbortTransfer();
+if (nOK<0) return(nOK);
+
+return(1);]]>
+</method>
+<method name="CompleteTransfer">
+<![CDATA[//@cmember CompleteTransfer
+//@version Andrew Barrett | 08-01-02 14:55 |
+//@i completes the current transfer
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("CT")<0)
+{
+    onError("Could not complete transfer.  Has the caller hung up?");
+    return(-1);
+}
+
+int nOK = tapi.CompleteTransfer();
+if (nOK<0) return(nOK);
+
+return(1);]]>
+</method>
+<method name="SwapHold">
+<![CDATA[//@cmember SwapHold
+//@version Andrew Barrett | 08-01-02 14:55 |
+//@i swaps two calls
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("SW")<0)
+{
+    onError("Could not swap hold.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(-1);
+}
+
+int nOK = tapi.SwapHold();
+if (nOK<0) return(nOK);
+
+return(1);]]>
+</method>
+<method name="DNDOn">
+<param name="reason" type="string" />
+<![CDATA[//@cmember DNDOn
+//@param string | reason |
+//@version Andrew Barrett | 28-08-01 13:21 |
+//@i turns do-not-disturb on
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("DN")<0)
+{
+    onError("Could not turn DND on.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(-1);
+}
+
+int nOK = tapi.SetDND(1);
+if (nOK<0) return(nOK);
+
+updateApps();
+
+return(1);]]>
+</method>
+<method name="DNDOff">
+<![CDATA[//@cmember DNDOff
+//@version Andrew Barrett | 28-08-01 13:22 |
+//@i turns do-not-disturb-off
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("DN")<0)
+{
+    onError("Could not turn DND off.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(-1);
+}
+
+int nOK = tapi.SetDND(0);
+if (nOK<0) return(nOK);
+
+updateApps();
+
+return(1);]]>
+</method>
+<method name="SaveRecording">
+<![CDATA[//@cmember SaveRecording
+//@version Andrew Barrett | 08-01-02 14:55 |
+//@i saves the previous calls recording
+
+// Check that the phone supports make call
+if (phone.capabilities.findtoken("SR")<0)
+{
+    onError("Could not save recording.  The phone does not support this with it's current phone.capabilities: " + phone.capabilities);
+    return(-1);
+}
+
+return(-1);]]>
+</method>
+<method name="tapiEvent">
+<param name="call" type="int" />
+<param name="state" type="int" />
+<![CDATA[//@cmember tapiEvent
+//@param int | call | the call handle
+//@param int | state | the call state
+//@version Andrew Barrett | 29-08-01 13:42 |
+//@i
+
+::call thisCall = null;
+
+// Is this an existing call?  Let's try and find it
+for (int nCall=0; nCall<callList.count(); nCall++)
+{
+    if (callList[nCall].handle==call)
+    {
+        thisCall=callList[nCall];
+        break;
+    }
+}
+
+// If not, let's create a new entry on the call list
+if (thisCall==null) thisCall=&callList.createRow();
+
+
+// If call has gone idle, let's delete it from the list
+if (state==1)
+{
+    int nIndex = callList.FindIndex(thisCall);
+    if (nIndex>=0)  callList.DeleteRow(nIndex);
+}
+
+
+if (!thisCall.handle) thisCall.handle = call;
+if (!thisCall.callid) thisCall.callID = tapi.getCallID();
+
+// These should only be update until the call is connected
+if (!thisCall.id)
+{
+    thisCall.called = tapi.getCalled();
+    thisCall.caller = tapi.getCaller();
+    thisCall.reason = tapi.getCallReason();
+    thisCall.address= phone.address;
+    thisCall.firstconnected = tapi.getConnected();
+}
+
+// Update the realtime info
+thisCall.state = state;
+thisCall.connected = tapi.getConnected();
+
+// Get the driver to update the call info
+updateCallInfo(&thisCall);
+
+// More stuff to do first time round
+if (!thisCall.id && state==256)
+{
+    if (!classes::core::global::InsertObject(thisCall))
+    {
+        message("Error inserting call data into database.");
+    }
+}
+
+
+// Send this event as a DDE message if it's the first call on the list
+if (callList.count()>0 && callList[0].handle==thisCall.handle)
+    ddeServer.sendRequest(call+","+state+","+thisCall.called + "," + thisCall.caller + "," + thisCall.statedescLong);
+
+
+// Update all W2 apps
+updateApps(thisCall);]]>
+</method>
+<method name="updateApps">
+<param name="thisCall" type="::call" />
+<![CDATA[//@cmember updateApps
+//@param ::call | thisCall |
+//@version Andrew Barrett | 29-08-01 13:30 |
+//@i let's tell all forms about the telephony capabilities
+
+// Get updated capabilities
+phone.capabilities=getCapabilities();
+
+// Update W2 windows
+for(int n=0;;n++)
+{
+    Object X = Sys::GetOpenWindow(n);
+    if (X==null) break;
+
+    if (X.HasMethod("onTapiEvent")) X.OnTapiEvent(phone,callList,thisCall);
+}]]>
+</method>
+<method name="getCall">
+<param name="state" type="int" />
+<![CDATA[//@cmember getCall
+//@param int | state | the state to search for
+//@version Andrew Barrett | 08-01-02 14:41 |
+//@i returns the first call with the specified state
+
+for (int nCall=0; nCall<callList.count(); nCall++)
+{
+    if (callList[nCall].state==state) return (callList[nCall]);
+}
+
+return(null);]]>
+</method>
+<method name="getCapabilities">
+<![CDATA[//@cmember getCapabilities
+//@version Andrew Barrett | 28-08-01 13:15 |
+//@i returns the current capabilities of the phone
+
+// Update DND settings on phone
+phone.dnd = tapi.getDND();
+
+if (!tapi.valid() || !tapi.getInService())
+    return("LN");
+
+string sNewCaps;
+
+// If there's dial tone or no calls on the system
+if (getCall(8)!=null || callList.count()==0)
+    sNewCaps.AddToken("MC");
+
+// If any calls are offering
+if (getCall(2)!=null)
+    sNewCaps.AddToken("AN");
+
+// If there's any calls on the system
+if (callList.count()>0)
+    sNewCaps.AddToken("HA");
+
+// If there's any connected calls and none on hold pending transfer
+if (getCall(256)!=null && getCall(8192)==null)
+{
+    sNewCaps.AddToken("TR");
+    sNewCaps.AddToken("HO");
+}
+
+// If there's a call on hold
+if (getCall(1024)!=null)
+    sNewCaps.AddToken("UH");
+
+// If there's a transfer in progress
+if ((getCall(8192)!=null))
+    sNewCaps.AddToken("XT");
+
+// If there's a call on hold pending transfer and a call connected or ringing
+if (getCall(8192)!=null && (getCall(256)!=null || getCall(32)!=null || getCall(131072)!=null))
+    sNewCaps.AddToken("CT");
+
+// If there's a call on hold pending transfer and a call connected
+if (getCall(8192)!=null && getCall(256)!=null)
+    sNewCaps.AddToken("SW");
+
+sNewCaps.AddToken("DN");
+
+
+return(sNewCaps);]]>
+</method>
+<method name="connect">
+<param name="agentaddress" type="string" />
+<param name="machineaddress" type="string" />
+<![CDATA[//@cmember connect
+//@param string | agentaddress |
+//@param string | machineaddress |
+//@version Administrator | 08-01-02 14:38 |
+//@version Andrew Barrett | 28-08-01 12:09 |
+//@i called when telephony is initialized
+
+int nOK=logon(agentAddress,machineAddress);
+if (!nOK) return(0);
+
+// Initialize DDE Server
+ddeServer.Register();
+
+return(1);]]>
+</method>
+<method name="disconnect">
+<![CDATA[//@cmember disconnect
+//@version Administrator | 08-01-02 14:38 |
+//@version Andrew Barrett | 28-08-01 09:12 |
+//@i called when telephony is no longer needed - this is when the appcounter reaches 0
+
+// Deregister the DDE Server
+ddeServer.UnRegister();
+
+// Log off the phone line
+return(LogOff());]]>
+</method>
+<method name="onError">
+<param name="error" type="string" />
+<![CDATA[//@cmember onError
+//@param string | error | description of the error
+//@version Andrew Barrett | 08-01-02 14:55 |
+//@i called when an error occurs
+
+message(error);]]>
+</method>
+<method name="updateCallInfo">
+<param name="call" type="::call" />
+<![CDATA[//@cmember updateCallInfo
+//@param ::call | call |
+//@version Andrew Barrett | 28-08-01 16:30 |
+//@i
+
+// Get state description
+switch (call.state)
+{
+    case 1: call.stateDesc="Idle"; break;
+    case 2: call.stateDesc="Offering"; break;
+    case 4: call.stateDesc="Accepted"; break;
+    case 8: call.stateDesc="Dialtone"; break;
+    case 16: call.stateDesc="Dialling"; break;
+    case 32, 131072: call.stateDesc="Ringing"; break;
+    case 64: call.stateDesc="Busy"; break;
+    case 128: call.stateDesc="Special info"; break;
+    case 256: call.stateDesc="Connected"; break;
+    case 512: call.stateDesc="Proceeding"; break;
+    case 1024: call.stateDesc="On hold"; break;
+    case 2048: call.stateDesc="Conferenced"; break;
+    case 4096: call.stateDesc="On hold pending conference"; break;
+    case 8192: call.stateDesc="On hold pending transfer"; break;
+    case 16384: call.stateDesc="Disconnected"; break;
+    case 32768: call.stateDesc="Unknown"; break;
+    default: call.stateDesc="Unknown state: "+call.state; break;
+}
+
+
+// Set Direction and internal attributes if it's first time round
+if (!call.id)
+{
+    if (call.caller==phone.address)
+    {
+        call.direction="O";
+        if (call.called.length()>4) call.external=1; else call.external=0;
+    }
+    else
+    {
+        call.direction="I";
+        if (call.caller.length()>4 || call.caller=="" || call.caller=="Unknown")
+            call.external=1; else  call.external=0;
+    }
+}
+
+if (call.called=="Unknown") call.called="";
+if (call.caller=="Unknown") call.caller="";
+if (call.connected=="Unknown") call.connected="";
+
+
+
+
+// Construct the long description
+call.stateDescLong=call.stateDesc;
+
+switch (call.state)
+{
+    case 2,4: call.statedescLong+=" ("+call.caller + ")"; break;
+    case 256: call.statedescLong+=" ("+call.connected + ")"; break;
+    case 32,64,512,131072: call.statedescLong+=" ("+call.called+")"; break;
+}
+
+return(1);]]>
+</method>
+</static>
+</class>

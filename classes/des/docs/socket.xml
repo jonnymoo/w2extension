@@ -1,0 +1,108 @@
+<class name="Socket" description="W2 Script Reference">
+<members>
+<method name="Close">
+<![CDATA[//@cmember void Close(  );
+//@return void | 
+//@i close the socket connection
+]]>
+ />
+</method>
+<method name="Connect">
+<param name="servername" type="String" />
+<param name="port" type="int" />
+<param1 name="servername" type="String" />
+<param1 name="port" type="String" />
+<![CDATA[//@cmember int Connect( {String servername, int port} or {String servername, String port} );
+//@param String | servername | 
+//@param int | port | 
+//@param String | servername | 
+//@param String | port | 
+//@return int | 
+//@i Connect( "www.yahoo.co.uk", 80 ), Connect("www.yahoo.co.uk", "pop3" )
+]]>
+ />
+</method>
+<method name="IsOpen">
+<![CDATA[//@cmember int IsOpen(  );
+//@return int | 
+//@i check the the socket connection is (still) open
+]]>
+ />
+</method>
+<method name="LastError">
+<![CDATA[//@cmember int LastError(  );
+//@return int | 
+//@i returns the last error number
+]]>
+ />
+</method>
+<method name="LastErrorText">
+<![CDATA[//@cmember String LastErrorText(  );
+//@return String | 
+//@i returns the last error message
+]]>
+ />
+</method>
+<method name="Listen">
+<param name="port" type="int" />
+<param name="serverobject" type="Object" />
+<param name="newconnectionmethod" type="String" />
+<![CDATA[//@cmember int Listen( int port, Object serverobject, String newconnectionmethod );
+//@param int | port | 
+//@param Object | serverobject | 
+//@param String | newconnectionmethod | 
+//@return int | 
+//@i Listen( 80, MyHTTPServerObj, "NewConnection" )
+]]>
+ />
+</method>
+<method name="ReadBlocked">
+<param name="" type="Blob" />
+<param name="TimeOut" type="int" />
+<![CDATA[//@cmember int ReadBlocked( Blob, int TimeOut );
+//@param Blob |  | 
+//@param int | TimeOut | 
+//@return int | 
+//@i TimeOut is optional and is in ms.
+]]>
+ />
+</method>
+<method name="ReadData">
+<param name="B" type="Blob" />
+<![CDATA[//@cmember int ReadData( Blob B );
+//@param Blob | B | 
+//@return int | 
+//@i type "GET", "POST", "HEAD" etc
+]]>
+ />
+</method>
+<method name="ReadString">
+<![CDATA[//@cmember String ReadString(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="SendString">
+<param name="S" type="String" />
+<![CDATA[//@cmember int SendString( String S );
+//@param String | S | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Close" cls="void" />
+<rmeth name="Connect" cls="int" />
+<rmeth name="IsOpen" cls="int" />
+<rmeth name="LastError" cls="int" />
+<rmeth name="LastErrorText" cls="String" />
+<rmeth name="Listen" cls="int" />
+<rmeth name="ReadBlocked" cls="int" />
+<rmeth name="ReadData" cls="int" />
+<rmeth name="ReadString" cls="String" />
+<rmeth name="SendString" cls="int" />
+</return>
+</class>

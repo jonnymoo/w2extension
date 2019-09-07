@@ -1,0 +1,161 @@
+<class name="Edit" description="W2 Script Reference" base="Control">
+<members sub="Misc">
+<method name="AddOption">
+<param name="opt" type="String" />
+<![CDATA[//@cmember void AddOption( String opt );
+//@param String | opt | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="BestSize">
+<![CDATA[//@cmember int BestSize(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="BindTo">
+<param name="Col" type="Member" />
+<![CDATA[//@cmember void BindTo( Member Col );
+//@param Member | Col | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CheckPickList">
+<![CDATA[//@cmember int CheckPickList(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetOption">
+<param name="" type="int" />
+<![CDATA[//@cmember string GetOption( int );
+//@param int |  | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="IsContentValid">
+<![CDATA[//@cmember void IsContentValid(  );
+//@return void | 1 if content string passes it's validation rules
+//@i returns 1 if content string passes it's validation rules
+]]>
+ />
+</method>
+<method name="ResetOptions">
+<![CDATA[//@cmember void ResetOptions(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SelectText">
+<param name="start]" type="[int" />
+<param name="end]" type="[int" />
+<![CDATA[//@cmember void SelectText( [int start], [int end] );
+//@param [int | start] | index of first char to select (if ommitted all the text is selected)
+//@param [int | end] | index of last char to select+1
+//@return void | selects the text in the edit box
+//@i 
+]]>
+ />
+</method>
+<method name="SetFixedFont">
+<![CDATA[//@cmember void SetFixedFont(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetFmt">
+<param name="formatString" type="String" />
+<![CDATA[//@cmember void SetFmt( String formatString );
+//@param String | formatString | a format string (ie. "AA999999[AM]")
+//@return void | Sets the format validation string for the edit box
+//@i Sets the format validation string (ie. "AA999999[AM]")
+]]>
+ />
+</method>
+<method name="SetPickList">
+<param name="" type="list" />
+<![CDATA[//@cmember void SetPickList( list );
+//@param list |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetPickList">
+<![CDATA[//@cmember void GetPickList( list );
+//@param list |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="IsNumeric">
+<![CDATA[//@cmember int IsNumeric(  );
+//@return int | 1 if edit type is numeric
+//@i Determines whether edit type is numeric
+]]>
+ />
+</method>
+<method name="IsDate">
+<![CDATA[//@cmember int IsDate(  );
+//@return int | 1 if edit type is date
+//@i Determines whether edit type is date
+]]>
+ />
+</method>
+<method name="IsPword">
+<![CDATA[//@cmember int IsPword(  );
+//@return int | 1 if edit type is Password
+//@i Determines whether edit type is Password
+]]>
+ />
+</method>
+<method name="IsCIPword">
+<![CDATA[//@cmember int IsCIPword(  );
+//@return int | 1 if edit type is case insensitive Password
+//@i Determines whether edit type is case insensitive Password
+]]>
+ />
+</method>
+
+<method name="getPos">
+<![CDATA[//@cmember int getPos(  );
+//@return int | current character position of curspr
+//@i 
+]]>
+ />
+</method>
+
+
+
+</members>
+<return>
+<rmeth name="AddOption" cls="void" />
+<rmeth name="BestSize" cls="int" />
+<rmeth name="BindTo" cls="void" />
+<rmeth name="CheckPickList" cls="int" />
+<rmeth name="GetOption" cls="string" />
+<rmeth name="IsContentValid" cls="void" />
+<rmeth name="ResetOptions" cls="void" />
+<rmeth name="SelectText" cls="void" />
+<rmeth name="SetFixedFont" cls="void" />
+<rmeth name="SetFmt" cls="void" />
+<rmeth name="SetPickList" cls="void" />
+<rmeth name="GetPickList" cls="void" />
+<rmeth name="IsNumeric" cls="int" />
+<rmeth name="IsDate" cls="int" />
+<rmeth name="IsPword" cls="int" />
+<rmeth name="IsCIPword" cls="int" />
+<rmeth name="getPos" cls="int" />
+</return>
+</class>

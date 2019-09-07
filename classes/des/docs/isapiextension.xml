@@ -1,0 +1,234 @@
+<class name="ISAPIExtension" description="W2 Script Reference" base="OutputStream">
+<members>
+<method name="CGIValue">
+<param name="i" type="int" />
+<param1 name="Name) or {string Name" type="string" />
+<param1 name="i" type="int" />
+<![CDATA[//@cmember string CGIValue( {int i} or {string Name) or {string Name, int i} );
+//@param int | i | 
+//@param string | Name) or {string Name | 
+//@param int | i | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="getcgiqueryvalue">
+<param name="name" type="String" />
+<![CDATA[//@cmember String getcgiqueryvalue( String name );
+//@param String | name | 
+//@return String | 
+//@i returns value of CGI parameter from the Query String. use this if you want to get Query String values in a POST request
+]]>
+ />
+</method>
+<method name="GetCookie">
+<param name="name" type="String" />
+<![CDATA[//@cmember String GetCookie( String name );
+//@param String | name | 
+//@return String | 
+//@i v2023 - gets the named cookie
+]]>
+ />
+</method>
+<method name="GetCookieInteger">
+<param name="name" type="String" />
+<![CDATA[//@cmember int GetCookieInteger( String name );
+//@param String | name | 
+//@return int | 
+//@i v2023 - gets the integer value of the named cookie
+]]>
+ />
+</method>
+<method name="GetRunningCount">
+<![CDATA[//@cmember int GetRunningCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="KeepAlive">
+<![CDATA[//@cmember void KeepAlive(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetChunkedEncoding">
+<![CDATA[//@cmember void SetChunkedEncoding(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetHttpStatusCode">
+<param name="Code" type="int" />
+<![CDATA[//@cmember void SetHttpStatusCode( int Code );
+//@param int | Code | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Output - Headers">
+<method name="SendHTTPHeader">
+<param name="opt" type="String" />
+<param name="keep" type="int" />
+<![CDATA[//@cmember void SendHTTPHeader( String opt, int keep );
+//@param String | opt | 
+//@param int | keep | 
+//@return void | 
+//@i eg, ECB.SendHTTPHeader( "Content-Type: text/xml\n\n" );
+]]>
+ />
+</method>
+</members>
+<members sub="Request Information">
+<method name="cbAvailable">
+<![CDATA[//@cmember int cbAvailable(  );
+//@return int | 
+//@i available bytes received by server
+]]>
+ />
+</method>
+<method name="cbTotalBytes">
+<![CDATA[//@cmember int cbTotalBytes(  );
+//@return int | 
+//@i total no of bytes to read
+]]>
+ />
+</method>
+<method name="ContentType">
+<![CDATA[//@cmember String ContentType(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetServerVariable">
+<param name="name" type="String" />
+<![CDATA[//@cmember String GetServerVariable( String name );
+//@param String | name | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="PathInfo">
+<![CDATA[//@cmember String PathInfo(  );
+//@return String | 
+//@i url between .dll and ?, ie "/server::classfile"
+]]>
+ />
+</method>
+<method name="PathTranslated">
+<![CDATA[//@cmember String PathTranslated(  );
+//@return String | 
+//@i something like: "c:\inetpub\wwwroot\/server::classfile"
+]]>
+ />
+</method>
+<method name="QueryString">
+<![CDATA[//@cmember String QueryString(  );
+//@return String | 
+//@i url after the ? character
+]]>
+ />
+</method>
+<method name="RequestMethod">
+<![CDATA[//@cmember String RequestMethod(  );
+//@return String | 
+//@i POST or GET
+]]>
+ />
+</method>
+</members>
+<members sub="Request Input">
+<method name="GetObjects">
+<![CDATA[//@cmember Object GetObjects(  );
+//@return Object | 
+//@i de-serialize to a result set - note that this version does not require a path
+]]>
+ />
+</method>
+<method name="GetPostedBlob">
+<![CDATA[//@cmember Blob GetPostedBlob(  );
+//@return Blob | 
+//@i null or a Blob
+]]>
+ />
+</method>
+<method name="GetPostedString">
+<![CDATA[//@cmember String GetPostedString(  );
+//@return String | 
+//@i a string
+]]>
+ />
+</method>
+<method name="GetPostedXML">
+<![CDATA[//@cmember XMLObject GetPostedXML(  );
+//@return XMLObject | 
+//@i null or a XML object
+]]>
+ />
+</method>
+</members>
+<members sub="CGI Request">
+<method name="CGICount">
+<![CDATA[//@cmember int CGICount(  );
+//@return int | 
+//@i returns number of CGI parameters passed to method
+]]>
+ />
+</method>
+<method name="GetCGIName">
+<param name="index" type="int" />
+<![CDATA[//@cmember String GetCGIName( int index );
+//@param int | index | 
+//@return String | 
+//@i returns name of CGI parameter
+]]>
+ />
+</method>
+<method name="GetCGIValue">
+<param name="name" type="String" />
+<param name="index" type="int" />
+<param1 name="index" type="int" />
+<![CDATA[//@cmember String GetCGIValue( {String name, int index} and {int index} );
+//@param String | name | 
+//@param int | index | 
+//@param int | index | 
+//@return String | 
+//@i {returns value of CGI parameter - index is optional} and {returns value of CGI parameters}
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="SendHTTPHeader" cls="void" />
+<rmeth name="cbAvailable" cls="int" />
+<rmeth name="cbTotalBytes" cls="int" />
+<rmeth name="ContentType" cls="String" />
+<rmeth name="GetServerVariable" cls="String" />
+<rmeth name="PathInfo" cls="String" />
+<rmeth name="PathTranslated" cls="String" />
+<rmeth name="QueryString" cls="String" />
+<rmeth name="RequestMethod" cls="String" />
+<rmeth name="GetObjects" cls="Object" />
+<rmeth name="GetPostedBlob" cls="Blob" />
+<rmeth name="GetPostedString" cls="String" />
+<rmeth name="GetPostedXML" cls="XMLObject" />
+<rmeth name="CGICount" cls="int" />
+<rmeth name="GetCGIName" cls="String" />
+<rmeth name="GetCGIValue" cls="String" />
+<rmeth name="CGIValue" cls="string" />
+<rmeth name="getcgiqueryvalue" cls="String" />
+<rmeth name="GetCookie" cls="String" />
+<rmeth name="GetCookieInteger" cls="int" />
+<rmeth name="GetRunningCount" cls="int" />
+<rmeth name="KeepAlive" cls="void" />
+<rmeth name="SetChunkedEncoding" cls="void" />
+<rmeth name="SetHttpStatusCode" cls="void" />
+</return>
+</class>

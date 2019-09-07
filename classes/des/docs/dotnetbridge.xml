@@ -1,0 +1,147 @@
+<class name="dotnetbridge" description="W2 Dot Net Wrapper">
+	
+<members sub="Constructor / Class Methods">
+<method name="NewObject">
+<param name="QName" type="string" />
+<param name="param1]" type="[object" />
+<param name="param2]" type="[object" />
+<param name="...]" type="[object" />
+<![CDATA[//@cmember object NewObject( String QName, [object param1, object
+param2, ...] );
+//@param QName | string | Fully qualified class name (e.g. MyNamespace.MyClass)
+//@param param1 | string | 1st constructor paramater
+//@param param2 | string | 2nd constructor paramater
+//@return object | The newly created object
+//@i Invoke a constructor on a class
+]]>
+ />
+</method>
+
+<method name="NewClass">
+<param name="QName" type="string" />
+<![CDATA[//@cmember object NewClass( String QName )
+//@param QName | string | Fully qualified class name (e.g. MyNamespace.MyClass)
+//@return object | The class
+//@i Passes back a reference to the class (e.g. so you can invoke statics methods)
+]]>
+ />
+</method>
+
+
+</members>	
+<members sub="Class / Object Methods">
+	
+<method name="invoke">
+<param name="MethodName" type="string" />
+<param name="param1]" type="[object" />
+<param name="param2]" type="[object" />
+<param name="...]" type="[object" />
+<![CDATA[//@cmember object invoke( String MethodName, [object param1, object param2, ...] );
+//@param MethodName | string | Method to invoke on the object / class
+//@return object | The return from the method invokation
+//@i Invoke a method on a class or object 
+]]>
+ />
+</method>
+
+<method name="get">
+<param name="FieldName" type="string" />
+<![CDATA[//@cmember object get( String FieldName );
+//@param FieldName | string | Property / Field to get
+//@return object | The propery / field
+//@i Gets a property / field on a class / object
+]]>
+ />
+</method>
+
+<method name="set">
+<param name="FieldName" type="string" />
+<param name="value" type="object" />
+<![CDATA[//@cmember void set( object value );
+//@param FieldName | string | Property / Field to set
+//@param value | object | value to set
+//@i Sets a property / field on a class / object
+]]>
+ />
+</method>
+
+<method name="getAt">
+<param name="ind1" type="int" />
+<param name="ind2]" type="[int" />
+<param name="...]" type="[int" />
+<![CDATA[//@cmember object getAt( int ind1, [int ind2...] );
+//@param ind1 | int | index of array
+//@param ind2 | int | 2nd index of array
+//@return object | value from array
+//@i Gets a value from an array
+]]>
+ />
+</method>
+
+
+
+
+</members>
+<members sub="Environment Methods">
+<method name="GarbageCollect">
+<![CDATA[//@cmember void GarbageCollect( );
+//@return void | 
+//@i Forces garbage collection in the dotnet environment
+]]>
+ />
+</method>
+
+<method name="LoadAssembly">
+<param name="FileName" type="string" />
+<![CDATA[//@cmember void LoadAssembly( string FileName );
+//@return void | 
+//@i Loads an assembly (either from the specified paths or specify the full path to the file)
+]]>
+ />
+</method>
+
+<method name="AddDLLPath">
+<param name="Path" type="string" />
+<![CDATA[//@cmember void AddDLLPath( string Path );
+//@return void | 
+//@i Adds a path to this environment object dictating where LoadAssembly will look for it's DLLs
+]]>
+ />
+</method>
+
+<method name="HasError">
+<![CDATA[//@cmember string AddDLLPath( );
+//@return int | 
+//@i Returns 1 if an error has occured
+]]>
+ />
+</method>
+
+
+<method name="GetError">
+<![CDATA[//@cmember string AddDLLPath( );
+//@return string | 
+//@i Returns the text for an error if one has occured.
+]]>
+ />
+</method>
+
+
+</members>
+
+<return>
+<rmeth name="GarbageCollect" cls="void" />
+<rmeth name="invoke" cls="object" />
+<rmeth name="get" cls="object" />
+<rmeth name="set" cls="void" />
+<rmeth name="getAt" cls="object" />
+<rmeth name="NewObject" cls="object" />
+<rmeth name="NewClass" cls="object" />
+<rmeth name="AddDLLPath" cls="void" />
+<rmeth name="LoadAssembly" cls="void" />
+<rmeth name="HasError" cls="int" />
+<rmeth name="GetError" cls="string" />
+
+
+</return>
+</class>

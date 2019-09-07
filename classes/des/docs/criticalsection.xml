@@ -1,0 +1,13 @@
+<class name="CriticalSection" description="W2 Script Reference">
+<members sub="Entry">
+<method name="Enter">
+<![CDATA[//@cmember CriticalLock Enter();
+//@return CriticalLock | Waits for the lock to become available and then returns it as a CriticalLock object
+//@i 
+]]>
+</method>
+</members>
+<return>
+<rmeth name="Enter" cls="CriticalLock" />
+</return>
+</class>

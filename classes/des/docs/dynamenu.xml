@@ -1,0 +1,90 @@
+<class name="DynaMenu" description="W2 Script Reference">
+<members sub="Misc">
+<method name="Add">
+<param name="text" type="String" />
+<param name="code]" type="[String" />
+<![CDATA[//@cmember void Add( String text, [String code] );
+//@param String | text | 
+//@param [String | code] | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="AddPopup">
+<param name="text" type="String" />
+<param name="Callback" type="Object" />
+<param name="prefix" type="String" />
+<param name="RefObj" type="Object" />
+<![CDATA[//@cmember void AddPopup( String text, Object Callback, String prefix, Object RefObj );
+//@param String | text | 
+//@param Object | Callback | 
+//@param String | prefix | 
+//@param Object | RefObj | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="AddSeparator">
+<![CDATA[//@cmember void AddSeparator(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Object">
+<![CDATA[//@cmember object Object(  );
+//@return object | 
+//@i 
+]]>
+ />
+</method>
+<method name="Parent">
+<![CDATA[//@cmember object Parent(  );
+//@return object | 
+//@i 
+]]>
+ />
+</method>
+<method name="ParentMenu">
+<![CDATA[//@cmember DynaMenu ParentMenu(  );
+//@return DynaMenu | 
+//@i 
+]]>
+ />
+</method>
+<method name="Prefix">
+<![CDATA[//@cmember string Prefix(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="ReferenceObject">
+<![CDATA[//@cmember object ReferenceObject(  );
+//@return object | 
+//@i 
+]]>
+ />
+</method>
+<method name="Selection">
+<![CDATA[//@cmember string Selection(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Add" cls="void" />
+<rmeth name="AddPopup" cls="void" />
+<rmeth name="AddSeparator" cls="void" />
+<rmeth name="Object" cls="object" />
+<rmeth name="Parent" cls="object" />
+<rmeth name="ParentMenu" cls="DynaMenu" />
+<rmeth name="Prefix" cls="string" />
+<rmeth name="ReferenceObject" cls="object" />
+<rmeth name="Selection" cls="string" />
+</return>
+</class>

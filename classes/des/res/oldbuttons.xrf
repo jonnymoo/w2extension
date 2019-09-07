@@ -1,0 +1,15 @@
+<W2DesResource name="Old Style Buttons">
+
+<res name="Button (Standard)" base="Label" text="Button">
+  <cell bkimg="classes::resource::standard::button.bmp" imgtile="32" halign="C" valign="V"
+	h="" lpad="12" rpad="12" tpad="3" bpad="6" />
+  <control tx="FFFFFF" txsel="FFFF00" style="b" />
+</res>
+
+<res name="Button (on Green Bar)" base="Label" text="Button">
+  <cell bkimg="classes::resource::standard::rb_20blue.bmp" imgtile="32" halign="C" valign="V"
+	h="20" lpad="12" rpad="12" tpad="" bpad="" />
+  <control tx="FFFFFF" txsel="FFFF00" style="b" />
+</res>
+
+</W2DesResource>

@@ -1,0 +1,15 @@
+<W2DesResource name="Decoration">
+
+<res name="Green Bullet" base="Image" text="Image">
+  <cell lpad="" rpad="4" tpad="" bpad="" />
+  <control img="classes::resource::standard::blue_blip.bmp" />
+</res>
+
+<separator />
+
+<res name="Bottom of Bar" base="" text="">
+  <cell bkimg="classes::resource::standard::k_sh_base.bmp" imgtile="0" valign="T"
+	lpad="" rpad="" tpad="" bpad="" />
+</res>
+
+</W2DesResource>

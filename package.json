@@ -102,9 +102,10 @@
     "vscode": "^1.1.16"
   },
   "dependencies": {
-    "xmldom": "^0.1.27",
-    "xpath": "0.0.27",
     "vscode-languageclient": "^5.2.1",
-    "vscode-languageserver": "^5.2.1"
+    "vscode-languageserver": "^5.2.1",
+    "w2core": "^1.0.10",
+    "xmldom": "^0.1.27",
+    "xpath": "0.0.27"
   }
 }

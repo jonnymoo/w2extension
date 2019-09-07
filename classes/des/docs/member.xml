@@ -1,0 +1,58 @@
+<class name="Member" description="W2 Script Reference">
+<members sub="Misc">
+<method name="RefreshList">
+<![CDATA[//@cmember void RefreshList(  );
+//@return void | 
+//@i  reload content of list
+]]>
+ />
+</method>
+<method name="SetMagicPointer">
+<param name="obj" type="object" />
+<![CDATA[//@cmember void SetMagicPointer( object obj );
+//@param object | obj | The object to be 'pointed to'
+//@return void | Assign the member to point to 'obj'
+//@i Assigns the object 'obj' to a member variable of type object. The member MUST NOT have been instantiated with the class.
+]]>
+ />
+</method>
+</members>
+<members sub="Misc">
+<method name="DispText">
+<![CDATA[//@cmember String DispText(  );
+//@return String | default text from members pick list
+//@i returns the default text from a pick list if it is assosiated with this member.
+]]>
+ />
+</method>
+<method name="GetRefObject">
+<![CDATA[//@cmember Object GetRefObject(  );
+//@return Object | the row of the memebers pick list that matches the members current value.
+//@i returns the row of the memebers pick list that matches the members current value.
+]]>
+ />
+</method>
+<method name="IsBlank">
+<![CDATA[//@cmember int IsBlank(  );
+//@return int | 1 if content is SQL null
+//@i 1 if content is SQL null
+]]>
+ />
+</method>
+<method name="sql">
+<![CDATA[//@cmember String sql(  );
+//@return String | sql value of the member
+//@i  sql value, ie: OReilly or d 2000-04-21
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="RefreshList" cls="void" />
+<rmeth name="SetMagicPointer" cls="void" />
+<rmeth name="DispText" cls="String" />
+<rmeth name="GetRefObject" cls="Object" />
+<rmeth name="IsBlank" cls="int" />
+<rmeth name="sql" cls="String" />
+</return>
+</class>

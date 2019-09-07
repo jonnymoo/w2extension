@@ -1,0 +1,39 @@
+<class name="SAXErrorWrapper" description="Error wrapper for MSXML4 Sax parse errors">
+<members>
+<method name="GetErrorType">
+<![CDATA[//@cmember int GetErrorType( );
+//@return int | Error type (classes::core::sax::constants::Error|FatalError|IgnorableError)
+//@i Reports on the type of error received.
+//@i Error codes are the constants classes::core::sax::constants::Error|FatalError|IngnorableError
+]]>
+ />
+</method>
+<method name="GetErrorMessage">
+<![CDATA[//@cmember string GetErrorMessage( );
+//@return string | Error Message
+//@i Returns the reported error
+]]>
+ />
+</method>
+<method name="GetLineNumber">
+<![CDATA[//@cmember int GetLineNumber( );
+//@return int | LineNumber
+//@i Returns the line number from the XML where the error occurred
+]]>
+ />
+</method>
+<method name="GetColumnNumber">
+<![CDATA[//@cmember int GetColumnNumber( );
+//@return int | ColumnsNumber
+//@i Returns the column number from the XML where the error occurred
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="GetErrorType" cls="int" />
+<rmeth name="GetErrorMessage" cls="string" />
+<rmeth name="GetLineNumber" cls="int" />
+<rmeth name="GetColumnNumber" cls="int" />
+</return>
+</class>

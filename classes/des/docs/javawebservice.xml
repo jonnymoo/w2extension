@@ -1,0 +1,80 @@
+<class name="JavaWebService" description="WebService handler" >
+<members>
+
+<method name="addClientFault">
+<param name="faultString" type="String" />
+<![CDATA[//@cmember addClientFault( String faultString );
+//@param String | faultName |
+//@i Adds a soap fault of type client to the return
+//@i Client = The message was incorrectly formed or contained incorrect information
+]]>
+/>
+</method>
+
+<method name="addServerFault">
+<param name="faultString" type="String" />
+<![CDATA[//@cmember addServerFault( String faultString );
+//@param String | faultName |
+//@i Adds a soap fault of type server to the return
+//@i Server = There was a problem with the server so the message could not proceed
+]]>
+/>
+</method>
+
+<method name="GetBody">
+<![CDATA[//@cmember blob GetBody( );
+//@return blob | 
+//@i returns the body of the soap message
+]]>
+/>
+</method>
+
+<method name="SetBody">
+<param name="b" type="blob" />
+<![CDATA[//@cmember SetBody( blob b );
+//@i returns the body of the soap message
+]]>
+/>
+</method>
+
+<method name="setHttpStatus">
+<param name="status" type="int" />
+<![CDATA[//@cmember setHttpStatus( int status );
+//@i set the return status (i.e. 404 PAGE NOT FOUND).  If not called will automatically default to 200 - OK.
+]]>
+/>
+</method>
+
+<method name="getSoapAction">
+<![CDATA[//@cmember string getSoapAction( );
+//@return string | soapAction
+//@i Get the soap action of the webservice call
+]]>
+/>
+</method>
+
+<method name="getService">
+<![CDATA[//@cmember string getService( );
+//@return string | service
+//@i Get the service part of the webservice call
+]]>
+/>
+</method>
+
+<method name="logErrorMessage">
+<param name="message" type="string" />
+<![CDATA[//@cmember string logErrorMessage( string message );
+//@return string | logref
+//@i log a message to the java logging (commons logging).  Returns a reference for the log.
+]]>
+/>
+</method>
+
+
+</members>
+<return>
+<rmeth name="GetBody" cls="blob" />
+<rmeth name="getSoapAction" cls="string" />
+<rmeth name="getService" cls="string" />
+</return>
+</class>

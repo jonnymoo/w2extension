@@ -1,0 +1,118 @@
+<class name="ImageBarCode" description="W2 Script Reference">
+<members>
+<method name="Analyze">
+<![CDATA[//@cmember int Analyze(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="IsBarcodingEnabled">
+<![CDATA[//@cmember int IsBarcodingEnabled(  );
+//@return int | 1 - Software barcoding enabled , 0 - Software barcode disabled 
+//@i 
+]]>
+ />
+</method>
+<method name="GetBarCode">
+<param name="" type="int iBarcode" />
+<![CDATA[//@cmember string GetBarCode( int iBarcode);
+//@param int | iBarcode | 
+//@return string | barcode text
+//@i Gets the barcode text for the barcode iBarcode
+]]>
+ />
+</method>
+<method name="GetBarCodeCoords">
+<param name="iBarcode" type="int" />
+<![CDATA[//@cmember string GetBarCodeCoords( int iBarcode);
+//@param int | iBarcode | 
+//@return string | barcode coordinates xTop,yTop,xBot,Ybot
+//@i Gets the barcode coordinates for the barcode iBarcode
+]]>
+ />
+</method>
+<method name="GetBarCodeType">
+<param name="iBarcode" type="int" />
+<![CDATA[//@cmember string GetBarCodeType( int iBarcode );
+//@param int | iBarcode | 
+//@return string | barcode type
+//@i Gets the barcode type for the barcode iBarcode
+]]>
+ />
+</method>
+<method name="GetErrorString">
+<![CDATA[//@cmember string GetErrorString(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetImageFile">
+<![CDATA[//@cmember string GetImageFile(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetNumBarCodes">
+<![CDATA[//@cmember int GetNumBarCodes(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetFullPage">
+<param name="isFullPage" type="int" />
+<![CDATA[//@cmember int SetImageFile( int isFullPage );
+//@param int | isFullPage | 
+//@return int | 1 - success, 0 - failure
+//@i the ability to set if the full page is scanned when looking up barcodes
+]]>
+ />
+</method>
+<method name="SetFuzzySearch">
+<param name="isFuzzySearch" type="int" />
+<![CDATA[//@cmember int SetFuzzySearch( int isFuzzySearch );
+//@param int | isFuzzySearch | 
+//@return int | 1 - success, 0 - failure
+//@i If this property is enabled, the barcode engine will relax its restrictions on
+barcode position and size. This takes additional processing time, but may allow low-quality barcodes
+to be read. 
+]]>
+ />
+</method>
+<method name="SetImageFile">
+<param name="File" type="string" />
+<![CDATA[//@cmember int SetImageFile( string File );
+//@param string | File | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetSearchType">
+<param name="SearchType" type="int" />
+<![CDATA[//@cmember int SetSearchType( int SearchType );
+//@param int | SearchType | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Analyze" cls="int" />
+<rmeth name="IsBarcodingEnabled" cls="int" />
+<rmeth name="GetBarCode" cls="string" />
+<rmeth name="GetBarCodeCoords" cls="string" />
+<rmeth name="GetBarCodeType" cls="string" />
+<rmeth name="GetErrorString" cls="string" />
+<rmeth name="GetImageFile" cls="string" />
+<rmeth name="GetNumBarCodes" cls="int" />
+<rmeth name="SetFullPage" cls="int" />
+<rmeth name="SetFuzzySearch" cls="int" />
+<rmeth name="SetImageFile" cls="int" />
+<rmeth name="SetSearchType" cls="int" />
+</return>
+</class>

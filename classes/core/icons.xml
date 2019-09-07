@@ -1,0 +1,67 @@
+<class name="icons" fauthor="$Author: Simon.c $" fdate="$Date: 28/08/02 10:56 $" frevision="$Revision: 5 $">
+<members />
+<static>
+<String name="clipboard_cut" constval="classes::resource::standard::clipboard_cut.ico" />
+<String name="clipboard_copy" constval="classes::resource::standard::clipboard_copy.ico" />
+<String name="clipboard_paste" constval="classes::resource::standard::clipboard_paste.ico" />
+<String name="clipboard_delete" constval="classes::resource::standard::clipboard_delete.ico" />
+<String name="print_print" constval="classes::resource::standard::printer.ico" />
+<String name="print_scan" constval="classes::resource::standard::scanner.ico" />
+<String name="search_search" constval="classes::resource::standard::callfinder.ico" />
+<String name="search_note" constval="classes::resource::standard::notefinder.ico" />
+<String name="search_phone" constval="classes::resource::standard::searchphone.ico" />
+<String name="contact_user" constval="classes::resource::standard::user.ico" />
+<String name="contact_group" constval="classes::resource::standard::group.ico" />
+<String name="contact_face" constval="classes::resource::standard::1023.ico" />
+<String name="contact_phone_blue" constval="classes::resource::standard::bluphone.ico" />
+<String name="contact_phone_yellow" constval="classes::resource::standard::2058.ico" />
+<String name="filing_folder" constval="classes::resource::standard::folder.ico" />
+<String name="filing_directory" constval="classes::resource::standard::folderDir.ico" />
+<String name="filing_computer" constval="classes::resource::standard::computer.ico" />
+<String name="filing_tray" constval="classes::resource::standard::1013.ico" />
+<String name="filing_draw" constval="classes::resource::standard::filing.ico" />
+<String name="filing_index" constval="classes::resource::standard::indexing.ico" />
+<String name="filing_box" constval="classes::resource::standard::1004.ico" />
+<String name="letter_envelope" constval="classes::resource::standard::1007.ico" />
+<String name="letter_email" constval="classes::resource::standard::bemail.ico" />
+<String name="process_handRight" constval="classes::resource::standard::2045.ico" />
+<String name="process_handOut" constval="classes::resource::standard::finger.ico" />
+<String name="process_lightning" constval="classes::resource::standard::flash.ico" />
+<String name="process_clock" constval="classes::resource::standard::clock.ico" />
+<String name="process_pend" constval="classes::resource::standard::pend.ico" />
+<String name="process_unpend" constval="classes::resource::standard::unpend.ico" />
+<String name="process_checktick" constval="classes::resource::standard::tick_small.ico" />
+<String name="process_checkcross" constval="classes::resource::standard::cross_small.ico" />
+<String name="process_action" constval="classes::resource::standard::chequered_flag_small.ico" />
+<String name="document_document" constval="classes::resource::standard::document.ico" />
+<String name="document_edit" constval="classes::resource::standard::beedit.ico" />
+<String name="database_key" constval="classes::resource::standard::key.ico" />
+<String name="database_exclamation" constval="classes::resource::standard::exclam.ico" />
+<String name="database_tick" constval="classes::resource::standard::tick2.ico" />
+<String name="database_cross" constval="classes::resource::standard::x.ico" />
+<String name="application_callcentre" constval="classes::resource::standard::app.ico" />
+<String name="application_w2" constval="classes::resource::standard::w2.ico" />
+<String name="link" constval="classes::resource::standard::link.ico" />
+<String name="blank" constval="classes::resource::standard::blankIcon.ico" />
+<method name="main">
+<![CDATA[//@cmember main
+//@param
+//@return
+//@version Simon Carroll | 19-08-02 16:11 |
+//@i
+
+classes::core::wpopupmenu P;
+Object CX = sys::loadclass("classes::core::icons");
+
+for (int i = 0;; i++)
+{
+    string g = (CX.GetStaticMember(i) == null ? "" : CX.GetStaticMember(i));
+    if (!g) break;
+    P.Add(g,g,g);
+
+}
+
+string q = P.Track();]]>
+</method>
+</static>
+</class>

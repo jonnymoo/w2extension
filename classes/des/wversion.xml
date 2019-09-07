@@ -1,0 +1,181 @@
+<form name="wVersion" caption="Designer Version Updates" savepos="desVerDisp" margin="0" sizeable="1" topmost="1" esccancel="1" minsize="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:42$" frevision="$Revision: 2$">
+<members>
+<Double name="verFrom" />
+<Double name="verTo" />
+<method name="verChanged">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember verChanged
+//@param edit | ctrl |
+//@version Andrew Griffin | 09-08-02 12:21 |
+
+string vStr;
+
+for (int i=0; i<updates.Count(); i++)
+    if (updates[i].code > verFrom &&
+        updates[i].code <= verTo)
+    {
+        vStr += "v" + updates[i].code + ") ";
+        vStr += updates[i].desc + "\r\n\r\n\r\n\r\n";
+    }
+
+idChanges.setText( vStr );]]>
+</method>
+</members>
+<static>
+<Double name="desVer" constval="4.0" />
+<Date name="desDate" constval="15/06/2015" />
+<List name="updates" cls="classes::cpickd">
+<item code="3.0" desc="*** Interactive Class Browser Update ***&#13;&#10;&#13;&#10;The class browser now is able to display &apos;member&apos; functions such as &apos;isBlank&apos; and &apos;getRefObject&apos;.&#13;&#10;&#13;&#10;Added missing system classes to browser (i.e. Image) and added some missing functions for completeness." PickType="2151,09/08/2002" />
+<item code="3.0" desc="*** Control Event Parameter ***&#13;&#10;&#13;&#10;A string parameter can be passed to any function called from a control event (i.e. onClick( control ctrl, string PStr )).  This is not to be confused with the &apos;Param&apos; attribute on the floating control toolbar.&#13;&#10;&#13;&#10;The parameter to pass in should be written after the function name in the event name box separated by a single space.  Any characters following the function name and space will be passed into the function as a single string as the second parameter (i.e. &quot;onClick Hello World&quot;)" PickType="2151,09/08/2002" />
+<item code="3.1" desc="*** New Control Events ***&#13;&#10;&#13;&#10;OnMouseOver &amp; OnMouseOut available on labels and images.  They are triggered when the mouse moves over them and off them." PickType="2151,09/08/2002" />
+<item code="3.1" desc="*** Wrapping Labels ***&#13;&#10;&#13;&#10;A label control has the option &apos;Wrap Text&apos; under the sub-heading &apos;Special Effects...&apos; on the floating control bar.  For this to work you must specify a minimum control width." PickType="2151,09/08/2002" />
+<item code="3.2" desc="*** Form Template - Control Toolbar ***&#13;&#10;&#13;&#10;Right click the insert control button to display a new control toolbar.  You can then select a cell on the form template and click a control to insert directly from this bar." PickType="2151,09/08/2002" />
+<item code="3.2" desc="*** Form Template - Colour Picker ***&#13;&#10;&#13;&#10;All colour pickers have been altered to give a user defined colour list.  Colours can be added, removed, edited and named.  The original colour chooser is still available by clicking the small icon in the lower corner of the colour list popup." PickType="2151,09/08/2002" />
+<item code="3.2" desc="*** Form Template - Grid / Child Grids ***&#13;&#10;&#13;&#10;New grid / child grid inserting popup control.  Simply move the mouse out to the size required and click to insert the new grid into the editor." PickType="2151,09/08/2002" />
+<item code="3.2" desc="*** Form Template - Grouping Functionality ***&#13;&#10;&#13;&#10;Select all controls in a specific group by right clicking the form template icon in the class hierarchy (left hand pane of designer), and choosing the specific group to select.&#13;&#10;&#13;&#10;Add / Remove all selected controls from a specific group by clicking on the label &apos;Groups&apos; on the floating control toolbar." PickType="2151,09/08/2002" />
+<item code="3.3" desc="*** Windows 2000 Fix ***&#13;&#10;&#13;&#10;Removed from configuration screen because new popup-menu&apos;s fix the problem on all windows operating systems." PickType="2151,09/08/2002" />
+<item code="3.3" desc="*** Popup Menus Updated ***&#13;&#10;&#13;&#10;New popup menus used throughout the designer.  Nice icons provided.&#13;&#10;Class created in classes::core::icons containing usful icon strings." PickType="2151,09/08/2002" />
+<item code="3.4" desc="*** Recent Class List Update ***&#13;&#10;&#13;&#10;Left clicking the &apos;jump to recent class&apos; toolbar button has been extended to also show the Previous 32 classes opened in alphabetical order.&#13;&#10;&#13;&#10;Also available of the same popup is a list of other classes from the same session as the open class (if it is assigned to a session)" PickType="2151,09/08/2002" />
+<item code="3.4" desc="*** Class Indexer ***&#13;&#10;&#13;&#10;1)  Designer indexes all classes under the root &apos;classes&apos; directory.  This information is used to produce instant class derivation and dependency trees.&#13;&#10;&#13;&#10;2)  Right click the &apos;browse class&apos; toolbar button to open a class derivation tree.&#13;&#10;&#13;&#10;3)  Right click the &apos;jump to recent class&apos; toolbar button to get a list of classes the current class reference and classes that reference the current class.&#13;&#10;&#13;&#10;4)  Classes can get out of date if you use SourceSafe externally from the designer or else copy files about in the classes directory in any other way.  To pick up on classes that have changes simply choose to &apos;Build Reference Tree&apos; from the edit menu.  You can also force a full rebuild by choosing &apos;ReBuild Ref Tree&apos; (this can take a few minutes to complete - you can see its progress by opening a windows messages debug window).  The first time you get this feature you should do a full build.&#13;&#10;you get this feature you should do a full build." PickType="2151,09/08/2002" />
+<item code="3.4" desc="*** SourceSafe update ***&#13;&#10;&#13;&#10;Configure active projects to improve speed of SourceSafe transactions." PickType="2151,09/08/2002" />
+<item code="3.4" desc="*** List Boxes updated ***&#13;&#10;&#13;&#10;Windows style selection now enforced.  Functionality of shift and control to select items in list boxes now work the same as they do in windows list boxes." PickType="2151,09/08/2002" />
+<item code="3.4" desc="*** OnCharDown ***&#13;&#10;&#13;&#10;OnCharDown event available from class section right click menu." PickType="2151,09/08/2002" />
+<item code="3.4" desc="*** Designer Version Information ***&#13;&#10;&#13;&#10;Designer Version information is stored with the designer so that new features can be explained to the user on start up." PickType="2151,09/08/2002" />
+<item code="3.5" desc="*** Tabing from Control to control ***&#13;&#10;&#13;&#10;Dll version 2.159 introduces the ability to tab into and through the controls within form component controls.  (Note that the designer tab stop control attributes still does not actually do anything ;)" PickType="2151,09/08/2002" />
+<item code="3.6" desc="Dlls updated to 4217. File search screen now saves its options.  Ability to extract variables both encoded and unencoded. Added sorting of members (Can be turned off in the options).  Sort debug varibles by name." PickType="4217,21/04/2015" />
+<item code="4.0" desc="Sorting changed to only apply to member functions.  Several updates to the unit test framework.  New Dlls.  Crash fix where searching within a file.  Numerous documentation updates. Search within file now saves its options and you can also exclude unit tests when searching over many files." PickType="4246,15/06/2015" />
+</List>
+<method name="checkDesignerVersion">
+<param name="forceOpen" type="int" />
+<![CDATA[//@cmember checkDesignerVersion
+//@param int | forceOpen |
+//@version Andrew Griffin | 09-08-02 12:23 |
+//@i
+
+// Instance Registry Object
+registry reg = &classes::core::Registry::CreateInstance();
+
+int HKEY_CURRENT_USER = 0x80000001;
+
+// Get Extension Description
+if (reg.Open( HKEY_CURRENT_USER, "SOFTWARE\\Comino\\Designer" ) != 0)
+{
+    if (reg.Create( HKEY_CURRENT_USER, "SOFTWARE\\Comino\\Designer" )!=0)
+    {
+        message( "Failed to access user registry" );
+        return 0;
+    }
+}
+
+double ver = reg.ReadString( "version" ).val();
+double prevVer = reg.ReadString( "lastVersion" ).val();
+
+if (ver < desVer)
+{
+    reg.WriteString( "version", desVer.tostring() );
+    reg.WriteString( "lastVersion", ver.tostring() );
+}
+
+reg.Close();
+
+if (ver >= desVer && (forceOpen==null || !forceOpen)) return;
+
+//
+// Now build up help tips based on version number...
+
+wversion w;
+
+w.open();
+w.SizeAdjust();
+w.CenterForm();
+
+if (forceOpen!=null && forceOpen) ver = prevVer;
+
+w.verFrom = ver;
+w.verTo = desVer;
+
+w.verChanged();
+
+if (forceOpen==null || !forceOpen)
+    w.Message( "This is the first time you have used this version of the W2 Designer IDE\r\n" +
+               "Please read these update notes to get an idea of the new functionality",
+               "W2 Designer Version Update",
+               classes::core::windows::MB_ICONINFORMATION
+    );]]>
+</method>
+<method name="dispAbout">
+<![CDATA[//@cmember dispAbout
+//@param
+//@return
+//@version Andrew Griffin | 09-08-02 12:36 |
+//@version andrew.banyard | 15-06-15 16:41 |
+//@i
+
+string txt =
+    "W2 Class Designer v" + desVer.tostring() + "  (" + desDate + ")\r\n"
+    "XRunApp v" + Sys::Version() + "  (" + Sys::VersionDate() + ")\r\n"
+    "\r\n"
+    "Copyright (C) Civica 2015\r\n";
+
+message( txt, "About", classes::core::windows::MB_ICONASTERISK );]]>
+</method>
+</static>
+<grid bk="224,224,192">
+<row>
+<col rpad="8" bpad="8" w="340" align="W" bk="212,208,200" imgtile="8">
+<grid>
+<row>
+<col>
+<Image text="Image" img="designer.ico" />
+</col>
+<col lpad="12" tpad="4" bpad="1" align="V" bk="224,192,128" imgtile="8">
+<Label text="Des Version Updates" shadc="255,255,255" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="12" />
+</col>
+<col align="W" bkimg="res::faderight.bmp" imgtile="1" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="1" align="X" bk="0,0,0" />
+</row>
+<row>
+<col lpad="8" tpad="8" rpad="8" bpad="8" align="X">
+<grid>
+<row>
+<col rpad="8" align="RV">
+<Label text="List changes from version: " tx="64,32,16" />
+</col>
+<col align="W">
+<Edit bind="verFrom" numeric="1" onchange="verChanged" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="to version: " tx="64,32,16" />
+</col>
+<col align="W">
+<Edit bind="verTo" numeric="1" onchange="verChanged" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="8" rpad="8" w="256" h="128" align="WH">
+<Edit name="idChanges" multi="1" />
+</col>
+</row>
+<row>
+<col lpad="8" tpad="8" rpad="8" bpad="8" align="R">
+<grid>
+<row>
+<col align="CV" imgtile="32">
+<Label text="Close" style="b" onclick="close" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

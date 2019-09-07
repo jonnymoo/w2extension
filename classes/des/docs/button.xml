@@ -1,0 +1,14 @@
+<class name="Button" description="W2 Script Reference" base="Control">
+<members sub="Misc">
+<method name="CheckAbort">
+<![CDATA[//@cmember int CheckAbort(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="CheckAbort" cls="int" />
+</return>
+</class>

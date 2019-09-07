@@ -1,0 +1,352 @@
+<grid>
+<row>
+<col bk="168,208,255">
+<Label text="Tax Calculation" font="Century Gothic" size="20" style="b" />
+</col>
+<col bk="168,208,255">
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col bk="172,221,149">
+<Label text="Salary" font="Century Gothic" size="10" />
+</col>
+<col bk="172,221,149">
+<Label text="Salary" source="SetContent( m_dSalary );" font="Courier New" size="10" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col bk="172,221,149">
+<Label text="Benefits" font="Century Gothic" size="10" />
+</col>
+<col bk="172,221,149">
+<Label text="Benefits" source="SetContent( m_dBenefits );" font="Courier New" size="10" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col bk="172,221,149">
+<Label text="Gross" font="Century Gothic" size="10" />
+</col>
+<col bk="172,221,149">
+<Label text="Gross" source="SetContent( m_dBenefits+m_dSalary );" style="b" font="Courier New" size="10" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col bk="172,221,149">
+<Label text="Tax at 20%" font="Century Gothic" size="10" />
+</col>
+<col bk="172,221,149">
+<Label text="T20" source="SetContent( &quot;&quot;+GetTax20() );" font="Courier New" size="10" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col bk="172,221,149">
+<Label text="Tax at 3% (&gt;£4100)" font="Century Gothic" size="10" />
+</col>
+<col bk="172,221,149">
+<Label text="T3" source="SetContent( &quot;&quot;+GetTax3() );" font="Courier New" size="10" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col bk="172,221,149">
+<Label text="Tax at 17% (&gt;£26100)" font="Century Gothic" size="10" />
+</col>
+<col bk="172,221,149">
+<Label text="T17" source="SetContent( &quot;&quot;+GetTax17() );" font="Courier New" size="10" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col bk="172,221,149">
+<Label text="Total Tax" font="Century Gothic" size="10" />
+</col>
+<col bk="172,221,149">
+<Label text="Total Tax" source="SetContent( &quot;&quot;+(m_dTax20 + m_dTax3 + m_dTax17) );" style="b" font="Courier New" size="10" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+</row>
+<row>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+</row>
+<row>
+<col bk="172,221,149">
+<Label text="Net Yearly" font="Century Gothic" size="10" />
+</col>
+<col bk="172,221,149">
+<Label text="NetYearly" source="SetContent( &quot;&quot;+GetNetYearly() );" style="b" font="Courier New" size="10" />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+</row>
+<row>
+<col bk="172,221,149">
+<Label text="Net Monthly" font="Century Gothic" size="10" />
+</col>
+<col bk="172,221,149">
+<Label text="NetMonthly" style="b" source="SetContent( &quot;&quot;+GetNetMonthly() );&#13;&#10;" font="Courier New" size="10" />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+</row>
+<row>
+<col>
+<Label text="xxx" source="TaxCalc tc;&#13;&#10;tc.m_dSalary = 10000.0;&#13;&#10;tc.m_dBenefits = 1000.0;&#13;&#10;tc.RunSubCalc( this, &quot;Tax 3 Calculator&quot; );&#13;&#10;SetContent( &quot;&quot;+tc.GetTax3() );" />
+</col>
+<col>
+<Label text="yyy" source="TaxCalc tc;&#13;&#10;tc.m_dSalary = 10000.0;&#13;&#10;tc.m_dBenefits = 1000.0;&#13;&#10;tc.RunSubCalc( this, &quot;Tax 17 Calculator&quot; );&#13;&#10;SetContent( &quot;&quot;+tc.GetTax17() );" />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+<col>
+<Label />
+</col>
+</row>
+</grid>

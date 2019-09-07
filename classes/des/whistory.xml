@@ -1,0 +1,67 @@
+<form name="WHistory" savepos="histPos" bk="D4D0C8" sizeable="0" toolwindow="1" thinframe="1" closeondeactivate="1" nocaption="1" esccancel="1">
+<members>
+<method name="Start">
+<![CDATA[idListbox.setList(History::HList);
+//SizeFormToContent();
+idListbox.setCurrent(History::TimeNow-1);
+
+// no method to scroll to selection yet...
+idListBox.scrollToEnd();]]>
+</method>
+<method name="setCurrent">
+<![CDATA[History::TimeNow = History::HList.CurrentIndex();
+History::goForwardInTime();
+]]>
+</method>
+<method name="onDefaultKey">
+<![CDATA[setCurrent();]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col w="314" h="256" align="WH">
+<ListBox name="idListbox" IsList="Y" onClick="setCurrent">
+<row>
+<col bpad="2" w="104" h="16" align="CV" bk="121,85,170" header="1">
+<Label text="Class" tx="255,255,255" style="b" />
+</col>
+<col bpad="2" w="4" h="16" align="CV" bk="128,0,128" />
+<col bpad="2" w="56" h="16" align="CV" bk="121,85,170">
+<Label text="Type" tx="255,255,255" style="b" />
+</col>
+<col bpad="2" w="4" h="16" align="CV" bk="128,0,128" />
+<col bpad="2" w="140" h="16" align="CV" bk="121,85,170">
+<Label text="Member" tx="255,255,255" style="b" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2" align="W">
+<Label text="&gt;" bind="justClassName" font="Arial Narrow" />
+</col>
+<col bpad="2" w="4" bk="224,224,224" />
+<col lpad="4" tpad="2" rpad="4" bpad="2">
+<Label text="&gt;" bind="typ" font="Arial Narrow" />
+</col>
+<col bpad="2" w="4" bk="224,224,224" />
+<col lpad="4" tpad="2" rpad="4" bpad="2">
+<Label text="&gt;" bind="Name" font="Arial Narrow" />
+</col>
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

@@ -1,0 +1,52 @@
+<class name="Clipboard" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members />
+<static>
+<Object name="clipXML" cls="XML" desc="Clipboard Contents" />
+<method name="SetClipboard">
+<param name="typ" type="string" />
+<param name="content" type="XML" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+clipXML.reset();
+clipXML.settag(typ);
+clipXML.addElement( content );]]>
+</method>
+<method name="isTyp" return="int">
+<param name="typ" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+return clipXML.tag().eq(typ);]]>
+</method>
+<method name="getTyp" return="string">
+<![CDATA[//@cmember getTyp
+//@return string |
+//@version Andrew Griffin | 03-10-01 11:37 |
+//@i
+
+return clipXML.tag();]]>
+</method>
+<method name="getContent" return="xml">
+<![CDATA[//@cmember
+//@return xml |
+//@version
+//@i
+
+if (clipXML.count()==0) return null;
+
+return clipXML[0];]]>
+</method>
+</static>
+<return>
+<rmeth name="isTyp" cls="int" />
+<rmeth name="getTyp" cls="string" />
+<rmeth name="getContent" cls="xml" />
+</return>
+</class>

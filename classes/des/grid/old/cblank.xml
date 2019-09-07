@@ -1,0 +1,23 @@
+<form name="CBlank" caption="Label" bk="Face" margin="0" toolwindow="1" xxsizeable="0">
+<members>
+<method name="Init">
+<![CDATA[
+SizeToFit();
+]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" />
+<![CDATA[
+// THIS IS CALLED FROM THE GRID EDITOR
+]]>
+</method>
+</members>
+<static />
+<grid bk="224,224,192">
+<row>
+<col align="V">
+<Label text="Empty Cell" w="120" />
+</col>
+</row>
+</grid>
+</form>

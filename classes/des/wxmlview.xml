@@ -1,0 +1,48 @@
+<form name="WXMLView" caption="XML Viewer" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<Object name="XML" cls="XMLObj" />
+<method name="DoNewWin">
+<![CDATA[
+WXMLView Q;
+Q.open();]]>
+</method>
+<method name="DoOpen">
+<![CDATA[//@version Ricky LEE | 31-03-06 09:13 |
+
+String fn = GetOpenFileName("Open XML","XML Files|*.xml","");
+if (!fn) return;
+File F;
+if (!F.Open(fn,0)) return;
+Object B = F.ReadBlob();
+Object X = B.toXMLObject();
+X.DebugOut();
+
+XML.reset();
+XML.SetTo(X);
+
+setText( "XML - " + F.FileName().toLower() );]]>
+</method>
+</members>
+<static />
+<grid lpad="1" tpad="1" rpad="2" bpad="2" border="1" cellspacing="0">
+<row>
+<col>
+<grid>
+<row>
+<col>
+<Button name="idQuery" text="Open" onClick="DoOpen" />
+</col>
+<col>
+<Button name="idNewWin" text="New" onClick="DoNewWin" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="WH">
+<Hierarchy name="idResults" h="100" bind="XML" />
+</col>
+</row>
+</grid>
+</form>

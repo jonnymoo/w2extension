@@ -1,0 +1,16 @@
+<class name="Hbase" description="Base Object of a class browsing hierarchy" HierImage="..\htag.bmp" HierImageField="Icon">
+<members>
+<List name="Lmem" cls="Hmem" />
+<String name="parentFilename" />
+<method name="setTo">
+<param name="X" />
+<param name="aPath" type="string" />
+<param name="openIt" type="int" />
+<![CDATA[parentFilename = "";
+
+Lmem.createRow().setTo(X, aPath, openIt, "");
+]]>
+</method>
+</members>
+<static />
+</class>

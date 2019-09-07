@@ -1,0 +1,9 @@
+<class name="breakpoint" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<String name="className" />
+<String name="FuncName" />
+<Integer name="CPos" />
+<Integer name="bDelete" />
+</members>
+<static />
+</class>

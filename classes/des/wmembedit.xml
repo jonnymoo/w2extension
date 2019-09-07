@@ -1,0 +1,1502 @@
+<form name="WMembEdit" bk="255,255,255" margin="0" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:42$" frevision="$Revision: 2$">
+<members>
+<List name="cattrs" cls="xmlattr" />
+<List name="AttribListFG" cls="Classes::des::AttribList" sql="~" />
+<method name="UpdateSerialize">
+<![CDATA[//@cmember UpdateSerialize
+//@version Andrew.Banyard | 14-07-17 14:39 |
+//@version James.Isolano | 09-11-17 14:58 |
+//@i
+
+int graphROHasValue = idCustomView.GetList().FindRowByFieldName("Serialize", "Attr")!=NULL;
+if(idJsonSerialize.GetState())
+{
+   if(graphROHasValue)
+   {
+     idCustomView.GetList().FindRowByFieldName("Serialize", "Attr").Value = "1";
+   } else {
+    xmlattr a= &cattrs.CreateRow();
+    a.Attr = "Serialize";
+    a.Value = "1";
+   }
+} else if(graphROHasValue)
+{
+     idCustomView.GetList().FindRowByFieldName("Serialize", "Attr").Value = "0";
+}
+
+idCustomView.setcurrent(idCustomView.GetList().FindRowByFieldName("Serialize", "Attr"));
+doCAttrUpdate(idCustomView);
+idCustomView.CalcWidths();]]>
+</method>
+<method name="UpdateGraphIgnore">
+<![CDATA[//@cmember UpdateGraphIgnore
+//@version Andrew.Banyard | 14-07-17 14:30 |
+//@i
+
+int graphROHasValue = idCustomView.GetList().FindRowByFieldName("GraphIgnore", "Attr")!=NULL;
+if(idGraphIgnore.GetState())
+{
+   if(graphROHasValue)
+   {
+     idCustomView.GetList().FindRowByFieldName("GraphIgnore", "Attr").Value = "Y";
+   } else {
+    xmlattr a= &cattrs.CreateRow();
+    a.Attr = "GraphIgnore";
+    a.Value = "Y";
+   }
+} else if(graphROHasValue)
+{
+     idCustomView.GetList().FindRowByFieldName("GraphIgnore", "Attr").Value = "N";
+}
+
+idCustomView.setcurrent(idCustomView.GetList().FindRowByFieldName("GraphIgnore", "Attr"));
+doCAttrUpdate(idCustomView);
+idCustomView.CalcWidths();]]>
+</method>
+<method name="UpdateGraphDispText">
+<![CDATA[//@cmember UpdateGraphDispText
+//@version Andrew.Banyard | 13-07-17 14:12 |
+//@i
+
+// Process Graph Desc
+int graphDescHasValue = idCustomView.GetList().FindRowByFieldName("GraphMappedDispText", "Attr")!=NULL;
+if(idGraphDesc.GetState())
+{
+   if(graphDescHasValue)
+   {
+     idCustomView.GetList().FindRowByFieldName("GraphMappedDispText", "Attr").Value = "Y";
+   } else {
+    xmlattr a= &cattrs.CreateRow();
+    a.Attr = "GraphMappedDispText";
+    a.Value = "Y";
+   }
+} else if(graphDescHasValue)
+{
+     idCustomView.GetList().FindRowByFieldName("GraphMappedDispText", "Attr").Value = "N";
+}
+
+idCustomView.setcurrent(idCustomView.GetList().FindRowByFieldName("GraphMappedDispText", "Attr"));
+doCAttrUpdate(idCustomView);
+idCustomView.CalcWidths();]]>
+</method>
+<method name="UpdateGraphMappedField">
+<![CDATA[//@cmember UpdateGraphMappedField
+//@version Andrew.Banyard | 13-07-17 14:12 |
+//@i
+
+int graphMappedHasValue = idCustomView.GetList().FindRowByFieldName("GraphMappedField", "Attr")!=NULL;
+if(idGraphMapped.getText()!="")
+{
+   if(graphMappedHasValue)
+   {
+     idCustomView.GetList().FindRowByFieldName("GraphMappedField", "Attr").Value = idGraphMapped.getText();
+   } else {
+    xmlattr a= &cattrs.CreateRow();
+    a.Attr = "GraphMappedField";
+    a.Value = idGraphMapped.getText();
+   }
+} else if(graphMappedHasValue)
+{
+    idCustomView.GetList().FindRowByFieldName("GraphMappedField", "Attr").Value = "";
+}
+
+idCustomView.setcurrent(idCustomView.GetList().FindRowByFieldName("GraphMappedField", "Attr"));
+doCAttrUpdate(idCustomView);
+idCustomView.CalcWidths();]]>
+</method>
+<method name="UpdateGraphReadOnly">
+<![CDATA[//@cmember UpdateGraphReadOnly
+//@version Andrew.Banyard | 13-07-17 14:12 |
+//@i
+
+int graphROHasValue = idCustomView.GetList().FindRowByFieldName("GraphReadOnly", "Attr")!=NULL;
+if(idGraphReadOnly.GetState())
+{
+   if(graphROHasValue)
+   {
+     idCustomView.GetList().FindRowByFieldName("GraphReadOnly", "Attr").Value = "Y";
+   } else {
+    xmlattr a= &cattrs.CreateRow();
+    a.Attr = "GraphReadOnly";
+    a.Value = "Y";
+   }
+} else if(graphROHasValue)
+{
+     idCustomView.GetList().FindRowByFieldName("GraphReadOnly", "Attr").Value = "N";
+}
+
+idCustomView.setcurrent(idCustomView.GetList().FindRowByFieldName("GraphReadOnly", "Attr"));
+doCAttrUpdate(idCustomView);
+idCustomView.CalcWidths();]]>
+</method>
+<method name="Init">
+<![CDATA[//@version Darren Ball | 07-12-04 12:51 |
+
+idMemberType.AddOption("String");
+idMemberType.AddOption("Integer");
+idMemberType.AddOption("Double");
+idMemberType.AddOption("Date");
+idMemberType.AddOption("Object");
+idMemberType.AddOption("List");]]>
+</method>
+<method name="Setup">
+<param name="M" type="MemberDef" />
+<![CDATA[//@version Andrew Griffin | 07-05-02 16:00 |
+//@version Nick Gomm | 26-06-08 12:38 |
+//@version tim.simpson | 27-07-11 12:14 |
+//@version Andrew.Banyard | 14-07-17 14:42 |
+
+idMemberName.setText(M.MemberName);
+idMemberType.setText(M.MemberType);
+
+idClassName.setText(M.MemberClass);
+idMemberSize.setText(M.MemberSize);
+idMemberADP.setText(M.MemberADP);
+idMemberDesc.setText(M.MemberDesc);
+idMemberSQL.setText(M.MemberSQL);
+idMemberPick.setText(M.MemberPick);
+
+idHierList.SetState( !M.Hier.eq("N") );
+idKeyField.SetState( M.Key.eq("Y"));
+idSequence.SetState( M.Seq.eq("Y"));
+idUpperCase.setText( M.CCase);
+idMultiLine.SetState( M.Multiline.eq("Y"));
+idDateAndTime.SetState( M.DateTime.eq("Y"));
+idDateString.SetState( M.DateString.eq("Y"));
+idNullable.SetState( !M.Nullable.eq("N"));
+idValidation.setText( M.Validation);
+idComment.setText( M.Comment);
+
+idConstVal.setText( M.ConstVal );
+idIsConst.SetState( M.IsConst );
+
+int graphReadOnly = 0;
+
+if(m.Attributes.FindRowByFieldName("GraphReadOnly", "Attr")!=NULL)
+  graphReadOnly =m.Attributes.FindRowByFieldName("GraphReadOnly", "Attr").Value == "Y";
+idGraphReadOnly.SetState(graphReadOnly);
+
+int graphDesc = 0;
+if(m.Attributes.FindRowByFieldName("GraphMappedDispText", "Attr")!=NULL)
+  graphDesc =m.Attributes.FindRowByFieldName("GraphMappedDispText", "Attr").Value == "Y";
+idGraphDesc.SetState(graphDesc);
+
+int graphIgnore = 0;
+if(m.Attributes.FindRowByFieldName("GraphIgnore", "Attr")!=NULL)
+  graphIgnore =m.Attributes.FindRowByFieldName("GraphIgnore", "Attr").Value == "Y";
+idGraphIgnore.SetState(graphIgnore);
+
+string graphMapped = "";
+if(m.Attributes.FindRowByFieldName("GraphMappedField", "Attr")!=NULL)
+  graphMapped = m.Attributes.FindRowByFieldName("GraphMappedField", "Attr").Value;
+idGraphMapped.SetText(graphMapped);
+
+
+int serialize = 0;
+if(m.Attributes.FindRowByFieldName("Seralize", "Attr")!=NULL)
+   graphIgnore =m.Attributes.FindRowByFieldName("Seralize", "Attr").Value == "Y";
+idJsonSerialize.SetState(serialize);
+
+idMemberLSRC.setText( M.ListSRC );
+idCustAttrib.SetState( M.CustomAttr.eq("Y") );
+idDBLinkedTab.setText( M.LinkDBTable );
+CheckType();
+
+// caption
+Object Z = M.OwnerList();
+Object Sec = Z.OwnerRow();
+if (Sec.SectionType.eq("static"))
+    idCaption.SetText( "Static Variable" );
+else
+    idCaption.SetText( "Member Variable" );
+
+idClassName.setEnabled(M.XMLContent.count()==0);
+
+//idCustomView.SetList( &M.Attributes );
+classes::core::global::copyList( M.Attributes, cattrs );
+FitRecursive();
+
+// set up check boxes
+for (int i=0;i<ControlCount();i++)
+{
+    Object Con = GetControl(i);
+    if (Con.ControlID().beginswith("chk")) Con.SetState(0);
+
+}
+
+for (i=0;i<cattrs.Count();i++)
+{
+    Object Con = GetControl( "chk" + cattrs[i].attr );
+    if (Con != NULL) Con.SetState(1);
+}
+
+// should we show LG2 Attrs
+Object theClass = &M.OwnerList().OwnerRow().OwnerList().OwnerRow();
+if (theClass.classpath.lower().indexOf("\\localgov2\\")>-1 || theClass.classpath.lower().indexof("\\uh\\")>-1)
+{
+    grdLG2Attr.setVisible(1);
+    FitRecursive();
+}]]>
+</method>
+<method name="UnBindAll">
+<![CDATA[//@version Andrew Griffin | 03-10-01 11:05 |
+/*
+idMemberName.BindTo(null);
+idMemberType.BindTo(null);
+idClassName.BindTo(null);
+idMemberSize.BindTo(null);
+idMemberADP.BindTo(null);
+idMemberDesc.BindTo(null);
+idMemberSQL.BindTo(null);
+idMemberPick.BindTo(null);
+
+idHierList.BindTo(null);
+idKeyField.BindTo(null);
+idSequence.BindTo(null);
+idUpperCase.BindTo(null);
+idMultiLine.BindTo(null);
+idDateAndTime.BindTo(null);
+idDateString.BindTo(null);
+idNullable.BindTo(null);
+idValidation.BindTo(null);
+idComment.BindTo(null);
+
+idConstVal.BindTo( null );
+idIsConst.BindTo( null );
+
+idIsList.BindTo(null);
+idIcon.BindTo(null);
+
+idMemberLSRC.BindTo( null );
+
+idCustAttrib.BindTo( null );
+
+idDBLinkedTab.BindTo( null );
+*/]]>
+</method>
+<method name="OnChangeType">
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember OnChangeType
+//@param control | Ctrl |
+//@version Andrew Griffin | 03-10-01 09:49 |
+
+CheckType();
+
+String s = idMemberType.getText();
+String ic = "hobject.bmp";
+String lst;
+
+if      (s=="Float")   { ic = "hfloat.bmp"; }
+else if (s=="Double")  { ic = "hfloat.bmp"; }
+else if (s=="Integer") { ic = "h123.bmp"; }
+else if (s=="String")  { ic = "habc.bmp"; }
+else if (s=="Date")    { ic = "hfloat.bmp"; }
+else if (s=="List")    { lst = "[]"; }
+
+idIsList.SetText(lst);
+idIcon.SetText(ic);
+
+doAttrUpdate( ctrl );]]>
+</method>
+<method name="CheckType">
+<![CDATA[//@version Andrew Griffin | 05-12-01 15:12 |
+
+
+String s = idMemberType.getText().toLower();
+String ic;
+int siz,adp,pik,lis,obj;
+
+if      (s=="float")   {          siz = 1; adp = 1; ic = "hfloat.bmp"; }
+else if (s=="double") {          siz = 1; adp = 1; ic = "h123.bmp"; }
+else if (s=="integer") { pik = 1; siz = 1;          ic = "h123.bmp"; }
+else if (s=="string")  { pik = 1; siz = 1;          ic = "habc.bmp"; }
+else if (s=="date")    { }
+else if (s=="")        { }
+else                   { lis = 1; }
+
+if (lis==0) idClassName.setText("");
+
+ShowGroup("Gen",0);
+if (s!=""){
+    if (lis==0){
+        ShowGroup("DB",1);
+        }
+    ShowGroup(s,1);
+    }
+
+FitContentToForm();
+
+
+/*
+idClassName.setEnabled( lis );
+idMemberSize.setEnabled(siz);
+idMemberADP.setEnabled(adp);
+idMemberPick.setEnabled(pik);
+idMemberSizeC.setEnabled(siz);
+idMemberADPC.setEnabled(adp);
+idMemberPickC.setEnabled(pik);
+*/
+// idIsList.setEnabled(lis);
+// idIsListC.setEnabled(lis);
+
+
+// GetParent().idResults.CurrentRow().SetIcon();  // current row from hierarchy]]>
+</method>
+<method name="DoPickType">
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:06 |
+
+
+classes::core::wpopupmenu P;
+P.Add("String");
+P.Add("Integer");
+// P.Add("Float");
+P.Add("Double");
+P.Add("Date");
+P.Add("Object");
+P.Add("List");
+
+String s = P.Track();
+if (!s) return;
+
+idMemberType.setText(s);
+CheckType();]]>
+</method>
+<method name="DoPickClass">
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:06 |
+
+WClassPicker::OpenPop( this );
+/*
+classes::core::wpopupmenu G;
+G.Add("Blob");
+G.Add("File");
+G.Add("XML");
+
+classes::core::wpopupmenu X;
+X.Add("Folder","UPM::Folder");
+X.Add("Process","UPM::Process");
+X.Add("Document","UPM::Document");
+X.Add(G,"System...");
+
+String s = X.Track();
+if (!s) return;
+
+idClassName.setText(s);
+CheckType();
+*/]]>
+</method>
+<method name="SetMod">
+<![CDATA[//@version Andrew Griffin | 03-08-01 17:07 |
+
+GetParent().SetMod(null,1);]]>
+</method>
+<method name="openPickList">
+<![CDATA[//@version Jonathan.Muir | 26-02-10 13:40 |
+object clas = GetParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+
+string st = idMemberPick.getText(), mem;
+int i = st.lastIndexOf("::");
+if (i==-1) i=-2;
+
+mem = st.substring(i+2);
+st = st.left(i);
+
+if (st)
+{
+    object win = AdvSearch::OpenClassFile( st, tPath, mem);
+    if(win!=null) win.show(1);
+}
+else {
+    AdvSearch::openMethodMember( &GetParent(), mem );
+}]]>
+</method>
+<method name="clickOpenClass">
+<![CDATA[//@version Jonathan.Muir | 26-02-10 13:40 |
+string cls = idClassName.getText();
+if (cls=="") return;
+object clas = GetParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+object win = AdvSearch::OpenClassFile( cls, tPath, "");
+if(win!=null) win.show(1);]]>
+</method>
+<method name="doClickList">
+<![CDATA[//@cmember doClickList
+//@version andrew.banyard | 23-04-15 13:43 |
+
+GetParent().listMethodCallback(idMemberLSRC.getText());]]>
+</method>
+<method name="doGetLinkedSQL">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 24-05-02 16:06 |
+//@i
+
+string tab = idDBLinkedTab.getText();
+
+classes::core::wpopupmenu p,ps,po;
+
+ps.Add( "Create Table", "getCreateTable,0,0" );
+po.Add( "Create Table", "getCreateTable,1,0" );
+
+ps.Add( "Create Table DCH", "getCreateTable,0,1" );
+po.Add( "Create Table DCH", "getCreateTable,1,1" );
+
+ps.Add( "Create Triggers", "getCreateTriggers,0" );
+po.Add( "Create Triggers", "getCreateTriggers,1" );
+
+ps.Add( "Drop Triggers", "getDropTriggers,0" );
+
+p.Add( ps, "SQL Server" );
+p.Add( po, "Oracle" );
+
+string s = p.Track(1);
+if (!s) return;
+
+// Saved?
+
+getparent().OptionalSave( "You must save changes before producing SQL" );
+
+ExecMethod( s.getToken(0), s.getToken(1).val(), s.getToken(2).val() );]]>
+</method>
+<method name="getCreateTable">
+<param name="dbtype" type="int" />
+<param name="isDCH" type="int" />
+<param name="dispMsg" type="int" />
+<![CDATA[// Create Table
+
+string tab = idDBLinkedTab.getText();
+
+return getCreateTableS( tab, dbtype, isDCH, dispMsg );]]>
+</method>
+<method name="getCreateTriggers">
+<param name="dbtype" type="int" />
+<param name="isDCH" type="int" />
+<param name="dispMsg" type="int" />
+<![CDATA[// Create Table
+
+string tab = idDBLinkedTab.getText();
+
+return getCreateTriggersS( tab, dbtype, isDCH, dispMsg );]]>
+</method>
+<method name="getDropTriggers">
+<param name="dbt" type="int" />
+<param name="dispMsg" type="int" />
+<![CDATA[
+string tab = idDBLinkedTab.getText();
+
+return getDropTriggersS( tab, dbt, dispMsg );]]>
+</method>
+<method name="browseFile">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 03-10-01 10:15 |
+//@i
+
+string fileTyp = ctrl.GetControlAttr("filetype");
+control bindTo = &GetControl( ctrl.GetControlAttr("bindto") );
+string description = ctrl.GetControlAttr("desc");
+
+string filename = bindTo.getText();
+filename = sys::MakeFullName( getParent().FileName, filename );
+
+string filter;
+
+if (filetyp.eq("xml")) {
+    filter.addToken("XML files|*.xml", "|");
+    if (filename) filename += ".xml";
+} else
+if (filetyp.eq("bmp")) {
+    filter.addToken("BMP files|*.bmp", "|");
+} else
+if (filetyp.eq("ico")) {
+    filter.addToken("Icon files|*.ico", "|");
+} else
+if (filetyp.eq("txt")) {
+    filter.addToken("Text files|*.txt;*.ini;*.xml", "|");
+    filter.addToken("TXT & INI files|*.txt;*.ini", "|");
+    filter.addToken("XML files|*.xml", "|");
+    filter.addToken("All files|*.*", "|");
+}
+
+filename = GetOpenFileName( "Choose a " + description, filter, filename );
+
+if (!filename) return 0;
+
+filename = sys::MakeRelativeName( getParent().FileName, filename );
+
+if (filetyp.eq("xml")) {
+    int i = filename.indexof(".xml",0,1);
+    if (i>=0) filename = filename.left( i );
+}
+
+bindTo.setText( filename );
+doAttrUpdate( bindTo );]]>
+</method>
+<method name="AddRow">
+<![CDATA[//@cmember AddRow
+//@version Andrew Griffin | 03-10-01 10:59 |
+
+classes::core::WinputBox::Open(this, "addCAttrib", "Enter New Attribute name", "Add Custom Attribute", "");]]>
+</method>
+<method name="addCAttrib">
+<param name="name" type="string" />
+<![CDATA[//@cmember addCAttrib
+//@param string | name |
+//@version Andrew Griffin | 03-10-01 10:59 |
+//@version Darren Ball | 07-12-04 16:47 |
+//@i
+
+XMLAttr L[] = &idCustomView.GetList();
+
+int pos = L.CurrentIndex();
+XMLAttr F = &L.CreateRow( pos+1 );
+F.Attr = name;
+L.SetCurrent(pos+1);
+
+idCustomView.CalcWidths();
+
+doCAttrUpdate( idCustomView );
+fitrecursive();]]>
+</method>
+<method name="DelRow">
+<![CDATA[//@cmember DelRow
+//@version Andrew Griffin | 03-10-01 10:41 |
+
+XMLAttr L[] = &idCustomView.GetList();
+if (L==null) return;
+
+int idx = L.CurrentIndex();
+if (idx<0) return;
+
+if (
+    message( "Delete Attribute " + L[idx].Attr.sql(), "Warning, Can't Undo this operation",
+             classes::core::windows::MB_ICONEXCLAMATION |
+             classes::core::windows::MB_OKCANCEL )
+        == classes::core::windows::IDCANCEL
+   ) return;
+
+doCAttrDelete( idCustomView );
+
+idCustomView.DeleteRow(idx);
+if (idx>=L.Count()) idx--;
+L.SetCurrent(idx);
+idCustomView.CalcWidths();
+
+setMod();
+FitRecursive();]]>
+</method>
+<method name="MoveParam">
+<param name="ctrl" type="object" />
+<![CDATA[//@cmember MoveParam
+//@param object | ctrl |
+//@version Andrew Griffin | 18-09-01 12:39 |
+
+int d;
+
+if (ctrl==idMoveUp) d = -1; else d = 1;
+
+Object L = idCustomView.GetList();
+if (L==null) return;
+
+int idx = L.CurrentIndex();
+if (idx<0) return;
+
+d += idx;
+if (d<0 || d>=L.count()) return;
+
+L.MoveRow(idx, d);
+L.SetCurrent(d);
+idCustomView.CalcWidths();
+
+setMod();]]>
+</method>
+<method name="doAttrUpdate">
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember doAttrUpdate
+//@param control | Ctrl |
+//@version Andrew Griffin | 03-10-01 11:01 |
+//@version Andrew.Banyard | 13-07-17 14:10 |
+//@i
+
+String ic;
+if (ctrl==idMemberType) {
+    String lst;
+    switch (ctrl.getText()) {
+      case "Float" : ic = "hfloat.bmp"; break;
+      case "Double" : ic = "hfloat.bmp"; break;
+      case "Integer" : ic = "h123.bmp"; break;
+      case "String" : ic = "habc.bmp"; break;
+      case "Date" : ic = "hfloat.bmp"; break;
+      case "List" : ic = "hlist.bmp"; break;
+      default: ic = "hobject.bmp"; break;
+    }
+}
+
+string val;
+if (ctrl.istype( "Edit" )) val = ctrl.getText(); else val = ctrl.GetValue();
+
+classdef cd = &getParent().XFile.Classes[0];
+
+for (int sec=0; sec<cd.Sections.count(); sec++) {
+  ClassSection cs = &cd.Sections[sec];
+  for (int mem=0; mem<cs.MemberDefs.Count(); mem++)
+    if (cs.MemberDefs[mem].isselected()) {
+
+        memberdef md = &cs.MemberDefs[mem];
+        md.setmember( ctrl.GetControlAttr( "mname" ), val );
+        if (ic) md.Icon = ic;
+    }
+}
+
+SetMod();]]>
+</method>
+<method name="doCAttrUpdate">
+<param name="Ctrl" type="listbox" />
+<![CDATA[//@cmember doCAttrUpdate
+//@param listbox | Ctrl |
+//@version Andrew Griffin | 03-10-01 10:53 |
+//@version Darren Ball | 08-12-04 11:14 |
+//@i
+// Find row in Ctrl
+xmlAttr crow = &Ctrl.CurrentRow();
+classdef cd = &getParent().XFile.Classes[0];
+
+for (int sec=0; sec<cd.Sections.count(); sec++) {
+  ClassSection cs = &cd.Sections[sec];
+  for (int mem=0; mem<cs.MemberDefs.Count(); mem++)
+    if (cs.MemberDefs[mem].isselected()) {
+
+        memberdef md = &cs.MemberDefs[mem];
+        xmlAttr xA =  &md.Attributes.FindRow(crow.Attr);
+        if (xA!=null) xA.Value = crow.Value;
+        else md.Attributes.AddRow( crow );
+    }
+}
+
+SetMod();]]>
+</method>
+<method name="doCAttrDelete">
+<param name="Ctrl" type="listbox" />
+<![CDATA[//@cmember doCAttrDelete
+//@param listbox | Ctrl |
+//@version Andrew Griffin | 03-10-01 10:41 |
+//@i
+
+xmlAttr crow = &Ctrl.CurrentRow();
+classdef cd = &getParent().XFile.Classes[0];
+
+for (int sec=0; sec<cd.Sections.count(); sec++) {
+  ClassSection cs = &cd.Sections[sec];
+  for (int mem=0; mem<cs.MemberDefs.Count(); mem++)
+    if (cs.MemberDefs[mem].isselected()) {
+
+        memberdef md = &cs.MemberDefs[mem];
+        xmlAttr xA = &md.Attributes.FindRow( crow.Attr );
+        if (xA!=null) xA.RemoveFromList();
+    }
+}
+
+SetMod();]]>
+</method>
+<method name="DoCheckbox">
+<param name="ctrl" type="checkbox" />
+<![CDATA[//@cmember DoCheckbox
+//@param checkbox | ctrl |
+//@version Nick.Gomm | 09-10-03 09:50 |
+//@version neil.turner | 27-07-15 09:30 |
+//@i
+
+if (Ctrl.GetState())
+{
+    // add a row
+    XMLAttr L[] = &idCustomView.GetList();
+
+    int pos = L.CurrentIndex();
+    XMLAttr F = &L.CreateRow( pos+1 );
+    F.Attr = ctrl.GetControlAttr("attrib");
+    if (F.Attr == "EditHeader" || F.Attr == "DisplayHeader" || F.Attr == "QueryHeader")
+    {
+        F.Value = "Enter the header text";
+    }
+    else
+    {
+        F.Value = "Y";
+    }
+    L.SetCurrent(pos+1);
+
+    idCustomView.CalcWidths();
+
+    doCAttrUpdate( idCustomView );
+    fitrecursive();
+}
+else
+{
+    // delete a row
+    XMLAttr L[] = &idCustomView.GetList();
+    int idx =  L.FindRowIndex(ctrl.GetControlAttr("attrib"));
+
+    if (idx>=0)
+    {
+        L.SetCurrent(idx);
+        doCAttrDelete(idCustomView);
+        idCustomView.DeleteRow(idx);
+        if (idx>=L.Count()) idx--;
+        L.SetCurrent(idx);
+        idCustomView.CalcWidths();
+
+        setMod();
+        FitRecursive();
+    }
+}]]>
+</method>
+<method name="AddAttr">
+<param name="ctrl" type="ListBox" />
+<![CDATA[//@cmember AddAttr
+//@param
+//@return
+//@version Darren Ball | 08-12-04 11:13 |
+//@version Andrew.Banyard | 13-07-17 13:33 |
+//@i
+SetWaitCursor();
+if(AttribListFG.Count()==0) classes::core::Global::LoadList( "classes::des::attrib.txt", AttribListFG );
+if(AttribListFG.Count()==0) Return;
+
+String szAttrName = "";
+PopupMenu P;
+Object Q;
+For(int i =0;i<AttribListFG.Count();i++)
+{
+    if(!AttribListFG[i].AttribName.EQ(szAttrName))
+    {
+        Q = sys::NewObject("PopupMenu");
+        Q.Add(AttribListFG[i].AttribDesc,AttribListFG[i].AttribName + "|" +AttribListFG[i].AttribValue);
+        P.Add(Q,AttribListFG[i].AttribName);
+        szAttrName = AttribListFG[i].AttribName;
+    } else
+    {
+        Q.Add(AttribListFG[i].AttribDesc,AttribListFG[i].AttribName + "|" +AttribListFG[i].AttribValue);
+    }
+}
+
+String sz = P.Track();
+if(sz.eq("")) return;
+
+XMLAttr L[] = &idCustomView.GetList();
+if (L==null) return;
+
+Object oRow = &L.FindRow(sz.GetToken(0,"|"),0);
+
+if(oRow==NULL)
+{
+    int pos = L.CurrentIndex();
+    XMLAttr F = &L.CreateRow( pos+1 );
+    F.Attr = sz.GetToken(0,"|");
+    F.Value = sz.GetToken(1,"|");
+    L.SetCurrent(pos+1);
+}
+Else
+{
+    L.SetCurrent(&L.FindIndex(oRow));
+    oRow.Value = sz.GetToken(1,"|");
+}
+
+idCustomView.CalcWidths();
+doCAttrUpdate( idCustomView );
+fitrecursive();]]>
+</method>
+<method name="RefreshAttr">
+<param name="ctrl" type="ListBox" />
+<![CDATA[//@cmember RefreshAttr
+//@param ListBox | ctrl |
+//@version Darren Ball | 08-12-04 09:53 |
+//@i
+SetWaitCursor();
+AttribListFG.Reset();
+AddAttr(ctrl);]]>
+</method>
+</members>
+<static>
+<method name="getCreateTableS">
+<param name="tab" type="string" />
+<param name="dbtype" type="int" />
+<param name="isDCH" type="int" />
+<param name="dispMsg" type="int" />
+<![CDATA[//@version Rob Davis | 15-05-02 14:19 |
+//@version Sorina.Grave | 01-06-05 12:30 |
+//@version Martin Burrow | 05-09-06 11:00 |
+// Create Table
+
+string SQL;
+if (dbType==0) {
+    SQL  = addDelims("CREATE TABLE dbo." + tab + (isDCH ? "DCH\r\n" : "\r\n") +
+           "(\r\n" +
+           "  refId                varchar(20),\r\n" +
+           "  data                 varchar(20),\r\n" +
+           "  modDate              datetime NOT NULL,\r\n" +
+           "  modType              char(1) NOT NULL\r\n" +
+           ")\r\nGO\r\n");
+} else {
+    SQL  = addDelims("CREATE TABLE " + tab + (isDCH ? "DCH\r\n" : "\r\n") +
+           "(\r\n" +
+           "  refId                varchar2(20),\r\n" +
+           "  data                 varchar2(20),\r\n" +
+           "  modDate              date " + (isDCH ? "" : "DEFAULT SYSDATE ") + "NOT NULL,\r\n" +
+           "  modType              char(1) " + (isDCH ? "" : "DEFAULT('I') ") + "NOT NULL\r\n" +
+           ");\r\n");
+}
+
+
+//if (dbType==1) {
+    //SQL = SQL + "TABLESPACE cmdata STORAGE(initial 50K next 50K pctincrease 3);\r\n";
+//}
+
+if (dbType==1) {
+    SQL += addDelims("CREATE INDEX " + tab + (isDCH ? "DCH" : "") + "_PK ON " +
+                tab + (isDCH ? "DCH" : "") + "(REFID);\r\n");
+                //"TABLESPACE cmindex STORAGE (initial 50K next 50K pctincrease 3);\r\n";
+
+}
+
+if (dbType==0) {
+    SQL += addDelims("CREATE CLUSTERED INDEX " + tab + (isDCH ? "DCH" : "") + "_PK ON dbo." +
+                tab + (isDCH ? "DCH" : "") + "(REFID)" +
+                "\r\nGO\r\n");
+
+}
+
+if (dbType==0 && !isDCH) {
+    SQL += addDelims("ALTER TABLE dbo." + tab + " ADD CONSTRAINT DF_" + tab +
+                "_ModDate default (getDate()) for modDate" +
+                "\r\nGO\r\n");
+
+    SQL += addDelims("ALTER TABLE dbo." + tab + " ADD CONSTRAINT DF_" + tab +
+                "_ModType default ('I') for modType" +
+                "\r\nGO\r\n");
+
+}
+
+SQL = SQL + "\r\n";
+
+if (dispMsg==null || dispMsg==1) {
+    message(SQL, "SQL copied to clipboard");
+    sys::CopyToClipboard( SQL );
+}
+
+
+return SQL;]]>
+</method>
+<method name="getCreateTriggersS">
+<param name="tab" type="string" />
+<param name="dbtype" type="int" />
+<param name="isDCH" type="int" />
+<param name="dispMsg" type="int" />
+<![CDATA[//@version Andrew Griffin | 28-09-01 16:16 |
+//@version Rob Davis | 15-05-02 14:36 |
+//@version Martin Burrow | 05-09-06 11:00 |
+// Create Table
+
+string SQLs =    "refID, data, modDate",
+       SQLsNew = ":new.refID, :new.data, :new.modDate",
+       iName =   "refID",
+       SQL;
+
+if (dbType==0) {
+
+    // construct Insertion trigger
+
+    SQL += addDelims("CREATE TRIGGER " + tab + "TrigIns ON dbo." + tab + " FOR INSERT, UPDATE AS\r\n" +
+           "  INSERT INTO dbo." + tab + "DCH\r\n" +
+           "  (\r\n" +
+           "    " + SQLs + ", modType\r\n" +
+           "  )\r\n" +
+           "  SELECT\r\n" +
+           "    " + SQLs + ", modType\r\n" +
+           "  FROM inserted\r\n" +
+           "GO\r\n");
+
+    // construct Deletion trigger
+
+    SQL += addDelims("CREATE TRIGGER " + tab + "TrigDel ON dbo." + tab + " FOR DELETE AS\r\n" +
+           "  IF EXISTS(\r\n" +
+           "    SELECT modType FROM deleted WHERE modType<>'D'\r\n" +
+           "  )\r\n" +
+           "    BEGIN\r\n" +
+           "      raiserror ( 'Record can not be deleted in this way!', 16, 1)\r\n" +
+           "      rollback transaction\r\n" +
+           "      return\r\n" +
+           "    END\r\n" +
+           "GO\r\n");
+
+} else {
+
+    // construct Insertion trigger
+
+    SQL += addDelims("CREATE OR REPLACE TRIGGER " + tab + "TrigIns\r\n" +
+           "BEFORE insert OR update ON " + tab + " FOR EACH ROW\r\n\r\n" +
+           "BEGIN\r\n" +
+           "  INSERT INTO " + tab + "DCH\r\n" +
+           "  (\r\n" +
+           "    " + SQLs + ", modType\r\n" +
+           "  )\r\n" +
+           "  VALUES\r\n" +
+           "  (\r\n" +
+           "    " + SQLsNew + ", :new.modType\r\n" +
+           "  );\r\n" +
+           "END;\r\n/");
+
+    // construct Deletion trigger
+
+    SQL += addDelims("CREATE OR REPLACE TRIGGER " + tab + "TrigDel\r\n" +
+           "BEFORE delete ON " + tab + " FOR EACH ROW\r\n" +
+           "BEGIN\r\n" +
+           "  IF :old.modType != 'D' THEN\r\n" +
+           "    raise_application_error( -20001, 'Record can not be deleted in this way!');\r\n" +
+           "  END IF;\r\n" +
+           "END;\r\n/");
+
+}
+
+if (dispMsg==null || dispMsg==1) {
+    message(SQL, "SQL copied to clipboard");
+    sys::CopyToClipboard( SQL );
+}
+
+return SQL;]]>
+</method>
+<method name="getDropTriggersS">
+<param name="tab" type="string" />
+<param name="dbt" type="int" />
+<param name="dispMsg" type="int" />
+<![CDATA[//@version Andrew Griffin | 24-08-01 12:50 |
+//@version Rob Davis | 15-05-02 10:55 |
+//@version Martin Burrow | 05-09-06 11:01 |
+
+string SQL;
+
+if (dbt==0) {
+
+    // construct Trigger Removal SQL
+
+    SQL = addDelims("IF EXISTS (SELECT name FROM sysobjects\r\n" +
+           "WHERE name = '" + tab + "TrigIns' AND type = 'TR')\r\n" +
+           "  DROP TRIGGER " + tab + "TrigIns\r\n" +
+           "GO\r\n");
+
+
+    SQL += addDelims("IF EXISTS (SELECT name FROM sysobjects\r\n" +
+           "WHERE name = '" + tab + "TrigDel' AND type = 'TR')\r\n" +
+           "  DROP TRIGGER " + tab + "TrigDel\r\n" +
+           "GO\r\n\r\n");
+
+}
+
+
+if (dispMsg==null || dispMsg==1) {
+    sys::CopyToClipboard( SQL );
+    message(SQL, "SQL Copied to Clipboard");
+}
+
+return sql;]]>
+</method>
+<method name="addDelims">
+<param name="SQL" type="String" />
+<![CDATA[//@cmember addDelims
+//@param String | SQL |
+//@version Martin Burrow | 05-09-06 10:59 |
+//@i
+
+if (!SQL.endsWith("\r\n") )
+    SQL += "\r\n";
+
+return "--<Begin Statement>\r\n" + SQL + "--<End Statement>\r\n\r\n";]]>
+</method>
+</static>
+<grid bk="224,224,192">
+<row>
+<col lpad="0" tpad="0" rpad="32" bpad="6" w="400" align="W" bk="212,208,200" imgtile="8">
+<grid>
+<row>
+<col lpad="12" tpad="4" rpad="12" bpad="1" bk="224,192,128" imgtile="8">
+<Label name="idCaption" text="Member Variable Details" shadc="255,255,255" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="12" />
+</col>
+<col align="W" bkimg="res::faderight.bmp" imgtile="1" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="32" bpad="6" w="400" h="1" align="W" bk="0,0,0" imgtile="8" />
+</row>
+<row>
+<col align="W">
+<grid>
+<row>
+<col />
+<col tpad="8" align="W">
+<grid tpad="1" rpad="1" bpad="1">
+<row>
+<col w="100" align="RV">
+<Label text="Variable Name:" />
+</col>
+<col>
+<Edit name="idMemberName" w="160" onChange="doAttrUpdate" mname="membername" />
+</col>
+<col>
+<Edit name="idIsList" disable="Y" notab="Y" hide="Y" />
+</col>
+</row>
+<row>
+<col align="RV">
+<Label text="Type:" />
+</col>
+<col>
+<Edit name="idMemberType" w="200" onChange="OnChangeType" combo="2" mname="membertype" />
+</col>
+<col>
+<Edit name="idIcon" disable="Y" hide="Y" notab="Y" />
+</col>
+</row>
+<row>
+<col align="RV">
+<Label text="Class:" groups="Gen,List,Object" onClick="clickOpenClass" />
+</col>
+<col align="W">
+<grid groups="Gen,List,Object">
+<row>
+<col align="W">
+<Edit name="idClassName" onChange="doAttrUpdate" mname="memberclass" />
+</col>
+<col align="V">
+<Image text="Image" img="grid::p_right.bmp" onClick="browseFile" filetype="xml" bindto="idClassName" desc="Class for this Member" />
+</col>
+</row>
+</grid>
+</col>
+<col tpad="2" align="V" />
+</row>
+<row>
+<col align="RV">
+<Label text="SQL Name:" groups="Gen,DB,Object" />
+</col>
+<col align="W">
+<Edit name="idMemberSQL" w="200" groups="Gen,DB,Object" onChange="doAttrUpdate" mname="membersql" />
+</col>
+<col />
+</row>
+<row>
+<col align="RV">
+<Label text="DB Linked Table:" groups="Gen,String" onClick="doGetLinkedSQL" />
+</col>
+<col align="W">
+<Edit name="idDBLinkedTab" w="200" groups="Gen,String" onChange="doAttrUpdate" mname="linkDBTable" />
+</col>
+<col />
+</row>
+<row>
+<col align="RV">
+<Label name="idMemberSizeC" text="Size:" groups="Gen,String,Integer,Double,Float" />
+</col>
+<col>
+<grid rpad="2" groups="Gen,String,Integer,Double,Float">
+<row>
+<col>
+<Edit name="idMemberSize" w="30" help="size" groups="Gen,String,Integer,Double,Float" onChange="doAttrUpdate" mname="membersize" />
+</col>
+<col align="RV">
+<Label name="idMemberADPC" text="Scale:" groups="Gen,Double,Float" />
+</col>
+<col>
+<Edit name="idMemberADP" w="30" help="adp" groups="Gen,Double,Float" onChange="doAttrUpdate" mname="memberadp" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="V">
+<CheckBox name="idNullable" text=" Nullable" help="null=N" v0="N" groups="Gen,DB" v1="Y" onClick="doAttrUpdate" mname="nullable" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="V">
+<CheckBox name="idKeyField" text=" Key Field" help="key=Y" v1="Y" groups="Gen,DB" onClick="doAttrUpdate" mname="key" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="V">
+<CheckBox name="idSequence" text=" Sequence" help="seq=Y" v1="Y" groups="Gen,Integer,String" onClick="doAttrUpdate" mname="seq" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="V">
+<CheckBox name="idMultiLine" text=" MultiLine" help="multiline=Y" v1="Y" groups="Gen,String" onClick="doAttrUpdate" mname="multiline" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="V">
+<CheckBox name="idDateAndTime" text=" Date and Time" v1="Y" help="time" groups="Gen,Date" onClick="doAttrUpdate" mname="datetime" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="V">
+<CheckBox name="idDateString" text=" Date as String (YYYYMMDD)" v1="Y" help="dbstr" groups="Gen,Date" onClick="doAttrUpdate" mname="datestring" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="V">
+<CheckBox name="idHierList" text=" Visible in Hierarchy" v1="Y" help="hier=0" groups="Gen,List" onClick="doAttrUpdate" v0="N" mname="hier" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="V">
+<CheckBox name="idCustAttrib" text=" Custom Attribute" v1="Y" help="cAttr=Y" groups="Gen,String" onClick="doAttrUpdate" v0="N" mname="customAttr" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="V">
+<CheckBox name="idJsonSerialize" text=" Serialize (JSON Encoder)" v1="Y" onClick="UpdateSerialize" v0="N" groups="Gen,String,Integer,Double,Float,Date,List" mname="Seralize" />
+</col>
+<col />
+</row>
+<row>
+<col align="RV">
+<Label name="idMemberPickC" text="Pick List:" groups="Gen,String,Integer" onClick="openPickList" />
+</col>
+<col align="W">
+<Edit name="idMemberPick" help="pick" groups="Gen,String,Integer" onChange="doAttrUpdate" mname="memberpick" />
+</col>
+<col />
+</row>
+<row>
+<col align="RV">
+<Label name="idMemberLSRCC" text="List Content:" groups="Gen,List" onClick="doClickList" />
+</col>
+<col align="W">
+<grid groups="Gen,List">
+<row>
+<col align="W">
+<Edit name="idMemberLSRC" onChange="doAttrUpdate" mname="listSRC" />
+</col>
+<col align="V">
+<Image text="Image" img="grid::p_right.bmp" onClick="browseFile" filetype="txt" bindto="idMemberLSRC" desc="List Contents" hide="Y" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col align="RV">
+<Label text="Case:" groups="Gen,String" />
+</col>
+<col align="V">
+<Edit name="idUpperCase" w="120" groups="Gen,String" combo="2" onChange="doAttrUpdate" pick="MemberDef::CaseFg" mname="ccase" />
+</col>
+<col />
+</row>
+<row>
+<col align="RV">
+<Label text="Validation Template:" groups="Gen,String" />
+</col>
+<col align="W">
+<Edit name="idValidation" help="tmplt=" groups="Gen,String" onChange="doAttrUpdate" mname="validation" />
+</col>
+<col />
+</row>
+<row>
+<col align="RV" />
+<col h="8" />
+<col />
+</row>
+<row>
+<col align="RV">
+<Label text="Description:" />
+</col>
+<col align="W">
+<Edit name="idMemberDesc" help="desc" onChange="doAttrUpdate" mname="memberdesc" />
+</col>
+<col />
+</row>
+<row>
+<col tpad="4" align="R">
+<Label text="Comment:" />
+</col>
+<col align="W">
+<Edit name="idComment" h="48" multi="1" help="comment" onChange="doAttrUpdate" mname="comment" />
+</col>
+<col />
+</row>
+<row>
+<col tpad="4" align="R">
+<CheckBox name="idIsConst" text="Constant:" v1="1" v0="0" groups="Gen,String,Integer,Double,Float,Date" mname="isConst" onClick="doAttrUpdate" />
+</col>
+<col align="W">
+<Edit name="idConstVal" groups="Gen,String,Integer,Double,Float,Date" onChange="doAttrUpdate" mname="constval" />
+</col>
+<col />
+</row>
+<row>
+<col tpad="4" align="R">
+<Label text="Graph Mapped Field:" groups="Gen,String,Integer,Double,Float,Date,List" />
+</col>
+<col align="W">
+<Edit name="idGraphMapped" groups="Gen,String,Integer,Double,Float,Date,List" onChange="UpdateGraphMappedField" mname="GraphMappedField" />
+</col>
+<col />
+</row>
+<row>
+<col tpad="4" align="R" />
+<col align="V">
+<CheckBox name="idGraphDesc" text=" Graph Map Picklist Desc" v1="Y" groups="Gen,String,Integer,Double,Float,Date,List" onClick="UpdateGraphDispText" mname="GraphMappedDispText" />
+</col>
+<col />
+</row>
+<row>
+<col tpad="4" align="R" />
+<col align="V">
+<CheckBox name="idGraphReadOnly" text=" Graph Read Only" v1="Y" groups="Gen,String,Integer,Double,Float,Date,List" onClick="UpdateGraphReadOnly" mname="GraphReadOnly" />
+</col>
+<col />
+</row>
+<row>
+<col tpad="4" align="R" />
+<col align="V">
+<CheckBox name="idGraphIgnore" text=" Graph Ignore" v1="Y" groups="Gen,String,Integer,Double,Float,Date,List" onClick="UpdateGraphIgnore" mname="GraphIgnore" />
+</col>
+<col />
+</row>
+<row>
+<col tpad="4" h="12" align="R" />
+<col align="W" />
+<col />
+</row>
+<row>
+<col rpad="6" align="RH">
+<grid>
+<row>
+<col bpad="4" align="C">
+<Label text="Custom Attributes:" />
+</col>
+</row>
+<row>
+<col align="R">
+<grid>
+<row>
+<col tpad="2" rpad="8" bpad="2" align="C">
+<Image text="Image" img="grid::add_ctrl.bmp" onClick="AddRow" onrightclick="AddAttr" />
+</col>
+<col align="CV">
+<Image name="idMoveUp" text="Image" img="grid::p_up.bmp" onClick="MoveParam" />
+</col>
+</row>
+<row>
+<col tpad="2" rpad="8" bpad="2" align="C">
+<Image text="Image" img="grid::bin.bmp" onClick="DelRow" />
+</col>
+<col align="CV">
+<Image name="idMoveDown" text="Image" img="grid::p_down.bmp" onClick="MoveParam" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+<col rpad="16" align="WY">
+<ListBox name="idCustomView" IsList="Y" fixsize="1" list="cattrs">
+<row>
+<col lpad="8" tpad="2" rpad="16" bpad="2" bk="203,196,167">
+<Label text="Name" header="1" />
+</col>
+<col lpad="8" tpad="2" rpad="16" bpad="2" bk="203,196,167">
+<Label text="Value" header="1" />
+</col>
+</row>
+<row>
+<col lpad="6" rpad="8" h="18" align="V">
+<Label text="&gt;&gt;" w="150" bind="Attr" />
+</col>
+<col lpad="6" rpad="8" h="18" align="V">
+<Edit w="150" h="18" bind="Value" onChange="doCAttrUpdate" />
+</col>
+</row>
+</ListBox>
+</col>
+<col>
+<grid name="grdLG2Attr" hide="Y">
+<row>
+<col>
+<CheckBox name="chknoedit" text="No Edit" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="noedit" help="Do not allow field to be edited" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chknoeditnew" text="No Edit New" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="noeditnew" help="Do not allow field to be edited when creating a new object" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chknoupdate" text="No Update" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="noupdate" help="Do not allow field to be edited when doing an update to an object" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chknodisplay" text="No Display" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="nodisplay" help="Do not display (Also hides from lists unless Just List set)" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chknosearch" text="No Search" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="nosearch" help="Not available to search on" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chknolist" text="No List" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="nolist" help="Not visible in the List display" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkjustlist" text="Just List" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="justlist" help="Overrides No Search and No List to explicitly make it viewable in the list" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chknotag" text="No Tag" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="notag" help="Not available as a letter tag" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkobjecttag" text="Object Tag (add tags for object members)" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="objecttag" help="Allow Objects member to be recursed into for letter tags" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkdisplayright" text="Display Right" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="displayright" help="Display field on the right hand side" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkspandisplay" text="Span Display" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="spandisplay" help="Span the field across left and right.  Only relevant for left hand display" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkeditright" text="Edit Right" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="editright" help="Display Edit field on the right hand side" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkqueryright" text="Query Right" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="queryright" help="Display query field on the right hand side" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chksummary" text="Summary" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="summary" help="Enable a summary view" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkdisplayheader" text="Show Header On Display" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="DisplayHeader" help="The entered text will be displayed as a header line on the display form" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkqueryheader" text="Show Header On Query" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="QueryHeader" help="The entered text will be displayed as a header line on the query form" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkeditheader" text="Show Header On Edit" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="EditHeader" help="The entered text will be displayed as a header line on the edit form" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkdonotcap" text="Do Not Capitalise" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="donotcap" help="For string members set it so it does not capitalise when it sets up the object for display" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkChkBox" text="Yes/No Checkbox" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="Checkbox" help="Should the member be displayed as a tick box in query and update forms. Only valid with the YesNoFg picklist" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkAllowSoundex" text="Allow Soundex Search (relates to ccaddress and cccontact only)" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="AllowSoundex" groups="C" help="For contact and address objects allows Soundex to be available" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkShowPropertyReference" text="Show Property Reference (relates to ccaddress object only)" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="ShowPropertyReference" groups="C" help="Show the property reference in the query form for ccaddress object" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkAllowSearchAllFields" text="Allow Searching In All Property Fields (relates to ccaddress object only)" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="AllowSearchAllFields" help="Displays the option to allow searching in all address fields" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkprefixobjectdesc" text="Prefix Members with Object Name (relates to ccaddress/cccontact objects only)" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="prefixobjectdesc" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkShowAlerts" text="Show Contact Alerts (relates to contact object only)" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="ShowAlerts" help="Whenever a contact object is displayed show the alerts for that contact" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkAvailableAddressee" text="Available as Addressee (relates to holder for contact number(s) only)" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="AvailableAddressee" help="Whenever a contact object is displayed show the alerts for that contact" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkSortValues" text="Re-Order lists by description in PickQueries" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="sortvalues" />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkIsImg" text="Is Image" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="isimg" help="Flags a member as needing an isimg flag on the list viewer." />
+</col>
+</row>
+<row>
+<col>
+<CheckBox name="chkisISHandle" text="Does the member contain an IS handle" img="classes::resource::standard::blip_tick2.bmp" steps="2" onclick="DoCheckbox" attrib="isISHandle" help="Does the member relate to an image server handle. Set up viewers/importers if so." />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+<col w="24" align="Y">
+<SizeBar text="SizeBar" w="24" />
+</col>
+<col w="24" align="WY" />
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

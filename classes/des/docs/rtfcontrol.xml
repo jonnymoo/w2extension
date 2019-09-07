@@ -1,0 +1,76 @@
+<class name="RTFControl" description="W2 Script Reference" base="Control">
+<members>
+<method name="DoMenu">
+<param name="Param" type="int" />
+<![CDATA[//@Call void DoMenu( int Param );
+//@Info 
+]]>
+ />
+</method>
+<method name="GetBlob">
+<![CDATA[//@Call blob GetBlob(  );
+//@Info 
+]]>
+ />
+</method>
+<method name="GetText">
+<![CDATA[//@Call string GetText(  );
+//@Info 
+]]>
+ />
+</method>
+<method name="IsModified">
+<![CDATA[//@Call bool IsModified(  );
+//@Info 
+]]>
+ />
+</method>
+<method name="Open">
+<param name="File" type="string" />
+<![CDATA[//@Call bool Open( string File );
+//@Info 
+]]>
+ />
+</method>
+<method name="Print">
+<param name="" type="int" />
+<![CDATA[//@Call bool Print( int );
+//@Info 
+]]>
+ />
+</method>
+<method name="Save">
+<param name="File" type="string" />
+<![CDATA[//@Call bool Save( string File );
+//@Info 
+]]>
+ />
+</method>
+<method name="SetReadOnly">
+<param name="" type="int" />
+<![CDATA[//@Call bool SetReadOnly( int );
+//@Info 
+]]>
+ />
+</method>
+<method name="SetText">
+<param name="b" type="blob" />
+<param1 name="s" type="string" />
+<![CDATA[//@Call void SetText( {blob b} or {string s} );
+//@Info 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="DoMenu" cls="void" />
+<rmeth name="GetBlob" cls="blob" />
+<rmeth name="GetText" cls="string" />
+<rmeth name="IsModified" cls="bool" />
+<rmeth name="Open" cls="bool" />
+<rmeth name="Print" cls="bool" />
+<rmeth name="Save" cls="bool" />
+<rmeth name="SetReadOnly" cls="bool" />
+<rmeth name="SetText" cls="void" />
+</return>
+</class>

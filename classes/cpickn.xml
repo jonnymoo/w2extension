@@ -1,0 +1,48 @@
+<class name="CPickN" sqlname="W2CPickN" sqlalias="CPN" fauthor="$Author: Nick.g $" fdate="$Date: 8/08/02 13:47 $" frevision="$Revision: 7 $" DataSource="ISE">
+<members>
+<Integer name="code" size="10" null="N" key="Y" />
+<String name="desc" sql="descx" size="100" />
+<String name="PickType" size="100" null="N" key="Y" comment="This is for the DB table - what picklist is it" />
+<method name="toString">
+<![CDATA[//@cmember toString
+//@return String | Concatenated code and description.
+//@version David Salter | 18-02-02 14:34 | Original Version
+//@i Returns the concatenated string in the format
+//@i "code: desc"
+
+return code+": "+desc;]]>
+</method>
+<method name="setTo" return="cpicks">
+<param name="code" type="integer" />
+<param name="desc" type="string" />
+<![CDATA[//@cmember setTo
+//@param integer | code |
+//@param string | desc |
+//@return cpicks |
+//@version Andrew Griffin | 08-01-02 13:34 |
+//@i
+
+this.code = code;
+this.desc = desc;
+
+return this;]]>
+</method>
+</members>
+<static>
+<method name="GetPickList">
+<param name="picktype" type="object" />
+<param name="LX" type="cpicks" />
+<![CDATA[//@cmember GetPickList
+//@param object | picktype |
+//@param cpicks | LX |
+//@version Simon Carroll | 06-12-01 12:26 |
+//@i
+
+string sql = "picktype = "+picktype.sql();
+classes::core::global::listquery( LX, sql, 1000);]]>
+</method>
+</static>
+<return>
+<rmeth name="setTo" cls="cpicks" />
+</return>
+</class>

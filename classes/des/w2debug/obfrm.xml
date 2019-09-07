@@ -1,0 +1,207 @@
+<class name="obFrm" HierImageField="Icon" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:42 $" frevision="$Revision: 2 $">
+<members>
+<String name="Name" />
+<String name="Icon" />
+<List name="elements" cls="obFrm" />
+<Object name="theFrm" />
+<method name="setTo">
+<param name="frm" type="form" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+Name = frm.class().ClassName();
+Name = sys::MakeRelativeName( path(), name );
+
+Icon = "::hdoc.bmp";  // Form in project view
+
+theFrm.setMagicPointer( frm );
+
+// Check form controls for components & multipanes
+
+for (int i=0;; i++) {
+    control c = &frm.GetControl( i );
+    if (c==null) break;
+
+    if (c.isType("multipane")) {
+
+        obFrm nCh = &addCont( "Multipane (" + c.ControlID() + ")", "" );
+        for (int j=0; j<c.CountPanes(); j++)
+          nCh.addChild( c.GetPane( j ) );
+
+    } else
+    if (c.isType("component")) {
+
+        obFrm nCh = &addCont( "Component (" + c.ControlID() + ")", "" );
+        nCh.addChild( c );
+
+    }
+}
+
+// Check form for child windows
+
+if (frm.getpopup( 0 )!=null) {
+    obFrm nCh = &addCont( "Child Windows", "" );
+
+    for (i=0;; i++) {
+        form f = &frm.GetPopup( i );
+        if (f==null) return;
+        nCh.addChild( f );
+    }
+}
+
+SetQueried( 1 );
+setOpen(1);]]>
+</method>
+<method name="addCont" return="obFrm">
+<param name="nam" type="string" />
+<param name="ico" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+obFrm f = &elements.CreateRow();
+f.name = nam;
+f.Icon = ico;
+f.SetQueried( 1 );
+//f.setOpen(1);
+
+return f;]]>
+</method>
+<method name="addChild">
+<param name="frm" type="form" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+obFrm f = &elements.CreateRow();
+f.setTo( frm );]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i]]>
+</method>
+<method name="EventHierDoubleClick">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+if (Icon!="::hdoc.bmp") return;
+
+// Open class
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        sys::HWNDSendIPC( mHwnd, 7723, "Open:" + Name + ".xml" );
+        return;
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 24-05-02 16:10 |
+//@i
+
+if (Icon!="::hdoc.bmp" || theFrm==null) return;
+
+classes::core::wpopupmenu p;
+
+p.Add( "Edit Class Source", "ECS" );
+p.Add( "View Class State", "VCS" );
+p.AddSeparator();
+p.Add( "Copy (as Project Tree)", "CPT" );
+p.Add( "Create New Project", "CNP" );
+
+string s = p.Track(1);
+
+if (s=="ECS") EventHierDoubleClick(); else
+if (s=="VCS") wdebug::debug( theFrm );
+if (s=="CPT" || s=="CNP") sendToProject( s );]]>
+</method>
+<method name="getXML" return="XML">
+<param name="parCtrl" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+XML x;
+
+x.setTag( "Proj" );
+
+x.addAttr( "Path", Name.replace("::", "\\") + ".xml" );
+x.addAttr( "Name", Name.subString( Name.lastIndexOf("::")+2, Name.lastIndexOf(".") ) );
+x.addAttr( "parCtrl", parCtrl );
+x.addAttr( "isForm", "1" );
+x.addAttr( "notes", "" );
+
+for (int i=0; i<elements.count(); i++) {
+    obFrm c = &elements[i];
+
+    string parC;
+    int n = c.Name.indexOf("(");
+    int n2 = c.Name.indexOf(")");
+    if (n>=0 && n2>=0) parC = c.Name.subString( n+1, n2 );
+
+    for (int j=0; j<c.elements.count(); j++)
+        x.addElement( c.elements[j].getXML(parC) );
+}
+
+return &x;]]>
+</method>
+<method name="sendToProject">
+<param name="opt" type="string" />
+<![CDATA[//@cmember sendToProject
+//@param string | opt | "CPT" = Copy, "CNP" = Create New
+//@version Andrew Griffin | 30-11-01 12:09 |
+//@i
+
+XML XP = &getXML( "" );
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        sys::HWNDSendIPC( mHwnd, 7723, "Proj:CopyStz" + opt.upper() + ":" + classes::core::xml::globalxml::XMLtoString( XP ) );
+        return;
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+message( "The W2 IDE is not open.\r\n" +
+         "Please open a designer session and try again.",
+         "Run Wrapper Warning",
+         classes::core::windows::MB_ICONASTERISK );]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="Name" />
+</disp>
+<return>
+<rmeth name="addCont" cls="obFrm" />
+<rmeth name="getXML" cls="XML" />
+</return>
+</class>

@@ -1,0 +1,16 @@
+<class
+name=CPickS
+desc="String Pick List"
+>
+
+<members>
+<String name="code" />
+<String name="desc" />
+
+<method name="toString"><![CDATA[
+return code+": "+desc;
+]]></method>
+
+</members>
+
+</class>

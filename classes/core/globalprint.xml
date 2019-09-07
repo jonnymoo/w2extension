@@ -1,0 +1,60 @@
+<form name="globalPrint" hidden="1" fauthor="$Author: Scott.goodwin $" fdate="$Date: 2/04/03 14:32 $" frevision="$Revision: 2 $">
+<members />
+<static>
+<method name="printRTF">
+<param name="rtfData" type="blob" />
+<param name="showDialog" type="int" />
+<param name="firstPage" type="int" />
+<param name="lastPage" type="int" />
+<param name="copies" type="int" />
+<param name="collate" type="int" />
+<param name="nPrintLandscape" type="Int" />
+<![CDATA[//@cmember printRTF
+//@param blob | rtfData | the raw RTF data to print
+//@param int | showDialog | if 1, show dialog
+//@param int | firstPage | the first page to print
+//@param int | lastPage | the last page to print
+//@param int | copies | the number of copies to print
+//@param int | collate | collate the document?
+//@param Int | nPrintLandscape |
+//@version Andrew Barrett | 21-11-01 14:52 |
+//@version Scott.Goodwin | 02-04-03 11:27 |
+//@i Prints a raw RTF using the supplied parameters
+
+globalPrint thisForm;
+
+thisForm.open();
+thisForm.idRTF.SetText(rtfData);
+
+int nResult=0;
+int nPrintLandscapeOption = 0;
+if (nPrintLandscape!=null)
+    nPrintLandscapeOption = nPrintLandscape;
+
+if (firstPage!=null)
+    nResult = thisForm.idRTF.Print2( showDialog, firstPage-1, lastPage-1, copies, collate, nPrintLandscapeOption );
+else
+    nResult = thisForm.idRTF.Print( showDialog );
+
+thisForm.close();
+
+return(1);]]>
+</method>
+</static>
+<grid>
+<row>
+<col>
+<RTFEditor name="idRTF" text="RTFEditor" />
+</col>
+</row>
+<row>
+<col />
+</row>
+<row>
+<col />
+</row>
+<row>
+<col />
+</row>
+</grid>
+</form>

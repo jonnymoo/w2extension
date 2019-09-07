@@ -1,0 +1,45 @@
+<class name="intobj" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
+<members>
+<Integer name="classId" />
+<Integer name="type" comment="0 Variable&#13;&#10;1 Component&#13;&#10;2 Multipane" />
+<method name="setTo" return="intObj">
+<param name="classId" type="int" />
+<param name="type" type="int" />
+<![CDATA[//@cmember setTo
+//@param int | classId |
+//@param int | type | 0 Variable, 1 Component, 2 Multipane
+//@return intObj |
+//@version Andrew Griffin | 20-06-02 11:50 |
+
+this.classId = classId;
+this.type = type;
+
+return this;]]>
+</method>
+</members>
+<static>
+<method name="addRow">
+<param name="lst" type="intObj[]" />
+<param name="classId" type="int" />
+<param name="type" type="int" />
+<![CDATA[//@cmember addRow
+//@param intObj[] | lst |
+//@param int | classId |
+//@param int | type |
+//@version Andrew Griffin | 21-06-02 11:25 |
+//@i
+
+//
+// Check if it already exists...
+
+for (int i=lst.Count()-1; i>=0; i--)
+    if (lst[i].classId==classId) // && lst[i].type==type)
+        return lst[i];
+
+return lst.CreateRow().setTo( classId, type );]]>
+</method>
+</static>
+<return>
+<rmeth name="setTo" cls="intObj" />
+</return>
+</class>

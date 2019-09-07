@@ -1,0 +1,150 @@
+<class name="backup" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:37$" frevision="$Revision: 2$">
+<members>
+<String name="filename" />
+<Date name="modDate" />
+</members>
+<static>
+<String name="backupDir" />
+<Integer name="backupEnabled" />
+<Integer name="backupLevels" />
+<Integer name="backupEvery" />
+<method name="getVersions">
+<param name="filename" type="string" />
+<![CDATA[//@cmember getVersions
+//@param string | filename |
+//@version Andrew Griffin | 01-11-01 13:08 |
+//@version Matt.Plaxton | 12-12-05 09:55 |
+//@i
+
+string  offsetPath = sys::MakeRelativeName( classes::cpicks::path(), RemoveDrivePrefix(filename) );
+string  newPath = sys::MakeFullName( backupDir, offsetPath );
+int     slash = newPath.lastindexof( "\\" );
+string  newPathRoot = newPath.left( slash+1 );
+
+backup vers[];
+filefinder ff = &sys::NewFileFinder();
+
+//message( "Looking for: " + newPath + ".*" );
+
+if (ff.FindFirst( newPath+".*" ))
+    do {
+        backup b = &vers.CreateRow();
+        b.filename = newPathRoot + ff.FileName;
+        b.modDate = ff.Date;
+//        message( "Found: " + ff.FileName );
+    } while (ff.FindNext());
+
+vers.OrderBy( "filename", "desc" );
+vers.OrderList();
+
+return vers;]]>
+</method>
+<method name="backupFile" return="int">
+<param name="filename" type="string" />
+<![CDATA[//@cmember backupFile
+//@param string | filename |
+//@return int |
+//@version Andrew Griffin | 01-11-01 13:08 |
+//@version Matt.Plaxton | 09-12-05 16:48 |
+//@version Tim Simpson | 30-11-09 16:24 |
+//@i
+
+file f;
+if (!f.Open( filename, 0 )) return 2;
+blob b = &f.ReadBlob();
+f.close();
+
+string  offsetPath = sys::MakeRelativeName( classes::cpicks::path(), RemoveDrivePrefix(filename) );
+string  newPath = sys::MakeFullName( backupDir, offsetPath );
+int     slash = newPath.lastindexof( "\\" );
+string  newPathRoot = newPath.left( slash+1 );
+string  name = newPath.subString( slash+1 );
+
+// build directory path...
+
+string cpath = backupDir;
+int i;
+while (1) {
+//    message("creating dir: " + cPath );
+    file::CreateDir( cPath );
+    string tok = offsetPath.gettoken( i, "::" );
+    if (!tok || tok.indexOf(".xml")>=0) break;
+    cPath += tok + "\\";
+    i++;
+}
+
+// get backup versions...
+
+backup vers[] = &getVersions( filename );
+int lastVer;
+if (vers.count()) lastVer = vers[0].filename.subString( vers[0].filename.lastindexof(".")+1 ).val();
+lastVer++;
+string verNum = lastVer.toString();
+while (verNum.length()<5) verNum = "0" + verNum;
+
+string  newName = newPath + "." + verNum;
+//message( "saving as: " + newName );
+
+int ok = f.CreateFile( newName );
+if (!ok) return 0;
+f.WriteBlob( b );
+f.close();
+
+// Delete any backups past backup level (except the first backup)...
+for (i=vers.count()-2; i>=backupLevels-2; i--) {
+//    message( "Deleting: " + vers[i].filename );
+    sys::DeleteFile( vers[i].filename );
+}
+
+// Success
+return 1;]]>
+</method>
+<method name="removeBackups" return="int">
+<param name="filename" type="string" />
+<![CDATA[//@cmember removeBackups
+//@param string | filename |
+//@return int |
+//@version Andrew Griffin | 01-11-01 13:08 |
+//@version Matt.Plaxton | 12-12-05 09:58 |
+//@i
+
+string  offsetPath = sys::MakeRelativeName( classes::cpicks::path(), RemoveDrivePrefix(filename) );
+string  newPath = sys::MakeFullName( backupDir, offsetPath );
+int     slash = newPath.lastindexof( "\\" );
+string  newPathRoot = newPath.left( slash+1 );
+
+// get backup versions...
+
+backup vers[] = &getVersions( filename );
+
+// Delete any backups
+for (int i=vers.count()-1; i>=0; i--) {
+    sys::DeleteFile( vers[i].filename );
+}
+
+// Success
+return 1;]]>
+</method>
+<method name="RemoveDrivePrefix">
+<param name="pFilename" type="string" />
+<![CDATA[//@cmember RemoveDrivePrefix
+//@param string | pFilename |
+//@version Matt.Plaxton | 09-12-05 16:06 |
+//@i
+
+int drivePos = pFilename.indexof(":");
+if (drivePos != -1)
+{
+    return pFilename.substring(drivePos+2);
+}
+else
+{
+    return pFilename;
+}]]>
+</method>
+</static>
+<return>
+<rmeth name="backupFile" cls="int" />
+<rmeth name="removeBackups" cls="int" />
+</return>
+</class>

@@ -1,0 +1,41 @@
+<class name="srvTestXMLAction" fauthor="$Author: Simon.c $" fdate="$Date: 29/01/03 12:55 $" frevision="$Revision: 1 $">
+<members>
+<method name="onRequest">
+<param name="ECB" type="isapiextension" />
+<![CDATA[//@cmember onRequest
+//@param isapiextension | ECB |
+//@version Simon Carroll | 28-01-03 15:21 |
+//@i
+
+sys::debugout("this is the server method runndsing");
+
+
+XML X = ECB.GetPostedXML();
+
+xml y = x.GetElement(0).getElement(0);
+
+xml z = y.GetElement(1);
+string user;
+
+if (z!=NULL && z.Tag() == "USERID")
+{
+    user = z.getElement(0).Content();
+}
+
+if (!user)
+{
+    ECB.WriteXML("Error","unable to get user");
+    return;
+}
+
+Object U = classes::workers::util::ssession::FindUser(user);
+if (U == null)
+    ECB.WriteXML("CompletionCode",2);
+else
+    ECB.WriteXML("CompletionCode",1);
+
+ECB.WriteXML("error","");]]>
+</method>
+</members>
+<static />
+</class>

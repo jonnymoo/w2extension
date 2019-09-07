@@ -1,0 +1,26 @@
+<class name="GridRow" description="W2 Script Reference">
+<members>
+<method name="GetCell">
+<param name="ColNum" type="int" />
+<![CDATA[//@cmember GridCell GetCell( int ColNum );
+//@param int | ColNum | 
+//@return GridCell | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetControl">
+<param name="ControlName" type="string" />
+<![CDATA[//@cmember Control GetControl( string ControlName );
+//@param string | ControlName | 
+//@return Control | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="GetCell" cls="GridCell" />
+<rmeth name="GetControl" cls="Control" />
+</return>
+</class>

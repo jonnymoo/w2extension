@@ -1,0 +1,829 @@
+<form name="wSearchinFiles" caption="Find In Files" savepos="wSearchFilePos" icon="findFiles.ico" bk="CCCCCC" minsize="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:41$" frevision="$Revision: 2$">
+<members>
+<Object name="par" cls="::wclassview" />
+<Object name="hier" />
+<String name="fndStr" />
+<String name="sPath" />
+<List name="foundLst" cls="foundFileRec" />
+<Integer name="noWarning" />
+<Integer name="lastSelected" />
+<Integer name="fCount" />
+<Integer name="WholeWord" />
+<Integer name="ignoreComments" />
+<Integer name="cnames" />
+<Integer name="bcnames" />
+<Integer name="inames" />
+<Integer name="mnames" />
+<Integer name="mtypes" />
+<Integer name="fnames" />
+<Integer name="fsource" />
+<Integer name="fcnames" />
+<Integer name="includeunittests" />
+<Integer name="inDes" />
+<Integer name="ismod" />
+<String name="progressChar" />
+<Integer name="progressCnt" />
+<Integer name="stop" />
+<method name="startSearch">
+<![CDATA[//@cmember startSearch
+//@param
+//@return
+//@version Andrew Griffin | 19-06-02 09:44 | Search trial
+//@version andrew.banyard | 20-01-15 12:56 |
+//
+//@i Does a comprehensive search of the open class for
+//@i a given search string
+
+
+SaveOptions();
+if (idFindReplace.getText()=="STOP!!") {
+    stop=1;
+    return;
+}
+
+idFindReplace.setText("STOP!!");
+fitRecursive();
+stop=0;
+sys::wait(1);
+
+lastSearch = fndStr;
+
+foundLst.reset();
+string lastName="#not likely#";
+
+fcount = 0;
+
+string sstr = idSearchIn.getText();
+
+if (!sstr) sstr = "classes";
+if (sstr.indexOf("::")>=0 || sstr.eq("classes")) sstr = sys::MakeFullName( path(), sstr );
+
+int i=sstr.indexOf(".xml");
+if (i>=0) sstr=sstr.left( sstr.lastindexOf( "\\" ) +1 );
+
+if (sstr.right(1)!="\\") sstr += "\\";
+
+sPath = sstr;
+
+inDes = sstr.indexOf( "\\des\\",0,1 )>=0 || findclass::searchInDesigner();
+
+DoSearch( sstr );
+
+FitRecursive();
+isMod = 0;
+
+if (!stop)
+    setText( "Find In Files - Search Complete" );
+else
+    setText( "Find In Files - Search CANCELLED!!" );
+
+stop = 0;
+
+idFindReplace.setText("Find");
+fitrecursive();]]>
+</method>
+<method name="doSearch">
+<param name="pathS" type="string" />
+<![CDATA[//@cmember startSearch
+//@param
+//@return
+//@version Andrew Griffin | 13-05-02 15:07 | Search trial
+//
+
+if (!inDes && pathS.indexOf("\\des\\",0,1)>0) return;
+
+int i = pathS.lastIndexOf( "\\" );
+if (i==-1) return;
+
+string pathP = pathS.left( i+1 );
+
+FileFinder FF = &sys::NewFileFinder();
+
+int ok = FF.FindFirst( pathS+"*.xml" , "" );    // look in sub folders too
+
+while (ok && !stop) {
+
+  if (!FF.IsDir) {
+
+    string fname = pathP + FF.FileName;
+
+    file f;
+    f.Open( fname, 0 );  // open file for read
+    blob b = &f.ReadBlob();
+    f.close();
+    if (b!=null) {
+        string s = b.toString();
+        int p = s.indexof( fndStr, 0, 1 );
+
+        if (p>=0) {
+            // so where abouts in the file is the occurance?
+            findInThisFile( fname, b, FF.Date );
+        }
+
+        progresscnt--;
+        if (progresscnt<0) {
+            progresscnt = 15;
+
+            setText( "Find In Files - Searching " + progressChar );
+            sys::wait( 1 );
+
+            switch (progressChar) {
+              case "\\" : progressChar = "|"; break;
+              case "|" :  progressChar = "/"; break;
+              case "/" :  progressChar = "-"; break;
+              default:    progressChar = "\\"; break;
+            }
+        }
+    }
+  }
+
+  ok = FF.FindNext();
+}
+
+
+ok = FF.FindFirst( pathS+"*.*" , "D" );    // look in sub folders too
+
+while (ok && !stop) {
+
+    if (FF.IsDir && FF.FileName[0]!='.') {
+        doSearch( pathP + FF.FileName + "\\" );
+    }
+
+    ok = FF.FindNext();
+}]]>
+</method>
+<method name="findInThisFile">
+<param name="fname" type="string" />
+<param name="b" type="blob" />
+<param name="fdate" type="date" />
+<![CDATA[//@cmember
+//@param string | fname |
+//@param blob | b |
+//@param date | fdate |
+//@version Andrew Griffin | 13-05-02 15:07 |
+//@version andrew.banyard | 15-06-15 16:24 |
+//@version richard.lee | 22-10-18 15:05 |
+//@i
+
+::classdef cls;
+
+XML X = &B.toXMLObject();
+if (X==null) return 0;
+XML EX = &X.Element(0);
+if (EX==null) return 0;
+
+if (EX.Tag()=="class" || EX.Tag()=="form") {
+    Cls.SetTo(EX);
+    Cls.ClassPath = fname;
+} else return 0;
+
+
+if(includeunittests==0 && cls.testclass==1){
+  // Unit test class - Skip it as we don't want to include it
+  return;
+}
+
+// See what we can find in this class file...
+
+int isFunc = fndStr.endswith("(");
+
+if (cnames)
+    if (!wholeWord && cls.ClassName.indexOf( fndStr,0,1 )>=0 ||
+        wholeWord && cls.ClassName.eq( fndStr )) {
+        addFound( fname, "Class File", cls.ClassName, cls.ClassName, fdate );
+    }
+
+if (bcnames)
+    if (!wholeWord && cls.BaseClass.indexOf( fndStr,0,1 )>=0 ||
+        wholeWord && cls.BaseClass.eq( fndStr )) {
+        addFound( fname, "Base Class", cls.BaseClass, cls.ClassName, fdate );
+    }
+
+if (inames)
+    if (!wholeWord && cls.InterfaceClass.indexOf( fndStr,0,1 )>=0 ||
+        wholeWord && cls.InterfaceClass.eq( fndStr )) {
+        addFound( fname, "Interface", cls.InterfaceClass, cls.ClassName, fdate );
+    }
+
+// Check method & member names...
+
+for (int i=0; i<cls.Sections.Count(); i++) {
+  ::classSection cS = &cls.Sections[i];
+
+  for (int j=0; j<cS.MemberDefs.count(); j++) {
+    ::MemberDef mD = &cS.MemberDefs[j];
+    string mDesc = mD.MemberType + " " + mD.MemberClass + " " + mD.MemberName;
+    if (mnames)
+        if (!wholeWord && mD.MemberName.indexOf( fndStr,0,1 )>=0 ||
+            wholeWord && mD.MemberName.eq( fndStr,0,1 ))
+            addFound( fname, "Memb Name", mDesc, mD.MemberName, fdate );
+    if (mtypes)
+        if (!wholeWord && mD.MemberClass.indexOf( fndStr,0,1 )>=0 ||
+            wholeWord && mD.MemberClass.eq( fndStr,0,1 ))
+            addFound( fname, "Memb Class", mDesc, mD.MemberName, fdate );
+  }
+
+  for (j=0; j<cS.Functions.count(); j++) {
+    ::Func mF = &cS.Functions[j];
+    if (fnames)
+        if (!wholeWord && mF.FuncName.indexOf( fndStr,0,1 )>=0 ||
+            wholeWord && mF.FuncName.eq( fndStr ))
+            addFound( fname, "Method Name", mF.FuncName, mF.FuncName, fdate );
+    int z=0;
+
+    if (mF!=null && mF.Script)
+        while (fsource) {
+          string script =
+              (ignoreComments)
+                ? mF.Script.padSource()    // strip out comments & strings
+                : mF.Script;
+
+          z = script.indexOf( fndStr,z,1 );
+          if (z==-1) break;
+
+          int ps = z-1, pe = z + FNDstr.length();
+          if (!WholeWord ||
+              ((ps<0 || chkWholeWordChar(script[ps])) &&
+               (isFunc || pe>=script.length() || chkWholeWordChar(script[pe]))
+              )
+             ) {
+            addFound( fname, "Method [" + mF.FuncName + "]", getContext( mF.Script, z, z+fndStr.length() ), mF.FuncName + "," + z, fdate );
+          }
+          z++;
+        }
+
+  }
+}
+
+//if (fcnames && cls.Grids.count()>0) {
+//    findAllControlsInGrid( fname, cls.Grids[0].GridData );  // find all components from the grid
+//}
+
+if (fcnames) {
+    XML gr = &ex.FindElement( "grid" );
+    if (gr!=null)
+        findAllControlsInGrid( fname, gr );  // find all components from the grid
+}]]>
+</method>
+<method name="findAllControlsInGrid">
+<param name="fname" type="string" />
+<param name="X" type="XML" />
+<![CDATA[for (int i=0;;i++) {
+    XML sXML = &X.getElement(i);
+    if (sXML==null) return;
+
+    string nam = sXML.getAttr("name");
+    if (wholeWord && nam.eq(fndStr) ||
+        !wholeWord && nam.indexOf(fndStr,0,1)>=0) {
+
+        addFound( fname, "Form Ctrl", sXML.Tag() + " " + nam, nam );
+    }
+
+    findAllControlsInGrid( fname, sXML );
+}]]>
+</method>
+<method name="addFound">
+<param name="fname" type="string" />
+<param name="typ" type="string" />
+<param name="contx" type="string" />
+<param name="fndcode" type="string" />
+<param name="fdate" type="date" />
+<![CDATA[//@cmember
+//@param string | fname |
+//@param string | typ |
+//@param string | contx |
+//@param string | fndcode |
+//@param date | fdate |
+//@version Andrew Griffin | 13-05-02 15:07 |
+//@version andrew.banyard | 12-12-12 16:33 |
+//@i
+
+foundFileRec itm = &foundLst.createRow();
+
+itm.filename = fname;
+itm.fileshow = sys::MakeRelativeName( spath, fname );
+itm.fileshow = itm.fileshow.left( itm.fileshow.indexOf( ".xml",0,1 ) );
+
+//int j = fname.indexOf("classes\\",0,1);
+//if (j>=0) itm.fileshow = fname.subString(j+8); else itm.fileshow = fname;
+itm.typ = typ;
+
+int i = contx.indexOf( "¬¬" );
+if (i>=0) {
+    itm.contextBig = contx.subString(i+2);
+    contx = contx.left( i );
+}
+
+itm.context = contx;
+itm.findCode = fndCode;
+if(null!=fdate)
+  itm.fdate = fdate;
+
+fcount++;
+
+sys::Wait( 1 );]]>
+</method>
+<method name="jumpToItem">
+<param name="lbox" type="listbox" />
+<param name="colNo" type="int" />
+<![CDATA[//@cmember
+//@param listbox | lbox |
+//@param int | colNo |
+//@version Andrew Griffin | 13-05-02 15:07 |
+//@version Jonathan.Muir | 26-02-10 13:45 |
+//@i
+
+foundFileRec f = &foundLst.CurrentRow();
+string what;
+
+if (f.typ.eq("Class File") || f.typ.eq("Base Class"))
+    what="";
+else
+    what = f.findCode.gettoken(0);
+
+::WClassView par = &::AdvSearch::OpenClassFilePath( f.filename, what );
+par.show(1);
+
+if (par==null) {
+    return;
+}
+
+if (f.typ.indexOf("Method [")==0) {
+
+    object pan = &par.idMulti.FindPane("MethodEdit");
+    if (pan==null) return;
+
+    int pos = f.findCode.gettoken(1).val();
+
+    if (pan.magic.script.subString(pos, pos+fndStr.length()).eq(fndStr)) {
+        pan.idsource.SetSelection(pos, pos+fndStr.length());
+        pan.highlightText( fndStr );
+    } else message("Source has changed since search was performed...");
+
+}]]>
+</method>
+<method name="Mod">
+<![CDATA[//@version Andrew Griffin | 02-08-01 15:18 |
+
+if (!ismod) {
+    idFindReplace.setText("Search");
+    fitRecursive();
+    ismod = 1;
+}
+
+stop = 1;]]>
+</method>
+<method name="onChar">
+<param name="TheKey" type="object" />
+<param name="TheState" type="object" />
+<param name="TheControl" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 02-08-01 15:23 |
+//@i
+
+if (TheKey==13) {
+    if (TheControl==idFoundList) {
+        jumpToItem(&idFoundList);
+        TheControl.setfocus();
+    }
+    else
+    if ((TheControl==idSearchFor) || (TheControl==idSearchIn) ) {
+        startSearch();
+    }
+} else
+if (TheKey==27) {   // escape
+    if (idFindReplace.getText()=="STOP!!") {
+        stop=1;
+        return;
+    } else close();
+}]]>
+</method>
+<method name="doSearchInAll">
+<![CDATA[//@cmember doSearchInAll
+//@version Andrew Griffin | 06-08-01 12:26 |
+//@version andrew.banyard | 15-06-15 16:37 |
+//@version richard.lee | 22-10-18 15:05 |
+//@i
+
+int setTo = 1;
+if (cnames && inames && bcnames && mnames && mtypes && fnames && fsource && fcnames) {
+    setTo = 0;
+}
+
+cnames = setTo;
+bcnames = setTo;
+inames = setTo;
+mnames = setTo;
+mtypes = setTo;
+fnames = setTo;
+fsource = setTo;
+fcnames = setTo;
+includeunittests = setTo;
+
+mod();]]>
+</method>
+<method name="doShowContext">
+<![CDATA[//@cmember doShowContext
+//@version Andrew Griffin | 24-05-02 16:09 |
+//@i
+
+foundFileRec f = &foundLst.CurrentRow();
+
+classes::core::wpopupmenu p;
+
+int i=0;
+while (i<f.contextBig.length()) {
+    int i2 = f.contextBig.indexOf( "\r\n", i );
+    if (i2==-1) i2 = f.contextBig.length();
+
+    p.Add( f.contextBig.subString(i,i2), "OPEN" );
+    i = i2+2;
+}
+
+if (p.Track(1)) jumpToItem();]]>
+</method>
+<method name="onClose">
+<![CDATA[//@cmember onClose
+//@param
+//@return
+//@version Andrew Griffin | 20-03-02 16:08 |
+//@i
+
+if (idFindReplace.getText()=="STOP!!")
+    stop=1;
+
+close();]]>
+</method>
+<method name="sortBy">
+<param name="ctrl" type="ListBox" />
+<param name="ColNo" type="int" />
+<param name="PStr" type="string" />
+<![CDATA[//@cmember sortBy
+//@param ListBox | ctrl |
+//@param int | ColNo |
+//@param string | PStr |
+//@version Andrew Griffin | 13-05-02 15:07 |
+//@i
+
+foundLst.ResetOrder();
+foundLst.OrderBy( PStr.gettoken( 0, " " ), PStr.gettoken( 1, " " ) );
+foundLst.OrderList();]]>
+</method>
+<method name="SaveOptions">
+<![CDATA[//@cmember SaveOptions
+//@version andrew.banyard | 15-06-15 16:25 |
+//@i
+
+string options = cnames + "|" +
+bcnames + "|" +
+mnames   + "|" +
+mtypes  + "|" +
+fnames   + "|" +
+fsource  + "|" +
+fcnames  + "|" +
+wholeWord + "|" +
+ignoreComments + "|" +
+includeunittests;
+String ini = Sys::MakeFullName(Path(),"::des.ini");
+sys::WritePrivateProfileString("SearchInFiles","Options",options,ini);]]>
+</method>
+<method name="RestoreOptions">
+<![CDATA[//@cmember RestoreOptions
+//@version andrew.banyard | 15-06-15 16:25 |
+//@i
+String ini = Sys::MakeFullName(Path(),"::des.ini");
+string options = sys::GetPrivateProfileString("SearchInFiles","Options",ini);
+
+if(options!=""){
+  cnames  = options.gettoken(0, "|").val();
+  bcnames = options.gettoken(1, "|").val();
+  mnames  = options.gettoken(2, "|").val();
+  mtypes  = options.gettoken(3, "|").val();
+  fnames  = options.gettoken(4, "|").val();
+  fsource = options.gettoken(5, "|").val();
+  fcnames = options.gettoken(6, "|").val();
+  wholeWord = options.gettoken(7, "|").val();
+  ignoreComments = options.gettoken(8, "|").val();
+  includeunittests = options.gettoken(9, "|").val();
+}]]>
+</method>
+</members>
+<static>
+<String name="lastSearch" />
+<method name="getContext" return="string">
+<param name="str" type="string" />
+<param name="pos" type="int" />
+<param name="pos2" type="int" />
+<![CDATA[//@cmember getContext
+//@param string | str | The W2 script string
+//@param int | pos | The position in the script to bring out
+//@return string | The context
+//@version Andrew Griffin | 06-08-01 12:10 |
+//@i Returns the context given the whole script and a location
+
+int s = str.lastIndexOf("\r\n", pos);
+if (s < 0) s = 0; else s+=2;
+
+int e = str.indexOf("\r\n", pos2);
+if (e < 0) e = str.length();
+
+// do larger context...
+
+int s2 = str.lastIndexOf("\r\n", s-3);
+if (s2 < 0) s2 = 0; else s2+=2;
+
+int e2 = str.indexOf("\r\n", e+1);
+if (e2 < 0) e2 = str.length();
+
+string big = str.subString( s2, s ) + "+" +
+             str.subString( s, e ) +
+             str.subString( e, e2 );
+
+// larger context done...
+
+if (pos-s>20) s = pos-20;   // 20 chars to the left
+if (e-pos>40) e = pos+40;   // 40 to the right
+
+return str.subString( s, e ).trim() + "¬¬" + big;
+
+/*
+string tmp = str.subString( s, pos+1 ).trim();
+rec.contextLeftStr = tmp.left(tmp.length()-1);
+rec.contextMidStr = str.subString(pos, pos2).lower();
+tmp = str.subString( pos2-1, e ).trim();
+rec.contextRightStr = tmp.substring(1);]]>
+</method>
+<method name="chkWholeWordChar" return="int">
+<param name="c" type="int" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+return (c<'0' || c>'9' && c<'@' || c>'Z' && c!='\\' && c!='\'' && c<'a' || c>'z');]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 21-02-02 09:45 |
+//@i
+
+wSearchinFiles w;
+
+w.open();
+
+if (sys::Version() < 2108)
+{
+    w.idIgnore.setVisible( 0 );
+    w.ignoreComments = 0;
+} else w.ignoreComments = 1;]]>
+</method>
+<method name="init">
+<param name="scls" type="string" />
+<param name="typ" type="int" />
+<param name="fnd" type="string" />
+<![CDATA[//@cmember
+//@param string | scls |
+//@param int | typ |
+//@param string | fnd |
+//@version Andrew Griffin | 21-02-02 09:42 |
+//@version andrew.banyard | 20-01-15 12:56 |
+//@i
+
+int i=scls.indexOf(".xml");
+if (i>=0) scls=scls.left( scls.lastindexOf( "\\" ) +1 );
+
+wSearchinFiles w;
+w.open();
+w.SetWindowName( "SearchInFiles" );
+w.idSearchIn.setText( scls );
+w.idSearchFor.setFocus();
+
+if (sys::Version() < 2108)
+{
+    w.idIgnore.setVisible( 0 );
+    w.ignoreComments = 0;
+} else w.ignoreComments = 1;
+
+if (typ!=null) {
+  if (typ==1) { // whole word in source
+    w.WholeWord = 1;
+    w.fsource = 1;
+  }
+} else {
+    w.wholeword = 1;
+}
+
+
+w.RestoreOptions();
+
+if (fnd!=null) w.fndStr = fnd;]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col align="W">
+<grid>
+<row>
+<col rpad="8" w="58" align="V">
+<Label text="Search In" />
+</col>
+<col align="W">
+<Edit name="idSearchIn" bind="fndStr" onChange="Mod" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="W">
+<grid>
+<row>
+<col rpad="8" w="58" align="V">
+<Label text="Search for" />
+</col>
+<col align="W">
+<Edit name="idSearchFor" bind="fndStr" onChange="Mod" />
+</col>
+<col lpad="8" align="V">
+<grid>
+<row>
+<col align="V">
+<CheckBox text=" Whole words" v0="0" v1="1" bind="wholeWord" onClick="mod" />
+</col>
+</row>
+<row>
+<col align="V">
+<CheckBox name="idIgnore" text=" Ignore comments" v0="0" v1="1" bind="ignoreComments" onClick="mod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col tpad="6" h="10">
+<grid>
+<row>
+<col lpad="16" align="V">
+<CheckBox text=" Class Names" v0="0" v1="1" bind="cnames" onClick="mod" />
+</col>
+<col lpad="24" align="V">
+<CheckBox text=" Member Names" v0="0" v1="1" bind="mnames" onClick="mod" />
+</col>
+<col lpad="24" align="V">
+<CheckBox text=" Method Names" v0="0" v1="1" bind="fnames" onClick="mod" />
+</col>
+<col lpad="24" align="V">
+<CheckBox text=" Form Control Names" v0="0" v1="1" bind="fcnames" onClick="mod" />
+</col>
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col lpad="16" align="V">
+<CheckBox text=" Base Names" v0="0" v1="1" bind="bcnames" onClick="mod" />
+</col>
+<col lpad="24" align="V">
+<CheckBox text=" Member Types" v0="0" v1="1" bind="mtypes" onClick="mod" />
+</col>
+<col lpad="24" align="V">
+<CheckBox text=" Method Scripts" v0="0" v1="1" bind="fsource" onClick="mod" />
+</col>
+<col lpad="24" align="V">
+<CheckBox text=" Include Unit Tests" v0="0" v1="1" bind="includeunittests" onClick="mod" />
+</col>
+<col lpad="24" align="V">
+<Label text="(Search in All)" onClick="doSearchInAll" style="b" />
+</col>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col lpad="16" align="V">
+<CheckBox text=" Interface Names" v0="0" v1="1" bind="inames" onClick="mod" />
+</col>
+<col lpad="24" align="V" />
+<col lpad="24" align="V" />
+<col lpad="24" align="V" />
+<col lpad="24" align="V" />
+<col />
+<col />
+<col />
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col align="WH">
+<grid>
+<row>
+<col lpad="4" bpad="6">
+<Label text="Search results:" style="b" />
+</col>
+<col lpad="4" bpad="6" align="W" />
+<col lpad="4" bpad="6" align="V">
+<Label text="found:" tx="0,0,128" />
+</col>
+<col lpad="4" rpad="4" bpad="6" w="48" align="V">
+<Label text="&lt;n&gt;" tx="0,0,128" bind="fCount" style="b" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="WH" bk="255,255,255">
+<ListBox name="idFoundList" IsList="Y" list="foundLst" onDoubleClick="jumpToItem" onRightClick="doShowContext">
+<row>
+<col lpad="3" rpad="6" bpad="6">
+<Label text="Filename" tx="128,0,0" style="b" header="1" onClick="sortBy filename ASC" onrightclick="sortBy filename DESC" />
+</col>
+<col lpad="6" rpad="6" bpad="6">
+<Label text="Type" style="b" onClick="sortBy typ ASC" onrightclick="sortBy typ DESC" />
+</col>
+<col lpad="6" rpad="6" bpad="6">
+<Label text="Context" tx="0,0,255" style="b" />
+</col>
+<col lpad="6" rpad="3" bpad="6">
+<Label text="Date" tx="128,0,128" style="b" onClick="sortBy fDate DESC" onrightclick="sortBy fDate ASC" />
+</col>
+</row>
+<row>
+<col lpad="3" rpad="6" bpad="2">
+<Label text="&lt;method&gt;" w="96" tx="128,0,0" bind="fileshow" />
+</col>
+<col lpad="6" rpad="6" bpad="2">
+<Label bind="typ" />
+</col>
+<col lpad="6" rpad="6" bpad="2" w="16">
+<Label tx="0,0,255" bind="context" />
+</col>
+<col lpad="6" rpad="3" bpad="2" w="16">
+<Label tx="128,0,128" bind="fdate" />
+</col>
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="10" />
+<col />
+</row>
+<row>
+<col />
+<col align="W">
+<grid>
+<row>
+<col align="W" />
+<col lpad="10" tpad="3" rpad="10" bpad="3" w="68" align="C" bk="128,128,128" bksel="0,128,128" imgtile="8">
+<Label name="idFindReplace" text="Find" tx="255,255,255" style="b" onClick="startSearch" txsel="FFFF00" />
+</col>
+<col w="4" />
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="2" />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="getContext" cls="string" />
+<rmeth name="chkWholeWordChar" cls="int" />
+</return>
+</form>

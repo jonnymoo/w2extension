@@ -1,0 +1,266 @@
+<class name="GridEditor" description="W2 Script Reference" base="Control">
+<members>
+<method name="AddObject">
+<param name="type" type="String" />
+<param name="text" type="String" />
+<![CDATA[//@cmember void AddObject( String type, String text );
+//@param String | type | 
+//@param String | text | 
+//@return void | 
+//@i all selections
+]]>
+ />
+</method>
+<method name="AddSubGrid">
+<param name="rows" type="int" />
+<param name="cols" type="int" />
+<![CDATA[//@cmember void AddSubGrid( int rows, int cols );
+//@param int | rows | 
+//@param int | cols | 
+//@return void | 
+//@i current cell
+]]>
+ />
+</method>
+<method name="CalcSizes">
+<![CDATA[//@cmember void CalcSizes(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CalcSizesIf">
+<![CDATA[//@cmember void CalcSizesIf(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CanPasteForm">
+<![CDATA[//@cmember int CanPasteForm(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="CanRedo">
+<![CDATA[//@cmember int CanRedo(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="CanUndo">
+<![CDATA[//@cmember int CanUndo(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Clear">
+<![CDATA[//@cmember void Clear(  );
+//@return void | 
+//@i all selections
+]]>
+ />
+</method>
+<method name="ClearMod">
+<![CDATA[//@cmember void ClearMod(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CopyForm">
+<![CDATA[//@cmember void CopyForm(  );
+//@return void | 
+//@i copy the whole form
+]]>
+ />
+</method>
+<method name="CurrentCell">
+<![CDATA[//@cmember EdGridCell CurrentCell(  );
+//@return EdGridCell | 
+//@i 
+]]>
+ />
+</method>
+<method name="DeleteParentGrid">
+<![CDATA[//@cmember void DeleteParentGrid(  );
+//@return void | 
+//@i current cell
+]]>
+ />
+</method>
+<method name="InsertColumn">
+<param name="doAdd" type="int" />
+<![CDATA[//@cmember void InsertColumn( int doAdd );
+//@param int | doAdd | 
+//@return void | 
+//@i 1 to add
+]]>
+ />
+</method>
+<method name="InsertParentGrid">
+<![CDATA[//@cmember void InsertParentGrid(  );
+//@return void | 
+//@i current cell
+]]>
+ />
+</method>
+<method name="InsertRow">
+<param name="doAdd" type="int" />
+<![CDATA[//@cmember void InsertRow( int doAdd );
+//@param int | doAdd | 
+//@return void | 
+//@i 1 to add
+]]>
+ />
+</method>
+<method name="MergeCells">
+<![CDATA[//@cmember void MergeCells(  );
+//@return void | 
+//@i current cell
+]]>
+ />
+</method>
+<method name="NewGrid">
+<param name="rows" type="int" />
+<param name="cols" type="int" />
+<![CDATA[//@cmember void NewGrid( int rows, int cols );
+//@param int | rows | 
+//@param int | cols | 
+//@return void | 
+//@i new base level grid
+]]>
+ />
+</method>
+<method name="PasteForm">
+<![CDATA[//@cmember void PasteForm(  );
+//@return void | 
+//@i paste the whole form
+]]>
+ />
+</method>
+<method name="Redo">
+<![CDATA[//@cmember void Redo(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Reset">
+<![CDATA[//@cmember void Reset(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="select">
+<param name="egCell" type="EdGridCell" />
+<![CDATA[//@cmember void select( EdGridCell egCell );
+//@param EdGridCell | egCell | 
+//@return void | 
+//@i Selects a single grid cell of the grid editor control.
+]]>
+ />
+</method>
+<method name="SetCellAttr">
+<param name="Attr" type="string" />
+<param name="Val" type="string" />
+<![CDATA[//@cmember void SetCellAttr( string Attr, string Val );
+//@param string | Attr | 
+//@param string | Val | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetControlAttr">
+<param name="Attr" type="string" />
+<param name="Val" type="string" />
+<![CDATA[//@cmember void SetControlAttr( string Attr, string Val );
+//@param string | Attr | 
+//@param string | Val | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetPath">
+<param name="path" type="String" />
+<![CDATA[//@cmember void SetPath( String path );
+//@param String | path | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="ShowControls">
+<![CDATA[//@cmember void ShowControls(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="ShowGrid">
+<![CDATA[//@cmember void ShowGrid(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SplitCells">
+<![CDATA[//@cmember void SplitCells(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Undo">
+<![CDATA[//@cmember void Undo(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="UpSel">
+<![CDATA[//@cmember void UpSel(  );
+//@return void | 
+//@i current cell
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddObject" cls="void" />
+<rmeth name="AddSubGrid" cls="void" />
+<rmeth name="CalcSizes" cls="void" />
+<rmeth name="CalcSizesIf" cls="void" />
+<rmeth name="CanPasteForm" cls="int" />
+<rmeth name="CanRedo" cls="int" />
+<rmeth name="CanUndo" cls="int" />
+<rmeth name="Clear" cls="void" />
+<rmeth name="ClearMod" cls="void" />
+<rmeth name="CopyForm" cls="void" />
+<rmeth name="CurrentCell" cls="EdGridCell" />
+<rmeth name="DeleteParentGrid" cls="void" />
+<rmeth name="InsertColumn" cls="void" />
+<rmeth name="InsertParentGrid" cls="void" />
+<rmeth name="InsertRow" cls="void" />
+<rmeth name="MergeCells" cls="void" />
+<rmeth name="NewGrid" cls="void" />
+<rmeth name="PasteForm" cls="void" />
+<rmeth name="Redo" cls="void" />
+<rmeth name="Reset" cls="void" />
+<rmeth name="select" cls="void" />
+<rmeth name="SetCellAttr" cls="void" />
+<rmeth name="SetControlAttr" cls="void" />
+<rmeth name="SetPath" cls="void" />
+<rmeth name="ShowControls" cls="void" />
+<rmeth name="ShowGrid" cls="void" />
+<rmeth name="SplitCells" cls="void" />
+<rmeth name="Undo" cls="void" />
+<rmeth name="UpSel" cls="void" />
+</return>
+</class>

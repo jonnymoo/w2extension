@@ -1,0 +1,42 @@
+<class name="CheckBox" description="W2 Script Reference" base="Control">
+<members sub="Misc">
+<method name="BindTo">
+<param name="obj" type="object" />
+<![CDATA[//@cmember void BindTo( object obj );
+//@param object | obj | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetState">
+<![CDATA[//@cmember int GetState(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetValue">
+<![CDATA[//@cmember string GetValue(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetState">
+<param name="" type="int" />
+<![CDATA[//@cmember void SetState( int );
+//@param int |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="BindTo" cls="void" />
+<rmeth name="GetState" cls="int" />
+<rmeth name="GetValue" cls="string" />
+<rmeth name="SetState" cls="void" />
+</return>
+</class>

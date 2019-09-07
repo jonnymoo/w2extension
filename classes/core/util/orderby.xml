@@ -1,0 +1,13 @@
+<class name="OrderBy" sqlname="W2OrderBy" DataSource="ISE" sqlalias="OrderBy" sqlseq="W2ORDERBYSEQ" fauthor="$Author: Sorina Grave $" fdate="$Date: 18/02/04 14:35 $" frevision="$Revision: 7 $">
+<members>
+<Integer name="ID" sql="ID" null="N" key="Y" seq="Y" />
+<String name="m_strOrderByType" desc="View to Order" sql="OrderByType" size="25" null="N" />
+<String name="m_strColumnName" desc="Column Name" sql="ColumnName" size="50" null="N" />
+<String name="m_strColumnDesc" desc="Column Description" sql="ColumnDesc" size="50" null="N" />
+<Integer name="m_nPositionInList" desc="Position in List" sql="PositionInList" null="N" />
+<String name="m_strColumnOrder" desc="Order" sql="ColumnOrder" size="10" />
+<String name="m_strColumnNulls" desc="Nulls" sql="ColumnNulls" size="5" />
+<String name="m_strUserID" desc="User ID" sql="UserID" pick="classes::workers::all::users" size="20" />
+</members>
+<static />
+</class>

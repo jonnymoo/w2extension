@@ -1,0 +1,126 @@
+<class name="EdGrid" description="W2 Script Reference" base="Control">
+<members>
+<method name="AddCell">
+<![CDATA[//@cmember EdGridCell AddCell(  );
+//@return EdGridCell | 
+//@i ret cell
+]]>
+ />
+</method>
+<method name="AddRow">
+<![CDATA[//@cmember int AddRow(  );
+//@return int | 
+//@i ret index of new row
+]]>
+ />
+</method>
+<method name="Columns">
+<![CDATA[//@cmember int Columns(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="FixSpans">
+<![CDATA[//@cmember void FixSpans(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetAttr">
+<param name="attr" type="String" />
+<![CDATA[//@cmember String GetAttr( String attr );
+//@param String | attr | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCell">
+<param name="rno" type="int" />
+<param name="cno" type="int" />
+<![CDATA[//@cmember EdGridCell GetCell( int rno, int cno );
+//@param int | rno | 
+//@param int | cno | 
+//@return EdGridCell | 
+//@i 
+]]>
+ />
+</method>
+<method name="Reset">
+<![CDATA[//@cmember void Reset(  );
+//@return void | 
+//@i kill rows,cols,padding,bk etc
+]]>
+ />
+</method>
+<method name="Rows">
+<![CDATA[//@cmember int Rows(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetBottomPad">
+<param name="p" type="int" />
+<![CDATA[//@cmember void SetBottomPad( int p );
+//@param int | p | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetLeftPad">
+<param name="p" type="int" />
+<![CDATA[//@cmember void SetLeftPad( int p );
+//@param int | p | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetRightPad">
+<param name="p" type="int" />
+<![CDATA[//@cmember void SetRightPad( int p );
+//@param int | p | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetTopPad">
+<param name="p" type="int" />
+<![CDATA[//@cmember void SetTopPad( int p );
+//@param int | p | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="UseGrid">
+<param name="b" type="int" />
+<![CDATA[//@cmember void UseGrid( int b );
+//@param int | b | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddCell" cls="EdGridCell" />
+<rmeth name="AddRow" cls="int" />
+<rmeth name="Columns" cls="int" />
+<rmeth name="FixSpans" cls="void" />
+<rmeth name="GetAttr" cls="String" />
+<rmeth name="GetCell" cls="EdGridCell" />
+<rmeth name="Reset" cls="void" />
+<rmeth name="Rows" cls="int" />
+<rmeth name="SetBottomPad" cls="void" />
+<rmeth name="SetLeftPad" cls="void" />
+<rmeth name="SetRightPad" cls="void" />
+<rmeth name="SetTopPad" cls="void" />
+<rmeth name="UseGrid" cls="void" />
+</return>
+</class>

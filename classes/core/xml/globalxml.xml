@@ -1,0 +1,442 @@
+<class name="globalXML" fauthor="$Author: Andrew.broad $" fdate="$Date: 10/03/03 11:53 $" frevision="$Revision: 9 $">
+<members />
+<static>
+<method name="LoadXML" return="XML">
+<param name="filename" type="string" />
+<param name="path" type="string" />
+<![CDATA[//@cmember LoadXML
+//@param string | filename | Filename of the XML to load
+//@param string | path | Path to use as reference
+//@return XML | The loaded XML within a confirmation tag
+//@version Andrew Griffin | v1.0 - 3/4/01 | Initial version
+//@i Loads XML from a text file.
+//@i The returned XML will have a tag named 'XML' or 'Error'.
+//@i if the load succeeded then the first element of this tag will
+//@i  be the loaded XML, otherwise the first element will be an
+//@i  error number, and the second element will be an error description
+
+//@e xml X = &classes::core::XML::globalXML::LoadXML("XMLfile.xml", path());
+//@e if (X.tag()=="error") {    // Check for errors
+//@e      message("XML Load Error: " + X.getAttr("desc"));
+//@e      return;
+//@e } else X = &X[0];          // Get actual loaded XML
+
+
+if (path!=null) {
+
+    if (filename.indexOf("\\")>=0) {
+        filename = sys::makerelativename( path, filename );
+    }
+
+    filename = Sys::MakeFullName( path, filename );
+}
+
+xml x; blob b;
+
+if (filename.beginsWith("http")) {
+    HTTPConnection Con;
+    b = Con.GetFile(filename);
+} else {
+    file f;
+    if (f.open( filename, "r" )==0) {
+        x.setTag("error");
+        x.addAttr("number", "1");
+        x.addAttr("desc", "File could not be opened");
+        return x;
+    }
+    b = f.ReadBlob();
+    if (b==null) {
+        x.setTag("error");
+        x.addAttr("number", "2");
+        x.addAttr("desc", "File could not be read");
+        return x;
+    }
+}
+
+x = &b.getXMLObject();
+if (x==null) {
+    xml e;
+    e.setTag("error");
+    e.addAttr("number", "3");
+    e.addAttr("desc", "File could not be converted to XML");
+    return e;
+}
+
+if (x.count()>0 && X[0].tag().eq("!DOCTYPE")) {
+    xml e;
+    e.setTag("error");
+    e.addAttr("number", "4");
+    e.addAttr("desc", "Http file could not be opened/read");
+    return e;
+}
+
+
+x.setTag("XML");
+return x;]]>
+</method>
+<method name="SaveXML" return="int">
+<param name="X" type="xml" />
+<param name="filename" type="string" />
+<param name="path" type="string" />
+<![CDATA[//@cmember SaveXML
+//@param XML | X | The XML to save
+//@param string | filename | Filename to save XML to
+//@param string | path | Path to use as reference
+//@return int | 1 on succeed, 0 on fail
+//@version Andrew Griffin | v1.0 - 6/4/01
+//@i Save an XML object to a text file.
+//@i Note: You can't save to the web server (http connection) only locally.
+
+if (path!=null) {
+
+    if (filename.indexOf("\\")>=0) {
+        filename = sys::makerelativename( path, filename );
+    }
+
+    filename = Sys::MakeFullName( path, filename );
+}
+
+blob b;
+
+if (filename.beginsWith("http")) {
+    return 0;
+
+} else {
+    file f;
+    if (f.create( filename )==0) return 0;
+    int ok = F.writeXML( X );
+    F.close();
+    return ok;
+}]]>
+</method>
+<method name="XMLtoString" return="string">
+<param name="X" type="xml" />
+<![CDATA[//@cmember XMLtoString
+//@param XML | X | XML to convert to a string
+//@return string | The serialised version of the XML.
+//@version Andrew Griffin | v1.0 - 3/4/01
+//@i Converts an XML tree to a serialised string
+
+
+if (X==null) return "";
+
+blob b;
+b.writeXML( X );
+return b.toString();]]>
+</method>
+<method name="StringToXML" return="XML">
+<param name="strXML" type="string" />
+<param name="isList" type="int" />
+<![CDATA[//@cmember StringToXML
+//@param string | strXML | serialised XML in string format
+//@param int | isList | (Optional) 1 = return XML within a base tag?
+//@return XML | The XML version of the string.
+//@version Andrew Griffin | v1.0 - 3/4/01
+//@i Converts a serialised string to an XML tree
+//@i The XML string must have just one base tag. Otherwise, to
+//@i avoid loosing all other base tags set parameter 'isList' to 1.
+
+//@e string sXML = "<head><body name=""one""/></head>";
+//@e XML X = &classes::core::XML::globalXML::StringToXML( sXML );
+//@e
+//@e string sXML = "<a>123</a><b>456</b>"
+//@e XML X = &classes::core::XML::globalXML::StringToXML( sXML, 1 );
+
+
+blob b;
+b.write( strXML );
+XML X = &b.getXMLObject();
+if ((isList==null || !isList) && X!=null)
+    X = &X.element(0);
+else
+    X.setTag("XML");
+
+return X;]]>
+</method>
+<method name="DebugXML" return="void">
+<param name="X" type="xml" />
+<![CDATA[//@cmember XMLtoString
+//@param XML | X | XML to dump to the screen
+//@return void
+//@version Andrew Griffin | v1.0 - 3/4/01
+//@i Displays an XML tree in a message window (for debug)
+
+message( XMLtoString( X ) );]]>
+</method>
+<method name="BrowseXML" return="void">
+<param name="X" type="xml" />
+<![CDATA[//@cmember BrowseXML
+//@param XML | X | XML to view/browse
+//@version Andrew Griffin | v1.0 - 4/4/01
+//@i Displays an XML tree as a hierarchy (for debug)
+
+WXMLViewer::BrowseXML( X );]]>
+</method>
+<method name="getContent" return="string">
+<param name="X" type="xml" />
+<![CDATA[//@cmember getContent
+//@param XML | X | XML to get contents of
+//@return string | The contents of the XML.
+//@version Andrew Griffin | v1.0 - 4/4/01
+//@i Retrieves any string contents of an XML object
+
+//@e xml X = &classes::core::XML::globalXML::LoadXML("boresult.xml");
+//@e if (X.tag()=="error") return 0;
+//@e X = &X[0];     // Get actual loaded XML
+//@e
+//@e xml X2 = &classes::core::XML::globalXML::findTag( "address_date", X );
+//@e if (X2==null) return 0;
+//@e
+//@e message( classes::core::XML::globalXML::getContent( X2 ) );
+
+
+if (X==null) return "";
+
+XML X2 = &X.findElement( "" );
+if (X2==null) return "";
+
+return X2.content();]]>
+</method>
+<method name="findTag" return="XML">
+<param name="tag" type="string" />
+<param name="X" type="XML" />
+<![CDATA[//@cmember findTag
+//@param string | tag | Tag to Search for
+//@param XML | X | The XML to search through
+//@return XML | The XML element found or null
+//@version Andrew Griffin | v1.0 - 3/4/01
+//@i Searches through an XML tree for a specific tag
+//@i The tag name is case-insensitive
+
+//@e xml X = &classes::core::XML::globalXML::LoadXML("boresult.xml");
+//@e if (X.tag()=="error") return 0;
+//@e X = &X[0];     // Get actual loaded XML
+//@e
+//@e xml X2 = &classes::core::XML::globalXML::findTag( "address_date", X );
+//@e if (X2==null) return 0;
+//@e
+//@e message( classes::core::XML::globalXML::getContent( X2 ) );
+
+
+if (X.tag().eq(tag)) return X;
+
+XML o = null;
+for (int i=0; i<X.count(); i++) {
+  o = &findTag( tag, X.element(i) );
+  if (o!=null) return o;
+}
+
+return null;    // not found]]>
+</method>
+<method name="findAttrib" return="XML">
+<param name="name" type="string" />
+<param name="val" type="string" />
+<param name="X" type="XML" />
+<![CDATA[//@cmember findAttrib
+//@param string | name | attribute name to search upon
+//@param string | val | attribute value to search for
+//@param XML | X | The XML to search through
+//@return XML | The XML element found or null
+//@version Andrew Griffin | v1.0 - 3/4/01
+//@i Searches through an XML tree for a specific attribute pair.
+//@i Both the name & attribute values are case-insensitive
+
+//@e X2 = &classes::core::XML::globalXML::findAttrib( "name", "main", X );
+//@e classes::core::XML::globalXML::debugXML( X2 );
+
+
+if (X.GetAttr( name ).eq(val)) return X;
+
+XML o = null;
+for (int i=0; i<X.count(); i++) {
+  o = &findAttrib( name, val, X.element(i) );
+  if (o!=null) return o;
+}
+
+return null;    // not found]]>
+</method>
+<method name="GetObjectXML" return="XML">
+<param name="theObject" type="object" />
+<param name="tag" type="string" />
+<![CDATA[//@cmember GetObjectXML
+//@param object | theObject |
+//@return XML |
+//@version Andrew Barrett | 11-08-02 20:17 |
+//@version Administrator | 04-02-03 23:42 |
+//@i
+
+xml theXML;
+
+string sTag=""+tag;
+if (!sTag)
+    sTag="object";
+
+theXML.SetTag(sTag);
+
+if (theObject==null) return(theXML);
+
+for (int nMember=0;; nMember++)
+{
+    object thisMember=&theObject.GetMember(nMember);
+    if (thisMember==null) break;
+
+    memberdef thisMemberDef=&theObject.GetMemberDef(nMember);
+
+
+    // Work out name
+    string sName=thisMemberDef.SQLName();
+    if (sName.beginsWith("~")) continue;
+
+    if (!sName)
+        sName=thisMemberDef.Name();
+
+
+    if (thisMember.IsList())
+    {
+        if (!thisMember.count()) continue;
+
+        xml newList=theXML.CreateElement("list");
+
+        newList.AddAttr("name",sName);
+
+        for (int nRow=0; nRow<thisMember.count(); nRow++)
+            newList.AddElement(GetObjectXML(thisMember[nRow]));
+
+    }
+    else if (thisMember.isObject())
+    {
+
+        xml objectXML=&null;
+
+        switch (thisMember.class().lower())
+        {
+            case "xml":
+            {
+                objectXML=thisMember;
+            } break;
+
+            default:
+            {
+                objectXML=&GetObjectXML(thisMember);
+            } break;
+        }
+
+        if (!objectXML.Count()) continue;
+        objectXML.AddAttr("name",sName);
+        theXML.AddElement(objectXML);
+
+    }
+    else
+    {
+        string sValue=thisMember+"";
+        if (!sValue) continue;
+
+//        xml newMember=theXML.CreateElement("member");
+        theXML.AddAttr(sName,sValue);
+//        newMember.AddAttr("value",sValue+"");
+    }
+
+}
+
+return(theXML);]]>
+</method>
+<method name="SetObjectFromXML" return="XML">
+<param name="theXML" type="xml" />
+<param name="theObject" type="object" />
+<![CDATA[//@cmember SetObjectFromXML
+//@param xml | theXML |
+//@param object | theObject |
+//@return XML |
+//@version Andrew Barrett | 11-08-02 22:41 |
+//@i
+
+for (int nMember=0;; nMember++)
+{
+    object thisMember=&theObject.GetMember(nMember);
+    if (thisMember==null) break;
+
+    memberdef thisMemberDef=&theObject.GetMemberDef(nMember);
+
+
+    // Work out name
+    string sName=thisMemberDef.SQLName();
+    if (sName.beginsWith("~")) continue;
+
+    if (!sName)
+        sName=thisMemberDef.Name();
+
+    if (thisMember.IsList())
+    {
+        for (int nElement=0;;nElement++)
+        {
+            xml thisElement=&theXML.GetElement(nElement);
+            if (thisElement==null) break;
+
+            if (thisElement.GetAttr("name").eq(sName))
+            {
+                for (int nRow=0;;nRow++)
+                {
+                    xml thisRow=&thisElement.GetElement(nRow);
+                    if (thisRow==null) break;
+
+                    SetObjectFromXML(thisRow,thisMember.createRow());
+                }
+                break;
+            }
+       }
+
+    }
+    else if (thisMember.isObject())
+    {
+
+        for (int nElement=0;;nElement++)
+        {
+            xml thisElement=&theXML.GetElement(nElement);
+            if (thisElement==null) break;
+
+            if (thisElement.GetAttr("name").eq(sName))
+            {
+                SetObjectFromXML(thisElement,thisMember);
+                break;
+            }
+       }
+   }
+    else
+    {
+
+        switch (thisMemberDef.classname().lower())
+        {
+            case "integer": thisMember=theXML.GetAttr(sName).val(); break;
+            case "string": thisMember=theXML.GetAttr(sName); break;
+            case "date": thisMember.fromString(theXML.GetAttr(sName)); break;
+        }
+    }
+
+}
+
+return(theObject);]]>
+</method>
+<method name="main">
+<![CDATA[//@cmember main
+//@version Andrew Barrett | 11-08-02 14:42 |
+//@i
+
+
+classes::telephony::loneworker::alarm test;
+GetObjectXML(test);]]>
+</method>
+</static>
+<return>
+<rmeth name="LoadXML" cls="XML" />
+<rmeth name="SaveXML" cls="int" />
+<rmeth name="XMLtoString" cls="string" />
+<rmeth name="StringToXML" cls="XML" />
+<rmeth name="DebugXML" cls="void" />
+<rmeth name="BrowseXML" cls="void" />
+<rmeth name="getContent" cls="string" />
+<rmeth name="findTag" cls="XML" />
+<rmeth name="findAttrib" cls="XML" />
+<rmeth name="GetObjectXML" cls="XML" />
+<rmeth name="SetObjectFromXML" cls="XML" />
+</return>
+</class>

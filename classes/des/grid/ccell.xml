@@ -1,0 +1,637 @@
+<form name="CCell" caption="Cell" bk="Face" margin="0" sizeable="0" toolwindow="1" fauthor="$Author: Chris Moran$" fdate="$Date: 26 03 04 8:29$" frevision="$Revision: 3$">
+<members>
+<method name="Init">
+<![CDATA[
+SetWindowName("CellEditor");
+
+idVAlign.AddOption("Top");
+idVAlign.AddOption("Center");
+idVAlign.AddOption("Bottom");
+idVAlign.AddOption("Cell Height");
+idVAlign.AddOption("Stretch");
+
+idHAlign.AddOption("Left");
+idHAlign.AddOption("Center");
+idHAlign.AddOption("Right");
+idHAlign.AddOption("Cell Width");
+idHAlign.AddOption("Stretch");]]>
+</method>
+<method name="ShowCell">
+<param name="Cell" type="object" />
+<![CDATA[//@version Andrew Griffin | 10-05-02 15:29 |
+
+//bCell.setMagicPointer( &cell );
+
+// THIS IS CALLED FROM THE GRID EDITOR
+if (Cell==null){
+    bk_p.setBkColor(-1);
+    bksel_p.setBkColor(-1);
+    bk_e.setText("");
+    bksel_e.setText("");
+    idMinWidth.setText("");
+    idMinHeight.setText("");
+    idLeftPad.setText("");
+    idTopPad.setText("");
+    idRightPad.setText("");
+    idBottomPad.setText("");
+    idHAlign.setText("");
+    idVAlign.setText("");
+    idImageTile.setText( "" );
+    idCtrlMinWidth.setText( "" );
+    idCtrlMinHeight.setText( "" );
+    idHeader.setText( "" );
+    enableButtons();
+    return;
+    }
+
+if (Cell.MinWidth) idMinWidth.setText( Cell.MinWidth.toString() );
+else idMinWidth.setText("");
+
+if (Cell.MinHeight) idMinHeight.setText( Cell.MinHeight.toString() );
+else idMinHeight.setText( "" );
+
+if (Cell.LeftPad >= 0) idLeftPad.setText( Cell.LeftPad.toString() );
+else idLeftPad.setText("");
+
+if (Cell.TopPad >= 0) idTopPad.setText( Cell.TopPad.toString() );
+else idTopPad.setText("");
+
+if (Cell.RightPad >= 0) idRightPad.setText( Cell.RightPad.toString() );
+else idRightPad.setText("");
+
+if (Cell.BottomPad >= 0) idBottomPad.setText( Cell.BottomPad.toString() );
+else idBottomPad.setText("");
+
+int a = Cell.Align;
+if      (a & 1)  idHAlign.setText("Stretch");
+else if (a & 4)  idHAlign.setText("Center");
+else if (a & 16) idHAlign.setText("Right");
+else if (a & 64) idHAlign.setText("Cell Width");
+else             idHAlign.setText("Left");
+if      (a & 2)   idVAlign.setText("Stretch");
+else if (a & 8)   idVAlign.setText("Center");
+else if (a & 32)  idVAlign.setText("Bottom");
+else if (a & 128) idVAlign.setText("Cell Height");
+else              idVAlign.setText("Top");
+
+bk_P.setBkColor( Cell.BkColor );
+bksel_P.SetBkColor( Cell.BkSel );
+refreshColorText();
+
+idImageTile.setText( Cell.BkImageDisp.toString() );
+idHeader.SetText( Cell.Header );
+
+// now the Control
+Object Con = &Cell.GetObject();
+if (Con!=null){
+    if (Con.MinWidth) idCtrlMinWidth.setText( Con.MinWidth.toString() );
+    else idCtrlMinWidth.setText( "" );
+
+    if (Con.MinHeight) idCtrlMinHeight.setText( Con.MinHeight.toString() );
+    else idCtrlMinHeight.setText( "" );
+    }
+
+enableButtons();]]>
+</method>
+<method name="SetAttr">
+<param name="attr" type="object" />
+<param name="val" type="object" />
+<![CDATA[
+Object P = &GetParent();
+
+// P.SetCellAttr(P.idGridEdit,attr,val);
+P.idGridEdit.SetCellAttr( attr, val );
+
+P.idGridEdit.CalcSizesIf();]]>
+</method>
+<method name="DoBkImage">
+<![CDATA[//@version Andrew Griffin | 30-04-02 15:17 |
+//@version DazzaBee | 01-03-04 11:17 |
+object o = &getParent().idGridEdit.currentCell();
+if (o==null) {
+    message("First Select a cell.");
+    return;
+}
+
+string fn=o.bkimage,
+       pth=getParent().getParent().filename;
+
+int i = pth.lastIndexOf("\\");
+if (i>=0) pth = pth.left(i+1);
+
+if (fn!="") fn=::AdvSearch::classToPath( fn, pth, 1);
+
+fn = GetOpenFileName("Cell Background Image","BMP Files|*.bmp|All|*.*",fn);
+if (!fn) return;
+
+
+String szPath = pth.lower();
+int iIndex = szPath.IndexOf(".bmp",0,1);
+if(iIndex>-1) szPath = szPath.Left(iIndex).lower();
+iIndex = szPath.LastIndexOf("\\");
+if(iIndex>-1) szPath = szPath.Left(iIndex).lower();
+
+fn = sys::MakeFullName( szPath, fn );
+fn = sys::MakeRelativeName( szPath, fn );
+
+iIndex = fn.Indexof("classes::",0,1);
+if(iIndex>-1) fn = fn.SubString(iIndex,fn.Length()).Lower();
+
+iIndex = fn.Indexof(":::",0,1);
+if(iIndex>-1) fn = fn.SubString(iIndex+3,fn.Length()).Lower();
+
+SetAttr("bkImg",fn);
+
+enableButtons();]]>
+</method>
+<method name="DoBkSelImage">
+<![CDATA[//@cmember DoBkSelImage
+//@version Andrew Griffin | 30-04-02 15:17 |
+//@version DazzaBee | 01-03-04 11:17 |
+object o = &getParent().idGridEdit.currentCell();
+if (o==null) {
+    message("First Select a cell.");
+    return;
+}
+
+string fn=o.bkimgsel,
+       pth=getParent().getParent().filename;
+
+int i = pth.lastIndexOf("\\");
+if (i>=0) pth = pth.left(i+1);
+
+if (fn!="") fn=::AdvSearch::classToPath( fn, pth, 1);
+
+fn = GetOpenFileName("Cell Background Image on Mouse Over","BMP Files|*.bmp|All|*.*",fn);
+if (!fn) return;
+
+String szPath = pth.lower();
+int iIndex = szPath.IndexOf(".bmp",0,1);
+if(iIndex>-1) szPath = szPath.Left(iIndex).lower();
+iIndex = szPath.LastIndexOf("\\");
+if(iIndex>-1) szPath = szPath.Left(iIndex).lower();
+
+fn = sys::MakeFullName( szPath, fn );
+fn = sys::MakeRelativeName( szPath, fn );
+
+iIndex = fn.Indexof("classes::",0,1);
+if(iIndex>-1) fn = fn.SubString(iIndex,fn.Length()).Lower();
+
+iIndex = fn.Indexof(":::",0,1);
+if(iIndex>-1) fn = fn.SubString(iIndex+3,fn.Length()).Lower();
+
+SetAttr("bkimgsel",fn);
+
+enableButtons();]]>
+</method>
+<method name="NoBkImage">
+<![CDATA[//@version Andrew Griffin | 30-04-02 15:56 |
+
+SetAttr("bkimg","");
+SetAttr("bkimgsel","");
+
+enableButtons();]]>
+</method>
+<method name="NoBkSelImage">
+<![CDATA[//@cmember NoBkSelImage
+//@version Andrew Griffin | 30-04-02 15:19 |
+
+SetAttr("bkimgsel","");
+
+enableButtons();]]>
+</method>
+<method name="DoWidth">
+<![CDATA[
+SetAttr("w",idMinWidth.getText());]]>
+</method>
+<method name="DoHeight">
+<![CDATA[
+SetAttr("h",idMinHeight.getText());]]>
+</method>
+<method name="DoLeftPad">
+<![CDATA[  SetAttr("lpad",idLeftPad.getText());]]>
+</method>
+<method name="DoTopPad">
+<![CDATA[  SetAttr("tpad",idTopPad.getText());]]>
+</method>
+<method name="DoRightPad">
+<![CDATA[  SetAttr("rpad",idRightPad.getText());]]>
+</method>
+<method name="DoBottomPad">
+<![CDATA[SetAttr("bpad",idBottomPad.getText());]]>
+</method>
+<method name="DoImageTile">
+<![CDATA[  SetAttr("imgtile",idImageTile.getText());]]>
+</method>
+<method name="DoVAlign">
+<![CDATA[
+String s = idVAlign.getText();
+String q = "";
+if (s=="Center")           q = "V";
+else if (s=="Bottom")      q = "B";
+else if (s=="Cell Height") q = "Y";
+else if (s=="Stretch")     q = "H";
+SetAttr("valign",q);]]>
+</method>
+<method name="DoHAlign">
+<![CDATA[
+String s = idHAlign.getText();
+String q = "";
+if (s=="Center")           q = "C";
+else if (s=="Right")       q = "R";
+else if (s=="Cell Width")  q = "X";
+else if (s=="Stretch")     q = "W";
+SetAttr("halign",q);]]>
+</method>
+<method name="DoCtrlWidth">
+<![CDATA[
+Object P = &GetParent();
+if (P==null) return;
+
+// P.SetCtrlAttr(P.idGridEdit,"w",idCtrlMinWidth.getText());
+P.idGridEdit.SetControlAttr( "w", idCtrlMinWidth.getText() );
+
+P.idGridEdit.CalcSizesIf();]]>
+</method>
+<method name="DoCtrlHeight">
+<![CDATA[
+Object P = &GetParent();
+if (P==null) return;
+
+// P.SetCtrlAttr(P.idGridEdit,"h",idCtrlMinHeight.getText());
+P.idGridEdit.SetControlAttr( "h", idCtrlMinHeight.getText() );
+
+P.idGridEdit.CalcSizesIf();]]>
+</method>
+<method name="DoHeader">
+<![CDATA[if (idHeader.getText()=="0") idHeader.setText("");
+
+SetAttr("header",idHeader.getText());]]>
+</method>
+<method name="DoColorSel">
+<param name="con" type="control" />
+<![CDATA[//@version Andrew Griffin | 23-05-02 13:26 |
+
+String cn = con.getControlAttr("name");
+cn = cn.left(cn.indexOf("_"));
+
+control c = &getControl( cn + "_E" );
+
+//int i = Sys::GetColor( con.getBkColor() );
+
+int i = Sys::GetColor(
+    ::WClsDef::ColorToInt( c.getText() )
+);
+
+if (i==-1) return;
+
+String s;
+if (i!=-2)
+{
+    s = i.toString("08X"); //r+","+g+","+b;
+    if (s.beginsWith("00")) s = s.substring(2);
+} else i=-1;
+
+SetAttr( cn, s );
+c.setText( s );
+
+con.setBkColor(i);
+
+enableButtons();]]>
+</method>
+<method name="DoColorDel">
+<param name="con" type="control" />
+<![CDATA[
+String cn = con.getControlAttr("name");
+cn = cn.left(cn.indexOf("_"));
+
+SetAttr( cn, "" );
+getControl( cn + "_P" ).setBkColor(-1);
+getControl( cn + "_E" ).setText("");
+
+enableButtons();]]>
+</method>
+<method name="DoColorEd">
+<param name="con" type="control" />
+<![CDATA[
+String cn = con.getControlAttr("name");
+cn = cn.left(cn.indexOf("_"));
+
+control c = &getControl( cn + "_E" );
+
+String s = con.getText();
+
+getControl( cn + "_P" ).setBkColor( ::WClsDef::ColorToInt( s ) );
+
+SetAttr( cn, s );
+
+enableButtons();]]>
+</method>
+<method name="DoColorSel2">
+<param name="ctrl" type="label" />
+<param name="PStr" type="string" />
+<![CDATA[//@cmember DoColorSel2
+//@param label | ctrl |
+//@param string | PStr |
+//@version Andrew Griffin | 11-06-02 15:53 |
+
+String cn = PStr;
+control c = &getControl( cn + "_E" );
+
+int i = classes::Des::Grid::wCustomColor::getColor(
+    ::WClsDef::ColorToInt( c.getText() ), this, ctrl.GetCell()
+);
+
+if (i==-1) return;
+
+String s;
+if (i!=-2)
+{
+    s = i.toString("08X"); //r+","+g+","+b;
+    if (s.beginsWith("00")) s = s.substring(2);
+} else i=-1;
+
+SetAttr( cn, s );
+c.setText( s );
+
+getControl( cn + "_P" ).setBkColor(i);
+
+enableButtons();]]>
+</method>
+<method name="toggleCellAttr">
+<![CDATA[//@version Andrew Griffin | 26-07-02 14:08 |
+int show = !bk_E.isvisible();
+
+bk_E.setvisible( show );
+bksel_E.setvisible( show );
+
+FitRecursive();
+
+if (show) refreshColorText();]]>
+</method>
+<method name="refreshColorText">
+<![CDATA[//@version Andrew Griffin | 10-05-02 15:29 |
+//@version Darren Ball | 13-09-06 15:56 |
+object oPar = &getParent();
+if(oPar==NULL) return;
+Object oGrid = oPar.idGridEdit;
+if(oGrid ==NULL) return;
+object bCell = oGrid.currentCell();
+if(bCell==NULL) Return;
+
+int c = -1;
+if (bCell!=null) c = bCell.BkColor;
+bk_E.setText( c != -1 ? hex(c) : "" );
+
+c = -1;
+if (bCell!=null) c = bCell.BkSel;
+bksel_E.setText( c != -1 ? hex(c) : "" );]]>
+</method>
+<method name="enableButtons">
+<![CDATA[//@version Andrew Griffin | 30-04-02 15:56 |
+bk_X.setEnabled( bk_P.getBkColor()!= -1 );
+bksel_X.setEnabled( bksel_P.getBkColor() != -1 );
+
+object o = &getParent().idGridEdit.currentCell();
+
+int e = o!=null && o.bkimage!="";
+if (image_X.isEnabled() != e) {
+    image_X.setEnabled( e );
+    showGroup( "ImageVis", e );
+    SizeAdjust();
+    getParent().sizeAdjust();
+}
+
+e = o!=null && o.bkimgsel!="";
+if (ImageSel_X.isEnabled() != e) {
+    imageSel_X.setEnabled( e );
+}]]>
+</method>
+</members>
+<static>
+<List name="TileTypes" cls="classes::CPickN">
+<item code="0" desc="Tile" />
+<item code="1" desc="Stretch" />
+<item code="7" desc="Single" />
+<item code="8" desc="Pad Tile" />
+<item code="32" desc="X_PadT" />
+<item code="48" desc="Y_PadT" />
+</List>
+<List name="YesNo" cls="classes::CPickS">
+<item code="0" desc="No" />
+<item code="1" desc="Yes" />
+</List>
+<method name="hex" return="string">
+<param name="i" type="int" />
+<![CDATA[//@cmember hex
+//@param int | i |
+//@return string |
+//@version Andrew Griffin | 10-05-02 15:26 |
+//@i
+
+String s = i.toString("08X"); //r+","+g+","+b;
+if (s.beginsWith("00")) s = s.substring(2);
+
+return s;]]>
+</method>
+</static>
+<grid bpad="1">
+<row>
+<col colspan="2" lpad="1" tpad="1" align="V" bk="224,192,128">
+<Label text="Cell Attributes" onClick="toggleCellAttr" font="Tahoma" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="Bk" font="Tahoma" />
+</col>
+<col>
+<grid>
+<row>
+<col>
+<Button name="bk_P" w="20" h="20" onClick="DoColorSel2 bk" />
+</col>
+<col>
+<Button name="bk_X" text=" x" w="20" h="20" onClick="DoColorDel" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col colspan="2" lpad="2" bpad="4" align="XV">
+<Edit name="bk_E" hide="Y" onChange="DoColorEd" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="BkSel" font="Tahoma" />
+</col>
+<col>
+<grid>
+<row>
+<col>
+<Button name="bksel_P" w="20" h="20" onClick="DoColorSel2 bksel" />
+</col>
+<col>
+<Button name="bksel_X" text=" x" w="20" h="20" onClick="DoColorDel" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col colspan="2" lpad="2" bpad="4" align="XV">
+<Edit name="bksel_E" hide="Y" onChange="DoColorEd" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="Image" font="Tahoma" />
+</col>
+<col>
+<grid>
+<row>
+<col>
+<Button text="&gt;&gt;" w="20" h="20" onClick="DoBkImage" />
+</col>
+<col>
+<Button name="Image_X" text=" x" w="20" h="20" onClick="NoBkImage" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="ImgSel" groups="ImageVis" font="Tahoma" />
+</col>
+<col>
+<grid>
+<row>
+<col>
+<Button text="&gt;&gt;" w="20" h="20" onClick="DoBkSelImage" groups="ImageVis" />
+</col>
+<col>
+<Button name="ImageSel_X" text=" x" w="20" h="20" onClick="NoBkSelImage" groups="ImageVis" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="Tile" groups="ImageVis" font="Tahoma" />
+</col>
+<col>
+<Edit name="idImageTile" w="40" onChange="DoImageTile" border="0" pick="TileTypes" combo="2" groups="ImageVis" />
+</col>
+</row>
+<row>
+<col lpad="1" tpad="2" rpad="2" bpad="3" align="V">
+<Label text="Header" font="Tahoma" />
+</col>
+<col tpad="2" bpad="3">
+<Edit name="idHeader" w="40" onChange="DoHeader" border="0" combo="2" pick="YesNo" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" align="V" bk="224,192,128">
+<Label text="Sizing" font="Tahoma" />
+</col>
+</row>
+<row>
+<col lpad="1" tpad="2" rpad="2" align="V">
+<Label text="Horz" font="Tahoma" />
+</col>
+<col tpad="2">
+<Edit name="idHAlign" w="40" onChange="DoHAlign" combo="2" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="Vert" font="Tahoma" />
+</col>
+<col>
+<Edit name="idVAlign" w="40" onChange="DoVAlign" combo="2" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="Width" font="Tahoma" />
+</col>
+<col>
+<Edit name="idMinWidth" onChange="DoWidth" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" bpad="3" align="V">
+<Label text="Height" font="Tahoma" />
+</col>
+<col bpad="3">
+<Edit name="idMinHeight" onChange="DoHeight" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" align="V" bk="224,192,128">
+<Label text="Padding" font="Tahoma" />
+</col>
+</row>
+<row>
+<col lpad="1" tpad="2" rpad="2" align="V">
+<Label text="Left" font="Tahoma" />
+</col>
+<col tpad="2">
+<Edit name="idLeftPad" onChange="DoLeftPad" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="Top" font="Tahoma" />
+</col>
+<col>
+<Edit name="idTopPad" onChange="DoTopPad" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="Right" font="Tahoma" />
+</col>
+<col>
+<Edit name="idRightPad" onChange="DoRightPad" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" bpad="3" align="V">
+<Label text="Bottom" font="Tahoma" />
+</col>
+<col bpad="3">
+<Edit name="idBottomPad" onChange="DoBottomPad" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" align="V" bk="224,192,128">
+<Label text="Control" font="Tahoma" />
+</col>
+</row>
+<row>
+<col lpad="1" tpad="2" rpad="2" align="V">
+<Label text="Width" font="Tahoma" />
+</col>
+<col tpad="2">
+<Edit name="idCtrlMinWidth" onChange="DoCtrlWidth" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" align="V">
+<Label text="Height" font="Tahoma" />
+</col>
+<col>
+<Edit name="idCtrlMinHeight" onChange="DoCtrlHeight" border="0" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="hex" cls="string" />
+</return>
+</form>

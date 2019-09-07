@@ -1,0 +1,585 @@
+<class name="MAPIEx" description="W2 Extended MAPI Interface">
+<members sub="Logging on to an Email Account">
+<method name="Logon">
+<param name="LoginName" type="string" />
+<param name="Password" type="string" />
+<![CDATA[//@cmember bool Logon(string LoginName, string Password );
+//@param string | LoginName | Email Account Details Login
+//@param string | Password | Email Account Details Password
+//@return bool | 
+//@i Log in to the email account
+]]>
+ />
+</method>
+<method name="Logoff">
+<![CDATA[//@cmember void Logoff(  );
+//@return void | 
+//@i Log out of the email account
+]]>
+ />
+</method>
+</members>
+<members sub="Opening Folders">
+<method name="OpenInbox">
+<![CDATA[//@cmember bool OpenInbox(  );
+//@return bool | 
+//@i Open the inbox
+]]>
+ />
+</method>
+<method name="OpenOutbox">
+<![CDATA[//@cmember bool OpenOutbox(  );
+//@return bool | 
+//@i Open the Outbox
+]]>
+ />
+</method>
+<method name="OpenSentItems">
+<![CDATA[//@cmember bool OpenSentItems(  );
+//@return bool | 
+//@i Open the Sent Items
+]]>
+ />
+</method>
+<method name="OpenDeletedItems">
+<![CDATA[//@cmember bool OpenDeletedItems(  );
+//@return bool | 
+//@i Open the Deleted Items
+]]>
+ />
+</method>
+<method name="OpenContacts">
+<![CDATA[//@cmember bool OpenContacts(  );
+//@return bool | 
+//@i Open the Contacts
+]]>
+ />
+</method>
+<method name="OpenDrafts">
+<![CDATA[//@cmember bool OpenDrafts(  );
+//@return bool | 
+//@i Open the Drafts
+]]>
+ />
+</method>
+<method name="OpenRootFolder">
+<![CDATA[//@cmember bool OpenRootFolder(  );
+//@return bool | 
+//@i Open the Root Folder
+]]>
+ />
+</method>
+</members>
+<members sub="Folder and Sub-Folder functions">
+<method name="GetHierarchy">
+<![CDATA[//@cmember bool GetHierarchy(  );
+//@return bool | 
+//@i Loads the hierarchy into the mapiex session (called before getting the sub folders)
+]]>
+ />
+</method>
+<method name="GetNextSubFolder">
+<![CDATA[//@cmember string GetNextSubFolder(  );
+//@return string | 
+//@i Gets the next sub folder from the hierarchy
+]]>
+ />
+</method>
+<method name="OpenSubFolder">
+<param name="SubFolder" type="String" />
+<![CDATA[//@cmember bool OpenSubFolder( String SubFolder );
+//@return bool | 
+//@i Opens the sub folder
+]]>
+ />
+</method>
+<method name="CreateSubFolder">
+<param name="SubFolder" type="String" />
+<![CDATA[//@cmember bool CreateSubFolder( String SubFolder );
+//@return bool | 
+//@i Creates a sub folder
+]]>
+ />
+</method>
+<method name="DeleteSubFolder">
+<param name="SubFolder" type="String" />
+<![CDATA[//@cmember bool DeleteSubFolder( String SubFolder );
+//@return bool | 
+//@i Deletes a sub folder
+]]>
+ />
+</method>
+<method name="GetContents">
+<![CDATA[//@cmember bool GetContents( );
+//@return bool | 
+//@i Loads the contents of the current folder into the session
+]]>
+ />
+</method>
+<method name="SortContents">
+<param1 name="direction" type="int" />
+<![CDATA[//@cmember bool SortContents( int direction );
+//@return bool | 
+//@i Sorts the contents of the folder (0 ascending, 1 descending)
+]]>
+ />
+</method>
+<method name="GetNextMessage">
+<param name="UnreadOnly" type="bool" />
+<![CDATA[//@cmember int GetNextMessage( bool UnreadOnly );
+//@return int | 
+//@i Loads the first / next message of the current folder into the session false or no parameters = all messages, true only unread messages, returns the index of the message
+]]>
+ />
+</method>
+<method name="OpenMessage">
+<param name="index" type="int" />
+<![CDATA[//@cmember bool OpenMessage( int index );
+//@return bool | 
+//@i Loads the message onto the session
+]]>
+ />
+</method>
+<method name="OpenMessageStore">
+<param name="Store" type="String" />
+<![CDATA[//@cmember bool OpenMessageStore( String Store );
+//@return bool | 
+//@i Opens a message store, (pass no parameters for default message store)
+]]>
+ />
+</method>
+<method name="GetRowCount">
+<![CDATA[//@cmember int GetRowCount( );
+//@return int | number of messages
+//@i Returns the number of messages in the current folder / sub folder
+]]>
+ />
+</method>
+<method name="GetProfileName">
+<![CDATA[//@cmember string GetProfileName( );
+//@return string | 
+//@i Returns the profile name
+]]>
+ />
+</method>
+</members>
+<members sub="Message functions">
+<method name="GetRecipients">
+<![CDATA[//@cmember bool GetRecipients( );
+//@return bool | 
+//@i Gets the recipients of the current message into the session
+]]>
+ />
+</method>
+<method name="GetNextRecipient">
+<![CDATA[//@cmember string GetNextRecipient( );
+//@return string | 
+//@i Returns a | seperated string -  name | email Address | type - where type: 0  = Message Originator, 1 = TO, 2 = CC, 3 = BCC
+]]>
+ />
+</method>
+<method name="Create">
+<param name="Importance" type="int" />
+<![CDATA[//@cmember bool Create( int Importance );
+//@return bool | 
+//@i Creates a new message on the session. Pass null for normal importance, OR 0-low, 1-normal, 2-high
+]]>
+ />
+</method>
+<method name="Close">
+<![CDATA[//@cmember void Close(  );
+//@return void | 
+//@i Close the message
+]]>
+ />
+</method>
+<method name="ShowForm">
+<![CDATA[//@cmember int ShowForm( );
+//@return int | returns 0 on failure, 1 on success or close existing messages and 2 on close new messages
+//@i  Shows the default MAPI form for IMessage, returns 0 on failure, 1 on success or close existing messages and 2 on close new messages
+]]>
+ />
+</method>
+<method name="IsUnread">
+<![CDATA[//@cmember bool IsUnread( );
+//@return bool | 
+//@i Returns true if the message is unread
+]]>
+ />
+</method>
+<method name="MarkAsRead">
+<param name="read" type="bool" />
+<![CDATA[//@cmember bool MarkAsRead( bool read );
+//@return bool | 
+//@i Pass true, (or no parameters) to mark as read, pass false to mark as unread
+]]>
+ />
+</method>
+<method name="Send">
+<![CDATA[//@cmember bool Send( );
+//@return bool | 
+//@i Send the message
+]]>
+ />
+</method>
+<method name="DeleteMessage">
+<![CDATA[//@cmember bool DeleteMessage( );
+//@return bool | 
+//@i Delete the current message
+]]>
+ />
+</method>
+<method name="GetTo">
+<![CDATA[//@cmember string GetTo( );
+//@return string | 
+//@i Returns the TO string for the current message
+]]>
+ />
+</method>
+<method name="GetCC">
+<![CDATA[//@cmember string GetCC( );
+//@return string | 
+//@i Returns the CC, (Copy) string for the current message 
+]]>
+ />
+</method>
+<method name="GetBCC">
+<![CDATA[//@cmember string GetBCC( );
+//@return string | 
+//@i Returns the BCC, (blind copy) string for the current message 
+]]>
+ />
+</method>
+<method name="GetSensitivity">
+<![CDATA[//@cmember int GetSensitivity( );
+//@return int | 0 - None, 1 - Personal, 2 - Private, 3 - Company Confidential 
+//@i Returns the Sensitivity, 0 - None, 1 - Personal, 2 - Private, 3 - Company Confidential 
+]]>
+ />
+</method>
+<method name="GetHeader">
+<![CDATA[//@cmember string GetHeader( );
+//@return string | 
+//@i Returns the header for the current message 
+]]>
+ />
+</method>
+<method name="GetReceivedTime">
+<param name="Format" type="string" />
+<![CDATA[//@cmember string GetReceivedTime( string Format );
+//@return string | NULL - format defaults to "MM/dd/yyyy hh:mm:ss tt"
+//@i Returns received time as a string in the given format, NULL - format defaults to "MM/dd/yyyy hh:mm:ss tt" 
+]]>
+ />
+</method>
+<method name="GetSubmitTime">
+<param name="Format" type="string" />
+<![CDATA[//@cmember string GetSubmitTime( string Format );
+//@return string | NULL - format defaults to "MM/dd/yyyy hh:mm:ss tt"
+//@i Returns submit time as a string in the given format, NULL - format defaults to "MM/dd/yyyy hh:mm:ss tt" 
+]]>
+ />
+</method>
+<method name="GetNamedProperty">
+<param name="PropertyName" type="string" />
+<![CDATA[//@cmember string GetNamedProperty( string PropertyName );
+//@return string | 
+//@i Returns the value of the named property as a string 
+]]>
+ />
+</method>
+<method name="GetMessageFlags">
+<![CDATA[//@cmember int GetMessageFlags( );
+//@return int | A bitflag integer
+//@i Returns the Message Flags as a bitflag integer. 1 read, 2 unmodified, 4 submit, 8 unsent, 16 has attach, 32 from me, 64 associated, 128 resend, 256 RN Pending, 512 NRN Pending 
+]]>
+ />
+</method>
+<method name="GetAttachmentName">
+<param name="index" type="int" />
+<![CDATA[//@cmember string GetAttachmentName( int index );
+//@return string | 
+//@i Returns the requested attachment's name if no parameter is passed then returns the name of the first attachment 
+]]>
+ />
+</method>
+<method name="GetAttachmentPath">
+<param name="index" type="int" />
+<![CDATA[//@cmember string GetAttachmentPath( int index );
+//@return string | 
+//@i Returns the requested attachment's path if no parameter is passed then returns the path of the first attachment 
+]]>
+ />
+</method>
+<method name="GetBody">
+<![CDATA[//@cmember string GetBody( );
+//@return string | 
+//@i Returns the body for the current message 
+]]>
+ />
+</method>
+<method name="GetRTF">
+<![CDATA[//@cmember string GetRTF( );
+//@return string | 
+//@i Returns the body as RTF for the current message 
+]]>
+ />
+</method>
+<method name="GetSubject">
+<![CDATA[//@cmember string GetSubject( );
+//@return string | 
+//@i Returns the subject for the current message 
+]]>
+ />
+</method>
+<method name="GetSenderEmail">
+<![CDATA[//@cmember string GetSenderEmail( );
+//@return string | 
+//@i Returns the Senders Email for the current message 
+]]>
+ />
+</method>
+<method name="GetSenderName">
+<![CDATA[//@cmember string GetSenderName( );
+//@return string | 
+//@i Returns the Senders Name for the current message 
+]]>
+ />
+</method>
+<method name="GetAttachmentCount">
+<![CDATA[//@cmember int GetAttachmentCount( );
+//@return int | 
+//@i Returns the number of attachments on the current message 
+]]>
+ />
+</method>
+<method name="AddAttachment">
+<param name="FullPath" type="String" />
+<![CDATA[//@cmember bool AddAttachment( String FullPath );
+//@return bool | 
+//@i Adds an attachment to the current message, this requires the full path eg. "c:\\test.txt"
+]]>
+ />
+</method>
+<method name="AddRecipient">
+<param name="Email" type="String" />
+<param name="Type" type="int" />
+<![CDATA[//@cmember bool AddRecipient( String Email, int Type );
+//@return bool | 
+//@i Adds a recipient of the required type - 0 Originator, 1 TO , 2 CC, 3 BCC if no seccond parameter is passed the recipient is added as TO
+]]>
+ />
+</method>
+<method name="ResetFiles">
+<![CDATA[//@cmember bool ResetFiles( );
+//@return bool | 
+//@i Deletes all attachments for the current message
+]]>
+ />
+</method>
+<method name="DeleteAttachment">
+<param name="index" type="int" />
+<![CDATA[//@cmember bool DeleteAttachment( int index );
+//@return bool | 
+//@i Deletes the requested attachment, if no parameter is passed then deletes the first attachment 
+]]>
+ />
+</method>
+<method name="Save">
+<![CDATA[//@cmember bool Save( );
+//@return bool | 
+//@i Saves the current message
+]]>
+ />
+</method>
+<method name="SaveAndClose">
+<![CDATA[//@cmember bool SaveAndClose( );
+//@return bool | 
+//@i Saves and closes the current message
+]]>
+ />
+</method>
+<method name="MarkAsPrivate">
+<![CDATA[//@cmember bool MarkAsPrivate( );
+//@return bool | 
+//@i Mark the current message as Private
+]]>
+ />
+</method>
+<method name="SaveAttachment">
+<param name="folder" type="string" />
+<param name="index" type="int" />
+<![CDATA[//@cmember bool SaveAttachment( string folder, int index );
+//@return bool | 
+//@i Need to pass a folder to save the attachment to eg "c:\\", pass no second parameter, (or -1) to save all of the current message's attachments
+]]>
+ />
+</method>
+<method name="SetDeliveryReceipt">
+<param name="set" type="bool" />
+<![CDATA[//@cmember bool SetDeliveryReceipt( bool set );
+//@return bool | 
+//@i Delivered True, not-delivered false
+]]>
+ />
+</method>
+<method name="SetReadReceipt">
+<param name="set" type="bool" />
+<param name="EmailAdd" type="string" />
+<![CDATA[//@cmember bool SetReadReceipt( bool set, string EmailAdd );
+//@return bool | 
+//@i Set true to request a read reciept for the given email address
+]]>
+ />
+</method>
+<method name="SetSubject">
+<param name="Subject" type="string" />
+<![CDATA[//@cmember void SetSubject( String Subject );
+//@return void | 
+//@i Sets the subject on the current message
+]]>
+ />
+</method>
+<method name="SetSenderName">
+<param name="Name" type="string" />
+<![CDATA[//@cmember void SetSenderName( String Name );
+//@return void | 
+//@i Sets the Senders Name on the current message
+]]>
+ />
+</method>
+<method name="SetSenderEmail">
+<param name="Email" type="string" />
+<![CDATA[//@cmember void SetSenderEmail( String Email );
+//@return void | 
+//@i Sets the Senders Email on the current message
+]]>
+ />
+</method>
+<method name="SetBody">
+<param name="Body" type="string" />
+<![CDATA[//@cmember void SetBody( String Body );
+//@return void | 
+//@i Sets the body on the current message
+]]>
+ />
+</method>
+<method name="SetRTF">
+<param name="RTF" type="string" />
+<![CDATA[//@cmember void SetRTF( String RTF );
+//@return void | 
+//@i Sets the body as RTF on the current message
+]]>
+ />
+</method>
+<method name="SetSensitivity">
+<param name="Sensitivity" type="int" />
+<![CDATA[//@cmember bool SetSensitivity( int Sensitivity );
+//@return bool | 
+//@i Sets the Sensitivity on the current message, 0 - None, 1 - Personal, 2 - Private, 3 - Company Confidential
+]]>
+ />
+</method>
+<method name="SetNamedProperty">
+<param name="Name" type="string" />
+<param name="Value" type="string" />
+<param name="Create" type="bool" />
+<![CDATA[//@cmember bool SetNamedProperty( String Name, String Value, bool Create );
+//@return bool | 
+//@i Sets the value of a named property, pass true or no third parameter to create a property that does not exist
+]]>
+ />
+</method>
+<method name="SetMessageFlags">
+<param name="Sensitivity" type="int" />
+<![CDATA[//@cmember bool SetMessageFlags( int Sensitivity );
+//@return bool | 
+//@i Sets the message flags, (bitflag integer), 1 read, 2 unmodified, 4 submit, 8 unsent, 16 has attach, 32 from me, 64 associated, 128 resend, 256 RN Pending, 512 NRN Pending 
+]]>
+ />
+</method>
+<method name="GetError">
+<![CDATA[//@cmember string GetError( );
+//@return string | 
+//@i Returns the error description 
+]]>
+ />
+</method>
+<method name="LastError">
+<![CDATA[//@cmember int LastError( );
+//@return int | 
+//@i Returns the error number
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Logon" cls="bool" />
+<rmeth name="Logoff" cls="void" />
+<rmeth name="OpenInbox" cls="bool" />
+<rmeth name="OpenOutbox" cls="bool" />
+<rmeth name="OpenSentItems" cls="bool" />
+<rmeth name="OpenDeletedItems" cls="bool" />
+<rmeth name="OpenContacts" cls="bool" />
+<rmeth name="OpenDrafts" cls="bool" />
+<rmeth name="OpenRootFolder" cls="bool" />
+<rmeth name="GetHierarchy" cls="bool" />
+<rmeth name="GetNextSubFolder" cls="string" />
+<rmeth name="OpenSubFolder" cls="bool" />
+<rmeth name="CreateSubFolder" cls="bool" />
+<rmeth name="DeleteSubFolder" cls="bool" />
+<rmeth name="GetContents" cls="bool" />
+<rmeth name="SortContents" cls="bool" />
+<rmeth name="GetNextMessage" cls="int" />
+<rmeth name="OpenMessage" cls="bool" />
+<rmeth name="OpenMessageStore" cls="bool" />
+<rmeth name="GetRowCount" cls="int" />
+<rmeth name="GetProfileName" cls="string" />
+<rmeth name="GetRecipients" cls="bool" />
+<rmeth name="GetNextRecipient" cls="string" />
+<rmeth name="Create" cls="bool" />
+<rmeth name="Close" cls="void" />
+<rmeth name="ShowForm" cls="int" />
+<rmeth name="IsUnread" cls="bool" />
+<rmeth name="MarkAsRead" cls="bool" />
+<rmeth name="Send" cls="bool" />
+<rmeth name="DeleteMessage" cls="bool" />
+<rmeth name="GetTo" cls="string" />
+<rmeth name="GetCC" cls="string" />
+<rmeth name="GetBCC" cls="string" />
+<rmeth name="GetSensitivity" cls="int" />
+<rmeth name="GetHeader" cls="string" />
+<rmeth name="GetReceivedTime" cls="string" />
+<rmeth name="GetSubmitTime" cls="string" />
+<rmeth name="GetNamedProperty" cls="string" />
+<rmeth name="GetMessageFlags" cls="int" />
+<rmeth name="GetAttachmentName" cls="string" />
+<rmeth name="GetAttachmentPath" cls="string" />
+<rmeth name="GetBody" cls="string" />
+<rmeth name="GetRTF" cls="string" />
+<rmeth name="GetSubject" cls="string" />
+<rmeth name="GetSenderEmail" cls="string" />
+<rmeth name="GetSenderName" cls="string" />
+<rmeth name="GetAttachmentCount" cls="int" />
+<rmeth name="AddAttachment" cls="bool" />
+<rmeth name="AddRecipient" cls="bool" />
+<rmeth name="ResetFiles" cls="bool" />
+<rmeth name="DeleteAttachment" cls="bool" />
+<rmeth name="Save" cls="bool" />
+<rmeth name="SaveAndClose" cls="bool" />
+<rmeth name="MarkAsPrivate" cls="bool" />
+<rmeth name="SaveAttachment" cls="bool" />
+<rmeth name="SetDeliveryReceipt" cls="bool" />
+<rmeth name="SetReadReceipt" cls="bool" />
+<rmeth name="SetSubject" cls="void" />
+<rmeth name="SetSenderName" cls="void" />
+<rmeth name="SetSenderEmail" cls="void" />
+<rmeth name="SetBody" cls="void" />
+<rmeth name="SetRTF" cls="void" />
+<rmeth name="SetSensitivity" cls="bool" />
+<rmeth name="SetNamedProperty" cls="bool" />
+<rmeth name="SetMessageFlags" cls="bool" />
+<rmeth name="GetError" cls="string" />
+<rmeth name="LastError" cls="int" />
+</return>
+</class>

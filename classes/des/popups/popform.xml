@@ -1,0 +1,492 @@
+<form name="popForm" savepos="listPopPos" bk="D4D0C8" margin="1" toolwindow="1" hidden="1" topmost="1" closeondeactivate="1" nocaption="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:40$" frevision="$Revision: 2$">
+<members>
+<Integer name="count" />
+<Integer name="selY" />
+<String name="typedFlash" />
+<String name="typed" />
+<String name="typedR" />
+<Integer name="isSubStr" />
+<Integer name="done" />
+<List name="stringS" cls="classes::cpicks" />
+<Integer name="lastKey" />
+<method name="addMember">
+<param name="typ" type="string" />
+<param name="name" type="string" />
+<param name="code" type="string" />
+<![CDATA[//@cmember addMember
+//@param string | typ |
+//@param string | name |
+//@param string | code |
+//@version Andrew Griffin | 15-08-01 11:38 |
+//@i
+
+idSub.idMember.DuplicateRow( count );
+GridRow g = &idSub.idMember.GetRow( count );
+count++;
+
+int isList = typ.indexOf("list",0,1)>=0;
+
+int i = typ.lastIndexOf(" ");
+if (i>=0) typ = typ.substring( i+1 ) + (isList ? "[]" : "");
+
+i = typ.lastIndexOf(":");
+if (i>=0) typ = typ.substring( i+1 );
+
+label ol = &g.GetCell(0).Control;
+ol.setText( " " + typ + "    " );
+ol.SetAttr( "row", ""+(count-1) );
+ol.setVisible(1);
+
+ol = &g.GetCell(1).Control;
+ol.setText( name + " " );
+ol.SetAttr( "row", ""+(count-1) );
+ol.setVisible(1);
+
+classes::cpicks tmp = &stringS.CreateRow();
+tmp.code = name.lower();
+tmp.desc = code;]]>
+</method>
+<method name="addTitle">
+<param name="name" type="string" />
+<![CDATA[//@cmember addTitle
+//@param string | name |
+//@version Andrew Griffin | 20-05-02 09:28 |
+//@i
+
+idSub.idMember.DuplicateRow( count );
+idSub.idMember.MergeCells( count, 0, count, 1 );
+GridRow g = &idSub.idMember.GetRow( count );
+count++;
+
+gridcell gc = &g.GetCell(0);
+label ol = &gc.Control;
+
+ol.setText( name );
+ol.setTxColor( 128 );   // Blue text
+ol.sethighlightcolor( 128 );   // Blue text
+ol.SetAttr( "style", "b" );
+ol.setVisible(1);
+
+gc.setLPad( 8 );
+
+classes::cpicks tmp = &stringS.CreateRow();
+tmp.code = "";
+tmp.desc = "";]]>
+</method>
+<method name="wasTitleUsed">
+<![CDATA[//@cmember wasTitleUsed
+//@version Andrew Griffin | 21-01-02 14:50 |
+//@i
+
+if (count==0) return;
+
+if (stringS[count-1].code) return;
+
+count--;
+idSub.idMember.DeleteRow( count );
+
+stringS.DeleteRow( count );]]>
+</method>
+<method name="addClass">
+<param name="name" type="string" />
+<param name="noLine" type="int" />
+<![CDATA[//@cmember addClass
+//@param string | name |
+//@param int | noLine |
+//@version Andrew Griffin | 17-05-02 13:49 |
+//@i
+
+idSub.idMember.DuplicateRow( count );
+idSub.idMember.MergeCells( count, 0, count, 1 );
+GridRow g = &idSub.idMember.GetRow( count );
+count++;
+
+gridcell gc = &g.GetCell(0);
+label ol = &gc.Control;
+
+ol.setText( /*(noLine==null ? "\r\n" : "") +*/ name );
+ol.setTxColor( 128*256*256 );   // Red text
+ol.sethighlightcolor( 128*256*256 );   // Blue text
+ol.SetAttr( "style", "b" );
+ol.setVisible(1);
+
+//gc.setBK( "EEEBDD" ); /*sys::RGB( 238,238,220 ) );*/
+gc.setBKImg( "classes::des::res::horzline.bmp" );
+gc.setImgTile( 8 );
+gc.setTPad( 8 );
+gc.setBPad( 2 );
+gc.setLPad( 4 );
+
+classes::cpicks tmp = &stringS.CreateRow();
+tmp.code = "";
+tmp.desc = "Class";]]>
+</method>
+<method name="go">
+<param name="x" type="int" />
+<param name="y" type="int" />
+<param name="txt" type="string" />
+<![CDATA[//@cmember go
+//@param int | x |
+//@param int | y |
+//@param string | txt |
+//@version Andrew Griffin | 01-02-02 11:36 |
+//@i
+
+//SetPos( getParent().xpos()+x, getParent().ypos()+y );
+SetPos( x, y );
+if (txt!=null) typed = txt;
+
+idSub.FitRecursive();
+fitRecursive();
+
+selY = 1;
+for (selY = 1; selY<count; selY++)
+    if (stringS[selY].code) break;
+
+if (selY==count) selY=0;
+selectRow( selY );
+
+classes::core::globalForm::checkInitialSize( this, 260, 170 );
+classes::core::globalForm::moveIntoFullView( this, 260, 170 );
+
+idSub.FitRecursive();
+fitRecursive();
+
+if (typed) {
+    if (findPossibles2() == 1) {
+        getParent().listMethodCallback( stringS[ selY ].desc );
+        close();
+        return;
+    }
+} else findPossibles2();
+
+show(1);
+SetFocus();
+
+done = 0;
+setTimer(500);]]>
+</method>
+<method name="onCharDown">
+<param name="Key" type="int" />
+<param name="State" type="int" />
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember onCharDown
+//@param int | Key |
+//@param int | State |
+//@param control | Ctrl |
+//@version Andrew Griffin | 20-05-02 09:28 |
+//@version Tim Simpson | 15-05-14 09:44 |
+//@i
+
+switch (Key) {
+
+    case 27 :                   // Escape
+/*        if (typed) {
+            typed = "";
+            findPossibles();
+        } else*/ close();
+        break;
+    case 38 :                   // Up
+        selectRowMove( -1, 0 );
+        break;
+    case 40 :                   // Down
+        selectRowMove( 1, 0 );
+        break;
+    case 37 :                   // Left
+        selectRowMove( -1, 1 );
+        break;
+    case 39 :                   // Right
+        selectRowMove( 1, 1 );
+        break;
+    case 08 :                   // Back space
+        if (typed) typed = typed.left( typed.length()-1 );
+        findPossibles();
+        break;
+    case 46 :                   // Del
+        typed = "";
+        findPossibles();
+        break;
+    case 13, 32, 9, '9', 190, 186 : // Enter,Space,Tab,(,'.',':'
+        if (key!='9' || State>0)
+        {
+            if (done==-1) {
+                KillTimer();
+                findPossibles2();
+            }
+            clicked( selY, Key );
+        break;
+        }
+    case 189:                   //fix "_" in search
+        if (state==3)
+        {
+            typed += "_";
+        }
+        findPossibles();
+        break;
+    default :
+
+        string k = Key.charstring().lower();
+        if (k>="a" && k<="z" || k>="0" && k<="9" || k=="½") {
+            if (k=="½") k = "-";
+            if (State==3) {
+                if (k=="-") k="_"; else
+                if (k=="8") k="*";
+            }
+            typed += k;
+            findPossibles();
+        } //else message( Key );
+
+}]]>
+</method>
+<method name="findPossibles">
+<![CDATA[//@cmember findPossibles
+//@param
+//@return
+//@version Andrew Griffin | 10-08-01 15:47 |
+//@i
+
+typedFlash = typed;
+done = -1;
+KillTimer();
+setTimer( 200 );]]>
+</method>
+<method name="findPossibles2">
+<![CDATA[//@cmember findPossibles2
+//@param
+//@return
+//@version Andrew Griffin | 14-08-01 16:41 |
+//@i
+
+setTimer( 500 );
+
+int noFound = 0;
+
+typedR = typed;
+if (typedR.left(1) == "*") {
+    typedR = typedR.subString( 1 );
+    isSubStr = 1;
+} else isSubStr = 0;
+
+int vis, sY = 1, tCnt, bCnt;
+gridRow TitleRow = null;
+gridRow baseRow = null;
+
+for (int i=0; i<stringS.count(); i++) {
+  gridrow gr = &idSub.idMember.getRow( i );
+
+  if (stringS[i].code) {
+
+    if (matchTyped( stringS[i].code)) {
+        vis = 1;
+        tCnt++;
+        bCnt++;
+        nofound++;
+    } else {
+        vis = 0;
+        if (i==sY) sY++;
+    }
+
+    for (int j=0; j<2; j++)
+        gr.getCell( j ).control.setVisible( vis );
+
+  } else
+
+  if (!stringS[i].desc) {
+    if (titleRow != null)
+      titleRow.getCell( 0 ).control.setVisible( tCnt>0 );
+
+    titleRow = &gr;
+    tCnt = 0;
+    if (sY==i) sY++;
+  } else {
+
+    if (baseRow != null)
+      baseRow.getCell( 0 ).control.setVisible( bCnt>0 );
+
+    baseRow = &gr;
+    bCnt = 0;
+    if (sY==i) sY++;
+  }
+}
+
+if (titleRow != null)
+  titleRow.getCell( 0 ).control.setVisible( tCnt>0 );
+if (baseRow != null)
+  baseRow.getCell( 0 ).control.setVisible( bCnt>0 );
+
+if (sY>=count) sY=0;
+
+if (sY!=selY) selectRow( sY );
+
+idSub.FitRecursive();
+FitRecursive();
+
+return noFound;]]>
+</method>
+<method name="selectRow" return="gridcell">
+<param name="row" type="int" />
+<![CDATA[//@cmember selectRow
+//@param int | row |
+//@return gridcell |
+//@version Andrew Griffin | 17-05-02 13:56 |
+//@i
+
+gridrow gr = null;
+gridcell gc = null;
+
+
+if (selY<count) {
+    gr = &idSub.idMember.getRow( selY );
+    for (int i=0; i<2; i++)
+        //gr.getCell( i ).control.setBkColor( 13947080 );
+    {
+        gc = &gr.getCell( i );
+        gc.setBK( -1 );
+        gc.Control.setTxColor( i ? 0 : 0x808080 );
+    }
+}
+
+selY = row;
+
+if (selY<count) {
+    gr = &idSub.idMember.getRow( selY );
+    for (int i=0; i<2; i++)
+        //gr.getCell( i ).control.setBkColor( 255+255*256+255*256*256 );
+    {
+        gc = &gr.getCell( i );
+        gc.setBK( "3F4BA7" );
+        gc.Control.setTxColor( 0xFFFFFF );
+    }
+    return gr.getCell( 0 );
+}
+
+return null;]]>
+</method>
+<method name="selectRowMove">
+<param name="offset" type="int" />
+<param name="mode" type="int" />
+<![CDATA[//@cmember selectRowMove
+//@param int | offset |
+//@param int | mode |
+//@version Andrew Griffin | 09-11-01 12:13 |
+//@i
+
+if (selY==0) return;
+
+int sY = selY, wrap, ok;
+
+if (mode==0) ok = 1;
+
+do {
+    sY += offset;
+    if (sY<1) {
+        return;
+        //wrap++;
+        //sY = count-1;
+    } else
+    if (sY>=count) {
+        return;
+        //wrap++;
+        //sY = 0;
+    }
+
+    if (mode==1 && !stringS[sY].code) ok = 1;
+
+    if (wrap>1) { sY=0; break; }
+} while ( !ok || (!stringS[sY].code || !matchTyped(stringS[sY].code)));
+
+gridcell gc = &selectRow( sY );
+if (gc!=null) gc.scrollIntoView();]]>
+</method>
+<method name="clicked">
+<param name="row" type="int" />
+<param name="key" type="char" />
+<![CDATA[//@cmember clicked
+//@param int | row |
+//@param char | key |
+//@version Andrew Griffin | 20-05-02 09:11 |
+//@i
+
+if (!row) selY = -1;    //return;
+else
+    selY = row;
+
+lastKey = key!=null ? key : 0;
+
+done = 1;
+setTimer( 50 );]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember onTimer
+//@version Andrew Griffin | 20-05-02 09:11 |
+//@i
+
+// See:  SetTimer( time_in_milliseconds );
+
+if (done==-1) {
+    done = 0;
+    findPossibles2();
+    return;
+}
+
+if (done==0) {
+
+    if (typedFlash.endsWith( "I" ))
+        typedFlash = typedFlash.left( typedFlash.length()-1 );
+    else
+        typedFlash += "I";
+    return;
+}
+
+done = 0;
+KillTimer();
+
+if (selY>=0)
+    getParent().listMethodCallback( stringS[ selY ].desc, lastKey );
+else
+    getParent().listMethodCallback( typedR, lastKey );
+close();]]>
+</method>
+<method name="matchTyped" return="int">
+<param name="str" type="string" />
+<![CDATA[//@cmember matchTyped
+//@param string | str |
+//@return int |
+//@version Andrew Griffin | 10-08-01 14:51 |
+//@i
+
+if (!isSubStr)
+    return (!typedR || str.beginsWith(typedR));
+else {
+    if (!typedR) return 1;
+
+    int i = str.indexOf(typedR);
+    int i2 = str.indexOf("(");
+    return (i>=0 && (i2==-1 || i2>i));
+}]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col lpad="1" tpad="1" rpad="1" bpad="1" h="17" align="W" bk="128,128,128">
+<grid>
+<row>
+<col lpad="1" tpad="1" rpad="1" bpad="1" h="15" align="W" bk="255,255,255">
+<Label name="DRAG_ME" h="11" bind="typedFlash" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" align="WH">
+<Component name="idSub" cls="popFormSub" scrolls="1" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="selectRow" cls="gridcell" />
+<rmeth name="matchTyped" cls="int" />
+</return>
+</form>

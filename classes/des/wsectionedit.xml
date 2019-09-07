@@ -1,0 +1,46 @@
+<form name="WSectionEdit" bk="Face" margin="0" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:42 $" frevision="$Revision: 2 $">
+<members>
+<method name="Init">
+<![CDATA[//@version Andrew Griffin | 18-09-01 12:20 |]]>
+</method>
+<method name="Setup">
+<param name="M" type="ClassSection" />
+<![CDATA[//@cmember Setup
+//@param ClassSection | M |
+//@version Andrew Griffin | 05-12-01 12:01 |
+
+idList.SetList( &M.MemberDefs );
+idList.MakeGrid(1);
+idTitle.settext( "Class " + M.SectionType + " Section" );]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col align="WH">
+<grid>
+<row>
+<col rpad="32" bpad="6" align="W" bk="212,208,200" imgtile="8">
+<grid>
+<row>
+<col lpad="12" tpad="4" rpad="12" bpad="1" bk="224,192,128" imgtile="8">
+<Label name="idTitle" text="Class Section" shadc="255,255,255" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="12" />
+</col>
+<col align="W" bkimg="res::faderight.bmp" imgtile="1" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="32" bpad="6" h="1" align="W" bk="128,128,128" imgtile="8" />
+</row>
+<row>
+<col h="128" align="WH">
+<ListBox name="idList" IsList="Y" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

@@ -1,0 +1,108 @@
+<class name="Disp" HierImage="htag.bmp" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members>
+<String name="f" />
+<String name="sfx" />
+<String name="btw" />
+<String name="dfmt" />
+<String name="tfmt" />
+<String name="cap" />
+<String name="alist" />
+<String name="sfxa" />
+<method name="SetTo">
+<param name="X" type="object" />
+<![CDATA[SetQueried(1);
+if (X.Tag()!="e") return;
+
+for(int n=0;n<X.AttrCount();n++) {
+    string sval = X.AttrVal(n);
+
+    switch (X.AttrName(n)) {
+      case "f", "field": f = sval; break;
+      case "sfx": sfx = sval; break;
+      case "btw": btw = sval; break;
+      case "dfmt": dfmt = sval; break;
+      case "tfmt": tfmt = sval; break;
+      case "cap": cap = "Y"; break;
+      case "list": alist = "Y"; break;
+      case "sfxa": sfxa = "Y"; break;
+    }
+
+}]]>
+</method>
+<method name="GetXML">
+<param name="X" type="object" />
+<![CDATA[
+X.SetTag("e");
+
+X.AddAttr("f", f);
+if (sfx!="")    X.AddAttr("sfx", sfx);
+if (btw!="")    X.AddAttr("btw", btw);
+if (dfmt!="")   X.AddAttr("dfmt", dfmt);
+if (tfmt!="")   X.AddAttr("tfmt", tfmt);
+if (cap!="")     X.AddAttr("cap", "Y");
+if (alist!="")   X.AddAttr("list", "Y");
+if (sfxa!="")    X.AddAttr("sfxa", "Y");]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[// A Disp Item
+
+Hier.GetParent().EditDisp(this);]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:00 |
+classes::core::wpopupmenu P;
+
+// If this member has a class assosiated with it
+P.Add("Duplicate Disp Item","DPM");
+P.Add("Delete Disp Item","DM");
+String s = P.Track(1);
+
+if (s=="DPM") { // Duplicate Member
+    int i=ownerList().findIndex(this);
+    object o = ownerlist().createRow(i);
+    o = this;
+    o.setqueried(1);
+} else
+
+if (s=="DM") { // Delete Member
+    RemoveFromList();
+    Hier.getParent().idMulti.FindPane("DispEdit").doBlank();
+    Hier.GetParent().SetMod();
+}]]>
+</method>
+<method name="EventHierDrop">
+<param name="Hier" type="object" />
+<![CDATA[Object HFrom = Hier.DropSource();
+if (HFrom==null) { Message("HFrom error!!!"); return; }
+
+Object R = HFrom.CurrentRow(); // current row in source hierarchy
+
+if (R.ClassName()==ClassName())
+  { // same class
+  if (HFrom==Hier){
+    Object L = OwnerList();
+    int from = L.FindIndex( R );
+    int to   = L.FindIndex( this );
+    L.MoveRow(from,to);
+    Hier.SelectRow( R );
+    }
+  }]]>
+</method>
+<method name="Init">
+<![CDATA[f="New Hierarchy Display";]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="f" sfx=", " />
+<e f="sfx" sfx=", " />
+<e f="alist" sfx=", " />
+<e f="btw" sfx=", " />
+<e f="dfmt" sfx=", " />
+<e f="tfmt" sfx=", " />
+<e f="cap" sfx=", " />
+<e f="sfxa" />
+</disp>
+</class>

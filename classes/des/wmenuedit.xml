@@ -1,0 +1,164 @@
+<form name="WMenuEdit">
+<members>
+<method name="Init">
+<![CDATA[
+
+]]>
+</method>
+<method name="Setup">
+<param name="CD" />
+<![CDATA[string clsn = CD.classname();
+clsn = clsn.substring(clsn.lastIndexOf("\\")+1);
+
+if (clsn.eq("MenuRoot")) {
+
+    idMenuName.setText("Menu Attributes");
+    makeVisible(0, 0, 1);
+    idName.BindTo(null);
+    idOnClick.bindTo(null);
+    idOnClick.setText("OnMenu");
+    idOnClick.setEnabled(0);
+
+} else
+if (clsn.eq("MenuHead")) {
+
+    idMenuName.setText("Menu Header Attributes");
+    makeVisible(1, 1, 0);
+    idCaption.BindTo(&CD.caption);
+    idName.BindTo(&CD.Name);
+
+} else {
+
+    if (CD.tag.eq("Item")) {
+        idMenuName.setText("Menu Item Attributes");
+        makeVisible(1, 1, 1);
+        idCaption.BindTo(&CD.caption);
+        idName.BindTo(&CD.Name);
+        idOnClick.BindTo(&CD.Action);
+} else {
+        idMenuName.setText("Menu Item Separator");
+        makeVisible(0, 0, 0);
+    }
+}
+
+/*
+idClassName.BindTo(&CD.ClassName);
+idBaseClass.BindTo(&CD.BaseClass);
+idDescription.BindTo(&CD.Description);
+idReference.BindTo(&CD.Reference);
+
+idSQLName.BindTo(&CD.SQLName);
+idDataSource.BindTo(&CD.DataSource);
+idSQLAlias.BindTo(&CD.SQLAlias);
+idSQLSeq.BindTo(&CD.SQLSeq);
+
+idHierImage.BindTo(&CD.HierImage);
+idHierImageField.BindTo(&CD.HierImageField);
+
+idCaption.BindTo(&CD.Caption);
+idSavePos.BindTo(&CD.SavePos);
+idIcon.BindTo(&CD.Icon);
+idBkImg.BindTo(&CD.BkImg);
+
+idBkColor.BindTo(&CD.Bk);
+idMargins.BindTo(&CD.Margin);
+idSizeable.BindTo( &CD.Sizeable );
+idToolWindow.BindTo(&CD.ToolWindow);
+idAcceptFiles.BindTo(&CD.AcceptFiles);
+idHidden.BindTo(&CD.Hidden);
+idNoActivate.BindTo(&CD.NoActivate);
+idTopMost.BindTo(&CD.TopMost);
+idThinFrame.BindTo(&CD.ThinFrame);
+idCloseOnDeactivate.BindTo(&CD.CloseOnDeactivate);
+idNoCaption.BindTo(&CD.NoCaption);
+idEscCancel.BindTo(&CD.EscCancel);
+]]>
+</method>
+<method name="SetMod">
+<![CDATA[
+GetParent().SetMod();]]>
+</method>
+<method name="makeVisible">
+<param name="cap" type="int" />
+<param name="nam" type="int" />
+<param name="onClic" type="int" />
+<![CDATA[idCaption.setVisible(cap);
+idCaptionCap.setVisible(cap);
+idName.setVisible(nam);
+idNameCap.setVisible(nam);
+idOnClick.setVisible(onClic);
+idOnClickCap.setVisible(onClic);
+idOnClick.setEnabled(1);
+
+if (cap==1) idCaption.setFocus();]]>
+</method>
+<method name="findMethod">
+<param name="src" />
+<![CDATA[object ob=null;
+
+switch (src.getText()) {
+    case "On Click:" : ob=&idOnClick; break;
+    default: message("TBD"); return;
+}
+
+AdvSearch::findMethod(getParent(), ob.getText(), ob);
+]]>
+</method>
+<method name="doBlank">
+<![CDATA[idMenuName.setText("(N/A)");
+makeVisible(0, 0, 0);
+]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col lpad="6" tpad="4" rpad="6" bpad="6" align="W" bkimg="title.bmp" imgtile="8">
+<Label name="idMenuName" text="Form Menu" tx="255,255,255" shadc="0,0,0" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="12" />
+</col>
+</row>
+<row>
+<col>
+<grid tpad="2" rpad="2">
+<row>
+<col rpad="8" w="80" h="12" align="RV" />
+<col colspan="3" tpad="10" bpad="16" />
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label name="idCaptionCap" text="Caption:" />
+</col>
+<col colspan="3">
+<Edit name="idCaption" w="200" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV">
+<Label name="idNameCap" text="Name:" />
+</col>
+<col colspan="3" bpad="4">
+<Edit name="idName" w="200" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" h="12" align="RV" />
+<col colspan="3" bpad="4" />
+</row>
+<row>
+<col colspan="4" lpad="6" tpad="4" rpad="6" bpad="6" align="W" bkimg="title.bmp" imgtile="8">
+<Label text="Events" tx="255,255,255" shadc="0,0,0" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="10" />
+</col>
+</row>
+<row>
+<col tpad="10" rpad="8" align="RV">
+<Label name="idOnClickCap" text="On Click:" onClick="findMethod" />
+</col>
+<col colspan="3" tpad="10">
+<Edit name="idOnClick" w="200" onChange="SetMod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

@@ -1,0 +1,92 @@
+<form name="WbindTo" caption="Bind To" savepos="posbindto" margin="0" toolwindow="1" closeondeactivate="1" esccancel="1" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:40 $" frevision="$Revision: 2 $">
+<members>
+<Object name="hier" cls="aMember" />
+<String name="callback" />
+<String name="preState" />
+<Object name="param" />
+<method name="init">
+<param name="filename" type="string" />
+<param name="currState" type="string" />
+<![CDATA[//@cmember init
+//@param string | filename |
+//@param string | currState |
+//@version Andrew Griffin | 09-11-01 09:48 |
+//@i
+
+
+classes::core::globalForm::checkInitialSize( this, 160,240 );
+classes::core::globalForm::moveIntoFullView( this );
+
+string name = filename;
+name = name.subString( name.lastindexof( "\\" ) + 1 );
+name = name.getToken(0, ".");
+
+setText( "Bind To: " + name );
+
+amember m = &hier.members.CreateRow();
+m.name = name;
+m.icon = "..\\hobject.bmp";
+m.objFilename = filename;
+m.EventHierQuery( idHier );
+m.SetOpen( 1 );
+
+idHier.Update();
+m.findCurr( currState.lower(), idHier );
+FitRecursive();
+idHier.Update();]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember onTimer
+//@version Andrew Griffin | 08-11-01 12:59 |
+//@i
+
+KillTimer();
+close();]]>
+</method>
+</members>
+<static>
+<method name="browseClass">
+<param name="filename" type="string" />
+<param name="currState" type="string" />
+<param name="preState" type="string" />
+<param name="par" type="form" />
+<param name="callback" type="string" />
+<param name="param" type="edit" />
+<![CDATA[//@cmember browseClass
+//@param string | filename |
+//@param string | currState |
+//@param string | preState |
+//@param form | par |
+//@param string | callback |
+//@param edit | param |
+//@version Andrew Griffin | 08-11-01 14:16 |
+//@i
+
+wbindto w;
+
+w.callback = callback;
+w.preState = preState.lower();
+if (param!=null) w.param.setMagicPointer( param );
+
+if (par!=null) w.dialog( par ); else w.open();
+w.SnapToCell( param.GetCell() );
+w.init( filename, preState + currState );]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 08-11-01 12:21 |
+//@i
+
+browseClass( "c:\\w2\\classes\\des\\wclassview.xml", null, "" );]]>
+</method>
+</static>
+<grid>
+<row>
+<col align="WH">
+<Hierarchy name="idHier" text="Hierarchy" hscroll="Y" bind="hier" />
+</col>
+</row>
+</grid>
+</form>

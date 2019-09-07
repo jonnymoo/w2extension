@@ -1,0 +1,13 @@
+<class name="CriticalLock" description="W2 Script Reference">
+<members sub="Exit">
+<method name="UnLock">
+<![CDATA[//@cmember void UnLock();
+//@return void | Releases the lock
+//@i 
+]]>
+</method>
+</members>
+<return>
+<rmeth name="UnLock" cls="void" />
+</return>
+</class>

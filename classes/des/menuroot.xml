@@ -1,0 +1,63 @@
+<class name="MenuRoot" HierImage="hMenuB.bmp" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:40 $" frevision="$Revision: 2 $">
+<members>
+<String name="Caption" />
+<List name="mHeads" cls="MenuHead" />
+<method name="SetTo">
+<param name="X" type="object" />
+<![CDATA[Caption = "Form Menu";
+
+SetQueried(1);
+for(int e=0;;e++)
+{
+Object EX = &X.Element(e);
+if (EX==null) break;
+mHeads.CreateRow().SetTo( EX );
+}]]>
+</method>
+<method name="GetXML">
+<param name="X" type="object" />
+<![CDATA[
+X.SetTag("Menu");
+for(int n=0;n<mHeads.Count();n++){
+    XML EX;
+    X.AddElement(EX);
+    mHeads[n].GetXML(EX);
+    }]]>
+</method>
+<method name="reset">
+<![CDATA[mHeads.Reset();]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[
+Hier.GetParent().EditMenu(this);]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:03 |
+
+classes::core::wpopupmenu P;
+P.Add("New Menu Header","NH");
+P.Add("Delete Entire Menu","DM");
+String s = P.Track(1);
+
+if (s=="NH") {
+    MenuHead NH = &mHeads.CreateRow();
+    NH.Init();
+    Hier.SelectRow(NH);
+    NH.EventHierMouseSelect(Hier);  // select itself
+    Hier.GetParent().SetMod();
+} else
+
+if (s=="DM") {
+    Hier.getParent().idMulti.FindPane("MenuEdit").doBlank();
+    Hier.GetParent().SetMod();
+    RemoveFromList();
+}]]>
+</method>
+<method name="Init">
+<![CDATA[Caption = "Form Menu";]]>
+</method>
+</members>
+<static />
+</class>

@@ -1,0 +1,253 @@
+<form name="wtabsheet" icon="classes::resource::standard::blankIcon.ico" margin="0" fauthor="$Author: Andrew.b $" fdate="$Date: 23/08/02 10:06 $" frevision="$Revision: 1 $">
+<members>
+<method name="Init">
+<![CDATA[//@version Andrew Barrett | 10-08-02 19:03 |]]>
+</method>
+<method name="OnClickTab">
+<param name="Con" type="object" />
+<![CDATA[//@version Andrew Barrett | 11-08-02 15:12 |
+// Set all tabs to unselected
+
+// Unselect all tabs
+for(int n=0;;n++)
+{
+    Object C = idTabGrid.GetCell( 0, n );
+    if (C==null) break;
+    if (C.Control==null) continue;
+    C.SetBkImg("classes::resource::standard::tab_blue.bmp");
+    C.Control.SetTxColor(0xFFFFFF);
+    C.Control.SetHighlightColor( 0xFFFF00 );
+}
+
+// Select clicked tab
+Con.SetCellBkImg("classes::resource::standard::tab_sel.bmp");
+Con.SetTxColor(0);
+Con.SetHighlightColor(0);
+
+
+// Show component
+String sComp = Con.GetControlAttr( "showcomponent" );
+
+ShowGroup("ALLCOMPS",0);
+ShowGroup(sComp,1);
+
+FitRecursive();]]>
+</method>
+<method name="onCancel">
+<![CDATA[//@version Andrew Barrett | 11-08-02 15:12 |
+
+for(int n=0;;n++)
+{
+    Object C = idCompGrid.GetCell( 0, n );
+    if (C==null) break;
+    if (C.Control==null) continue;
+
+    if (C.Control.hasMethod("onCancel"))
+        if (!C.Control.onCancel())
+            return(0);
+}
+
+close();]]>
+</method>
+<method name="AddTab">
+<param name="name" type="string" />
+<param name="component" type="string" />
+<param name="param1" type="object" />
+<param name="param2" type="object" />
+<param name="param3" type="object" />
+<param name="param4" type="object" />
+<![CDATA[//@cmember AddTab
+//@param string | name |
+//@param string | component |
+//@param object | param1 |
+//@param object | param2 |
+//@param object | param3 |
+//@param object | param4 |
+//@version Andrew Barrett | 11-08-02 15:33 |
+//@i
+
+// Add tab
+int nCol=idTabGrid.AddColumn();
+gridCell thisCell=&idTabGrid.GetCell(0,nCol);
+thisCell.SetBkImg("classes::resource::standard::tab_blue.bmp");
+
+thisCell.setLPad(6);
+thisCell.setRPad(6);
+thisCell.setTPad(12);
+thisCell.setBPad(6);
+thisCell.setLPad(10);
+thisCell.SetImgTile(8);
+
+control thisControl=&thisCell.setControl("Label");
+thisControl.InstanceControl();
+
+thisControl.SetTxColor(0xFFFFFF);
+thisControl.SetHighlightColor( 0xFFFF00 );
+thisControl.SetText(name);
+thisControl.SetAttr("style","b");
+thisControl.SetAttr("onclick","OnClickTab");
+thisControl.SetAttr("showcomponent","TAB"+nCol);
+thisControl.seth(18);
+thisControl.setw(88);
+
+thisControl.UpdateWindow();
+
+// Add Component
+gridRow newRow=&idCompGrid.AddRow();
+thisCell=&newRow.GetCell(0);
+component thisComponent=&thisCell.setControl("Component");
+thisComponent.SetComp(component);
+thisComponent.InstanceControl();
+thisComponent.SetAttr("groups","ALLCOMPS,"+"TAB"+nCol);
+thisComponent.SetAttr("TABID","TAB"+nCol);
+thisComponent.SetVisible(0);
+
+// If it's not valid set it to blank
+if (!thisComponent.ComponentValid())
+    thisComponent.SetComp("classes::core::wblank");
+
+// Initialize component
+if (thisComponent.hasMethod("init"))
+    thisComponent.init(param1,param2,param3,param4);
+
+
+thisComponent.UpdateWindow();
+
+
+FitRecursive();]]>
+</method>
+<method name="ShowTab">
+<param name="name" type="string" />
+<![CDATA[//@cmember ShowTab
+//@param string | name |
+//@version Andrew Barrett | 10-08-02 18:44 |
+//@i
+
+for(int n=0;;n++)
+{
+    Object C = idTabGrid.GetCell( 0, n );
+    if (C==null) break;
+    if (C.Control==null) continue;
+
+    if (C.control.GetText().eq(name))
+    {
+        OnClickTab(C.control);
+        return(1);
+    }
+}
+
+return(0);]]>
+</method>
+<method name="onOK">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember onOK
+//@param label | ctrl |
+//@version Andrew Barrett | 11-08-02 15:34 |
+//@i
+
+for(int n=0;;n++)
+{
+    Object C = idCompGrid.GetCell( n,0 );
+    if (C==null) break;
+    if (C.Control==null) continue;
+
+    if (C.Control.hasMethod("onOK"))
+        if (!C.Control.onOK())
+            return(0);
+}
+
+close();]]>
+</method>
+<method name="onClose">
+<![CDATA[//@cmember onClose
+//@version Andrew Barrett | 11-08-02 15:12 |
+//@i
+
+onCancel();]]>
+</method>
+<method name="SetMod">
+<![CDATA[//@cmember SetMod
+//@version Andrew Barrett | 11-08-02 16:12 |
+//@i
+
+if (!GetText().endsWith("*")) SetText(GetText()+" *");]]>
+</method>
+<method name="ClearMod">
+<![CDATA[//@cmember ClearMod
+//@version Andrew Barrett | 11-08-02 16:12 |
+//@i
+
+if (GetText.endsWith("*")) SetText(GetText().left(GetText.length()-2));]]>
+</method>
+</members>
+<static>
+<method name="launch">
+<param name="parent" type="form" />
+<![CDATA[//@cmember launch
+//@param form | parent |
+//@version Andrew Barrett | 10-08-02 19:02 |
+//@i
+
+wtabsheet theseTabs;
+
+if (parent==null)
+    theseTabs.open();
+else
+    thesetabs.dialog(parent);
+
+theseTabs.init();
+
+return(theseTabs);]]>
+</method>
+<method name="main">
+<![CDATA[//@cmember main
+//@version Andrew Barrett | 10-08-02 18:00 |
+//@i
+
+launch();]]>
+</method>
+</static>
+<grid>
+<row>
+<col h="3" bk="0,128,128" />
+</row>
+<row>
+<col lpad="4" tpad="0" rpad="0" bpad="0" align="W" bk="0,128,128">
+<grid name="idTabGrid">
+<row>
+<col align="CV" imgtile="8" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="WH">
+<grid lpad="8" tpad="8" rpad="8" bpad="8">
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" align="WH">
+<grid name="idCompGrid">
+<row>
+<col />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col tpad="8" h="8" align="R">
+<grid groups="complete">
+<row>
+<col lpad="12" tpad="0" rpad="12" bpad="2" w="80" h="22" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="8">
+<Label name="idOK" text="OK" tx="255,255,255" style="b" onClick="onOK" txsel="FFFF00" />
+</col>
+<col lpad="12" tpad="0" rpad="12" bpad="2" w="80" h="22" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="8">
+<Label name="idCancel" text="Cancel" tx="255,255,255" style="b" onClick="onCancel" txsel="FFFF00" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

@@ -1,0 +1,166 @@
+<grid>
+<row>
+<col bk="0,128,128">
+<Label text="Users" tx="255,255,255" style="b" size="20" font="Arial" />
+</col>
+<col bk="0,128,128">
+<Label />
+</col>
+<col bk="0,128,128">
+<Label />
+</col>
+<col bk="0,128,128">
+<Label />
+</col>
+<col bk="0,128,128">
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col>
+<Label text="User ID" CalcList="0" style="b" />
+</col>
+<col>
+<Label text="User Name" CalcList="0" style="b" />
+</col>
+<col>
+<Label text="Num Processes" style="b" />
+</col>
+<col>
+<Label text="Num Documents" style="b" />
+</col>
+<col>
+<Label text="Average Talk Time (s)" style="b" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col bk="255,255,255">
+<Label text="Forename" source="SetContent( &quot;&quot;+TheList.User_ID);" CalcList="1" />
+</col>
+<col bk="255,255,255">
+<Label text="Surname" CalcList="1" source="SetContent( &quot;&quot;+TheList.User_Name);" />
+</col>
+<col align="C">
+<Label text="num processes" source="SetContent( &quot;&quot;+GetNumProcesses());" />
+</col>
+<col align="C">
+<Label text="num documents" source="SetContent( &quot;&quot;+GetNumDocuments());" />
+</col>
+<col align="C">
+<Label text="avg talk time" source="SetContent( &quot;&quot;+GetAvgTalkTime());" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col>
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+</grid>

@@ -1,0 +1,136 @@
+<class name="Hierarchy" description="W2 Script Reference" base="Control">
+<members>
+<method name="CurrentRow">
+<![CDATA[//@cmember Object CurrentRow(  );
+//@return Object | 
+//@i 
+]]>
+ />
+</method>
+<method name="DDCopy">
+<![CDATA[//@cmember int DDCopy(  );
+//@return int | 
+//@i 1 if copy mode
+]]>
+ />
+</method>
+<method name="DDCopySelections">
+<![CDATA[//@cmember void DDCopySelections(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="DDEnableCopy">
+<param name="b" type="int" />
+<![CDATA[//@cmember void? DDEnableCopy( int b );
+//@param int | b | 
+//@return void? | 
+//@i drag drop copy
+]]>
+ />
+</method>
+<method name="DDEnableMove">
+<param name="b" type="int" />
+<![CDATA[//@cmember void? DDEnableMove( int b );
+//@param int | b | 
+//@return void? | 
+//@i drag drop move
+]]>
+ />
+</method>
+<method name="DDMove">
+<![CDATA[//@cmember int DDMove(  );
+//@return int | 
+//@i 1 if move mode
+]]>
+ />
+</method>
+<method name="DDMoveSelections">
+<![CDATA[//@cmember void DDMoveSelections(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="DeleteSelections">
+<![CDATA[//@cmember void? DeleteSelections(  );
+//@return void? | 
+//@i 
+]]>
+ />
+</method>
+<method name="DropSource">
+<![CDATA[//@cmember Hierarchy DropSource(  );
+//@return Hierarchy | 
+//@i can be called inside EventHierDrop()
+]]>
+ />
+</method>
+<method name="GetObject">
+<![CDATA[//@cmember Object GetObject(  );
+//@return Object | 
+//@i 
+]]>
+ />
+</method>
+<method name="SelectRow">
+<param name="R" type="Object" />
+<![CDATA[//@cmember void SelectRow( Object R );
+//@param Object | R | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetObject">
+<param name="BindTo" type="Object" />
+<![CDATA[//@cmember void SetObject( Object BindTo );
+//@param Object | BindTo | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetOrder">
+<param name="L" type="List" />
+<![CDATA[//@cmember void SetOrder( List L );
+//@param List | L | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Update">
+<![CDATA[//@cmember void Update(  );
+//@return void | 
+//@i redraw control
+]]>
+ />
+ </method>
+ <method name="ActivateWindow">
+<![CDATA[//@cmember void ActivateWindow(  );
+//@return void | 
+//@i Use this to ensure that the hierarchy window is active
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="CurrentRow" cls="Object" />
+<rmeth name="DDCopy" cls="int" />
+<rmeth name="DDCopySelections" cls="void" />
+<rmeth name="DDEnableCopy" cls="void?" />
+<rmeth name="DDEnableMove" cls="void?" />
+<rmeth name="DDMove" cls="int" />
+<rmeth name="DDMoveSelections" cls="void" />
+<rmeth name="DeleteSelections" cls="void?" />
+<rmeth name="DropSource" cls="Hierarchy" />
+<rmeth name="GetObject" cls="Object" />
+<rmeth name="SelectRow" cls="void" />
+<rmeth name="SetObject" cls="void" />
+<rmeth name="SetOrder" cls="void" />
+<rmeth name="Update" cls="void" />
+<rmeth name="ActivateWindow" cls="void" />
+</return>
+</class>

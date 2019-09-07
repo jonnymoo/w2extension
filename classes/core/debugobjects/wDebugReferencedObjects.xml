@@ -1,0 +1,83 @@
+<form name="wDebugReferencedObjects" caption="Circular Reference Detection" savepos="WDEBUGREFOBJECTS" bk="C0C0C0" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<Object name="Root" cls="classes::core::debugobjects::ObjectReference" />
+<method name="doStart">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doStart
+//@param label | ctrl |
+//@version Jonathan.Muir | 22-03-13 14:35 |
+//@i
+this.SetWaitCursor();
+
+idHier.setVisible(0);
+
+root.Children.reset();
+root.SetChildrenFromFile(edFileName.getText());
+
+idHier.setVisible(1);
+
+idHier.Update();]]>
+</method>
+<method name="fileOpen">
+<param name="ctrl" type="image" />
+<![CDATA[//@cmember fileOpen
+//@param image | ctrl |
+//@version Jonathan.Muir | 21-03-13 16:05 |
+//@i
+
+
+string fn = this.GetOpenFileName("Reference Output File","all|*.*","");
+
+if(fn) edFileName.SetText(fn);]]>
+</method>
+</members>
+<static>
+<method name="open">
+<param name="parent" type="object" />
+<![CDATA[//@cmember open
+//@param object | parent |
+//@version Jonathan.Muir | 22-03-13 14:29 |
+//@i
+
+classes::core::debugobjects::wDebugReferencedObjects w;
+w.open();
+w.show(1);]]>
+</method>
+</static>
+<grid>
+<row>
+<col align="WH">
+<grid name="mainGrid">
+<row>
+<col lpad="8" tpad="8" rpad="8" bpad="8">
+<Label text="To use this form:&#13;&#10;&#13;&#10;Use sys::RecordObjects(1) to start recording objects in your system and&#13;&#10;sys::RecordObjects(0) to stop recording objects.&#13;&#10;&#13;&#10;You can then use sys::WriteObjectReferencesToFile(fileName) to write references out to file.&#13;&#10;&#13;&#10;Load the file and click below to view objects in the viewer." />
+</col>
+</row>
+<row>
+<col lpad="8" tpad="2" rpad="8" bpad="2">
+<grid>
+<row>
+<col lpad="8" tpad="4" rpad="8" bpad="3">
+<Label text="Click Me To Calculate The Hierarchy from File Specified Here:" onclick="doStart" style="b" />
+</col>
+<col>
+<Edit name="edFileName" w="90" />
+</col>
+<col>
+<Image text="Image" img="classes::resource::standard::fileopen.bmp" onclick="fileOpen" />
+</col>
+<col />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="WH">
+<Hierarchy name="idHier" text="Hierarchy" w="500" h="600" bind="Root" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

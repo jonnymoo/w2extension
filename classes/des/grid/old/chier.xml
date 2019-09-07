@@ -1,0 +1,154 @@
+<form name="CHier" base="CtrlBase" bk="Face" margin="0" fauthor="$Author: Andrew.g $" fdate="$Date: 3/09/01 10:39 $" frevision="$Revision: 4 $">
+<members>
+<method name="Init">
+<![CDATA[//@version Andrew Griffin | 03-09-01 10:12 | 
+
+SetWindowName("LabelEditor");
+SetYesNo(idTabStop);
+SetYesNo(idEnabled);
+SetYesNo(idVisible);
+SetYesNo(idhscroll);
+SetYesNo(idddCopy);
+SetYesNo(idddMove);
+SizeToFit();
+]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" />
+<![CDATA[//@version Andrew Griffin | 03-09-01 10:27 | 
+
+// THIS IS CALLED FROM THE GRID EDITOR
+idName.setText( Ctrl.Name );
+ShowVisible(Ctrl);
+ShowEnabled(Ctrl);
+ShowTabStop(Ctrl);
+ShowYesNo( Ctrl, idhscroll );
+ShowYesNo( Ctrl, idddCopy );
+ShowYesNo( Ctrl, idddMove );
+idBind.setText( Ctrl.GetAttr("bind") );
+]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[//@version Andrew Griffin | 03-09-01 10:12 | 
+switch (attrName.lower()) {
+  case  "hscroll", "ddcopy", "ddmove" : return 1;
+}
+
+return 0;]]>
+</method>
+<method name="ModYesNo">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember ModYesNo
+//@param control | ctrl | 
+//@version Andrew Griffin | 03-09-01 10:34 | 
+
+String s = ctrl.getText();
+if (s=="Yes") s = ""; else s="0";
+SetAttr( ctrl.GetControlAttr( "query" ) ,s);
+]]>
+</method>
+<method name="ShowYesNo">
+<param name="Ctrl" type="control" />
+<param name="ctrlEdit" type="control" />
+<![CDATA[//@cmember ShowYesNo
+//@param control | Ctrl | 
+//@param control | ctrlEdit | 
+//@version Andrew Griffin | 03-09-01 10:25 | 
+
+String s = Ctrl.GetAttr( ctrlEdit.GetControlAttr( "query" ) );
+if (s=="") s = "Yes"; else s = "No";
+ctrlEdit.setText( s );
+]]>
+</method>
+</members>
+<static />
+<grid rpad="2" bpad="1" bk="224,224,192">
+<row>
+<col align="V">
+<Label text="Name" />
+</col>
+<col align="W">
+<Edit name="idName" w="120" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" align="V">
+<grid>
+<row>
+<col align="V">
+<Label text="Tab:" />
+</col>
+<col>
+<Edit name="idTabStop" w="32" combo="2" onChange="DoTabStop" border="0" />
+</col>
+<col lpad="4" align="V">
+<Label text="Enabled:" />
+</col>
+<col>
+<Edit name="idEnabled" w="32" combo="2" onChange="DoEnabled" border="0" />
+</col>
+<col lpad="4" align="V">
+<Label text="Visible:" />
+</col>
+<col>
+<Edit name="idVisible" w="32" combo="2" onChange="DoVisible" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups" />
+</col>
+<col align="W">
+<Edit name="idGroups" w="120" onChange="DoGroups" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="BindTo" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col align="W">
+<Edit name="idBind" w="100" onChange="DoBind" border="0" />
+</col>
+<col align="V">
+<Button w="14" h="14" onClick="ChooseBind" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="H Scroll Bar" />
+</col>
+<col>
+<Edit name="idhscroll" w="48" onChange="ModYesNo" border="0" combo="2" query="hscroll" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="DD Copy" />
+</col>
+<col>
+<Edit name="idddCopy" w="48" onChange="ModYesNo" border="0" combo="2" query="ddcopy" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="DD Move" />
+</col>
+<col>
+<Edit name="idddMove" w="48" onChange="ModYesNo" border="0" combo="2" query="ddmove" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

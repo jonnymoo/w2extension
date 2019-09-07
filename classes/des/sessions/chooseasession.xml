@@ -1,0 +1,128 @@
+<form name="chooseASession" caption="Session Selector" savepos="chooseASessonPos" topmost="1" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
+<members>
+<String name="filename" />
+<Integer name="mode" />
+<method name="populateSessionList">
+<![CDATA[//@cmember populateSessionList
+//@version Andrew Griffin | 22-02-02 10:52 |
+//@i
+
+classes::des::sessions::asession sList[] = &classes::des::sessions::asession::getActiveSessions();
+idList.SetList( sList );]]>
+</method>
+<method name="doSelect">
+<![CDATA[//@cmember doSelect
+//@version Andrew Griffin | 22-02-02 11:17 |
+
+asession row = &idList.CurrentRow();
+if (row==null)
+{
+    message( "First select a session..." );
+    return;
+}
+
+if (mode==1)    // new Class
+{
+
+    aSSafeTrans::registerSSAFE( filename, row.sesId, 0 );
+    close();
+
+}]]>
+</method>
+<method name="doSesMang">
+<![CDATA[//@cmember doSesMang
+//@version Andrew Griffin | 25-02-02 09:45 |
+//@i
+
+::sessions::wSessionEdit::Main( null, this );]]>
+</method>
+<method name="wSessionClose">
+<![CDATA[//@cmember wSessionClose
+//@version Andrew Griffin | 25-02-02 10:03 |
+//@i wSessionEdit Callback to refresh...
+
+populateSessionList();]]>
+</method>
+</members>
+<static>
+<method name="getForNewClass">
+<param name="filename" type="string" />
+<param name="par" type="form" />
+<![CDATA[//@cmember getForNewClass
+//@param string | filename |
+//@param form | par |
+//@version Andrew Griffin | 22-02-02 10:56 |
+
+chooseASession w;
+
+w.dialog( par );
+w.populateSessionList();
+w.filename = filename;
+w.mode = 1;]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col bpad="8">
+<Label text="Choose a session for this class:" style="b" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="128" align="WH">
+<ListBox name="idList" IsList="Y" list="sesList" ondoubleclick="doSelect">
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2" w="160">
+<Label text="Session Name" tx="0,0,128" bind="sname" style="b" header="1" />
+</col>
+<col lpad="4" tpad="2" rpad="4" bpad="2">
+<Label text="Doc No" tx="128,0,0" bind="docNo" style="b" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2">
+<Label text="Name" tx="0,0,128" bind="sname" />
+</col>
+<col lpad="4" tpad="2" rpad="4" bpad="2">
+<Label text="No" tx="128,0,0" bind="docNo" />
+</col>
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col tpad="16" align="W">
+<grid>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="S.Manager" tx="255,255,255" txsel="FFFF00" style="b" onclick="doSesMang" />
+</col>
+<col w="8" align="W" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Select" tx="255,255,255" txsel="FFFF00" style="b" onclick="doSelect" />
+</col>
+<col w="8" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="No Session" tx="255,255,255" txsel="FFFF00" style="b" onclick="close" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

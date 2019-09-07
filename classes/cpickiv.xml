@@ -1,0 +1,29 @@
+<class name="cpickIv" fauthor="$Author: Andrew.g $" fdate="$Date: 12/07/02 12:28 $" frevision="$Revision: 1 $">
+<members>
+<Integer name="code" />
+<Integer name="val" />
+<Integer name="extra" />
+<method name="setto" return="cpickiv">
+<param name="code" type="int" />
+<param name="val" type="int" />
+<param name="extra" type="int" />
+<![CDATA[//@cmember setto
+//@param int | code |
+//@param int | val |
+//@param int | extra | optional
+//@return cpickiv |
+//@version Andrew Griffin | 28-06-02 10:27 |
+//@i
+
+this.code = code;
+this.val = val;
+if (extra!=null) this.extra = extra;
+
+return this;]]>
+</method>
+</members>
+<static />
+<return>
+<rmeth name="setto" cls="cpickiv" />
+</return>
+</class>

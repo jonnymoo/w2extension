@@ -1,0 +1,17 @@
+<W2DesResource name="Check/Radio">
+
+<res name="Checkbox (2 State)" base="CheckBox" text="CheckBox">
+  <control steps="2" img="classes::resource::standard::blip_tick2.bmp" />
+</res>
+
+<res name="Checkbox (3 State)" base="CheckBox" text="CheckBox">
+  <control steps="3" img="classes::resource::standard::blip_tick3.bmp" />
+</res>
+
+<separator />
+
+<res name="Radio" base="Radio" text="Radio">
+  <control img="classes::resource::standard::blip_tick2.bmp" />
+</res>
+
+</W2DesResource>

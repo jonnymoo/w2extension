@@ -1,0 +1,10 @@
+<class name="atabrec" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
+<members>
+<String name="tabName" />
+<String name="classPath" />
+<String name="info" />
+<Integer name="colour" />
+<Integer name="colbk" />
+</members>
+<static />
+</class>

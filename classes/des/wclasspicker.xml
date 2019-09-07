@@ -1,0 +1,41 @@
+<form name="WClassPicker" hidden="1" topmost="1" closeondeactivate="1" nocaption="1" esccancel="1">
+<members />
+<static>
+<method name="OpenPop">
+<param name="par" />
+<![CDATA[
+Object WP = par.GetPopup("WClassPicker");
+
+if (WP==null){
+    WP = &CreateInstance();
+    WP.dialog(par);
+    WP.SetWindowName("WClassPicker");
+    }
+
+WP.SnapToCursor(-8,4);
+WP.Show(1);
+WP.SetFocus();
+]]>
+</method>
+</static>
+<grid>
+<row>
+<col lpad="4" tpad="1" rpad="4" bpad="1" bk="0,0,128">
+<Label name="DRAG_ME" text="Select a Class:" tx="255,255,255" style="b" />
+</col>
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col>
+<PickQuery w="140" h="140" />
+</col>
+<col />
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

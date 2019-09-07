@@ -1,0 +1,1484 @@
+<form name="WGridEdit" caption="Grid Editor" margin="0" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:39$" frevision="$Revision: 2$">
+<members>
+<String name="SQL" />
+<XML name="FileXML" />
+<Integer name="ctrlEdShow" />
+<Integer name="timerMode" />
+<Object name="spellChk" cls="Des::spellChecker" />
+<method name="Init">
+<![CDATA[//@version Andrew Griffin | 01-08-02 09:42 |
+
+ctrlEdShow = 1;
+//CtrlEdit Z; Z.dialog(this); Z.Init();
+idCellEdit.Init();
+
+//
+// Display or hide insert control toolbar
+
+toggleCtrlToolbar();
+
+//
+// Load Designer Resource Files
+if (ResXML.count()>0) return;
+
+
+FileFinder FF = &Sys::NewFileFinder();
+
+string pth = path();
+pth = pth.left(pth.lastIndexOf("\\")+1);
+
+int ok = FF.FindFirst( pth + "..\\res\\*.xrf", "" );
+
+while( ok ) {
+  string full = pth + "..\\res\\" + FF.Filename;
+
+  XML nX = &classes::des::globalXML::loadXML( full );
+  if (nX.tag()!="error") {
+    ResXML.addElement( nX[0] );          // Get actual loaded XML
+    //message( "Loaded " + nX[0].getAttr("name") );
+  }
+
+  ok = FF.FindNext();
+}]]>
+</method>
+<method name="Start">
+<![CDATA[
+open();
+Init();]]>
+</method>
+<method name="openingView">
+<![CDATA[//@version Andrew Griffin | 22-07-02 09:45 |
+
+if (!ctrlEdShow) return;
+
+ctrlEdShow = 0;
+
+if (!CtrlEditDocked) {
+    wFloatCtrlEdit Z; Z.dialog(this); Z.Init();
+} else {
+    wFloatCtrlEdit Z = &idDocked;
+    Z.SetComp( "wFloatCtrlEdit" );
+    Z.setVisible( 1 );
+    Z.Init();
+    Z.FitRecursive();
+    //getParent().showgroup( "ctrlGrp", 1 );
+}
+//    CtrlEdit Z; Z.dialog(this); Z.Init();
+
+GridClicked();]]>
+</method>
+<method name="DoAddControl">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember DoAddControl
+//@param control | ctrl |
+//@version Andrew Griffin | 26-07-02 14:36 |
+//@version scott | 07-02-05 19:58 |
+//@version Darren Ball | 14-03-07 11:44 |
+
+Object XCC = &idGridEdit.CurrentCell();
+if (XCC==null) return;
+
+classes::core::wpopupmenu P;
+P.Add("Label", NULL, "classes::des::res::grid::label.ico" );
+P.Add("Image", NULL, "classes::des::res::grid::image.ico" );
+P.AddSeparator();
+P.Add("Edit", NULL, "classes::des::res::grid::editbox.ico" );
+P.Add("Radio", NULL, "classes::des::res::grid::radiobutton.ico" );
+P.Add("CheckBox", NULL, "classes::des::res::grid::checkbox.ico" );
+P.Add("PickQuery", NULL, "classes::des::res::grid::pickquery.ico" );
+P.AddSeparator();
+P.Add("ListBox", NULL, "classes::des::res::grid::listbox.ico" );
+P.Add("Hierarchy", NULL, "classes::des::res::grid::Hierachy.ico" );
+P.AddSeparator();
+P.Add("Component", NULL, "classes::des::res::grid::component.ico" );
+P.Add("MultiPane", NULL, "classes::des::res::grid::multiPane.ico" );
+P.AddSeparator();
+P.Add("SizeBar", NULL, "classes::des::res::grid::sizeBar.ico" );
+P.Add("MapEditor","Map");
+P.Add("SourceEditor");
+P.Add("RTFEditor", NULL, "classes::des::res::grid::rtf.ico" );
+P.Add("ImageViewer");
+P.Add("HTMLViewer");
+P.Add("WinWordViewer");
+P.Add("MSOfficeViewer");
+
+P.AddSeparator();
+
+for (int i=0; i<ResXML.count(); i++)
+{
+    XML x = &ResXML[i];
+
+    classes::core::wpopupmenu P2;
+    for (int n=0; n<x.count(); n++)
+      if (x[n].tag().eq("separator")) P2.addSeparator();
+      else P2.Add( x[n].getAttr("name"), "RS," + i + "," + n);
+
+    P.Add( P2, x.getAttr("name") );
+}
+
+XML selRes = null;
+
+String s = P.Track(1,ctrl,NULL,NULL,1);
+if (s=="") return;
+
+doInsertControl( s );]]>
+</method>
+<method name="doInsertControl">
+<param name="s" type="string" />
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember doInsertControl
+//@param string | s |
+//@param control | ctrl |
+//@version Andrew Griffin | 26-07-02 14:56 |
+//@version Simon Carroll | 07-08-03 10:25 |
+//@version Jonathan.Muir | 06-06-13 12:22 |
+
+xml selRes = NULL;
+String txt = s;
+
+if      (s=="Edit") txt = "";
+else if (s=="PickQuery") txt = "";
+else if (s.left(3)=="RS,")
+{
+    selRes = &ResXML[ s.getToken(1).val() ][ s.getToken(2).val() ];
+    s = selRes.getAttr("base");
+    txt = selRes.getAttr("text");
+}
+
+
+if (s=="ListBox"){
+    if (ctrl!=null)
+    {
+        string ss = wGetGridArray::getGridSize( this, ctrl.GetCell() );
+        if (!ss) return;
+        int x = ss.gettoken(0,"x").val(),
+            y = ss.gettoken(1,"x").val();
+        idGridEdit.AddSubGrid(y,x);
+    }
+    else
+        idGridEdit.AddSubGrid(1,8);
+
+    Object X = &idGridEdit.CurrentCell();
+    Object GX = &X.GetObject();
+    GX.SetAttr( "IsList", "Y" );
+} else
+if (s=="Component"){
+    idGridEdit.AddSubGrid(0,0);
+    Object X = &idGridEdit.CurrentCell();
+    Object GX = &X.GetObject();
+    GX.SetAttr( "IsComp", "Y" );
+
+    XML XX;
+    GetXML( XX, X.GetGrid() );
+    LoadGrControl( X, XX, getParent().FileName );
+
+    idGridEdit.CalcSizes();
+    GridClicked();
+
+}
+else if (s)
+{
+    Object CurrCon = idGridEdit.CurrentCell().GetObject();
+    if (CurrCon == null)
+        idGridEdit.AddObject(s,txt);
+    else
+    {
+        idGridEdit.AddObject(s,CurrCon.text);
+        idGridEdit.SetControlAttr("name",CurrCon.Name);
+        idGridEdit.SetControlAttr("onClick",CurrCon.GetAttr("onClick"));
+        idGridEdit.SetControlAttr("groups",CurrCon.GetAttr("groups"));
+        idGridEdit.SetControlAttr("hide",CurrCon.GetAttr("hide"));
+        idGridEdit.SetControlAttr("param",CurrCon.GetAttr("param"));
+        idGridEdit.SetControlAttr("help",CurrCon.GetAttr("help"));
+
+    }
+}
+else
+    idGridEdit.Clear();
+
+GridClicked();
+string fn;
+
+// Custom Resource Attrbutes for control
+if (selRes!=null) {
+
+  for (int i=0; i<selRes.count(); i++) {
+   XML typX = &selRes[i];
+   for (int n=0; n<typX.attrcount(); n++) {
+    string  atn = typX.attrName(n),
+            atv = typX.attrVal(n);
+
+    if (atv.left(7).eq("classes")) {
+        // Commented this line out - I think it can be removed.
+        // If left in then the add old style button adds the wrong thing to the bkimg of
+        // the cell
+        //atv = "file::" + ::AdvSearch::classToPath( atv, path(), 1);
+    }
+
+    if      (typX.tag().eq("cell")) idGridEdit.SetCellAttr( atn, atv );
+    else if (typX.tag().eq("control")) idGridEdit.SetControlAttr( atn, atv );
+
+   }
+  }
+
+//  idGridEdit.CalcSizesIf();
+  idGridEdit.CalcSizes();
+  GridClicked();
+
+}
+
+
+/*
+if (mode & 128) {
+    if      (mode == 128) fn = "classes::resource::standard::button.bmp";
+    else if (mode == 129) fn = "classes::resource::standard::rb_20blue.bmp";
+
+    fn=::AdvSearch::classToPath( fn, path(), 1);
+    idGridEdit.SetCellAttr( "bkimg", fn );
+    if      (mode == 128) fn = "8";
+    else if (mode == 129) fn = "32";
+    idGridEdit.SetCellAttr( "imgtile", fn );
+
+    idGridEdit.SetCellAttr( "halign", "C" );
+    idGridEdit.SetCellAttr( "valign", "V" );
+
+    idGridEdit.SetCellAttr( "lpad", "12" );
+    idGridEdit.SetCellAttr( "rpad", "12" );
+    idGridEdit.SetCellAttr( "tpad", "3" );
+    idGridEdit.SetCellAttr( "bpad", "6" );
+
+    idGridEdit.SetControlAttr( "tx", "FFFFFF");
+    idGridEdit.SetControlAttr( "txsel", "FFFF00");
+    idGridEdit.SetControlAttr( "style", "b");
+
+    idGridEdit.CalcSizesIf();
+    GridClicked();
+}]]>
+</method>
+<method name="DoNewGrid">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember DoNewGrid
+//@param control | ctrl |
+//@version Andrew Griffin | 08-07-02 16:44 |
+
+AddGrid(1, ctrl);
+
+
+::WClassView wC = &getParent();
+::Grid G = &wC.XFile.Classes[0].Grids[0];
+
+G.populateCtrlList( wC );]]>
+</method>
+<method name="DoSubGrid">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember DoSubGrid
+//@param control | ctrl |
+//@version Andrew Griffin | 08-07-02 16:44 |
+
+Object X = &idGridEdit.CurrentCell();
+if (X==null) return;
+
+AddGrid(0, ctrl);]]>
+</method>
+<method name="AddGrid">
+<param name="reset" type="object" />
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember AddGrid
+//@param object | reset |
+//@param control | ctrl |
+//@version Andrew Griffin | 08-07-02 16:45 |
+
+/*
+popupmenu P;
+for(int x=1;x<9;x++)
+for(int y=1;y<9;y++)
+{
+int z = x * 100 + y;
+if (x>1 && y==1) P.Add(";"+x+"x"+y,z.toString());
+else P.Add(x+"x"+y,z.toString());
+}
+String s = P.Track();
+if (!s) return;
+int z = s.val();
+x = z / 100;
+y = z % 100;
+*/
+
+string s = wGetGridArray::getGridSize( this, ctrl.GetCell() );
+if (!s) return;
+int x = s.gettoken(0,"x").val(),
+    y = s.gettoken(1,"x").val();
+
+if (reset){
+    idGridEdit.Reset();
+    idGridEdit.NewGrid(y,x);
+    }
+else
+    idGridEdit.AddSubGrid(y,x);
+GridClicked();]]>
+</method>
+<method name="SetCellAttr">
+<param name="X" type="object" />
+<param name="attr" type="object" />
+<param name="val" type="object" />
+<![CDATA[//@version Ricky LEE | 31-03-06 09:14 |
+
+// REDUNDANT - not undo able
+
+for(int r=0;r<X.Rows();r++){
+    for(int c=0;c<X.Columns();c++){
+        Object Col = &X.GetCell(r,c);
+        if (Col.GetGrid()!=null)
+            SetCellAttr( Col.GetGrid(),attr,val );
+        if (!Col.IsSelected()) continue;
+        Col.SetAttr(attr,val);
+        }
+    }]]>
+</method>
+<method name="SetCtrlAttr">
+<param name="X" type="object" />
+<param name="attr" type="object" />
+<param name="val" type="object" />
+<![CDATA[//@version Ricky LEE | 31-03-06 09:14 |
+
+// REDUNDANT - not undo able
+
+for(int r=0;r<X.Rows();r++){
+    for(int c=0;c<X.Columns();c++){
+        Object Col = &X.GetCell(r,c);
+        if (Col.GetGrid()!=null)
+            SetCtrlAttr( Col.GetGrid(),attr,val );
+        if (!Col.IsSelected()) continue;
+        if (Col.GetObject()==null) continue;
+        Col.GetObject().SetAttr(attr,val);
+        }
+    }]]>
+</method>
+<method name="DoClear">
+<![CDATA[
+Object X = &idGridEdit.CurrentCell();
+if (X==null) return;
+
+idGridEdit.Clear();
+GridClicked();
+
+refreshControlList();]]>
+</method>
+<method name="GetPad">
+<param name="Con" type="object" />
+<![CDATA[
+String s = Con.getText();
+if (s) return s.val();
+return -2;]]>
+</method>
+<method name="XMLColor">
+<param name="i" type="object" />
+<![CDATA[
+int r = (i & 0xFF0000) / 0x10000;
+int g = (i & 0xFF00) / 0x100;
+int b = i & 0xFF;
+String s = r+","+g+","+b;
+return s;]]>
+</method>
+<method name="GetObjectXML">
+<param name="X" type="object" />
+<param name="Obj" type="object" />
+<![CDATA[
+// params
+// X    XMLObject for output
+// Obj  EdObject from GridEditor
+
+X.SetTag( Obj.TypeName );
+if (Obj.Name) X.AddAttr( "name", Obj.Name );
+if (Obj.Text) X.AddAttr( "text", Obj.Text );
+if (Obj.MinWidth)  X.AddAttr("w",""+Obj.MinWidth);
+if (Obj.MinHeight) X.AddAttr("h",""+Obj.MinHeight);
+if (Obj.TextColor) X.AddAttr("tx",""+Obj.TextColorXML);
+if (Obj.Img)       X.AddAttr("img",Obj.Img);
+// text fx
+if (Obj.tlc!=-1) X.AddAttr("tlc",XMLColor(Obj.tlc));
+if (Obj.brc!=-1) X.AddAttr("brc",XMLColor(Obj.brc));
+if (Obj.shadc!=-1) X.AddAttr("shadc",XMLColor(Obj.shadc));
+if (Obj.shadx) X.AddAttr("shadx",Obj.shadx);
+if (Obj.shady) X.AddAttr("shady",Obj.shady);
+if (Obj.shadt) X.AddAttr("shadt",Obj.shadt);
+// other attrs
+for(int n=0;;n++){
+    String attr = Obj.AttrName(n); if (!attr) break;
+    String aval = Obj.AttrValue(n); if (!aval) continue;
+    X.AddAttr(attr,aval);
+    }
+for(n=0;;n++){
+    Object XMLC = &Obj.XMLContent(n); if (XMLC==null) break;
+    X.AddElement(XMLC);
+    }]]>
+</method>
+<method name="GetXML">
+<param name="X" type="XML" />
+<param name="Grid" type="object" />
+<![CDATA[//@version Andrew Griffin | 17-05-02 13:33 |
+
+int obType;
+if (Grid.GetAttr("IsList")=="Y"){
+    X.SetTag("ListBox");
+    obType = 1;
+} else
+if (Grid.GetAttr("IsComp")=="Y"){
+    X.SetTag("Component");
+    obType = 2;
+} else
+if (Grid.GetAttr("IsMultiPane")=="Y"){
+    X.SetTag("MultiPane");
+    obType = 3;
+} else
+    X.SetTag("grid");
+
+if (Grid.Name)      X.AddAttr("name", Grid.Name );
+if (Grid.LeftPad)   X.AddAttr("lpad",""+Grid.LeftPad);
+if (Grid.TopPad)    X.AddAttr("tpad",""+Grid.TopPad);
+if (Grid.RightPad)  X.AddAttr("rpad",""+Grid.RightPad);
+if (Grid.BottomPad) X.AddAttr("bpad",""+Grid.BottomPad);
+if (Grid.BkColor!=-1) X.AddAttr("bk", wfloatctrledit::colIntToStr( /*XMLColor(*/Grid.BkColor, 0 ));
+String bki = Grid.BkImg; if (bki) X.AddAttr("bkimg",bki);
+if (Grid.ImgTile)   X.AddAttr("imgtile",""+Grid.ImgTile);
+
+if (obType){
+    if (Grid.MinWidth)  X.AddAttr("w",""+Grid.MinWidth);
+    if (Grid.MinHeight) X.AddAttr("h",""+Grid.MinHeight);
+}
+
+// other grid attrs
+for(int n=0;;n++){
+    String attr = Grid.AttrName(n); if (!attr) break;
+    String aval = Grid.AttrValue(n); if (!aval) continue;
+    if (obType==2) {
+        if (attr.eq("isComp")) continue;
+    } else
+    if (obType==3) {
+        if (attr.eq("isMultiPane")) continue;
+    }
+
+    X.AddAttr(attr,aval);
+}
+
+
+if (obType>=2) return;  // Stop now if a component
+
+
+for(int r=0;r<Grid.Rows();r++){
+    XML RX;
+    RX.SetTag("row");
+    X.AddElement(RX);
+    for(int c=0;c<Grid.Columns();c++){
+        Object Col = &Grid.GetCell(r,c);
+        if (Col.ColSpan<=0 || Col.RowSpan<=0) continue;
+        XML CX;
+        CX.SetTag("col");
+        RX.AddElement(CX);
+        if (Col.ColSpan>1) CX.AddAttr("colspan",""+Col.ColSpan);
+        if (Col.RowSpan>1) CX.AddAttr("rowspan",""+Col.RowSpan);
+        if (Col.LeftPad>=0) CX.AddAttr("lpad",""+Col.LeftPad);
+        if (Col.TopPad>=0) CX.AddAttr("tpad",""+Col.TopPad);
+        if (Col.RightPad>=0) CX.AddAttr("rpad",""+Col.RightPad);
+        if (Col.BottomPad>=0) CX.AddAttr("bpad",""+Col.BottomPad);
+        if (Col.MinWidth) CX.AddAttr("w",""+Col.MinWidth);
+        if (Col.MinHeight) CX.AddAttr("h",""+Col.MinHeight);
+        if (Col.Align) CX.AddAttr("align",Col.AlignXML);
+        if (Col.BkColor!=-1)   CX.AddAttr("bk",Col.BkColorXML);
+        if (Col.BkSel!=-1)     CX.AddAttr("bksel",Col.BkSelXML);
+        if (Col.BkImage)       CX.AddAttr("bkimg",Col.BkImage);
+        if (Col.BkImgSel)      CX.AddAttr("bkimgsel",Col.BkImgsel);
+        if (Col.BkImageDisp)   CX.AddAttr("imgtile",Col.BkImageDisp);
+        if (Col.Header)        CX.AddAttr("header",Col.Header);
+        if (Col.GetGrid()!=null){
+            XML GX;
+            CX.AddElement(GX);
+            GetXML( GX, Col.GetGrid() );
+            }
+        else if (Col.Object!=null){
+            XML ZX;
+            CX.AddElement(ZX);
+            GetObjectXML( ZX, Col.Object );
+            }
+        }
+    }]]>
+</method>
+<method name="GetGridXML">
+<param name="path" type="object" />
+<![CDATA[
+// called from WClassView
+
+idGridEdit.SetPath(path);
+
+XML X;
+GetXML(X,idGridEdit);
+
+idGridEdit.ClearMod(); // clear mod state for control
+
+return X;
+
+// done]]>
+</method>
+<method name="ReplaceGrid">
+<param name="X" type="object" />
+<param name="NewGX" type="object" />
+<![CDATA[
+for(int n=0;n<X.Count();n++){  // elements
+    Object GX = &X.Element(n);
+    if (GX.Tag()=="grid"){
+        X.RemoveElement( GX );
+        X.AddElement( NewGX );
+        return 1;
+        }
+    int r = ReplaceGrid(GX,NewGX);
+    if (r) return 1;
+    }
+return 0;
+// *****]]>
+</method>
+<method name="DoSave">
+<![CDATA[
+String fn = GetSaveFileName("Save XML","XML Files|*.xml|Text|*.txt","");
+if (!fn) return;
+// xml
+idGridEdit.SetPath(fn);
+XML X;
+GetXML(X,idGridEdit);
+int rep = ReplaceGrid( FileXML, X );
+// now save it
+File F;
+if (!F.Create(fn)) return;
+if (rep) F.WriteXML(FileXML.Element(0));
+else     F.WriteXML(X);
+setText(fn.toLower());
+// *****]]>
+</method>
+<method name="DoOpen">
+<![CDATA[//@version Andrew Griffin | 26-07-01 12:39 |
+
+String fn = GetOpenFileName("Open XML","XML Files|*.xml|All|*.*","");
+if (!fn) return;
+
+XML X = &::globalxml::LoadXML( fn );
+if (X.tag()=="error") return;
+
+/*
+File F;
+if (!F.Open(fn,0)) return;
+Object B = F.ReadBlob();
+Object X = B.toXMLObject();  // XML*/
+FileXML = X;
+idGridEdit.Reset();
+
+//Object GX = X.Element(0);
+//LoadGrid( idGridEdit, GX );
+idGridEdit.SetPath(fn);
+FindGrid(X);
+idGridEdit.CalcSizes();
+
+setText(fn.toLower());
+
+//]]>
+</method>
+<method name="FindGrid">
+<param name="X" type="object" />
+<![CDATA[
+// GO THROUGH XML TIL WE FIND A 'grid'
+for(int n=0;n<X.Count();n++){  // elements
+    Object GX = &X.Element(n);
+    if (GX.Tag()=="grid"){
+        LoadGrid( idGridEdit, GX );
+        return 1;
+        }
+    int r = FindGrid(GX);
+    if (r) return 1;
+    }
+return 0;
+//]]>
+</method>
+<method name="SetGridXML">
+<param name="GXML" type="object" />
+<param name="fn" type="object" />
+<![CDATA[
+// called from class view
+idGridEdit.SetPath(fn);
+
+string ppath = getParent().FileName;
+
+LoadGrid( idGridEdit, GXML, ppath );
+idGridEdit.CalcSizes();
+//
+GridClicked();]]>
+</method>
+<method name="LoadGrid">
+<param name="Grid" type="object" />
+<param name="GX" type="object" />
+<param name="ppath" type="string" />
+<param name="ccount" type="int" />
+<![CDATA[
+for (int i=0;i<GX.AttrCount();i++)
+    Grid.SetAttr( GX.AttrName(i), GX.AttrVal(i) );
+
+
+for (int n=0;n<GX.Count();n++) {
+    Object RX = &GX.Element(n);
+    if (RX.Tag()!="row") continue; // not a "<row>" tag
+    Grid.AddRow();
+    for (int cn=0;cn<RX.Count();cn++){
+        Object CX = &RX.Element(cn);
+        if (CX.Tag()!="col") continue; // not a "<col>"
+        Object Cell = &Grid.AddCell();
+        for (int a=0;a<CX.AttrCount();a++){
+            Cell.SetAttr( CX.AttrName(a), CX.AttrVal(a) );
+            }
+        for (a=0;a<CX.Count();a++){  // elements
+            Object CtrlX = &CX.Element(0);
+
+            LoadGrControl( Cell, CtrlX, ppath, ccount );
+        }
+    }
+}
+Grid.FixSpans();
+//]]>
+</method>
+<method name="LoadGrControl">
+<param name="Cell" type="object" />
+<param name="CtrlX" type="object" />
+<param name="ppath" type="string" />
+<param name="ccount" type="int" />
+<![CDATA[int ccount2 = 0;
+if (ccount!=null) ccount2 = ccount;
+
+String tag = CtrlX.Tag();
+// hack
+if (tag=="EditM") tag = "Edit";
+// ? ListBox
+int obType;
+if (tag=="ListBox") { tag = "grid"; obType = 1; }
+if (tag=="Component") { tag = "grid"; obType = 2; }
+if (tag=="MultiPane") { tag = "grid"; obType = 3; }
+// add the control
+Object Ctrl = &Cell.AddObject( tag );
+if (tag=="grid"){
+    string nppath = ppath;
+    if (obType==1) Ctrl.SetAttr("IsList","Y");
+    if (obType==2) {
+        Ctrl.SetAttr("IsComp","Y");
+        ccount2++;
+        nppath = LoadComp( CtrlX, ccount2, ppath );
+    }
+    if (obType==3) {
+        Ctrl.SetAttr("IsMultiPane","Y");
+        ccount2++;
+        nppath = LoadComp( CtrlX, ccount2, ppath, 1 );
+    }
+    LoadGrid( Ctrl, CtrlX, nppath, ccount2 );
+} else
+    LoadControl( Ctrl, CtrlX );]]>
+</method>
+<method name="LoadComp" return="string">
+<param name="GX" type="object" />
+<param name="ccount" type="int" />
+<param name="ppath" type="string" />
+<param name="isMulti" type="int" />
+<![CDATA[//@version Andrew Griffin | 14-09-01 16:24 |
+
+string nppath = ppath;
+
+string fname = GX.GetAttr( "cls" ) + ".xml";
+string oname = fname;
+
+// Try looking in project for component names...
+string cnames = ::browse::ClsBrowser::openProject.getFormComps( ppath, GX.GetAttr( "name" ) );
+if (cnames) fname = sys::MakeRelativeName( ppath, cnames.gettoken(0) );
+
+ppath = ppath.left(ppath.lastIndexOf("\\")+1);
+
+
+XML X = null;
+
+if (fname == ".xml" || !loadComps) X = &simpleComponent( oname, isMulti );
+else if (ccount>3) X = &simpleComponent( oname, isMulti, "cropped..." );
+else {
+
+    X = &classes::des::globalxml::LoadXML( fname, ppath ).clone();
+
+    if (X.tag()=="error") {
+        X = &simpleComponent( oname, isMulti, "File not found!\r\n-> " + fname + "\r\n-> " + ppath );
+    } else {
+
+        xml XX = &X[0];                      // form
+        X = &XX.FindElement( "grid" );   // grid
+
+        while (X==null && XX.getAttr("base")) {
+            ppath = sys::MakeFullName( ppath, fname );
+            ppath = ppath.left(ppath.lastIndexOf("\\")+1);
+            fname = XX.getAttr("base") + ".xml";
+            X = &classes::des::globalxml::LoadXML( fname, ppath );
+            if (X.tag()=="error") {
+                X = &simpleComponent( oname, isMulti, "File not found!\r\n-> " + fname + "\r\n-> " + ppath );
+                break;
+            }
+            XX = &X[0];                      // form
+            X = &XX.FindElement( "grid" );   // grid
+        }
+
+        if (X==null) {
+            X = &simpleComponent( oname, isMulti, "Not A Form" );
+        } else {
+            nppath = sys::MakeFullName( ppath, fname );
+            //message( ppath + "\r\n" + fname + "\r\n" + nppath );
+        }
+
+    }
+}
+
+setCompAttr( X );
+
+for (int i=0; i<X.Count(); i++)
+    GX.AddElement( X[i] );
+
+return nppath;]]>
+</method>
+<method name="simpleComponent" return="xml">
+<param name="fname" type="string" />
+<param name="isMulti" type="int" />
+<param name="hint" type="string" />
+<![CDATA[string nam;
+if (fname!=null && fname) {
+    nam = fname.subString(fname.lastIndexOf("\\")+1);
+    int i=nam.indexOf(".xml",0,1);
+    if (i>=0) nam = nam.left(i);
+}
+
+string typ;
+if (isMulti==null || isMulti==0) typ = "Component";
+                            else typ = "MultiPane";
+
+if (nam) typ += "\r\n" + nam;
+if (hint!=null && hint) typ += "\r\n" + hint;
+
+XML X;
+X.setTag("grid");
+XML C = &X.CreateElement("row").CreateElement("col");
+C.AddAttr( "bk", "230,230,255" );
+C.AddAttr( "lpad", "2" );
+C.AddAttr( "tpad", "2" );
+C.AddAttr( "rpad", "3" );
+C.AddAttr( "bpad", "3" );
+
+XML L = &C.CreateElement("Label");
+L.AddAttr( "text", typ );
+L.AddAttr( "tx", "64,64,0" );
+
+return X;]]>
+</method>
+<method name="setCompAttr">
+<param name="GX" type="XML" />
+<![CDATA[
+for (int i=0; i<GX.Count(); i++) {
+    XML xt = &GX.Element(i);
+    xt.AddAttr( "isComp2", "Y" );
+    if (xt.count()>0)
+        setCompAttr( xt ); else
+    if (xt.tag()=="col") {  // empty cell!!!
+        xt.CreateElement( "Label" ).addAttr( "isComp2", "Y" );
+    }
+}]]>
+</method>
+<method name="LoadControl">
+<param name="Ctrl" type="object" />
+<param name="CX" type="object" />
+<![CDATA[
+for(int a=0;a<CX.AttrCount();a++){
+    Ctrl.SetAttr( CX.AttrName(a), CX.AttrVal(a) );
+    }
+for(a=0;a<CX.Count();a++){  // elements
+    Object X = &CX.Element(0);
+    if (X.Tag()=="") Ctrl.SetAttr("Text","X.Content()");
+    else             Ctrl.AddXMLContent( X );
+    }
+//]]>
+</method>
+<method name="DoOptions">
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:08 |
+
+classes::core::wpopupmenu P;
+/*
+if (idGridEdit.CanUndo())
+    P.Add("Undo");
+if (idGridEdit.CanRedo())
+    P.Add("Redo");
+P.AddSeparator();
+*/
+P.Add("Copy Form");
+if (idGridEdit.CanPasteForm())
+    P.Add("Paste Form");
+
+P.AddSeparator();
+P.Add("Insert Parent Grid","IP");
+P.Add("Delete Parent Grid","DP");
+
+P.AddSeparator();
+P.Add("Delete Form", "DF");
+
+
+String s = P.Track();
+
+if (!s) return;
+
+if (s=="Undo")
+    idGridEdit.Undo();
+else if (s=="Redo")
+    idGridEdit.Redo();
+else if (s=="Copy Form")
+    idGridEdit.CopyForm();
+else if (s=="Paste Form")
+    idGridEdit.PasteForm();
+else if (s=="IP"){
+    idGridEdit.InsertParentGrid();
+    GridClicked();
+}
+else if (s=="DP"){
+    idGridEdit.DeleteParentGrid();
+    GridClicked();
+}
+else if (s=="DF"){
+
+    if (message("Are you sure?\r\nYou can't undo this operation!",
+                "Delete Grid?",
+                classes::core::windows::MB_ICONQUESTION |
+                classes::core::windows::MB_YESNO) == classes::core::windows::IDYES) {
+
+        idGridEdit.theGrid.reset();
+        show(0);
+        show(1);
+        FitRecursive();
+        GridClicked();
+        GridMod();
+    }
+}
+
+//]]>
+</method>
+<method name="GridClicked">
+<![CDATA[//@version Andrew Griffin | 22-07-02 09:43 |
+
+edgridcell X = &idGridEdit.CurrentCell();
+edobject Con = null;
+if (X!=null) {
+    Con = &X.GetObject();
+
+    while (con!=null && Con.GetAttr( "iscomp2" ).eq("Y")) {
+        idGridEdit.UpSel();
+        X = &idGridEdit.CurrentCell();
+        if (X!=null) Con = &X.GetObject();
+    }
+}
+
+// CELL EDIT
+idCellEdit.ShowCell(X);
+// OBJECT
+wFloatCtrlEdit ED = &GetPopup( "ControlEditor");
+if (ED==null && CtrlEditDocked) ED = &idDocked;
+if (ED!=null)
+{
+    if (ED.isVisible())
+    {
+        if (X==null) Con = idGridEdit.TheGrid; // if no cell, show default
+        ED.ShowCtrl(Con);
+        ED.SetFocus();
+        if (CtrlEditDocked) FitRecursive();
+    }
+}
+
+// can we find the selected cell in the control list?
+::WClassView wC = &getParent();
+::Grid G = &wC.XFile.Classes[0].Grids[0];
+
+if (X==null || con==null || !con.name) {    // not a control so select grid base in hierarchy
+    wC.idResults.SelectRow( G );
+    return;
+}
+
+::gridMemberDef gM = &G.controls.FindRow( con.name, 1 );
+if (gM==null) {
+    G.populateCtrlList( wC );
+    gM = &G.controls.FindRow( con.name, 1 );
+    if (gM==null) return;
+}
+
+wC.idResults.SelectRow( gM );
+//]]>
+</method>
+<method name="GridMod">
+<![CDATA[//@version Andrew Griffin | 03-08-01 17:08 |
+
+GetParent().SetMod(null,1);
+idGridEdit.ClearMod();
+
+setTimer(100);]]>
+</method>
+<method name="DoOpt">
+<param name="Con" type="control" />
+<param name="shw" type="int" />
+<![CDATA[//@cmember DoOpt
+//@param control | Con |
+//@param int | shw |
+//@version Andrew Griffin | 12-12-01 11:40 |
+//@version Tim Simpson | 22-03-13 09:13 |
+
+if (Con==idUndo) {
+    idGridEdit.Undo();
+    refreshControlList();
+}
+else if (Con==idRedo) {
+    idGridEdit.Redo();
+    refreshControlList();
+}
+else if (Con==idUpSel){
+    idGridEdit.UpSel();
+    GridClicked();
+}
+
+else if (Con==idMerge){
+    idGridEdit.MergeCells();
+    refreshControlList();
+}
+else if (Con==idSplit)
+    idGridEdit.SplitCells();
+
+else if (Con==idRowInsert)
+    idGridEdit.InsertRow(0);
+
+else if (Con==idRowAdd)
+    idGridEdit.InsertRow(1);
+
+else if (Con==idColInsert)
+    idGridEdit.InsertColumn(0);
+
+else if (Con==idColAdd)
+    idGridEdit.InsertColumn(1);
+
+else if (Con==idShowGrid)
+    idGridEdit.ShowGrid();
+
+else if (Con==idShowControls) { // Cheat and steel this button for show components
+
+    string s="MN_LOADCOMPS";
+    loadComps = !loadComps;
+    getParent().CheckMenuItem( s, loadComps );
+    String ini = Sys::MakeFullName(Path(),"::des.ini");
+    Sys::WritePrivateProfileString("ide","LoadComponents",loadComps.toString(),ini);
+    showHideComps();
+
+//    idGridEdit.ShowControls();
+}
+else if (Con==idShowEdit){
+    Object ED = &GetPopup( "ControlEditor");
+    if (ED!=null){
+        if (ED.isVisible() && shw==null || shw==0)
+        {
+            ED.Show(0);
+        }
+        else{
+            ED.Show(1);
+            GridClicked();
+            }
+        return;
+        }
+    wFloatCtrlEdit Z; Z.dialog(this); Z.Init();
+    GridClicked();
+    }
+
+//]]>
+</method>
+<method name="DoOptReset">
+<param name="con" type="image" />
+<param name="shw" type="int" />
+<![CDATA[//@cmember DoOptReset
+//@param image | con |
+//@param int | shw |
+//@version Tim Simpson | 22-03-13 09:28 |
+//@i
+
+// reset option now available to reset control edit form position
+// it can be lost when dual monitors have been in use
+
+if (Con==idShowEdit){
+    popupmenu p;
+    p.add("Snap to cursor","snap");
+    string a = p.track();
+
+    if (a)
+    {
+        Object ED = &GetPopup( "ControlEditor");
+        if (ED!=null)
+        {
+            if (ED.isVisible() && shw==null || shw==0)
+            {
+                ED.Show(1);
+                ED.SnapToCursor(50,50);
+            }
+            else{
+                ED.Show(1);
+                ED.SnapToCursor(50,50);
+                GridClicked();
+                }
+            return;
+        }
+    }
+
+}]]>
+</method>
+<method name="DoConHelp">
+<param name="Con" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:08 |
+
+String s = Con.GetControlAttr("help");
+if (!s) return;
+
+classes::core::wpopupmenu P;
+P.Add(s);
+
+P.Track(1,null,0,20);]]>
+</method>
+<method name="showHideComps">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+XML X;
+GetXML(X,idGridEdit);
+idGridEdit.theGrid.reset();
+setGridXML( X, getParent().FileName );]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 07-08-01 14:14 |
+//@i
+
+KillTimer();
+
+if (timerMode == 1) {
+    doSpellCheck();
+    timerMode = 0;
+    return;
+}
+
+::WClassView wC = &getParent();
+::Grid G = &wC.XFile.Classes[0].Grids[0];
+G.populateCtrlList( wC );]]>
+</method>
+<method name="refreshControlList">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+::WClassView wC = &getParent();
+::Grid G = &wC.XFile.Classes[0].Grids[0];
+G.populateCtrlList( wC );]]>
+</method>
+<method name="onChar">
+<param name="Key" type="int" />
+<param name="State" type="int" />
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember onChar
+//@param int | Key |
+//@param int | State |
+//@param control | Ctrl |
+//@version Andrew Griffin | 07-08-01 14:56 |
+//@i
+
+if (Key == 119) {   // F8 - Spell Check
+    timerMode = 1;
+    SetTimer( 100 );
+}]]>
+</method>
+<method name="doSpellCheck">
+<![CDATA[//@cmember doSpellCheck
+//@version Andrew Griffin | 07-08-01 15:33 |
+//@i Check all controls for spelling errors
+
+// Looks recursivly inside an EdGrid for controls with text to spell check
+
+setWaitCursor();
+
+if (!SpellChk.open( "customDictionary.ini" )) return;
+
+if (doSpellCheckGrid( idGridEdit.theGrid )) {
+    message( "Spell Check Complete", "Spell Checker", classes::core::windows::MB_ICONASTERISK );
+}
+
+SpellChk.close();]]>
+</method>
+<method name="doSpellCheckGrid" return="int">
+<param name="g" type="edGrid" />
+<![CDATA[//@cmember doSpellCheckGrid
+//@param edGrid | g |
+//@return int |
+//@version Andrew Griffin | 07-08-01 15:33 |
+//@i Check all controls for spelling errors
+
+// Looks recursivly inside an EdGrid for controls with text to spell check
+
+EdGridCell  tc=null;
+EdGrid      sg=null;
+EdObject    o=null;
+string txt;
+
+for (int y=0; y<g.rows(); y++)
+  for (int x=0; x<g.columns(); x++) {
+
+    tc = &g.getcell(y, x);
+    o = &tc.getobject();
+
+    if (o!=null) {  // if Control found then add it.
+        if (o.GetAttr( "iscomp2" ).eq("Y")) return 1;    // don't look inside components
+        if (o.TypeName.eq("label") || o.TypeName.eq("radio") || o.TypeName.eq("check")) {
+            txt = o.Text;
+            if (txt) {
+                if (spellChk.checkSpelling( txt )==0) {
+                    // Error in sentance so check each word for errors
+
+                    if (!spellInSentance( txt, tc )) return 0;
+
+                }
+            }
+        }
+    }
+
+    sg = &tc.getGrid();
+    if (sg!=null) {
+        if (!doSpellCheckGrid( sg )) return 0;
+    }
+  }
+
+return 1;]]>
+</method>
+<method name="spellInSentance" return="int">
+<param name="words" type="string" />
+<param name="gCell" type="edGridCell" />
+<![CDATA[//@cmember spellInSentance
+//@param string | words |
+//@param edGridCell | gCell |
+//@return int |
+//@version Andrew Griffin | 05-12-01 16:45 |
+//@i
+
+int j = 0, inStr = 0, i, c, ok;
+words += ";";
+
+for (int k=j; k<words.length(); k++) {
+    c = words[k];
+    if (c>='A' && c<='Z' || c>='a' && c<='z') {
+        inStr = 1;
+        continue;
+    } else {
+        if (inStr) {
+            string word = words.substring( j, k );
+
+            ok = spellChk.checkSpelling(word);
+            if (!ok) {
+                idGridEdit.select( gCell );
+                DoOpt( idShowEdit, 1 );
+//                GridClicked();
+                wfloatctrlEdit ED = &GetPopup( "ControlEditor" );
+                if (ED==null) {
+                    message("Can't open control Editor dialog");
+                    spellChk.close();
+                    return 0;
+                }
+                ED.SetFocus();
+                ED.idText.SetFocus();
+                ED.idText.selectText( j,k );
+
+                string ans = getSpellSuggestions( spellChk, word, ED.idText );
+
+                if (!ans) { spellChk.close(); return 0; } else
+                if (ans==">Add") spellChk.addCustomWord( word ); else
+                if (ans!=">Ignore") {   // Replace Word
+                    words = words.left(j) + ans + words.subString( j+word.length() );
+                    ED.idText.setText( words.left(words.length()-1) );
+                    ED.doAttrChange( ED.idText );
+                    k += ans.length() - word.length();
+                }
+                sys::wait( 1 );
+                setWaitCursor();
+
+/*                int a = who.message( "\"" + word + "\" is spelt incorrectly\r\n\r\n" +
+                             "Add to Custom Dictionary?", "Spell Check",
+                             classes::core::windows::MB_ICONASTERISK | classes::core::windows::MB_YESNOCANCEL);
+                if (a==classes::core::windows::IDCANCEL) {
+                    spellChk.close();
+                    return 0;
+                }
+                if (a==classes::core::windows::IDYES) {
+                    spellChk.addCustomWord( word );
+                }*/
+
+            }
+
+            inStr = 0;
+        }
+        j = k+1;
+    }
+}
+
+return 1;]]>
+</method>
+<method name="getSpellSuggestions" return="int">
+<param name="SpellChk" type="SpellChecker" />
+<param name="word" type="string" />
+<param name="cont" type="control" />
+<![CDATA[//@cmember getSpellSuggestions
+//@param SpellChecker | SpellChk |
+//@param string | word |
+//@param control | cont |
+//@return int |
+//@version Andrew Griffin | 27-05-02 13:48 |
+//@i
+
+stringArray sList = &SpellChk.getSuggestions( word );
+
+classes::core::wpopupmenu p;
+
+for (int i=0; i<sList.Count(); i++)
+    p.Add( sList[i] );
+
+p.AddSeparator();
+p.Add( "Add to Custom", ">Add" );
+p.Add( "Ignore", ">Ignore" );
+
+if (cont!=null)
+    return p.Track( 1, cont, 0,0 );
+else
+    return p.Track( 1 );]]>
+</method>
+<method name="StoreState" return="string">
+<![CDATA[//@cmember StoreState
+//@return string |
+//@version Andrew Griffin | 28-09-01 09:54 |
+//@i
+
+return "GRIDOK";]]>
+</method>
+<method name="RestoreState" return="string">
+<param name="state" type="string" />
+<![CDATA[//@cmember RestoreState
+//@param string | state |
+//@return string |
+//@version Andrew Griffin | 16-11-01 16:17 |
+//@i
+
+if (state=="GRIDOK") {
+    ::wclassview wc = &getParent();
+    wc.idResults.SelectRow( wc.XFile.Classes[0].Grids[0] );
+}]]>
+</method>
+<method name="doInsertCtrl">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember doInsertCtrl
+//@param control | ctrl |
+//@version Andrew Griffin | 26-07-02 14:56 |
+
+Object XCC = &idGridEdit.CurrentCell();
+if (XCC==null) return;
+
+doInsertControl( ctrl.GetControlAttr( "param" ), ctrl );]]>
+</method>
+<method name="toggleCtrlToolbar">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember toggleCtrlToolbar
+//@param control | ctrl |
+//@version Andrew Griffin | 26-07-02 14:49 |
+//@i
+
+if (ctrl!=null)
+{
+    getParent().OnMenu( "MN_SHOWCTRLTOOLBAR" );
+}
+
+idCtrlToolbar.setvisible( showCtrlToolbar );
+FitRecursive();]]>
+</method>
+</members>
+<static>
+<Object name="ResXML" cls="XML" />
+<Integer name="loadComps" constval="1" />
+<Integer name="showCtrlToolbar" constval="1" />
+<Integer name="CtrlEditDocked" constval="1" />
+</static>
+<grid>
+<row>
+<col lpad="8" tpad="2" bpad="2" bk="212,208,200">
+<grid lpad="2" rpad="2">
+<row>
+<col>
+<Image text="Image" img="menu.bmp" onClick="DoOptions" onRightClick="DoOptions" help="Menu options" />
+</col>
+<col>
+<Image name="idUpSel" text="Image" img="sel_up.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Select the parent grid" />
+</col>
+<col>
+<Image name="idUndo" text="Image" img="undo.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Undo action" />
+</col>
+<col>
+<Image name="idRedo" text="Image" img="redo.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Redo Action" />
+</col>
+<col>
+<Image text="Image" img="add_ctrl.bmp" onClick="DoAddControl" onRightClick="toggleCtrlToolBar" help="Add controls" />
+</col>
+<col>
+<Image text="Image" img="add_grid.bmp" onClick="DoSubGrid" onRightClick="DoSubGrid" help="Add a child grid" />
+</col>
+<col>
+<Image name="idMerge" text="Image" img="cell_merge.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Merge cells" />
+</col>
+<col>
+<Image name="idSplit" text="Image" img="cell_split.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Split merged cells" />
+</col>
+<col>
+<Image name="idRowInsert" text="Image" img="row_ins.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Insert a row" />
+</col>
+<col>
+<Image name="idRowAdd" text="Image" img="row_add.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Add a row" />
+</col>
+<col>
+<Image name="idColInsert" text="Image" img="col_ins.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Insert a column" />
+</col>
+<col>
+<Image name="idColAdd" text="Image" img="col_add.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Add a column" />
+</col>
+<col>
+<Image name="idShowGrid" text="Image" img="showgrid.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Show/Hide the grid" />
+</col>
+<col>
+<Image name="idShowControls" text="Image" img="showctrls.bmp" onClick="DoOpt" onRightClick="DoOpt" help="Show/Hide component contents" />
+</col>
+<col>
+<Image name="idShowEdit" text="Image" img="showepop.bmp" onClick="DoOpt" onRightClick="DoOptReset" help="Show/Hide the control attributes - Right Click to  Reset" />
+</col>
+<col>
+<Image text="Image" img="newgrid.bmp" onClick="DoNewGrid" onRightClick="DoNewGrid" help="Create a new base grid" />
+</col>
+<col>
+<Image text="Image" img="bin.bmp" onClick="DoClear" onRightClick="DoClear" help="Delete controls" />
+</col>
+<col align="V">
+<Image text="Image" img="des::res::toolbar::spellchk.bmp" onClick="DoSpellCheck" onRightClick="DoSpellCheck" help="Check Label Spellings" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="1" align="X" bk="128,128,128">
+<grid name="idCtrlToolbar" hide="Y">
+<row>
+<col h="1" align="W" bk="128,128,128" />
+</row>
+<row>
+<col h="1" bk="255,255,255" />
+</row>
+<row>
+<col lpad="8" tpad="2" bpad="2" bk="212,208,200">
+<grid lpad="2" rpad="2">
+<row>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::label.ico" onClick="doInsertCtrl" help="Insert a Label Control" smallIcon="1" param="Label" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::image.ico" onClick="doInsertCtrl" help="Insert an Image Control" smallIcon="1" param="Image" />
+</col>
+<col align="V">
+<Image text="Image" img="des::res::toolbar::vbarsep.bmp" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::editbox.ico" onClick="doInsertCtrl" help="Insert an Edit Box Control" smallIcon="1" param="Edit" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::radiobutton.ico" onClick="doInsertCtrl" help="Insert a Radio Button Control" smallIcon="1" param="Radio" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::checkbox.ico" onClick="doInsertCtrl" help="Insert a Check Box Control" smallIcon="1" param="CheckBox" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::pickquery.ico" onClick="doInsertCtrl" help="Insert a Pick Query Control" smallIcon="1" param="PickQuery" />
+</col>
+<col align="V">
+<Image text="Image" img="des::res::toolbar::vbarsep.bmp" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::listbox.ico" onClick="doInsertCtrl" help="Insert a List Box Control" smallIcon="1" param="ListBox" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::hierachy.ico" onClick="doInsertCtrl" help="Insert a Hierarchy Control" smallIcon="1" param="Hierarchy" />
+</col>
+<col align="V">
+<Image text="Image" img="des::res::toolbar::vbarsep.bmp" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::component.ico" onClick="doInsertCtrl" help="Insert a Component Control" smallIcon="1" param="Component" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::multipane.ico" onClick="doInsertCtrl" help="Insert a Multipane Control" smallIcon="1" param="MultiPane" />
+</col>
+<col align="V">
+<Image text="Image" img="des::res::toolbar::vbarsep.bmp" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::sizebar.ico" onClick="doInsertCtrl" help="Insert a Size Bar Control" smallIcon="1" param="SizeBar" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="1">
+<Image text="Image" img="des::res::grid::rtf.ico" onClick="doInsertCtrl" help="Insert a Rich Text Editor Control" smallIcon="1" param="RTFEditor" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="WH">
+<grid>
+<row>
+<col align="WH">
+<GridEditor name="idGridEdit" onClick="GridClicked" onMod="GridMod" />
+</col>
+<col align="H" bk="224,224,224">
+<grid>
+<row>
+<col bk="224,224,224">
+<Component name="idCellEdit" cls="CCell" />
+</col>
+</row>
+<row>
+<col bk="224,224,224">
+<Component name="idDocked" cls="classes::core::wblank" hide="Y" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="LoadComp" cls="string" />
+<rmeth name="simpleComponent" cls="xml" />
+<rmeth name="doSpellCheckGrid" cls="int" />
+<rmeth name="spellInSentance" cls="int" />
+<rmeth name="getSpellSuggestions" cls="int" />
+<rmeth name="StoreState" cls="string" />
+<rmeth name="RestoreState" cls="string" />
+</return>
+</form>

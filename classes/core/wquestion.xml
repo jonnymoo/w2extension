@@ -1,0 +1,363 @@
+<form name="wquestion" description="Letter Question" caption="Please Answer Question" icon="classes::upm2::Resource::wupm.ico" sizeable="0" topmost="1" fauthor="$Author: Jonathan Muir $" fdate="$Date: 11/08/04 9:58 $" frevision="$Revision: 1 $">
+<members>
+<Integer name="AnswerGiven" />
+<String name="TheAnswer" />
+<method name="Init">
+<param name="pParam" type="object" />
+<![CDATA[//@cmember Init
+//@param object | pParam | QuestionText|AnswerCode|AnswerDesc|AnswerCode2|AnswerDesc2 etc
+//@version Jonathan.Muir | 28-03-02 10:35 |
+//@version Administrator | 23-06-02 19:54 |
+//@version chris.moran | 12-09-02 15:17 |
+//@version Jonny Moo | 11-11-02 10:37 |
+//@i  pParam is QuestionText|AnswerCode|AnswerDesc|AnswerCode2|AnswerDesc2 etc
+//@i  This form is now used by viewers::wBaseKeyObject::GetRTFMergeData
+//@i
+
+classes::CpickS ThePickList[];
+
+string TheParam=pParam+"|";
+
+int bTitle = 0;
+
+string szString = "";
+
+for(int i=0;i<TheParam.Length();i++)
+{
+    if(TheParam[i]=='|')
+    {
+        if(bTitle==0)
+        {
+            idTitle.SetText(szString);
+            bTitle = 1;
+        }
+        else
+        {
+            object x = ThePickList.CreateRow();
+            x.Code = szString;
+            x.Desc = szString;
+
+        }
+        szString = "";
+
+    }
+    else
+    {
+        szString += TheParam[i].CharString();
+    }
+
+}
+
+if(ThePickList.Count()==0)
+{
+    idQuestionPL.SetVisible(0);
+
+}
+else
+{
+    idQuestion.SetVisible(0);
+    idQuestionPL.SetPickList(ThePickList);
+}
+
+DoFormSize();
+
+string wn = This.ClassName()+":"+WindowHandle;
+
+WindowHandle++;
+SetWindowName(wn);
+return wn;]]>
+</method>
+<method name="OnAnswer">
+<![CDATA[//@cmember OnAnswer
+//@version Jonathan.Muir | 15-05-02 16:18 |
+//@version chris.moran | 12-09-02 15:17 |
+//@version Jonny Moo | 11-11-02 11:30 |
+//@i
+
+if(idQuestion.IsVisible())
+{
+    // String
+    TheAnswer = idQuestion.GetText();
+}
+else if(idQuestionPL.IsVisible())
+{
+    // String - Pick List
+    TheAnswer = idQuestionPL.GetText();
+}
+else
+{
+    // Date
+
+    date d;
+    d.FromString(idQuestionDate.GetText());
+    string szY = d.Year().ToString();
+
+    if(idQuestionDate.GetText()&&!idQuestionDate.GetText().Trim().EndsWith(szY))
+    {
+        message("Date not valid - Please Enter 4 Digit Year");
+        return;
+    }
+
+    if(!idQuestionDate.IsContentValid())
+    {
+        message("Date not valid");
+        return;
+    }
+
+    TheAnswer = idQuestionDate.GetText();
+}
+AnswerGiven = 1;
+EnableForm(0);]]>
+</method>
+<method name="onDefaultKey">
+<![CDATA[//@cmember onDefaultKey
+//@version Jonathan.Muir | 10-11-01 09:22 |
+//@i
+
+OnAnswer();]]>
+</method>
+<method name="DoFormSize">
+<![CDATA[//@cmember DoFormSize
+//@version Administrator | 23-06-02 19:54 |
+//@i
+
+
+FitRecursive();
+SizeFormToContent();
+SizeAdjust();
+SizeAdjust();]]>
+</method>
+<method name="DoCalendar">
+<param name="pControl" type="object" />
+<![CDATA[//@cmember DoCalendar
+//@version Jonathan.Muir | 19-11-01 11:09 |
+//@version Chris.Moran | 22-01-02 11:05 |
+//@version Jonny Moo | 11-11-02 10:42 |
+//@i       Check the control we are assigning our date to. If
+//@i       it has a custom attribute of 'exitevent', then call
+//@i       that event once the date has been assigned.
+
+string szControl = GetControl(pcontrol.GetControlAttr("Param")).ControlID();
+Edit TheControl = &GetControl(szControl);
+
+string szEvent = TheControl.GetControlAttr("exitevent");
+
+classes::core::wCalendar::GetDate( this, GetControl(pcontrol.GetControlAttr("Param")).ControlID(), "", NULL, szEvent );]]>
+</method>
+</members>
+<static>
+<Integer name="WindowHandle" />
+<method name="AskQuestion" return="object">
+<param name="Question" type="string" />
+<param name="AnswerList" type="string" />
+<param name="Form" type="object" />
+<param name="TheDefault" type="object" />
+<param name="bMakeNotModal" type="integer" />
+<param name="PL" type="object" />
+<param name="bIWantADate" type="object" />
+<param name="iWidth" type="integer" />
+<![CDATA[//@cmember AskQuestion
+//@param string | Question |
+//@param string | AnswerList | Pipe delimitted set of answers (not dates)
+//@param object | Form | Pass form if you want to open as a child window
+//@param object | TheDefault | Default Answer
+//@param integer | bMakeNotModal |
+//@param object | PL | Can Pass a pick list (as a list) instead of an Answer list (not dates)
+//@param object | bIWantADate | Set To 1 to get a date back
+//@param integer | iWidth |
+//@return object | The Answer
+//@version Jonathan.Muir | 28-03-02 11:00 |
+//@version chris.moran | 15-05-02 10:12 |
+//@version Jonathan.Muir | 15-05-02 16:19 |
+//@version Administrator | 23-06-02 19:54 |
+//@version chris.moran | 12-09-02 14:37 |
+//@version Jonny Moo | 11-11-02 11:30 |
+//@version Richard.Lee | 26-11-02 11:54 |
+//@version Jonny Moo | 13-06-03 16:08 |
+//@version Jonathan.Muir | 19-07-04 15:12 |
+//@i
+
+classes::core::WQuestion x;
+if((Form!=NULL) && (bMakeNotModal == NULL || bMakeNotModal != 1))
+{
+    x.Dialog(Form);
+    Form.EnableForm(0);
+}
+else
+{
+    x.Open();
+}
+
+x.CenterForm();
+string szParam = ""+Question;
+if(AnswerList!=NULL&&AnswerList!="") szParam+="|"+AnswerList;
+string windowHandle = x.Init(szParam);
+
+if(TheDefault!=NULL)
+{
+    string szDefault = TheDefault.ToString();
+    if(szDefault!="")
+    {
+        x.idQuestion.SetText(szDefault.ToString());
+        x.idQuestionPL.SetText(szDefault.ToString());
+        x.idQuestionDate.SetText(szDefault.ToString());
+    }
+}
+
+Object LX = PL;
+
+// If we want a date only show the date boxes
+
+if(bIWantADate!=NULL&&bIWantADate==1)
+{
+    if (iWidth!=NULL&&iWidth>0)
+        x.idQuestionDate.setw(iWidth);
+    x.grdDateQuestion.SetVisible(1);
+    x.idQuestion.SetVisible(0);
+    x.idQuestionPL.SetVisible(0);
+    x.DoFormSize();
+}
+else
+{
+    if(LX!=NULL)
+    {
+        x.idQuestionPL.SetPickList(LX);
+        x.idQuestion.SetVisible(0);
+        if (iWidth!=NULL&&iWidth>0)
+            x.idQuestionPL.setw(iWidth);
+        x.idQuestionPL.SetVisible(1);
+        x.DoFormSize();
+    }
+}
+
+
+while(1==1)
+{
+    // Sleep a bit
+    SYS::wait(100);
+    object y;
+
+    object yy;
+    if(Form!=NULL) yy = Form.GetPopup(WindowHandle);
+    if(yy==NULL)
+    {
+        object yy2 = sys::FindWindow(WindowHandle);
+        if(yy2==NULL)
+        {
+            if(Form!=NULL)
+            {
+                Form.EnableForm(1);
+            }
+            if(bIWantADate==NULL||bIWantADate==0)
+            {
+                return "";
+            }
+            else
+            {
+                Date d;
+                return d;
+            }
+
+        }
+        y = &yy2;
+    }
+    else
+    {
+        y = &yy;
+    }
+    // Have we an answer yet?
+    if(y.AnswerGiven == 1)
+    {
+
+        if(Form!=NULL)
+        {
+            Form.EnableForm(1);
+            //Form.SetFocus();
+        }
+        string TheAnswer = ""+y.TheAnswer;
+        y.Close();
+
+        if(bIWantADate==NULL||bIWantADate==0)
+        {
+            return TheAnswer;
+        }
+        else
+        {
+
+            date d;
+            d.FromString(TheAnswer);
+            return d;
+        }
+
+    }
+
+}]]>
+</method>
+</static>
+<grid>
+<row>
+<col>
+<Label name="idTitle" text="Title" />
+</col>
+<col />
+<col />
+</row>
+<row>
+<col tpad="2" align="C">
+<Edit name="idQuestionPL" w="200" pick="classes::UPM2::Global::PickLists::DummyFG" />
+</col>
+<col />
+<col />
+</row>
+<row>
+<col tpad="2" align="C">
+<Edit name="idQuestion" w="200" />
+</col>
+<col />
+<col />
+</row>
+<row>
+<col align="C">
+<grid name="grdDateQuestion" hide="Y">
+<row>
+<col tpad="2">
+<Edit name="idQuestionDate" w="80" date="1" />
+</col>
+<col tpad="2" w="14" align="V">
+<Image text="Image" img="classes::resource::standard::blue_blip_browse.bmp" onClick="DoCalendar" Param="idQuestionDate" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+<col />
+</row>
+<row>
+<col align="R">
+<grid>
+<row>
+<col />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="OK" tx="255,255,255" txsel="FFFF00" style="b" onclick="OnAnswer" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="AskQuestion" cls="object" />
+</return>
+</form>

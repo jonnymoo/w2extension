@@ -1,0 +1,62 @@
+<class name="XMLFile" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:42 $" frevision="$Revision: 2 $">
+<members>
+<List name="Classes" cls="ClassDef" />
+<List name="Grids" cls="Grid" />
+<List name="Others" cls="XMLObj" />
+<method name="SetTo">
+<param name="X" />
+<![CDATA[
+reset();
+for(int e=0;;e++)
+{
+Object EX = &X.Element(e);
+if (EX==null) break;
+if (EX.Tag()=="class" || EX.Tag()=="form") { Classes.CreateRow().SetTo(EX); }
+else if (EX.Tag()=="grid")                 { Grids.CreateRow().SetTo(EX); }
+else                                       { Others.CreateRow().SetTo(X); }
+}]]>
+</method>
+<method name="GetXML" return="xml">
+<param name="X" type="object" />
+<param name="Win" type="object" />
+<![CDATA[//@cmember GetXML
+//@param object | X |
+//@param object | Win |
+//@version Andrew Griffin | 17-01-02 16:01 |
+//@version Andrew | 24-01-02 12:16 |
+//@return xml |
+
+
+if (Classes.Count()==1){
+    Classes[0].GetXML(X,Win);
+    return &X;
+    }
+
+X.SetTag("package");
+int n;
+for(n=0;n<Classes.Count();n++){
+    XML EX;
+    X.AddElement(EX);
+    Classes[n].GetXML(EX,Win);
+    }
+
+for(n=0;n<Others.Count();n++){
+    XML ZX;
+    X.AddElement(ZX);
+    Others[n].GetXML(ZX);
+    }
+
+return &X;]]>
+</method>
+<method name="resetContent">
+<![CDATA[
+Classes.Reset();
+Others.Reset();
+Grids.Reset();]]>
+</method>
+</members>
+<static />
+<return>
+<rmeth name="GetXML" cls="xml" />
+</return>
+</class>

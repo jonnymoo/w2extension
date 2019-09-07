@@ -1,0 +1,85 @@
+<form name="wdemoapp" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
+<members>
+<method name="doSearch">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doSearch
+//@param label | ctrl |
+//@version Andrew Griffin | 21-06-02 15:19 |
+
+string classname = idClassName.getText();
+
+xml X = &aclassrec::tellMeAbout( classname );
+if (X==null) return;
+
+XML XB;
+XB.setTag("BASE");
+XB.addElement( X );
+
+classes::core::xml::xmlobj xo = &idXMLViewer.Hier;
+xo.setTo( XB );]]>
+</method>
+<method name="Start">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Start
+//@param string | cmd |
+//@version Andrew Griffin | 31-07-02 14:51 |
+//@i
+
+Open();
+message( "Click ok to scan files... then wait for completion message..." );
+//aClassRec::enumerateClasses();
+aClassRec::loadClassList();
+message( "Complete" );]]>
+</method>
+<method name="onDefaultKey">
+<![CDATA[//@cmember onDefaultKey
+//@version Andrew Griffin | 24-06-02 09:18 |
+
+doSearch();]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col bpad="8" align="W">
+<grid>
+<row>
+<col rpad="8" align="V">
+<Label text="Classname" />
+</col>
+<col rpad="8" align="WV">
+<Edit name="idClassName" />
+</col>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Go" tx="255,255,255" txsel="FFFF00" style="b" onclick="doSearch" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="WH">
+<Component name="idXMLViewer" cls="classes::core::XML::WXMLviewer" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

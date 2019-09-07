@@ -1,0 +1,34 @@
+<List cls="classes::des::AttribList" >
+
+<Item AttribName="private" AttribValue="0" AttribDesc="False"/>
+<Item AttribName="private" AttribValue="1" AttribDesc="True"/>
+
+<Item AttribName="public" AttribValue="0" AttribDesc="False"/>
+<Item AttribName="public" AttribValue="1" AttribDesc="True"/>
+
+<Item AttribName="linkmethod" AttribValue="" AttribDesc="Set the method"/>
+<Item AttribName="linkmember" AttribValue="" AttribDesc="Set Link Member"/>
+
+<Item AttribName="displaylinkmethod" AttribValue="" AttribDesc="Set the method"/>
+<Item AttribName="displaylinkmethodparam" AttribValue="" AttribDesc="Set the Param"/>
+
+<Item AttribName="QueryHeader" AttribValue="" AttribDesc="Set the Query Header"/>
+
+
+<Item AttribName="noedit" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="noeditnew" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="nodisplay" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="nosearch" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="nolist" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="justlist" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="notag" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="objecttag" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="displayright" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="spandisplay" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="editright" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="summary" AttribValue="Y" AttribDesc="True"/>
+<Item AttribName="donotcap" AttribValue="Y" AttribDesc="True"/>
+
+<Item AttribName="ShowPropertyReference" AttribValue="Y" AttribDesc="True"/>
+
+</List>

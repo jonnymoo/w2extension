@@ -1,0 +1,57 @@
+<class name="maintlock" fauthor="$Author: Simon.c $" fdate="$Date: 12/11/02 16:14 $" frevision="$Revision: 1 $">
+<members>
+<method name="Lock">
+<![CDATA[//@cmember Lock
+//@version Simon Carroll | 11-11-02 16:17 |
+//@i
+
+if (!MaintenanceLock.LockAttrGot)
+    GetLockAttributes();
+
+return MaintenanceLock.Lock();]]>
+</method>
+<method name="GetLock">
+<![CDATA[//@cmember GetLock
+//@param
+//@return
+//@version Simon Carroll | 11-11-02 16:17 |
+//@i
+
+if (!MaintenanceLock.LockAttrGot)
+    GetLockAttributes();
+
+return MaintenanceLock.getLock();]]>
+</method>
+<method name="UnLock">
+<![CDATA[//@cmember UnLock
+//@param
+//@return
+//@version Simon Carroll | 11-11-02 16:17 |
+//@i
+
+if (!MaintenanceLock.LockAttrGot)
+    GetLockAttributes();
+
+return MaintenanceLock.UnLock();]]>
+</method>
+<method name="LockStillValid">
+<![CDATA[//@cmember LockStillValid
+//@version Simon Carroll | 11-11-02 16:17 |
+//@i
+
+if (!MaintenanceLock.LockAttrGot)
+    GetLockAttributes();
+
+return MaintenanceLock.LockStillValid();]]>
+</method>
+<method name="GetLockAttributes">
+<![CDATA[//@cmember GetLockAttributes
+//@version Simon Carroll | 11-11-02 14:39 |
+//@i
+
+if (this.hasMethod("GetlockAttr"))
+    this.GetLockAttr();]]>
+</method>
+</members>
+<static />
+</class>

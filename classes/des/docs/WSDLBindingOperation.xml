@@ -1,0 +1,79 @@
+<class name="WSDLBindingOperation" description="WSDL Binding Operation">
+<members sub="Information">
+<method name="GetDocumentation">
+<![CDATA[//@cmember string GetDocumentation(  );
+//@return string | Documentation 
+//@i  returns any documentation (from the WSDL) associated with the binding operation 
+]]>
+ />
+</method>
+<method name="GetSOAPAction">
+<![CDATA[//@cmember string GetSOAPAction(  );
+//@return string | SOAPAction name 
+//@i  returns any name of the SOAPAction
+]]>
+ />
+</method>
+<method name="GetInputMessageSchema">
+<![CDATA[//@cmember string GetInputMessageSchema(  );
+//@return string | Message Schema
+//@i  returns the name of the schema for the input message in the form of an XSD class name, e.g. XSD::www::comino::com::CominoXML::CominoAddress
+]]>
+ />
+</method>
+<method name="HasInputMessageSchema">
+<![CDATA[//@cmember string HasInputMessageSchema(  );
+//@return int| 1 = true, 0 = false
+//@i  returns 1 if binding operation has an input schema defined, or 0 if it doesn't
+]]>
+ />
+</method>
+<method name="GetOutputMessageSchema">
+<![CDATA[//@cmember string GetOutputMessageSchema(  );
+//@return string | Message Schema
+//@i  returns the name of the schema for the output message in the form of an XSD class name, e.g. XSD::www::comino::com::CominoXML::CominoAddress
+]]>
+ />
+</method>
+<method name="HasOutputMessageSchema">
+<![CDATA[//@cmember string HasOutputMessageSchema(  );
+//@return int| 1 = true, 0 = false
+//@i  returns 1 if binding operation has an output schema defined, or 0 if it doesn't
+]]>
+ />
+</method>
+<method name="HasFAultMessageSchema">
+<![CDATA[//@cmember string HasFaultMessageSchema(  );
+//@return int| 1 = true, 0 = false
+//@i  returns 1 if binding operation has an fault schema defined, or 0 if it doesn't
+]]>
+ />
+</method>
+<method name="GetFaultMessageCount">
+<![CDATA[//@cmember string GetFaultMessageCount(  );
+//@return int| number of fault message schema
+//@i  returns a count of the number of fault message schemas
+]]>
+ />
+</method>
+<method name="GetFaultMessageSchema">
+<param name="faultIndex" type="int" />
+<![CDATA[//@cmember string GetFaultMessageSchema( int faultIndex );
+//@return int| number of fault message schema
+//@i  There can be multiple fault message schemas so a index must be provided returns the name of the schema for the fault message in the form of an XSD class name, e.g. XSD::www::comino::com::CominoXML::CominoFault
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="GetDocumentation" cls="string" />
+<rmeth name="GetSOAPAction" cls="string" />
+<rmeth name="GetInputMessageSchema" cls="string" />
+<rmeth name="HasInputMessageSchema" cls="int" />
+<rmeth name="GetOutputMessageSchema" cls="string" />
+<rmeth name="HasOutputMessageSchema" cls="int" />
+<rmeth name="HasFaultMessageSchema" cls="int" />
+<rmeth name="GetFaultMessageCount" cls="int" />
+<rmeth name="GetFaultMessageSchema" cls="string" />
+</return>
+</class>

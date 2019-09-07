@@ -1,0 +1,9 @@
+<form name="WBlank" hidden="1" fauthor="$Author: Jonathan Muir $" fdate="$Date: 18/12/03 12:13 $" frevision="$Revision: 5 $">
+<members />
+<static />
+<grid>
+<row>
+<col w="2" h="2" />
+</row>
+</grid>
+</form>

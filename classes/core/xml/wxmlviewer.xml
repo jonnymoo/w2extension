@@ -1,0 +1,117 @@
+<form name="WXMLviewer" caption="XML Browser (Debug)" savepos="XMLViewer" bk="D4D0C8" acceptfiles="1" fauthor="$Author: Simon.c$" fdate="$Date: 7/12/01 14:27$" frevision="$Revision: 3$">
+<members>
+<Object name="Hier" cls="xmlObj" />
+<String name="CallBackMethod" />
+<method name="onDropFiles">
+<param name="fileList" type="stringArray" />
+<![CDATA[//@cmember onDropFiles
+//@param stringArray | fileList |
+//@version Simon Carroll | 07-12-01 14:24 |
+//@i
+
+String fn = FileList[0];
+string filename = fn;
+File F;
+if (!F.Open(filename,0)) return 0;
+
+// Get Blob
+Object B = F.ReadBlob();
+XML X = B.toXMLObject();
+
+XML XB;
+XB.setTag("BASE");
+XB.addElement( X );
+
+Hier.setTo( XB );
+idHier.selectRow( Hier.elements[0] );
+Hier.elements[0].EventHierMouseSelect( &idHier );]]>
+</method>
+<method name="EventHierDoubleClick">
+<param name="TheObj" type="xmlObj" />
+<![CDATA[//@cmember EventHierDoubleClick
+//@param xmlObj | TheObj |
+//@version jonathan.muir | 18-02-10 15:28 |
+//@i
+
+if(CallBackMethod)
+{
+    this.GetParent().ExecMethod(CallBackMethod,TheObj);
+}]]>
+</method>
+</members>
+<static>
+<method name="browseXML">
+<param name="X" type="XML" />
+<param name="CallBackForm" type="form" />
+<param name="CallBackMethod" type="string" />
+<![CDATA[//@cmember
+//@param XML | X |
+//@param form | CallBackForm |
+//@param string | CallBackMethod |
+//@version jonathan.muir | 18-02-10 15:18 |
+//@i
+
+if (X==null) {
+    message("Can't view an empty XML tree (X=Null)");
+    return;
+}
+
+WXMLviewer WX;
+
+XML XB;
+XB.setTag("BASE");
+XB.addElement( X );
+
+WX.Hier.setTo( XB );
+if(CallBackForm!=NULL)
+{
+    WX.dialog(CallBackForm);
+    WX.CallBackMethod = CallBackMethod;
+}
+else
+{
+    WX.open();
+}
+WX.idHier.selectRow( WX.Hier.elements[0] );
+WX.Hier.elements[0].EventHierMouseSelect( &WX.idHier );]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col align="WH">
+<Hierarchy name="idHier" text="Hierarchy" bind="Hier" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="4" />
+<col />
+</row>
+<row>
+<col />
+<col tpad="2" bk="255,255,255">
+<Label name="idInfo" text="&gt;" tx="128,0,0" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col tpad="2" bpad="3" bk="255,255,255">
+<Label name="idTree" text="&gt;" tx="0,0,128" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

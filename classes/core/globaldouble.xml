@@ -1,0 +1,116 @@
+<class name="globaldouble" fauthor="$Author: Simon.c $" fdate="$Date: 10/03/03 12:30 $" frevision="$Revision: 1 $">
+<members />
+<static>
+<method name="Main">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Darren.Ball | 01-08-02 11:11 |
+//@version Simon Carroll | 10-03-03 12:10 |
+//@i
+
+fc_numberfunctions r;
+
+//double a = r.floor(2.34532,2);
+//message("floor = "+a);
+
+//double b = r.ceil(2.34532,2);
+//message("ceiling = "+b);
+
+double c = r.round(2.341111,2);
+message("round = "+c.toString());]]>
+</method>
+<method name="Round">
+<param name="Numb" type="object" />
+<param name="DP" type="object" />
+<param name="Precision" type="object" />
+<![CDATA[//@cmember
+//@param object | Numb |
+//@param object | DP |
+//@param object | Precision | (Optional) Defaults to 10
+//@version sorina.grave | 30-04-02 15:06 |
+//@version chris.moran | 21-05-02 14:01 |
+//@version Darren.Ball | 01-08-02 11:15 |
+//@version Jonny Moo | 16-10-02 10:33 |
+//@i
+
+// Default precision 10
+int prec = 10;
+if(Precision!=NULL) Prec = Precision;
+
+int ErrMultiplier = 10;
+
+double Error = ErrMultiplier.pow((prec*-1)-1);
+Error = Error * 5;
+
+double a       = Numb+Error;
+
+double Multiplier = 10;
+
+multiplier     = multiplier.Pow(dp);
+a              = a * multiplier;
+a = a.Round();
+a = a/multiplier;
+
+Return a;]]>
+</method>
+<method name="Floor">
+<param name="Numb" type="object" />
+<param name="DP" type="object" />
+<param name="Precision" type="object" />
+<![CDATA[//@cmember
+//@param object | Numb |
+//@param object | DP |
+//@param object | Precision |
+//@version sorina.grave | 30-04-02 15:06 |
+//@version Jonny Moo | 29-08-02 09:21 |
+//@i
+
+
+int prec = 10;
+if(Precision!=NULL) Prec = Precision;
+
+int ErrMultiplier = 10;
+
+double Error = ErrMultiplier.pow((prec*-1)-1);
+Error = Error * 5;
+
+
+double a       = Numb+Error;
+
+int multiplier = 10;
+multiplier     = multiplier.Pow(dp);
+a              = a * multiplier;
+a              = a.Floor()/multiplier;
+Return(a);]]>
+</method>
+<method name="Ceil">
+<param name="Numb" type="object" />
+<param name="DP" type="object" />
+<param name="Precision" type="object" />
+<![CDATA[//@cmember
+//@param object | Numb |
+//@param object | DP |
+//@param object | Precision |
+//@version sorina.grave | 30-04-02 15:05 |
+//@version Jonny Moo | 29-08-02 09:30 |
+//@i
+
+
+int prec = 10;
+if(Precision!=NULL) Prec = Precision;
+
+int ErrMultiplier = 10;
+
+double Error = ErrMultiplier.pow((prec*-1)-1);
+Error = Error * 5;
+
+double a       = Numb-Error;
+int multiplier = 10;
+multiplier     = multiplier.pow(dp);
+a              = a * multiplier;
+a              = a.Ceil()/multiplier;
+return a;]]>
+</method>
+</static>
+</class>

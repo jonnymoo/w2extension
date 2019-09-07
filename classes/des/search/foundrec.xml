@@ -1,0 +1,10 @@
+<class name="foundRec">
+<members>
+<String name="methodName" />
+<String name="ContextLeftStr" />
+<String name="ContextMidStr" />
+<String name="ContextRightStr" />
+<Integer name="pos" />
+</members>
+<static />
+</class>

@@ -1,0 +1,275 @@
+<form name="cwformheader" margin="0" fauthor="$Author: David.s $" fdate="$Date: 8/10/01 15:23 $" frevision="$Revision: 1 $">
+<members>
+<method name="SetTitle">
+<param name="Title" />
+<![CDATA[
+// Just set the title string
+lblTitle.SetText(Title);
+
+// If we do not have a parent then do not show the
+// minimise button
+Object P = GetParent();
+
+while (P != NULL)
+{
+    if (P.HasMethod("ViewPane"))
+    {
+        // Allow to minimise and close as we are in a multipane
+        imgMin.setVisible(1);
+        imgClose.setVisible(1);
+        FitRecursive();
+        break;
+    }
+
+    // Next parent
+    P = P.GetParent();
+}]]>
+</method>
+<method name="SetImage">
+<param name="ImageFile" />
+<param name="handler" />
+<![CDATA[
+// Image class should be of the form :
+
+// classes::resource::standard::dot_red_down.bmp
+
+// Set the image picture
+imgTitle.SetAttr( "img", imagefile );
+
+// Set the handler to call for
+imgTitle.SetAttr( "param", handler);]]>
+</method>
+<method name="AddButton">
+<param name="ImageFile" />
+<param name="CallBack" />
+<param name="HelpText" />
+<![CDATA[//@version jonathan.w | 04-10-01 12:53 |
+
+// Image class should be of the form :
+
+// classes::resource::standard::dot_red_down.bmp
+
+// Set the image picture and other info
+int i = this.ControlCount();
+int j;
+
+// Check that the button is not already shown
+for (j = 0; j < i; j++)
+{
+    Object C = this.GetControl(j);
+    if (C == Null) break;
+
+    if (C.GetControlAttr("Name").left(3) == "img")
+    {
+        // Is it visible
+        if (C.IsVisible() == 1)
+        {
+            if (C.GetControlAttr("param") == Callback) return;
+        }
+    }
+}
+
+for (j = 0; j < i; j++)
+{
+    Object C = this.GetControl(j);
+    if (C == Null) break;
+
+    if (C.GetControlAttr("Name").left(3) == "img")
+    {
+        // Is it visible
+        if (C.IsVisible() == 0)
+        {
+            C.SetAttr( "img", imagefile );
+            C.SetAttr( "param", Callback);
+            C.SetAttr( "hlp", HelpText);
+            C.SetVisible(1);
+            FitRecursive();
+            break;
+        }
+    }
+}]]>
+</method>
+<method name="OnClick">
+<param name="con" />
+<![CDATA[
+// Get the callback
+String CallBack = con.GetControlAttr("param");
+
+// Get the parent object
+Object Parent = GetParent();
+
+// Get the control count
+int i = Parent.ControlCount();
+
+// Initalise a pointer to the first control - There must be one
+Object C = Parent.GetControl(0);
+
+// Now get this control on the parent form
+for (int j = 0; j < i; j++)
+{
+    // Get the next control
+    C = Parent.GetControl(j);
+
+    // Is it a component - This object should be
+    if (C.IsType("Component"))
+    {
+        // Get the class name
+        String ClassName = C.CompClass();
+        int idx1 = ClassName.IndexOf("::", 0, 1);
+        int idx2 = idx1;
+        while (idx1 >= 0)
+        {
+            idx2 = idx1;
+            idx1 = ClassName.IndexOf("::", idx1+1, 1);
+        }
+        if (idx2 != -1)
+        {
+            ClassName = ClassName.Right(ClassName.Length()-idx2-2);
+        }
+
+        // Is it of this type ?
+        if (ClassName == "cwformheader")
+        {
+            // Is it this control ?
+            if (C.lblTitle == lblTitle) break;
+        }
+    }
+}
+
+// Check if standard message
+if (CallBack == "Close")
+{
+    if (Parent != NULL)
+    {
+        if (Parent.HasMethod("ClosePane"))
+        {
+            // Let the parent handle it
+            Parent.ClosePane(C);
+        }
+        else
+        {
+            // Just close
+            Parent.Close();
+        }
+    }
+    else
+    {
+        // Just close
+        Close();
+    }
+
+}
+else if (Callback == "Minimise")
+{
+    // Just close the multipane if required
+    if (Parent != NULL)
+    {
+        if (Parent.HasMethod("MinimisePane"))
+        {
+            // Let the parent handle it
+            Parent.MinimisePane(C);
+        }
+        else
+        {
+            // Just close
+            Parent.Close();
+        }
+    }
+    else
+    {
+        // Just close
+        Close();
+    }
+}
+else
+{
+    // Now notify the parent object
+    if (Parent.HasMethod(CallBack))
+    {
+        Parent.ExecMethod(CallBack, C);
+        return;
+    }
+
+    // Broadcast the message to all objects
+    classes::localgov::util::functions::broadcast(CallBack, C);
+}]]>
+</method>
+<method name="OnRightClick">
+<param name="con" />
+<![CDATA[//@version jonathan.w | 04-10-01 12:53 |
+
+// Get the callback
+String HelpText = con.GetControlAttr("hlp");
+
+if (HelpText != "")
+{
+    PopupMenu P;
+    P.Add(HelpText);
+    String s = P.Track();
+    if (s != "") OnClick( con );
+}]]>
+</method>
+<method name="OnRClickImage">
+<param name="con" />
+<![CDATA[//@cmember  OnRClickImage
+//@param    con | control | The clicked control
+//@return   None
+//@version  Neil Turner | v1.00 26/04/2001 | Initial version
+//@i        Run the handler method
+
+// Retrieve the handler for the image
+String handler = con.GetControlAttr("param");
+
+int lastSep = handler.lastIndexOf( "::" );
+
+// Execute the handler method
+if (handler != "")
+{
+    // Strip the handler to get the class and the method
+    string class = handler.left(lastsep);
+    string method = handler.right((handler.length() - lastsep) - 2);
+    object ClassToRun = Sys::LoadClass(Class);
+    ClassToRun.ExecMethod( method );
+}]]>
+</method>
+</members>
+<static />
+<grid name="gridTitle">
+<row>
+<col lpad="26" tpad="10" w="83" h="54" bkimg="classes::resource::standard::green_circle.bmp">
+<Image name="imgTitle" text="Image" w="30" h="30" img="classes::resource::standard::base.bmp" onRightClick="OnRClickImage" />
+</col>
+<col tpad="4" align="W" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Label name="lblTitle" text="Form Title" tx="255,255,255" style="b" font="Arial" size="11" />
+</col>
+<col lpad="2" tpad="4" w="20" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Image name="img1" text="Image" img="classes::resource::standard::smallbase.bmp" onClick="OnClick" hide="Y" onRightClick="OnRightClick" />
+</col>
+<col lpad="2" tpad="4" w="20" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Image name="img2" text="Image" img="classes::resource::standard::smallbase.bmp" onClick="OnClick" hide="Y" onRightClick="OnRightClick" />
+</col>
+<col lpad="2" tpad="4" w="20" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Image name="img3" text="Image" img="classes::resource::standard::smallbase.bmp" onClick="OnClick" hide="Y" onRightClick="OnRightClick" />
+</col>
+<col lpad="2" tpad="4" w="20" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Image name="img4" text="Image" img="classes::resource::standard::smallbase.bmp" onClick="OnClick" hide="Y" onRightClick="OnRightClick" />
+</col>
+<col lpad="2" tpad="4" w="20" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Image name="img5" text="Image" img="classes::resource::standard::smallbase.bmp" onClick="OnClick" hide="Y" onRightClick="OnRightClick" />
+</col>
+<col lpad="2" tpad="4" w="20" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Image name="img6" text="Image" img="classes::resource::standard::smallbase.bmp" onClick="OnClick" hide="Y" onRightClick="OnRightClick" />
+</col>
+<col lpad="2" tpad="4" w="20" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Image name="img7" text="Image" img="classes::resource::standard::smallbase.bmp" onClick="OnClick" hide="Y" onRightClick="OnRightClick" />
+</col>
+<col lpad="2" tpad="4" w="20" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Image name="imgMin" text="Image" img="classes::resource::standard::brw_max.bmp" onClick="OnClick" Param="Minimise" help="Minimise" onRightClick="OnRightClick" hide="Y" />
+</col>
+<col lpad="2" tpad="4" w="20" bkimg="classes::resource::standard::green_bar_edge.bmp" imgtile="1">
+<Image name="imgClose" text="Image" img="classes::resource::standard::brw_close2.bmp" onClick="OnClick" Param="Close" help="Close" onRightClick="OnRightClick" hide="Y" />
+</col>
+<col w="12" align="R" bkimg="classes::resource::standard::green_bar_edge_left.bmp" />
+</row>
+</grid>
+</form>

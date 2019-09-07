@@ -1,0 +1,90 @@
+<class name="Registry" description="W2 Script Reference">
+<members>
+<method name="Close">
+<![CDATA[//@cmember int Close(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Create">
+<param name="HKey" type="int" />
+<param name="SubKey" type="string" />
+<![CDATA[//@cmember int Create( int HKey, string SubKey );
+//@param int | HKey | 
+//@param string | SubKey | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetLastError">
+<![CDATA[//@cmember int GetLastError(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Open">
+<param name="HKey" type="int" />
+<param name="SubKey" type="string" />
+<![CDATA[//@cmember int Open( int HKey, string SubKey );
+//@param int | HKey | 
+//@param string | SubKey | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ReadDWord">
+<param name="ValueName" type="string" />
+<![CDATA[//@cmember int ReadDWord( string ValueName );
+//@param string | ValueName | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ReadString">
+<param name="ValueName" type="string" />
+<![CDATA[//@cmember string ReadString( string ValueName );
+//@param string | ValueName | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="WriteDWord">
+<param name="ValueName" type="string" />
+<param name="Data" type="int" />
+<![CDATA[//@cmember int WriteDWord( string ValueName, int Data );
+//@param string | ValueName | 
+//@param int | Data | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="WriteString">
+<param name="ValueName" type="string" />
+<param name="Data" type="string" />
+<![CDATA[//@cmember int WriteString( string ValueName, string Data );
+//@param string | ValueName | 
+//@param string | Data | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Close" cls="int" />
+<rmeth name="Create" cls="int" />
+<rmeth name="GetLastError" cls="int" />
+<rmeth name="Open" cls="int" />
+<rmeth name="ReadDWord" cls="int" />
+<rmeth name="ReadString" cls="string" />
+<rmeth name="WriteDWord" cls="int" />
+<rmeth name="WriteString" cls="int" />
+</return>
+</class>

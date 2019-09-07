@@ -1,0 +1,160 @@
+<form name="CMulti" base="CtrlBase" bk="Face" margin="0" fauthor="$Author: Andrew.g$" fdate="$Date: 25/06/01 13:47$" frevision="$Revision: 3$">
+<members>
+<List name="projList" cls="classes::CPickS" />
+<method name="Init">
+<![CDATA[
+idToolbar.AddOption("Top");
+idToolbar.AddOption("Bottom");
+idToolbar.AddOption("None");
+
+super.Init();]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" type="object" />
+<![CDATA[
+String tb = Ctrl.GetAttr("tb");
+
+if (tb=="0") tb = "None";
+else if (tb=="2") tb = "Bottom";
+else tb = "Top";
+
+idToolbar.SetText(tb);
+
+super.ShowCtrl( Ctrl );
+
+// Get Project Controls
+string ppath = getParent().getParent().getParent().FileName;
+string cnames = ::browse::ClsBrowser::openProject.getFormComps( ppath, Ctrl.name );
+
+ProjList.reset();
+
+if (cnames) {
+    showgroup( "Proj", 1 );
+    for (int i=0;; i++) {
+        string s = cnames.gettoken( i );
+        if (!s) break;
+        CPickS tmp = &ProjList.CreateRow();
+        tmp.desc = s;
+        s = sys::MakeRelativeName( ppath, s );
+        tmp.desc = s.left( s.lastIndexOf(".") );
+    }
+    idProjList.CalcWidths();
+} else showGroup( "Proj", 0 );
+
+SizeFormToContent();]]>
+</method>
+<method name="DoToolbar">
+<param name="Ctrl" type="object" />
+<![CDATA[
+// GetParent().SetCtrlAttr(Ctrl.ControlID(),Ctrl.getText());
+
+String tb = idToolbar.GetText();
+
+if      (tb=="None") tb = "0";
+else if (tb=="Bottom") tb = "2";
+else    tb = "";
+
+SetAttr( "tb", tb );]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[switch (attrName.lower()) {
+  case  "tb", "ismultipane" : return 1;
+}
+
+return 0;]]>
+</method>
+<method name="doOpenClassProj">
+<![CDATA[//@version Jonathan.Muir | 26-02-10 13:43 |
+string cls = ProjList.CurrentRow().desc;
+
+if (cls=="") return;
+
+object clas = getParent().getParent().getParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+
+object win = ::AdvSearch::OpenClassFile( cls, tPath, "" );
+if(win!=null) win.show(1);]]>
+</method>
+</members>
+<static />
+<grid rpad="2" bpad="1" bk="224,224,192">
+<row>
+<col colspan="2" rpad="0" align="WV">
+<grid rpad="2" bpad="1">
+<row>
+<col align="V">
+<Label text="Name:" />
+</col>
+<col colspan="5" align="W">
+<Edit name="idName" w="120" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Tab:" />
+</col>
+<col>
+<Edit name="idTabStop" w="32" combo="2" onChange="DoTabStop" border="0" />
+</col>
+<col align="V">
+<Label text="Enabled:" />
+</col>
+<col>
+<Edit name="idEnabled" w="32" combo="2" onChange="DoEnabled" border="0" />
+</col>
+<col align="V">
+<Label text="Visible:" />
+</col>
+<col>
+<Edit name="idVisible" w="32" combo="2" onChange="DoVisible" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" rpad="1" bpad="1" bk="224,192,128">
+<Label text="Behaviour:" />
+</col>
+</row>
+<row>
+<col tpad="2" align="V">
+<Label text="Toolbar:" />
+</col>
+<col tpad="2" align="W">
+<Edit name="idToolbar" w="120" onChange="DoToolbar" border="0" combo="2" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups:" />
+</col>
+<col align="W">
+<Edit name="idGroups" w="120" onChange="DoGroups" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" rpad="1" bpad="1" bk="224,192,128">
+<Label text="Project Classes" groups="Proj" hide="Y" />
+</col>
+</row>
+<row>
+<col colspan="2">
+<ListBox name="idProjList" IsList="Y" groups="Proj" hide="Y" list="projList" fixsize="1" border="0" onClick="doOpenClassProj">
+<row>
+<col rpad="4" align="V" bk="224,224,192">
+<Label text="Class Name:" />
+</col>
+<col bk="255,255,255">
+<Label text="Label" bind="desc" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

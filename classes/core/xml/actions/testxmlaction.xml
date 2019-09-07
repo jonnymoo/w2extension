@@ -1,0 +1,198 @@
+<class name="testxmlaction" base="xmlbaseAction" fauthor="$Author: Simon.c $" fdate="$Date: 29/01/03 12:55 $" frevision="$Revision: 1 $">
+<members>
+<method name="GetAddress">
+<![CDATA[//@cmember GetAddress
+//@version Simon Carroll | 28-01-03 14:30 |
+//@i
+
+string path = path();
+
+int k = path.indexof("classes/");
+
+string firstbit = path.left(k);
+
+string nextbit = "scripts/w2isapi.dll/classes::core::xml::actions::srvtestxmlaction";
+return firstbit+nextbit;]]>
+</method>
+<method name="GetHelptext">
+<![CDATA[//@cmember GetHelptext
+//@version Simon Carroll | 28-01-03 11:59 |
+//@i
+
+string a;
+
+a = "This is an explanation of how this xml message should work.";
+a+="\nThis should contain important information about what is expected ";
+a+="\nand what parameters will need to be chosen.";
+
+a+="\n\nThis test xml action will find out if a particular person is logged on ";
+a+="\nto the system or not. (This person is specified in the parameter field";
+a+="\nabove.)\n";
+a+="\nIt will return 1 if the user is logged in";
+a+="\nand 2 if the user is not logged in";
+
+return a;]]>
+</method>
+<method name="RespondImmediately">
+<![CDATA[//@cmember RespondImmediately
+//@version Simon Carroll | 29-01-03 12:25 |
+//@i
+
+return 1;]]>
+</method>
+<method name="DoParam">
+<param name="idParam" type="object" />
+<param name="form" type="object" />
+<![CDATA[//@cmember DoParam
+//@param object | idParam |
+//@param object | form |
+//@version Simon Carroll | 28-01-03 10:34 |
+//@i
+
+//get Current selection
+
+string currsel = idParam.GetText();
+PopUpMenu P;
+
+for (int i = 0; i<classes::workers::all::GetuserCount(); i++)
+{
+    Object U = classes::workers::all::GetUserFromIndex(i);
+    if (U != NULL)
+    {
+        P.Add((U.user_id == currsel ? "+" : "")+U.User_name, U.User_id);
+    }
+}
+
+string q = P.track();
+if (!q) return;
+
+
+idParam.setText(q);
+form.ReconstructParameters();]]>
+</method>
+<method name="returnCompletionCodes">
+<param name="Action" type="classes::core::maps::actioninfo" />
+<param name="LX" type="classes::cpickn[]" />
+<![CDATA[//@cmember returnCompletionCodes
+//@param classes::core::maps::actioninfo | Action |
+//@param classes::cpickn[] | LX |
+//@version Simon Carroll | 28-01-03 11:45 |
+//@i
+
+//return the completion codes that are going to be used for this xml message
+
+//Find the user that we are seeing is logged in
+
+string userid;
+
+for (int i = 0;; i++)
+{
+
+    string thisParam;
+    thisParam = Action.Param.getToken(i,"|");
+    if (thisParam.BeginsWith("P:"))
+    {
+        userid = thisParam.Right(thisParam.length()-2);
+        break;
+    }
+}
+
+string username;
+
+if (userid)
+{
+    Object U = classes::workers::all::GetUser(userid);
+    if (U != null)
+        username = U.User_name;
+
+}
+
+Object C1 = LX.CreateRow();
+C1.code = 1;
+C1.desc = (username != "" ? username+" is logged on" : "User is logged on");
+
+Object C2 = LX.CreateRow();
+C2.code = 2;
+C2.desc = (username != "" ? username+" is not logged on" : "User is not logged on");
+
+return LX;]]>
+</method>
+<method name="GetXMLObject">
+<param name="Param" type="object" />
+<param name="Process" type="object" />
+<param name="KeyObj" type="object" />
+<param name="x" type="XML" />
+<![CDATA[//@cmember GetXMLObject
+//@param object | Param |
+//@param object | Process |
+//@param object | KeyObj |
+//@param XML | x |
+//@version Simon Carroll | 28-01-03 14:36 |
+//@i
+
+
+//Get Function XML;
+
+X.SetTag("FUNCTION");
+
+xml Y;
+Y.setTag("NAME");
+Y.CreateElement().SetContent("Find User");
+
+X.AddElement(Y);
+
+//get User XML
+xml User;
+User.SetTag("USERID");
+User.CreateElement().SetContent(Param);
+
+X.AddElement(User);
+
+xml proc;
+proc.SetTag("PROCESS");
+
+xml procno;
+procno.SetTag("PROCESSNO");
+procno.CreateElement().SetContent(Process.processNo.Tostring());
+
+xml stageno;
+stageno.SetTag("STAGEID");
+stageno.CreateElement().SetContent(Process.StageId.ToString());
+
+xml ActionNo;
+Actionno.SetTag("ACTIONID");
+Actionno.CreateElement().SetContent(Process.ActionId);
+
+proc.AddElement(procno);
+proc.AddElement(stageno);
+proc.AddElement(ActionNo);
+
+X.AddElement(proc);
+
+Blob B;
+B.WriteXML(X);
+sys::copytoclipboard(B.Tostring());]]>
+</method>
+<method name="MessageReceived">
+<param name="B" type="Blob" />
+<![CDATA[//@cmember MessageReceived
+//@param Blob | B |
+//@version Simon Carroll | 28-01-03 15:28 |
+//@i
+
+Object res = B.GetObjects();
+
+if (Res.error == "") // we have a result
+{
+    int compcode = Res.CompletionCode;
+    return compcode;
+}
+else
+{
+    message(Res.error);
+    return 0;
+}]]>
+</method>
+</members>
+<static />
+</class>

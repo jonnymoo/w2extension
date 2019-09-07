@@ -1,0 +1,192 @@
+<class name="ObjectRoot" description="W2 Script Reference" base="ClassDef">
+<members sub="Misc">
+<method name="class">
+<![CDATA[//@cmember ClassDef class(  );
+//@return ClassDef | 
+//@i 
+]]>
+ />
+</method>
+<method name="CompileAndExecute">
+<param name="Source" type="string" />
+<![CDATA[//@cmember int CompileAndExecute( string Source );
+//@param string | Source | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ExecMethod">
+<param name="name" type="String" />
+<param name="param1]" type="[String" />
+<param name="param1]" type="[String" />
+<param name="" type="[...]" />
+<![CDATA[//@cmember int ExecMethod( String name, [String param1], [String param1], [...] );
+//@param String | name | 
+//@param [String | param1] | 
+//@param [String | param1] | 
+//@param [...] |  | 
+//@return int | 
+//@i Calls the method 'name' on this object.
+//@Exam string meth = "callthis";
+//@Exam aClass cls;
+//@Exam // The two following lines do the same thing.
+//@Exam cls.callthis("Testing 1");
+//@Exam cls.execMethod( meth, "testing 2" );]]>
+ />
+</method>
+
+<method name="ExecReturnMethod">
+<param name="theObj" type="Object" />
+<param name="method" type="String" />
+<param name="param1" type="String" />
+<param name="" type="[...]" />
+<![CDATA[//@cmember variable ExecReturnMethod( Object theObj, String name, [String param1], [String param1], [...] );
+//@param Object | theObj | 
+//@param String | method | 
+//@param [String | param1] | 
+//@param [String | param2] | 
+//@param [...] |  | 
+//@return variable | the return type of the method
+//@i Calls the method 'method' on 'theObj ' instance. Same as ExecMethod except that the first value
+is the object to execute the method on and it returns the return value if all's ok, otherwise null
+]]>
+ />
+</method>
+
+<method name="GetMember">
+<param name="idx" type="int" />
+<param1 name="memberName" type="string" />
+<![CDATA[//@cmember object GetMember( {int idx} or {string memberName} );
+//@param int | idx | 
+//@param string | memberName | 
+//@return object | 
+//@i Returns the member of an object indexed by 'idx'.
+//@Exam classes::CPickS o;
+//@Exam // Next two lines are equivelent
+//@Exam o.desc = "Hello";
+//@Exam o.GetMember(1) = "Hello";
+//@Exam ]]>
+ />
+</method>
+<method name="ResetMember">
+<param name="memberName" type="string" />
+<![CDATA[//@cmember void ResetMember({string memberName} );
+//@param string | memberName | 
+//@return void | 
+//@i Reset the member with the given name.
+ ]]>
+ />
+</method>
+<method name="GetMemberValue">
+<param name="name" type="string" />
+<![CDATA[//@cmember object GetMemberValue(string memberName);
+//@param string | memberName | 
+//@return object | 
+//@i Returns the value of the member. ]]>
+ />
+</method>
+
+<method name="IsList">
+<![CDATA[//@cmember int IsList(  );
+//@return int | 
+//@i Always false.
+]]>
+ />
+</method>
+<method name="isObject">
+<![CDATA[//@cmember int isObject(  );
+//@return int | 
+//@i Always True.
+]]>
+ />
+</method>
+
+<method name="MemoryAddress">
+<![CDATA[//@cmember int MemoryAddress( );
+//@return int | the internal memory address of the object
+//@i Gets the memory address of the object
+]]>
+ />
+</method>
+
+<method name="NewThread">
+<param name="Name" type="string" />
+<![CDATA[//@cmember int NewThread( string Name );
+//@param string | Name | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="IsMemberBlank">
+<param name="Name" type="string" />
+<![CDATA[//@cmember int IsMemberBlank( string Name);
+//@param string | Name | 
+//@return int | 
+//@i Returns 1 if the member is blank ]]>
+ />
+</method>
+<method name="setmember">
+<param name="Name" type="string" />
+<param name="Value" type="object" />
+<![CDATA[//@cmember int setmember( string Name, object Value );
+//@param string | Name | 
+//@param object | Value | 
+//@return int | 
+//@i Assigns a value to a member variable of the object.
+//@Exam classes::CPickN o;
+//@Exam // Next two lines are equivelent
+//@Exam o.code = 123;
+//@Exam o.setMember( "code", "123" );
+//@Exam ]]>
+ />
+</method>
+<method name="setmember">
+<param name="index" type="int" />
+<param name="Value" type="object" />
+<![CDATA[//@cmember int setmember( int index, object Value );
+//@param int | index | 
+//@param object | Value | 
+//@return int | 
+//@i Assigns a value to a member variable of the object.
+//@Exam classes::CPickN o;
+//@Exam // Next two lines are equivelent
+//@Exam o.code = 123;
+//@Exam o.setMember( "code", "123" );
+//@Exam ]]>
+ />
+</method>
+<method name="Show">
+<![CDATA[//@cmember void Show(  );
+//@return void | 
+//@i Show the contents of this object
+]]>
+ />
+</method>
+<method name="getCallingObject">
+<![CDATA[//@cmember void getCallingObject(  );
+//@return object | 
+//@i Returns the calling object for this function.
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="class" cls="ClassDef" />
+<rmeth name="CompileAndExecute" cls="int" />
+<rmeth name="ExecMethod" cls="int" />
+<rmeth name="ExecReturnMethod" cls="variable" />
+<rmeth name="MemoryAddress" cls="int" />
+<rmeth name="GetMember" cls="object" />
+<rmeth name="ResetMember" cls="void" />
+<rmeth name="GetMemberValue" cls="object" />
+<rmeth name="IsList" cls="int" />
+<rmeth name="isObject" cls="int" />
+<rmeth name="NewThread" cls="int" />
+<rmeth name="setmember" cls="int" />
+<rmeth name="IsMemberBlank" cls="int" />
+<rmeth name="Show" cls="void" />
+<rmeth name="getCallingObject" cls="object" />
+</return>
+</class>

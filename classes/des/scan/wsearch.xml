@@ -1,0 +1,405 @@
+<form name="wSearch" caption="Find / Replace" savepos="wSearchPos" bk="CCCCCC" esccancel="1">
+<members>
+<Object name="par" cls="::wclassview" />
+<Object name="hier" />
+<String name="fndStr" />
+<List name="foundLst" cls="foundRec" />
+<Integer name="noWarning" />
+<Integer name="lastSelected" />
+<Integer name="fCount" />
+<method name="startSearch">
+<![CDATA[//@cmember startSearch
+//@param
+//@return
+//@version Andrew Griffin | v0.1 | Search trial
+//
+//@i Does a comprehensive search of the open class for
+//@i a given search string
+
+idFindReplace.setText("Find");
+
+foundLst.reset();
+string lastName="#not likely#";
+
+fcount = 0;
+
+for (int i=0; i<hier.count(); i++) {
+
+  List ml = &hier[i].functions;  // hier[i] => classes\des\classSection.xml
+  for (int j=0; j<ml.count(); j++) {
+
+    Object FX = &ml[j];
+    Object M = &FX.GetMember("Script");
+
+    if (M!=null){
+      int pos=0;
+      while (1) {
+        pos = FX.Script.indexOf( FNDstr, pos, 1 );
+        if (pos<0) break;
+        foundRec itm = &foundLst.createRow();
+        if (FX.funcName!=lastName) {
+            if (foundLst.count()>1) itm = &foundLst.createRow();
+
+            lastName = FX.funcName;
+            itm.methodName = lastName;
+        }
+        getContext(itm, FX.Script, pos, pos+FNDstr.length());
+        itm.pos = pos;
+        pos++;
+        fcount++;
+      }
+    }
+  }
+}
+
+fitRecursive();
+]]>
+</method>
+<method name="jumpToMethod">
+<param name="dbl" type="component" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+idFindReplace.setText("Find");
+fitRecursive();
+
+int i = foundLst.currentIndex();
+lastSelected = i;
+if (i<0) return;
+
+foundRec fRec = &foundLst[i];
+
+if (!fRec.ContextMidStr) return;
+
+string mmName;
+while (!mmName) {
+    mmName = foundLst[i].methodName;
+    i--;
+}
+
+::func found = &::advsearch::findMethod(par, mmName, null); // find method
+if (found==null) return;
+ ::advsearch::showMethod(par, found);    // display found method
+
+// Now find instance of search string
+
+object pan = &par.idMulti.FindPane("MethodEdit");
+
+if (pan.magic.script.subString(fRec.pos, fRec.pos+fRec.ContextMidStr.length()).eq(fndStr)) {
+    
+    pan.idsource.SetSelection(fRec.pos, fRec.pos+fRec.ContextMidStr.length());
+
+} else {
+
+    // changed since last search...
+    message("Search is out of date...\r\nPress OK to refresh search");
+    startSearch();
+    if (foundLst.count()==0) return;
+    if (lastSelected<0) lastSelected = 0;
+    if (lastSelected>=foundLst.count()) lastSelected = 0;
+    if (!foundLst[lastSelected].ContextMidStr) lastSelected++;
+    foundLst.setCurrent(lastSelected);
+    return jumpToMethod();
+    
+}
+
+idFindReplace.setText("Replace");
+fitRecursive();
+
+if (dbl==null) {
+    close();
+    return null;
+}
+
+return fRec;]]>
+</method>
+<method name="jumpToMethod2">
+<![CDATA[jumpToMethod(null);]]>
+</method>
+<method name="doReplace">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+//idReplaceWith.getText();
+
+if (idFindReplace.getText()=="Find") {
+    if (foundLst.count()==0) return;
+    if (lastSelected<0) lastSelected = 0;
+    if (lastSelected>=foundLst.count()) lastSelected = 0;
+    if (!foundLst[lastSelected].ContextMidStr) lastSelected++;
+    foundLst.setCurrent(lastSelected);
+    jumpToMethod(&idFoundList);
+    return;
+}
+
+if (!noWarning) {
+    if (message(
+        "Replace Text?",
+        "You will only be warned the first time...",
+        classes::core::windows::MB_YESNO ) != classes::core::windows::IDYES) return;
+}
+
+noWarning = 1;
+
+foundRec fRec = &jumpToMethod(&idFoundList);
+if (fRec==null) return;
+
+::WFuncEdit myFunc = &par.idMulti.FindPane("MethodEdit");
+
+string str = myFunc.Magic.script;
+str = str.left( fRec.pos ) + idReplaceWith.getText() + str.subString( fRec.pos + fRec.ContextMidStr.length() );
+myFunc.Magic.script = str;
+myFunc.idSource.setText( str );
+myFunc.idSource.bindTo( &myFunc.Magic.script );
+myFunc.idSource.setSelection(fRec.pos, fRec.pos+idReplaceWith.getText().length());
+
+myFunc.OnSourceChange();
+
+lastSelected = foundLst.currentIndex();
+startSearch();]]>
+</method>
+<method name="doReplaceAll">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+if (message(
+    "Replace All occurances?",
+    "Warning...",
+    classes::core::windows::MB_YESNO ) != classes::core::windows::IDYES) return;
+
+
+::WFuncEdit myFunc = &par.idMulti.FindPane("MethodEdit");
+int ls, le;
+
+for (int i=0; i<foundLst.count(); i++)
+  if (foundLst[i].ContextMidStr) {
+
+    foundRec fRec = &foundLst[i];
+    if (fRec.methodName) {
+      foundLst.setCurrent(i);
+      jumpToMethod(&idFoundList);
+
+      string str = myFunc.Magic.script, nstr;
+      int pos=0;
+
+      while (1) {
+        int npos = str.indexOf( FNDstr, pos, 1 );
+        if (npos<0) {
+          nstr += str.subString( pos );
+          break;
+        }
+
+        nstr += str.subString(pos, npos);
+        ls = nstr.length();
+        nstr += idReplaceWith.getText();
+        le = nstr.length();
+        pos = npos + FNDstr.length();
+      }
+
+      if (fRec==null) continue;
+
+      myFunc.Magic.script = nstr;
+      myFunc.idSource.setText( nstr );
+      myFunc.idSource.bindTo( &myFunc.Magic.script );
+      myFunc.idSource.setSelection(ls, le);
+    
+      myFunc.OnSourceChange();
+  }
+}
+
+close();]]>
+</method>
+<method name="onChar">
+<param name="TheKey" />
+<param name="TheState" />
+<param name="TheControl" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+if (TheKey==13) {
+    if (TheControl==idReplaceWith) doReplace();
+    else
+    if (TheControl==idFoundList) {
+        jumpToMethod(&idFoundList);
+        TheControl.setfocus();
+    }
+}]]>
+</method>
+</members>
+<static>
+<method name="getContext" return="string">
+<param name="rec" type="foundRec" />
+<param name="str" type="string" />
+<param name="pos" type="int" />
+<param name="pos2" type="int" />
+<![CDATA[//@cmember getContext
+//@param string | str | The W2 script string
+//@param int | pos | The position in the script to bring out
+//@return string | The context
+//@version Andrew Griffin | v0.1
+//@i Returns the context given the whole script and a location
+
+int s=str.lastIndexOf("\r\n", pos);
+if (s<0) s=0;
+
+int e=str.indexOf("\r\n", pos2);
+if (e<0) e=str.length();
+
+if (pos-s>20) s = pos-20;   // 20 chars to the left
+if (e-pos>40) e = pos+40;   // 40 to the right
+
+string tmp = str.subString( s, pos+1 ).trim();
+rec.contextLeftStr = tmp.left(tmp.length()-1);
+rec.contextMidStr = str.subString(pos, pos2).lower();
+tmp = str.subString( pos2-1, e ).trim();
+rec.contextRightStr = tmp.substring(1);]]>
+</method>
+<method name="newSearch" return="wSearch">
+<param name="hier" type="list" />
+<param name="FNDStr" type="string" />
+<param name="theCell" type="gridCell" />
+<param name="par" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+wSearch aWin = null;
+
+aWin = &sys::FindPopup("FindReplace");
+if (aWin==null) {
+    aWin = &wSearch::createInstance();
+    aWin.dialog(&par);
+    if (theCell!=null) aWin.snapToCell(theCell);
+                  else aWin.CenterForm();
+}
+
+/*                                      
+for (int i=0;; i++) {
+    object win=&sys::GetOpenWindow(i);
+    if (win==null) {
+        aWin = &wSearch::createInstance();
+        break;
+    }
+    
+    if (win.getmemberdef("foundLst")!=null) {
+        aWin = &win;
+        break;
+    }
+}
+*/
+
+aWin.setWindowName( "FindReplace" );
+aWin.par = par; //.SetMagicPointer( par );
+aWin.hier = hier;
+aWin.FNDStr = FNDStr;
+aWin.lastSelected = -1;
+aWin.noWarning = 0;
+
+aWin.startSearch();]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col align="WH">
+<grid>
+<row>
+<col lpad="4" rpad="8" bpad="6">
+<Label text="Method Name:" tx="128,0,0" style="b" />
+</col>
+<col lpad="4" bpad="6">
+<Label text="Context:" style="b" />
+</col>
+<col lpad="4" bpad="6" align="W" />
+<col lpad="4" bpad="6">
+<Label text="found:" tx="0,0,128" />
+</col>
+<col lpad="4" rpad="4" bpad="6">
+<Label text="&lt;n&gt;" tx="0,0,128" bind="fCount" style="b" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="WH" bk="255,255,255">
+<ListBox name="idFoundList" IsList="Y" list="foundLst" onClick="jumpToMethod" onDoubleClick="jumpToMethod2">
+<row>
+<col lpad="4" rpad="4" bpad="2">
+<Label text="&lt;method&gt;" w="96" tx="128,0,0" bind="methodName" />
+</col>
+<col lpad="8" bpad="2" align="R">
+<Label bind="ContextLeftStr" />
+</col>
+<col bpad="2">
+<Label tx="0,0,255" bind="ContextMidStr" />
+</col>
+<col bpad="2">
+<Label bind="ContextRightStr" />
+</col>
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="10" />
+<col />
+</row>
+<row>
+<col />
+<col align="W">
+<grid>
+<row>
+<col rpad="8" align="V">
+<Label text="Replace with" />
+</col>
+<col align="W">
+<Edit name="idReplaceWith" />
+</col>
+<col w="8" />
+<col lpad="10" tpad="3" rpad="10" bpad="3" w="68" align="C" bk="128,128,128" bksel="0,128,128" imgtile="8">
+<Label name="idFindReplace" text="Find" tx="255,255,255" style="b" onClick="doReplace" txsel="FFFF00" />
+</col>
+<col w="4" />
+<col lpad="10" tpad="3" rpad="10" bpad="3" align="C" bk="128,128,128" bksel="0,128,128" imgtile="8">
+<Label text="Replace All" tx="255,255,255" style="b" onClick="doReplaceAll" txsel="FFFF00" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="2" />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="getContext" cls="string" />
+<rmeth name="newSearch" cls="wSearch" />
+</return>
+</form>

@@ -1,0 +1,90 @@
+<class name="Compile" description="W2 Script Reference">
+<members>
+<method name="AddParam">
+<param name="Name" type="string" />
+<![CDATA[//@cmember void AddParam( string Name );
+//@param string | Name | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Compile">
+<param name="Source" type="string" />
+<![CDATA[//@cmember int Compile( string Source );
+//@param string | Source | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetClassUsed">
+<param name="idx" type="int" />
+<![CDATA[//@cmember string GetClassUsed( int idx );
+//@param int | idx | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetErrorCode">
+<![CDATA[//@cmember int GetErrorCode(  );
+//@return int | 
+//@i 0 is no error
+]]>
+ />
+</method>
+<method name="GetErrorLine">
+<![CDATA[//@cmember int GetErrorLine(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetErrorText">
+<![CDATA[//@cmember string GetErrorText(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetMemberUsed">
+<param name="idx" type="int" />
+<![CDATA[//@cmember string GetMemberUsed( int idx );
+//@param int | idx | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetMethodCalled">
+<param name="idx" type="int" />
+<![CDATA[//@cmember string GetMethodCalled( int idx );
+//@param int | idx | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetPath">
+<param name="Path" type="string" />
+<![CDATA[//@cmember void SetPath( string Path );
+//@param string | Path | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddParam" cls="void" />
+<rmeth name="Compile" cls="int" />
+<rmeth name="GetClassUsed" cls="string" />
+<rmeth name="GetErrorCode" cls="int" />
+<rmeth name="GetErrorLine" cls="int" />
+<rmeth name="GetErrorText" cls="string" />
+<rmeth name="GetMemberUsed" cls="string" />
+<rmeth name="GetMethodCalled" cls="string" />
+<rmeth name="SetPath" cls="void" />
+</return>
+</class>

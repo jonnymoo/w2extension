@@ -1,0 +1,260 @@
+<form name="WFuncParams" caption="Method Parameters" savepos="WFuncParamLoc" icon="designer.ico" bk="D4D0C8" hidden="1" esccancel="1" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:42 $" frevision="$Revision: 2 $" x_nocaption="1">
+<members>
+<Object name="afunc" />
+<Integer name="stop" />
+<method name="DoIt">
+<param name="L" type="func" />
+<param name="W" type="form" />
+<param name="param" type="object" />
+<![CDATA[//@cmember DoIt
+//@param func | L |
+//@param form | W |
+//@param object | param |
+//@version Andrew Griffin | 30-01-02 11:38 |
+
+if (W==null) open();
+else         dialog( W );
+
+afunc.setmagicpointer( L );
+
+for (int i=0; i<L.Parameters.count(); i++)
+    L.Parameters[i].oldName = L.Parameters[i].ParamName;
+
+idList.SetList( L.Parameters );
+funcParam l2[] = &idList.getList();
+l2.CreateRow();
+
+idRetType.bindTo( &L.retType );
+
+SizeFormToContent();
+//FitRecursive();
+
+SnapToCursor(1,1);
+Show(1);
+SetFocus();
+
+if (param!=null)
+    for (i=0; i<l2.count(); i++)
+        if (l2[i].ParamName.eq( param.paramName ))
+            l2.SetCurrent( i );]]>
+</method>
+<method name="IconRightClicked">
+<![CDATA[//@cmember IconRightClicked
+//@version Andrew Griffin | 24-05-02 16:06 |
+
+classes::core::wpopupmenu P;
+P.Add("Add Parameter","A");
+P.Add("Delete Parameter","D");
+String s = P.Track(1);
+
+Object L = idList.GetList();
+
+if (s=="A"){
+    AddRow();
+    }
+else if (s=="D"){
+    DelRow();
+    }]]>
+</method>
+<method name="AddRow">
+<![CDATA[//@cmember AddRow
+//@version Andrew Griffin | 13-12-01 09:56 |
+
+Object L = idList.GetList();
+
+int pos = L.CurrentIndex();
+Object F = L.CreateRow( pos );
+L.SetCurrent(pos);
+
+idList.CalcWidths();
+SizeFormToContent();
+
+// notify parent
+
+doMod();]]>
+</method>
+<method name="DelRow">
+<![CDATA[//@version Andrew Griffin | 13-12-01 09:23 |
+
+Object L = idList.GetList();
+if (L==null) return;
+
+int idx = L.CurrentIndex();
+if (idx<0) return;
+
+idList.DeleteRow(idx);
+if (idx>=L.Count()) idx--;
+L.SetCurrent(idx);
+idList.CalcWidths();
+
+SizeFormToContent();
+doMod();]]>
+</method>
+<method name="onClose">
+<![CDATA[//@cmember onClose
+//@version Andrew Griffin | 05-08-02 14:20 |
+// Delete any empty parameters (no name)
+
+stop=1; // fix for closing bug...
+
+FuncParam L[] = &idList.GetList();
+if (L==null) return;
+
+for (int idx=L.count()-1; idx>=0; idx--) {
+    if (L[idx].ParamName=="")
+        idList.deleteRow(idx);
+    else
+        if (!L[idx].ParamType) L[idx].ParamType = "object";
+}
+
+// update function param text
+
+wfuncedit wf = &getParent();
+afunc.paramsUpdated( wf );
+
+// done
+close();]]>
+</method>
+<method name="MoveParam">
+<param name="ctrl" type="object" />
+<![CDATA[//@cmember MoveParam
+//@param object | ctrl |
+//@version Andrew Griffin | 25-07-01 09:52 |
+
+int d;
+
+if (ctrl==idMoveUp) d = -1; else d = 1;
+
+Object L = idList.GetList();
+if (L==null) return;
+
+int idx = L.CurrentIndex();
+if (idx<0) return;
+
+d += idx;
+if (d<0 || d>=L.count()) return;
+
+L.MoveRow(idx, d);
+L.SetCurrent(d);
+idList.CalcWidths();]]>
+</method>
+<method name="doMod">
+<![CDATA[//@cmember
+//@version Andrew Griffin | 13-12-01 09:55 |
+//@version Andrew | 24-01-02 12:53 |
+//@i
+
+object w = &getParent();
+if (w!=null) {
+    if (w.hasmethod("OnSourceChange")) w.OnSourceChange(null, 1); else
+    if (w.hasmethod("setMod")) w.setMod(null, 1);
+}]]>
+</method>
+<method name="onDeactivate">
+<![CDATA[//@cmember onDeactivate
+//@version Andrew Griffin | 05-08-02 14:20 |
+//@i
+
+if (!stop) onClose();]]>
+</method>
+<method name="onSelect">
+<![CDATA[//@cmember onSelect
+//@version Andrew Griffin | 13-12-01 09:58 |
+//@i
+
+funcParam lst[] = &idList.getList();
+int cRow = lst.CurrentIndex();
+int lRow = lst.count()-1;
+
+if (cRow == lRow)
+{
+    lst.CreateRow();
+    idList.CalcWidths();
+    SizeFormToContent();
+} else
+
+while (cRow < lRow-1 &&
+    !lst[lRow].ParamName &&
+    !lst[lRow].ParamType &&
+    !lst[lRow-1].ParamName &&
+    !lst[lRow-1].ParamType
+   )
+{
+    lst.DeleteRow( lRow );
+    idList.CalcWidths();
+    SizeFormToContent();
+    lRow--;
+}]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col rpad="4" align="H">
+<grid>
+<row>
+<col align="C">
+<Image text="Image" img="grid::add_ctrl.bmp" onClick="AddRow" />
+</col>
+</row>
+<row>
+<col tpad="2" align="C">
+<Image text="Image" img="grid::bin.bmp" onClick="DelRow" />
+</col>
+</row>
+<row>
+<col tpad="6" bpad="2" align="C">
+<Image name="idMoveUp" text="Image" img="grid::p_up.bmp" onClick="MoveParam" />
+</col>
+</row>
+<row>
+<col tpad="2" bpad="2" align="C">
+<Image name="idMoveDown" text="Image" img="grid::p_down.bmp" onClick="MoveParam" />
+</col>
+</row>
+</grid>
+</col>
+<col w="250" h="90" align="WH">
+<ListBox name="idList" lpad="2" tpad="2" rpad="2" bpad="2" IsList="Y" onRightClick="IconRightClicked" fixsize="1" onselect="onSelect">
+<row>
+<col bk="224,192,128" />
+<col rpad="16" bk="224,192,128">
+<Label text="Param Name" shadc="128,128,128" style="b" header="1" />
+</col>
+<col align="X" bk="224,192,128">
+<Label text="Type" shadc="128,128,128" style="b" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="&gt;&gt;" />
+</col>
+<col w="100" align="X">
+<Edit bind="ParamName" onChange="doMod" />
+</col>
+<col w="130" align="W">
+<Edit bind="ParamType" onChange="doMod" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+<row>
+<col rpad="4" />
+<col tpad="8" align="W">
+<grid>
+<row>
+<col lpad="18" tpad="2" align="WV" bk="224,192,128">
+<Label text="Proposed return type" h="15" style="b" header="1" />
+</col>
+</row>
+<row>
+<col lpad="3" tpad="3" rpad="3" bpad="4" align="X">
+<Edit name="idRetType" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

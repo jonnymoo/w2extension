@@ -1,0 +1,528 @@
+<class name="String" description="W2 Script Reference" base="MemberDef">
+<members sub="Modified Duplicates">
+<method name="capitalize">
+<![CDATA[//@cmember String capitalize(  );
+//@return String | Capitalised Duplicate of the String
+//@i returns a Capitalized copy of the string
+]]>
+ />
+</method>
+<method name="capitalizename">
+<![CDATA[//@cmember String capitalizename(  );
+//@return String | Capitalised Duplicate of the String
+//@i returns a Capitalized copy of the string with charcacters after any apostrophies set to upper case
+//@Exam String s = "MR O'GRADY";
+//@Exam s = s.capitalizename();
+//@Exam s = "Mr O'Grady"
+//@Exam ]]>
+ />
+</method>
+<method name="CombineTokens">
+<param name="s2" type="String" />
+<param name="Separator]" type="[String" />
+<![CDATA[//@cmember string CombineTokens( String s2, [String Separator] );
+//@param String | s2 | 
+//@param [String | Separator] | 
+//@return string | 
+//@i Returns a copy of the string with the string 's2' combined with it (seperated by 'Separator').
+//@Exam String s = "One";
+//@Exam s = s.combineTokens("Two", ",");
+//@Exam // s = "One,Two"
+//@Exam ]]>
+ />
+</method>
+<method name="fix">
+<![CDATA[//@cmember String fix(  );
+//@return String | Copy of string with extra spaces removed
+//@i returns a copy of the string with fixed white space
+//@Exam string s = "  Hello   World  ";
+//@Exam string s = s.fix();
+//@Exam 
+//@Exam // s == "Hello World";]]>
+ />
+</method>
+<method name="lower">
+<![CDATA[//@cmember String lower(  );
+//@return String | lower case copy of string
+//@i returns a lower case copy of the string
+]]>
+ />
+</method>
+<method name="padSource">
+<![CDATA[//@cmember String padSource(  );
+//@return String | the string with comments & quote-surrounded strings removed
+//@i Removes commets & quote-surrounded strings from a Source Code String
+]]>
+ />
+</method>
+<method name="replace">
+<param name="find" type="String" />
+<param name="rep" type="String" />
+<![CDATA[//@cmember String replace( String find, String rep );
+//@param String | find | string to be replaced by 'rep'
+//@param String | rep | string to replace 'find'
+//@return String | copy of string with all 'find' replaced by 'rep'
+//@i returns a copy of the string with all incidences of find replaced with rep
+]]>
+ />
+</method>
+<method name="regexreplace">
+<param name="pattern" type="String" />
+<param name="rep" type="String" />
+<![CDATA[//@cmember String regexreplace( String pattern, String rep );
+//@param String | pattern | ECMAScript regex pattern
+//@param String | rep | string to replace text that matches 'pattern'
+//@return String | Copy of string with all instances of text that match the ECMAScript regex pattern replaced with rep
+//@i returns a copy of the string with all instances of text that match the ECMAScript regex pattern replaced with rep
+]]>
+ />
+</method>
+<method name="trim">
+<![CDATA[//@cmember String trim(  );
+//@return String | copy of string with leading & trailing spaces removed
+//@i returns a copy of the string with white space trimmed from start and end
+]]>
+ />
+</method>
+<method name="upper">
+<![CDATA[//@cmember String upper(  );
+//@return String | upper-case copy of string
+//@i returns a upper case copy of the string
+]]>
+ />
+</method>
+</members>
+<members sub="Content Modification">
+<method name="addtoken">
+<param name="tok" type="String" />
+<param name="sep]" type="[String" />
+<![CDATA[//@cmember String addtoken( String tok, [String sep] );
+//@param String | tok | token to append to string
+//@param [String | sep] | seperator between tokens (defaults to ',')
+//@return String | delimeted string with 'tok' appended (+seperator)
+//@i Add a string token to the current string.  (sep defaults to a comma)
+//@Exam string s = "One";
+//@Exam s.addToken("Two");
+//@Exam s.addToken("Three");
+//@Exam // s = "One,Two,Three"
+//@Exam ]]>
+ />
+</method>
+<method name="removetoken">
+<param name="tok" type="String" />
+<param name="sep]" type="[String" />
+<![CDATA[//@cmember String removetoken( String tok, [String sep] );
+//@param String | tok | token to remove from string
+//@param [String | sep] | seperator between tokens (defaults to ',')
+//@return String | delimeted string with 'tok' removed
+//@i Removes a string token from the current string.  (sep defaults to a comma).
+//@Exam string s = "One,Two,Three";
+//@Exam s.removeToken("Two");
+//@Exam // s = "One,Three"
+//@Exam ]]>
+ />
+</method>
+<method name="reset">
+<![CDATA[//@cmember void reset(  );
+//@return void | 
+//@i Sets the string to ""
+]]>
+ />
+</method>
+<method name="encodeToUTF8">
+<![CDATA[//@cmember String encodeToUTF8(  );
+//@return String | the encoded string
+//@i encodes the string
+]]>
+ />
+</method>
+<method name="decodeFromUTF8">
+<![CDATA[//@cmember String decodeFromUTF8(  );
+//@return String | the decoded string
+//@i decodes the string
+]]>
+ />
+</method>
+<method name="tolower">
+<![CDATA[//@cmember String tolower(  );
+//@return String | lower case copy of string
+//@i convert to lower case
+]]>
+ />
+</method>
+<method name="toupper">
+<![CDATA[//@cmember String toupper(  );
+//@return String | upper case copy of string
+//@i convert to upper case
+]]>
+ />
+</method>
+</members>
+<members sub="Sub-Strings">
+<method name="charAt">
+<param name="index" type="int" />
+<![CDATA[//@cmember int charAt( int index );
+//@param int | index | index into string (0..length()-1)
+//@return int | char at position 'index'
+//@i returns the character at position 'index' (as an int)
+//@Exam string str = "Hello";
+//@Exam int myChar = str.charAt( 4 );
+//@Exam 
+//@Exam // myChar is now equal to 'o'
+//@Exam ]]>
+ />
+</method>
+<method name="gettoken">
+<param name="index" type="int" />
+<param name="sep]" type="[String" />
+<![CDATA[//@cmember String gettoken( int index, [String sep] );
+//@param int | index | index of token to return (first token = 0)
+//@param [String | sep] | token seperator (defaults to ',')
+//@return String | string token at 'index'
+//@i returns the token name or "" if 'index' is out of range. Sep defaults to a comma.
+//@Exam string s = "One,Two,Three";
+//@Exam string t = s.getToken(1);
+//@Exam // t = "Two"
+//@Exam ]]>
+ />
+</method>
+<method name="left">
+<param name="len" type="int" />
+<![CDATA[//@cmember String left( int len );
+//@param int | len | number of chars to return (0="")
+//@return String | left 'len' chars
+//@i Returns the left 'len' characters of the string.
+//@Exam string s = "abcdefg";
+//@Exam string t = s.left(3);
+//@Exam // t = "abc"
+//@Exam ]]>
+ />
+</method>
+<method name="right">
+<param name="len" type="int" />
+<![CDATA[//@cmember String right( int len );
+//@param int | len | number of chars to return (0="")
+//@return String | right 'len' chars
+//@i Returns the 'len' most characters from the right hand side of the string.
+//@Exam string s = "abcdefg";
+//@Exam string t = s.right(2);
+//@Exam // t = "fg"
+//@Exam ]]>
+ />
+</method>
+<method name="substring">
+<param name="begin" type="int" />
+<param name="end]" type="[int" />
+<![CDATA[//@cmember String substring( int begin, [int end] );
+//@param int | begin | 0 is first character
+//@param [int | end] | one more than the last character to return
+//@return String | substring starting at 'begin' ending at 'end'-1
+//@i returns a substring.  'begin' is inclusive, 'end' is not.
+//@Exam string str = "Hello World";
+//@Exam 
+//@Exam message( str.subString( 4, 8 ) );
+//@Exam // Outputs "o Wor"
+//@Exam 
+//@Exam message( str.subString( 6 ) );
+//@Exam // Outputs "World"
+//@Exam ]]>
+ />
+</method>
+</members>
+<members sub="Conversion">
+<method name="sql">
+<![CDATA[//@cmember String sql(  );
+//@return String | string within single quotes
+//@i returns a string in single-quotes, escaped for SQL
+//@Exam string s = "abcdefg";
+//@Exam string t = s.sql();
+//@Exam // t = "\"abcdefg\""
+//@Exam ]]>
+ />
+</method>
+<method name="tostring">
+<![CDATA[//@cmember string tostring(  );
+//@return string | returns an unmodified copy of itself
+//@i Returns itself.
+]]>
+ />
+</method>
+<method name="val">
+<![CDATA[//@cmember double val(  );
+//@return double | string converted to a double
+//@i returns a double (0 if not a valid number)
+//@Exam string s="1234";
+//@Exam double v = s.val();
+//@Exam // v = 1234.0;
+//@Exam ]]>
+ />
+</method>
+<method name="URLEncode">
+<![CDATA[//@cmember string URLEncode(  );
+//@return string | URL Encoded version of the string
+//@i Returns a URL Encoded string
+//@Exam string s="http://blah?q=Search For Something";
+//@Exam string encoded = s.URLEncode();
+//@Exam // encoded = "http://blah?q=Search%20For%20Something";
+//@Exam ]]>
+ />
+</method>
+<method name="URLDecode">
+<![CDATA[//@cmember string URLDecode(  );
+//@return string | URL decoded version of the string
+//@i Returns a URL decoded string
+//@i Note:  This does not decode + to a space as in the old application/x-www-form-urlencoded method of decoding
+//@i If you need to do that then simply do a replace on your string afterwards
+//@Exam string s="Search%20For%20Something";
+//@Exam string decoded = s.URLDecode();
+//@Exam // decoded = "Search For Something";
+//@Exam ]]>
+ />
+</method>
+
+</members>
+<members sub="Comparison">
+<method name="beginsWith">
+<param name="cmp" type="String" />
+<![CDATA[//@cmember int beginsWith( String cmp );
+//@param String | cmp | string to compare with beginning
+//@return int | 1 if string begins with 'cmp' (case sensitive)
+//@i case sensitive comparison, returns 1 if strings match
+]]>
+ />
+</method>
+<method name="compare">
+<param name="other" type="String" />
+<param name="ignoreCase" type="int" />
+<![CDATA[//@cmember int compare( String other , int ignoreCase);
+//@param String | other | string to compare with
+//@param int | ignoreCase| optional - defaults to 0 - case sensitive
+//@return int | -1 if string is "smaller" than other, 0 if "equal", 1 if "greater"
+//@i String comparison with the option to ignore cases.
+]]>
+ />
+</method>
+<method name="wildcmp">
+<param name="other" type="String" />
+<![CDATA[//@cmember int compare( String other , int ignoreCase);
+//@param String | other | Template to match to.  * = any sequence of characters, ? = any character
+//@return int | 1 if the string matches the compare string (use * for any characters, ? for any character) otherwise 0
+//@i Wild Card Comparison.  * = any sequence of characters, ? = any character
+]]>
+ />
+</method>
+<method name="endsWith">
+<param name="other" type="String" />
+<![CDATA[//@cmember int endsWith( String other );
+//@param String | other | string to compare with ending
+//@return int | 1 if string ends with 'cmp' (case sensitive)
+//@i case sensitive comparison, returns 1 if strings match
+]]>
+ />
+</method>
+<method name="eq">
+<param name="other" type="String" />
+<![CDATA[//@cmember int eq( String other );
+//@param String | other | string to compare with string
+//@return int | 1 if string equals 'cmp' (case Insensitive)
+//@i case insensitive comparison, returns 1 if strings match
+]]>
+ />
+</method>
+<method name="startswith">
+<param name="txt" type="string" />
+<![CDATA[//@cmember int startswith( string txt );
+//@param string | txt | string to compare with beginning
+//@return int | 1 if string begins with 'cmp' (case sensitive)
+//@i Returns 1 if the string object begins with the string 'txt'.
+]]>
+ />
+</method>
+</members>
+<members sub="Search a String">
+<method name="findCharInRange">
+<param name="strRange" type="string" />
+<param name="pos]" type="[int" />
+<![CDATA[//@cmember int findCharInRange( string strRange, [int pos] );
+//@param string | strRange | search range-string (i.e. "AZaz09")
+//@param [int | pos] | index of charactor to start search at
+//@return int | index of found charactor or -1
+//@i Returns the index of the first char (after pos) in the string that matches any char in the range specified by 'strRange'.  i.e. "az09"
+//@Exam string a = "Hello world";
+//@Exam 
+//@Exam int i = a.findCharInRange( "09mz" );
+//@Exam // (a[i] = 'o')]]>
+ />
+</method>
+<method name="findCharNotInRange">
+<param name="strRange" type="string" />
+<param name="pos]" type="[int" />
+<![CDATA[//@cmember int findCharNotInRange( string strRange, [int pos] );
+//@param string | strRange | search range-string (i.e. "AZaz09")
+//@param [int | pos] | index of charactor to start search at
+//@return int | index of found charactor (not in strRange) or -1
+//@i Returns the index of the first char (after pos) in the string that doesn't match any char in the range specified by 'strRange'.  i.e. "az09"
+//@Exam string a = "Hello world!";
+//@Exam 
+//@Exam int i = a.findCharNotInRange( "AZaz" );
+//@Exam // (a[i] = '!')]]>
+ />
+</method>
+<method name="findtoken">
+<param name="tok" type="String" />
+<param name="sep]" type="[String" />
+<![CDATA[//@cmember int findtoken( String tok, [String sep] );
+//@param String | tok | token to be found in delimeted string
+//@param [String | sep] | token seperator (defaults to ',')
+//@return int | index of token 'tok' of -1 if not found
+//@i returns -1 if not found, or the position of the token. Sep defaults to a comma.
+//@Exam string s = "One,Two,Three";
+//@Exam int p = s.findToken("Two");
+//@Exam // p = 1
+//@Exam ]]>
+ />
+</method>
+<method name="indexof">
+<param name="fnd" type="String" />
+<param name="pos]" type="[int" />
+<param name="ignore_case]" type="[int" />
+<![CDATA[//@cmember int indexof( String fnd, [int pos], [int ignore_case] );
+//@param String | fnd | substring to be found
+//@param [int | pos] | index into string (defaults to 0)
+//@param [int | ignore_case] | 1==Case Insensitive (defaults to 0)
+//@return int | index of substring 'fnd' in string or -1
+//@i returns -1 if not found, or the position of the substring fnd.  Search starts at position 'pos' and works to the right. It is case insensitive if 'ignore_case' = 1.
+//@Exam string s = "Hello World";
+//@Exam int p;
+//@Exam p = s.indexOf("world");  // p = -1
+//@Exam p = s.indexOf("world",0,1);  // p = 6
+//@Exam p = s.indexOf("l");  // p = 2
+//@Exam p = s.indexOf("l", 4);  // p = 9
+//@Exam ]]>
+ />
+</method>
+<method name="lastindexof">
+<param name="fnd" type="String" />
+<param name="pos]" type="[int" />
+<param name="ignore_case]" type="[int" />
+<![CDATA[//@cmember int lastindexof( String fnd, [int pos], [int ignore_case] );
+//@param String | fnd | substring to be found
+//@param [int | pos] | index into string (defaults to length()-1)
+//@param [int | ignore_case] | 1==Case Insensitive (defaults to 0)
+//@return int | index of substring 'fnd' in string or -1
+//@i returns -1 if not found, or the position of the substring fnd.  Search starts at position 'pos' and works to the left. It is case insensitive if 'ignore_case' = 1.
+//@Exam string s = "Hello World";
+//@Exam int p;
+//@Exam p = s.lastIndexOf("world");  // p = -1
+//@Exam p = s.lastIndexOf("world",0,1);  // p = 6
+//@Exam p = s.lastIndexOf("l");  // p = 9
+//@Exam p = s.lastIndexOf("l", 8);  // p = 3
+//@Exam ]]>
+ />
+</method>
+</members>
+<members sub="Information">
+<method name="ClassName">
+<![CDATA[//@cmember string ClassName(  );
+//@return string | returns "string"
+//@i Always returns "String".
+]]>
+ />
+</method>
+<method name="getxmlparamset">
+<param name="Path" type="string" />
+<![CDATA[//@cmember object getxmlparamset( string Path );
+//@param string | Path | 
+//@return object | 
+//@i 
+]]>
+ />
+</method>
+<method name="isObject">
+<![CDATA[//@cmember int isObject(  );
+//@return int | returns 0
+//@i Always False
+]]>
+ />
+</method>
+<method name="length">
+<![CDATA[//@cmember int length(  );
+//@return int | number of characters in the string
+//@i Returns the number of characters in the string.  An empty string ("") has zero length.
+//@Exam // outputs all the characters of string 's' one by one.
+//@Exam for (int i=0; i<s.length(); i++)
+//@Exam     message( s.charAt(i).charString() );
+//@Exam ]]>
+ />
+</method>
+<method name="matches">
+<param name="regex" type="String" />
+<![CDATA[//@cmember int matches( String regex);
+//@param String | regex | regular expression adhering to perl regex syntax
+//@return int | 1 if the string fully matches the regular expression, 0 if it doesn't
+//@i returns flag to determine whether the contents of the string fully match the regular expression provided.
+]]>
+ />
+</method>
+<method name="isUTF8Encoded">
+<![CDATA[//@cmember int isUTF8Encoded(  );
+//@return int | 1 if the string contains UTF8, 0 if it doesn't
+//@i returns flag to determine whether the contents of the string contain UTF8.
+]]>
+ />
+</method>
+<method name="validExpression">
+<param name="regex" type="String" />
+<![CDATA[//@cmember int validExpression( String regex);
+//@param String | regex | regular expression adhering to perl regex syntax
+//@return int | 1 if the string is a valid (syntactically correct) perl regular expression, otherwise 0
+//@i returns flag to determine whether the regular expression specified adheres to the perl regular expression syntax.
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="capitalize" cls="String" />
+<rmeth name="capitalizename" cls="String" />
+<rmeth name="CombineTokens" cls="string" />
+<rmeth name="fix" cls="String" />
+<rmeth name="lower" cls="String" />
+<rmeth name="padSource" cls="String" />
+<rmeth name="replace" cls="String" />
+<rmeth name="regexreplace" cls="String" />
+<rmeth name="trim" cls="String" />
+<rmeth name="upper" cls="String" />
+<rmeth name="addtoken" cls="String" />
+<rmeth name="removetoken" cls="String" />
+<rmeth name="reset" cls="void" />
+<rmeth name="encodeToUTF8" cls="String" />
+<rmeth name="decodeFromUTF8" cls="String" />
+<rmeth name="isUTF8Encoded" cls="int" />
+<rmeth name="tolower" cls="String" />
+<rmeth name="toupper" cls="String" />
+<rmeth name="charAt" cls="int" />
+<rmeth name="gettoken" cls="String" />
+<rmeth name="left" cls="String" />
+<rmeth name="right" cls="String" />
+<rmeth name="substring" cls="String" />
+<rmeth name="sql" cls="String" />
+<rmeth name="tostring" cls="string" />
+<rmeth name="val" cls="double" />
+<rmeth name="beginsWith" cls="int" />
+<rmeth name="compare" cls="int" />
+<rmeth name="endsWith" cls="int" />
+<rmeth name="eq" cls="int" />
+<rmeth name="startswith" cls="int" />
+<rmeth name="findCharInRange" cls="int" />
+<rmeth name="findCharNotInRange" cls="int" />
+<rmeth name="findtoken" cls="int" />
+<rmeth name="indexof" cls="int" />
+<rmeth name="lastindexof" cls="int" />
+<rmeth name="ClassName" cls="string" />
+<rmeth name="getxmlparamset" cls="object" />
+<rmeth name="isObject" cls="int" />
+<rmeth name="length" cls="int" />
+<rmeth name="matches" cls="int" />
+<rmeth name="validExpression" cls="int" />
+</return>
+</class>

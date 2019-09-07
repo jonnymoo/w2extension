@@ -1,0 +1,410 @@
+<form name="sourceTip" margin="0" sizeable="0" hidden="1" thinframe="1" nocaption="1" esccancel="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:41$" frevision="$Revision: 2$">
+<members>
+<Integer name="opened" />
+<String name="cls" />
+<String name="funcName" />
+<Integer name="bpos" />
+<Object name="tipXML" cls="XML" />
+<Object name="CS" cls="CriticalSection" />
+<method name="onTimer">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 19-02-02 09:30 |
+//@version Jonathan.Muir | 23-03-06 12:33 |
+//@i
+
+KillTimer();
+
+criticallock lock = &CS.Enter();
+{
+
+    hideTip();
+
+}
+lock.unlock();]]>
+</method>
+<method name="focusToParent">
+<![CDATA[//@cmember focusToParent
+//@param
+//@return
+//@version Andrew Griffin | 01-02-02 10:38 |
+//@i
+
+form par = &GetParent();
+if (par!=null) par.SetFocus();]]>
+</method>
+<method name="go">
+<param name="par" type="form" />
+<param name="tipXML" type="xml" />
+<param name="param" type="int" />
+<param name="x" type="int" />
+<param name="y" type="int" />
+<param name="time" type="int" />
+<![CDATA[//@cmember go
+//@param form | par |
+//@param xml | tipXML |
+//@param int | param |
+//@param int | x |
+//@param int | y |
+//@param int | time |
+//@version Andrew Griffin | 21-03-02 15:21 |
+//@version Jonathan.Muir | 10-08-05 12:12 |
+//@version andrew.banyard | 17-08-16 11:13 |
+
+//sys::debugOut( "+ sourceTip::go" );
+
+criticallock lock = &CS.Enter();
+
+this.tipXML = tipXML;
+
+opened = 1;
+//dialog( par );
+//SetParent( par );
+
+//
+// Set Name
+
+idName.setText( tipXML.name );
+// Set Description
+idDesc.setText(tipXML.GetAttr("desc"));
+idDesc.setVisible(idDesc.getText()!="");
+lblDesc.setVisible(idDesc.getText()!="");
+// Set return description
+idReturn.setText(tipXML.GetAttr("return").trim());
+idReturn.setVisible(idReturn.getText()!="");
+lblReturn.setVisible(idReturn.getText()!="");
+
+//
+// Set Parameters (including return type)
+
+ShowGroup( "PrmsGrp", 0 );  // hide all first...
+
+for (int i=0; i<tipXML.count(); i++)
+{
+    xml px = &tipXML[i];
+
+    int idx = i*2;
+    if (idx>0) idx++;   // to skip '('
+
+    gridcell gc = &tipGrid.GetCell( 0, idx );
+    if (gc==null) break; // too many parameters!
+    label lb = &gc.control;
+
+    string sh;
+    for (int j=0; j<px.count(); j++)
+        sh.addToken( px[j].show, "\r\n" );
+    lb.setText( sh );
+    lb.setVisible( 1 );
+
+    if (param!=i) {
+        lb.setTxColor( 0 );         // Black
+        //lb.SetAttr( "style", "" );
+    } else {
+        lb.setTxColor( 220 );       // Blue
+        //lb.SetAttr( "style", "b" );
+    }
+
+    if (idx>3) tipGrid.GetCell( 0, idx-1 ).control.setVisible( 1 ); // comma
+}
+
+// Don't forget the tip method name...
+if (param>0) {
+    idName.setTxColor( 0 );         // Black
+    //idName.SetAttr( "style", "" );
+} else {
+    idName.setTxColor( 220 );       // Blue
+    //idName.SetAttr( "style", "b" );
+}
+
+ShowGroup( "Parenth", tipXML.type=="method" );
+
+//
+// Show current param description
+
+string pDesc;
+xml px = &tipXML[param>=0 ? param : 0 ];
+if (px!=null) pDesc = px.desc;
+
+
+if (!pDesc) {
+    idPDesc.setVisible( 0 );
+} else {
+    idPDesc.setText( pDesc );
+    idPDesc.setVisible( 1 );
+}
+
+
+// Hide if we are showing the description already
+if(idPDesc.getText()== lblDesc.getText())
+{
+   lblDesc.setVisible(0);
+}
+
+//
+// Position & size context tip
+
+SizeFormToContent();
+SetPos(x,y);
+classes::core::globalForm::moveIntoFullView( tip );
+if(!this.isVisible())
+{
+    show(1);
+    par.SetFocus();
+}
+
+if (time!=null && time>0)
+    setTimer(time);
+else killtimer();
+
+lock.unlock();
+
+//sys::debugOut( " 1 sourceTip::go" );
+
+//sys::debugOut( "- sourceTip::go" );]]>
+</method>
+<method name="doParamClick">
+<param name="param" type="label" />
+<![CDATA[//@cmember doParamClick
+//@param label | param |
+//@version Andrew Griffin | 01-02-02 16:11 |
+//@version Andrew Griffin | 24-05-02 16:05 |
+//@version Jonathan.Muir | 26-02-10 13:36 |
+//@i
+
+if (param==null) return;
+
+string lname = param.ControlID();
+int pno = lname.substring( 5 ).val();
+
+xml px = &tipXML[ pno ];
+xml dx = &px[0];
+
+string retClass = dx.cls;
+
+if (!retClass) {
+    focusToParent();
+    return;
+}
+
+// Get relative Class...
+string pth = getParent().getParent().Filename;
+string full = sys::MakeFullName( pth, retClass );
+string rel = sys::MakeRelativeName( pth, full );
+
+classes::core::wpopupmenu p;
+
+p.add( "Copy '" + retClass + "'", "C" );
+if (rel!=retClass)
+    p.add( "Copy '" + rel + "'", "CR" );
+
+p.add( "Jump to Definition", "J" );
+p.AddSeparator();
+p.add( "Cancel", "" );
+
+switch (p.Track(1)) {
+
+  case "C":
+    sys::CopyToClipboard( retClass );
+    focusToParent();
+    break;
+
+  case "CR":
+    sys::CopyToClipboard( rel );
+    focusToParent();
+    break;
+
+  case "J":
+    hideTip();
+    object win = advsearch::OpenClassFile( retClass, classname(), "" );
+    if(win!=null) win.Show(1);
+    break;
+
+}]]>
+</method>
+</members>
+<static>
+<Object name="tip" cls="sourceTip" />
+<method name="setTip">
+<param name="par" type="form" />
+<param name="tipXML" type="xml" />
+<param name="param" type="int" />
+<param name="x" type="int" />
+<param name="y" type="int" />
+<param name="time" type="int" />
+<![CDATA[//@cmember setTip
+//@param form | par |
+//@param xml | tipXML |
+//@param int | param |
+//@param int | x |
+//@param int | y |
+//@param int | time |
+//@version Andrew Griffin | 18-03-02 13:23 |
+
+if (par!=null) {
+
+    criticallock lock = &tip.CS.Enter();
+
+    form f = &tip.GetParent();
+    if (f==null || f!=par) {
+        tip.close();
+        tip.dialog( par );
+        par.setfocus();
+    }
+
+    lock.unlock();
+}
+
+tip.go( par, tipXML, param, x, y, time );]]>
+</method>
+<method name="hideTip">
+<param name="par" type="form" />
+<![CDATA[//@cmember hideTip
+//@param form | par |
+//@version Andrew Griffin | 20-03-02 11:37 |
+
+//sys::debugOut( "+ sourceTip::hideTip" );
+
+criticallock lock = &tip.CS.Enter();
+
+if (tip.opened) {
+    form p = &tip.GetParent();
+    if (par==null || par!=p)
+    {
+        tip.opened = 0;
+        tip.show(0);
+        //if (p!=null && p.hasMethod( "highlightText"))
+        //    p.highlightText( "" );
+    }
+}
+
+lock.unlock();
+
+//sys::debugOut( "- sourceTip::hideTip" );]]>
+</method>
+</static>
+<grid name="lblDesc">
+<row>
+<col lpad="4" tpad="1" rpad="4" bpad="1" bk="255,255,187">
+<grid name="tipGrid">
+<row>
+<col rpad="4" bk="255,255,187">
+<Label name="param0" text="t" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label name="idName" text="n" />
+</col>
+<col bk="255,255,187">
+<Label text="(" tx="0,0,128" groups="Parenth" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param1" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param2" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param3" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param4" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param5" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param6" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param7" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param8" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param9" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param10" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param11" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text="," tx="0,0,128" groups="PrmsGrp" />
+</col>
+<col lpad="2" rpad="2" bk="255,255,187">
+<Label name="param12" text="x" onClick="doParamClick" txsel="FF0000" groups="PrmsGrp" />
+</col>
+<col bk="255,255,187">
+<Label text=")" tx="0,0,128" groups="Parenth" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="4" bk="255,255,187">
+<Label name="idPDesc" text="Source Tip" tx="128,0,128" size="7" font="Microsoft Sans Serif" hide="Y" />
+</col>
+</row>
+<row>
+<col lpad="4" bk="255,255,187">
+<grid>
+<row>
+<col>
+<Label name="lblReturn" text="Returns " tx="128,0,128" size="7" />
+</col>
+<col>
+<Label name="idReturn" tx="128,0,128" size="7" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="4" bk="255,255,187">
+<grid>
+<row>
+<col>
+<Label name="lbldesc" text="Desc     " tx="128,0,128" size="7" />
+</col>
+<col>
+<Label name="idDesc" tx="128,0,128" size="7" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

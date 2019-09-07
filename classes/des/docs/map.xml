@@ -1,0 +1,285 @@
+<class name="Map" description="W2 Script Reference" base="Control">
+<members sub="Misc">
+<method name="AddObject">
+<![CDATA[//@cmember void AddObject(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+
+
+<method name="GetMapAttr">
+<param name="attrName" type="String" />
+<![CDATA[//@cmember String GetMapAttr( attrName );
+//@param String | attrName | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetMod">
+<![CDATA[//@cmember int GetMod(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetXML">
+<![CDATA[//@cmember XML GetXML(  );
+//@return XML | 
+//@i 
+]]>
+ />
+</method>
+<method name="MoveToBottom">
+<![CDATA[//@cmember void MoveToBottom(  );
+//@return void | 
+//@i  current stage
+]]>
+ />
+</method>
+<method name="MoveToTop">
+<![CDATA[//@cmember void MoveToTop(  );
+//@return void | 
+//@i  current stage
+]]>
+ />
+</method>
+<method name="MX">
+<![CDATA[//@cmember int MX(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="MY">
+<![CDATA[//@cmember int MY(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="NewMap">
+<![CDATA[//@cmember void NewMap(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Print">
+<![CDATA[//@cmember void Print(  );
+//@return void | 
+//@i Prints the map
+]]>
+ />
+</method>
+<method name="SetImageFile">
+<param name="filename" type="String" />
+<![CDATA[//@cmember void SetImageFile( String filename );
+//@param String | filename | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetImageTile">
+<param name="TileMode" type="int" />
+<![CDATA[//@cmember void SetImageTile( int TileMode );
+//@param int | TileMode | 
+//@return void | 
+//@i  7 for one image only
+]]>
+ />
+</method>
+<method name="SetLinkMode">
+<![CDATA[//@cmember void SetLinkMode(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetMapAttr">
+<param name="attrName" type="String" />
+<param name="attrValue" type="String" />
+<![CDATA[//@cmember void SetMapAttr( attrName, attrValue );
+//@param String | attrName | 
+//@param String | attrValue | 
+//@return void| 
+//@i 
+]]>
+ />
+</method>
+<method name="SetMapPath">
+<param name="path" type="String" />
+<![CDATA[//@cmember void SetMapPath( String path );
+//@param String | path | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetMod">
+<param name="modified" type="int" />
+<![CDATA[//@cmember void SetMod( int modified );
+//@param int | modified | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetReadOnly">
+<param name="read" type="int" />
+<![CDATA[//@cmember void SetReadOnly( int read );
+//@param int | read | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetXML">
+<param name="X" type="XML" />
+<![CDATA[//@cmember void SetXML( XML X );
+//@param XML | X | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Routes">
+<method name="AddRoute">
+<param name="From" type="int" />
+<param name="To" type="int" />
+<![CDATA[//@cmember Route AddRoute( int From, int To );
+//@param int | From | 
+//@param int | To | 
+//@return Route | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="CurrentRoute">
+<![CDATA[//@cmember Route CurrentRoute(  );
+//@return Route | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Stages">
+<method name="AddStage">
+<param name="x" type="int" />
+<param name="y" type="int" />
+<param name="w" type="int" />
+<param name="h" type="int" />
+<![CDATA[//@cmember Stage AddStage( int x, int y, int w, int h );
+//@param int | x | 
+//@param int | y | 
+//@param int | w | 
+//@param int | h | 
+//@return Stage | 
+//@i 
+]]>
+ />
+</method>
+<method name="CurrentStage">
+<![CDATA[//@cmember Stage CurrentStage(  );
+//@return Stage | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetStage">
+<param name="name" type="String" />
+<param1 name="index" type="int" />
+<![CDATA[//@cmember Stage GetStage( {String name} and {int index} );
+//@param String | name | 
+//@param int | index | 
+//@return Stage | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetStageByID">
+<param name="id" type="String" />
+<![CDATA[//@cmember Stage GetStage(String id);
+//@param String | id | 
+//@return Stage | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="FindDuplicateName">
+<![CDATA[//@cmember int FindDuplicateName(  );
+//@return int | 
+//@i ret -1 if no duplicate stage names found
+]]>
+ />
+</method>
+
+<method name="SetCurrentStage">
+<param name="S" type="Stage" />
+<param1 name="index" type="int" />
+<param2 name="name" type="String" />
+<![CDATA[//@cmember void SetCurrentStage( {Stage S} and {int index} and {String name} );
+//@param Stage | S | 
+//@param int | index | 
+//@param String | name | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetCurrentStageByID">
+<param name="id" type="String" />
+<![CDATA[//@cmember void SetCurrentStageByID( String ID );
+//@param String | ID | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="StageCount">
+<![CDATA[//@cmember int StageCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddObject" cls="void" />
+<rmeth name="AddRoute" cls="Route" />
+<rmeth name="AddStage" cls="Stage" />
+<rmeth name="CurrentRoute" cls="Route" />
+<rmeth name="CurrentStage" cls="Stage" />
+<rmeth name="FindDuplicateName" cls="int" />
+<rmeth name="GetMod" cls="int" />
+<rmeth name="GetStage" cls="Stage" />
+<rmeth name="GetStageByID" cls="Stage" />
+<rmeth name="GetXML" cls="XML" />
+<rmeth name="MoveToBottom" cls="void" />
+<rmeth name="MoveToTop" cls="void" />
+<rmeth name="MX" cls="int" />
+<rmeth name="MY" cls="int" />
+<rmeth name="NewMap" cls="void" />
+<rmeth name="SetCurrentStage" cls="void" />
+<rmeth name="SetCurrentStageByID" cls="void" />
+<rmeth name="SetImageFile" cls="void" />
+<rmeth name="SetImageTile" cls="void" />
+<rmeth name="SetLinkMode" cls="void" />
+<rmeth name="SetMapPath" cls="void" />
+<rmeth name="SetMod" cls="void" />
+<rmeth name="SetReadOnly" cls="void" />
+<rmeth name="SetXML" cls="void" />
+<rmeth name="StageCount" cls="int" />
+<rmeth name="SetMapAttr" cls="void" />
+<rmeth name="GetMapAttr" cls="String" />
+<rmeth name="Print" cls="void" />
+</return>
+</class>

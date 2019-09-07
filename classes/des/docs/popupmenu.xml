@@ -1,0 +1,69 @@
+<class name="PopUpMenu" description="W2 Script Reference">
+<members sub="Misc">
+<method name="Add">
+<param name="text" type="String" />
+<param name="code" type="String" />
+<param name="icon" type="String" />
+<param1 name="Pop" type="PopupMenu" />
+<param1 name="text" type="String" />
+<param1 name="icon" type="String" />
+<![CDATA[//@cmember void Add( {String text, String code, String icon} or {PopupMenu Pop, String text, String icon} );
+//@param String | text | text: Displayed text (append . for greyed, + for checked)
+//@param String | code | 
+//@param String | icon | i.e. "classes::resource::standard::icon.ico"
+//@param PopupMenu | Pop | text: Displayed text (append . for greyed, + for checked)
+//@param String | text | 
+//@param String | icon | i.e. "classes::resource::standard::icon.ico"
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="AddSeparator">
+<![CDATA[//@cmember void AddSeparator(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetColor">
+<param name="TxColor" type="int" />
+<param name="BkColor" type="int" />
+<param name="TxSelColor" type="int" />
+<param name="BkSelColor" type="int" />
+<![CDATA[//@cmember void SetColor( int TxColor, int BkColor, int TxSelColor, int BkSelColor );
+//@param int | TxColor | 
+//@param int | BkColor | 
+//@param int | TxSelColor | 
+//@param int | BkSelColor | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Track">
+<param name="mode" type="int" />
+<param name="ctrl" type="control" />
+<param name="offx" type="int" />
+<param name="offy" type="int" />
+<param name="tabIcon" type="int" />
+<param name="colour" type="string" />
+<![CDATA[//@cmember String Track( [int mode], [control ctrl], [int offx], [int offy], [int tabIcon], [string colour] );
+//@param int | mode | Redundant, set to 1
+//@param control | ctrl | Optional control to display the popupmenu below
+//@param int | offx | Redundant. Optional offset from mouse cursor (set to NULL)
+//@param int | offy | Redundant. Optional offset from mouse cursor (set to NULL)
+//@param int | tabIcon | Optional flag to specify if drop down should be hung from an icon control (1=Yes)
+//@param string | colour | Optional hex code for the tab Icons background colour (ie. "8080FF" )
+//@return String | The resultant code or ""
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Add" cls="void" />
+<rmeth name="AddSeparator" cls="void" />
+<rmeth name="SetColor" cls="void" />
+<rmeth name="Track" cls="String" />
+</return>
+</class>

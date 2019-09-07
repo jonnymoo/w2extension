@@ -1,0 +1,175 @@
+<form name="CRadio" base="CtrlBase" bk="Face" margin="0" fauthor="$Author: Andrew.g $" fdate="$Date: 11/04/01 14:41 $" frevision="$Revision: 3 $">
+<members>
+<method name="Init">
+<![CDATA[
+super.Init();
+]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" />
+<![CDATA[
+idValue.setText(  Ctrl.GetAttr("value") );
+idGroup.setText(  Ctrl.GetAttr("group") );
+
+super.ShowCtrl(Ctrl);]]>
+</method>
+<method name="DoValue">
+<![CDATA[SetAttr("value",idValue.getText());
+]]>
+</method>
+<method name="DoGroup">
+<![CDATA[SetAttr("group",idGroup.getText());
+]]>
+</method>
+<method name="findMethod">
+<param name="src" />
+<![CDATA[object ob=null;
+
+switch (src.getText()) {
+    case "OnClick:" : ob=&idOnClick; break;
+//    case "" : ob=&; break;
+    default: message("TBD"); return;
+}
+
+::AdvSearch::findMethod(getParent().getParent().getParent(), ob.getText(), ob);
+]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[switch (attrName.lower()) {
+  case  "value", "group", "onclick" : return 1;
+}
+
+return 0;]]>
+</method>
+</members>
+<static />
+<grid rpad="2" bpad="1" bk="224,224,192">
+<row>
+<col align="V">
+<Label text="Name:" />
+</col>
+<col align="W">
+<Edit name="idName" w="120" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="TabStop:" />
+</col>
+<col>
+<Edit name="idTabStop" combo="2" onChange="DoTabStop" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Enabled:" />
+</col>
+<col>
+<Edit name="idEnabled" combo="2" onChange="DoEnabled" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Visible:" />
+</col>
+<col>
+<Edit name="idVisible" combo="2" onChange="DoVisible" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups:" />
+</col>
+<col align="W">
+<Edit name="idGroups" w="120" onChange="DoGroups" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" rpad="1" bpad="1" bk="224,192,128">
+<Label text="Appearance" />
+</col>
+</row>
+<row>
+<col tpad="2" align="V">
+<Label text="Text:" />
+</col>
+<col tpad="2" align="W">
+<Edit name="idText" w="120" onChange="DoText" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Image:" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col align="WV" bk="255,255,255">
+<Label name="idImage" text="image..." w="104" onClick="DoImage" />
+</col>
+<col>
+<Button text="?" w="16" h="16" onClick="DoImage" />
+</col>
+<col>
+<Button name="idNoImage" text="X" w="16" h="16" onClick="DoNoImage" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Help:" onChange="DoHelp" />
+</col>
+<col align="W">
+<Edit name="idHelp" w="120" onChange="DoHelp" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" rpad="1" bpad="1" bk="224,192,128">
+<Label text="Behaviour" />
+</col>
+</row>
+<row>
+<col tpad="2" align="V">
+<Label text="OnClick:" onClick="findMethod" />
+</col>
+<col tpad="2" align="W">
+<Edit name="idOnClick" w="120" onChange="DoOnClick" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" rpad="1" bpad="1" bk="224,192,128">
+<Label text="Data Binding" />
+</col>
+</row>
+<row>
+<col tpad="2" align="V">
+<Label text="Bind To:" />
+</col>
+<col tpad="2" align="W">
+<Edit name="idBind" w="120" onChange="DoBind" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Value:" onChange="DoHelp" />
+</col>
+<col align="W">
+<Edit name="idValue" w="120" onChange="DoValue" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Group:" onChange="DoHelp" />
+</col>
+<col align="W">
+<Edit name="idGroup" w="120" onChange="DoGroup" border="0" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

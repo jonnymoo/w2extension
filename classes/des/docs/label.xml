@@ -1,0 +1,26 @@
+<class name="Label" description="W2 Script Reference" base="Control">
+<members>
+<method name="BindTo">
+<param name="MMember" type="object" />
+<![CDATA[//@cmember void BindTo( object MMember );
+//@param object | MMember | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="sethighlightcolor">
+<param name="RGB" type="int" />
+<![CDATA[//@cmember void sethighlightcolor( int RGB );
+//@param int | RGB | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="BindTo" cls="void" />
+<rmeth name="sethighlightcolor" cls="void" />
+</return>
+</class>

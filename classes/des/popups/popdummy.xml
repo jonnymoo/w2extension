@@ -1,0 +1,61 @@
+<class name="popDummy" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:40 $" frevision="$Revision: 2 $">
+<members>
+<Integer name="count" />
+<List name="stringS" cls="classes::cpicks" />
+<String name="curClass" />
+<method name="addMember">
+<param name="typ" type="string" />
+<param name="name" type="string" />
+<param name="code" type="string" />
+<![CDATA[//@cmember addMember
+//@param string | typ |
+//@param string | name |
+//@param string | code |
+//@version Andrew Griffin | 19-06-02 15:42 |
+//@i
+
+count++;
+int isList = typ.indexOf("list",0,1)>=0;
+
+int i = typ.lastIndexOf(" ");
+if (i>=0) typ = typ.substring( i+1 ) + (isList ? "[]" : "");
+
+i = typ.lastIndexOf(":");
+if (i>=0) typ = typ.substring( i+1 );
+
+name = name.gettoken( 0, "(" );
+
+classes::cpicks tmp = &stringS.CreateRow();
+tmp.code = name.lower();
+tmp.desc = typ;
+tmp.PickType = curClass;]]>
+</method>
+<method name="addTitle">
+<param name="name" type="string" />
+<![CDATA[//@cmember addTitle
+//@param string | name |
+//@version Andrew Griffin | 04-02-02 09:34 |
+//@i]]>
+</method>
+<method name="addClass">
+<param name="name" type="string" />
+<param name="noLine" type="int" />
+<![CDATA[//@cmember addClass
+//@param string | name |
+//@param int | noLine |
+//@version Andrew Griffin | 19-06-02 15:43 |
+//@i
+
+curClass = name;]]>
+</method>
+<method name="wasTitleUsed">
+<![CDATA[//@cmember wasTitleUsed
+//@param
+//@return
+//@version Andrew Griffin | 04-02-02 10:24 |
+
+// Dummy Method]]>
+</method>
+</members>
+<static />
+</class>

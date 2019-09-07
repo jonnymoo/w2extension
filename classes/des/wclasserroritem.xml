@@ -1,0 +1,10 @@
+<class name="wclasserroritem" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<String name="Desc" />
+<String name="Text" />
+<String name="Value" />
+<String name="Name" />
+<Integer name="Index" />
+</members>
+<static />
+</class>

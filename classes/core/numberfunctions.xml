@@ -1,0 +1,226 @@
+<class name="NumberFunctions" fauthor="$Author: Jonathan Muir $" fdate="$Date: 11/08/04 9:57 $" frevision="$Revision: 1 $">
+<members />
+<static>
+<method name="Main">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Darren.Ball | 01-08-02 11:11 |
+//@i
+
+numberfunctions r;
+
+double a = r.floor(2.34532,2);
+message("floor = "+a);
+
+double b = r.ceil(2.34532,2);
+message("ceiling = "+b);
+
+double c = r.round(2.34532,2);
+message("round = "+c.toString());]]>
+</method>
+<method name="Round">
+<param name="Numb" type="object" />
+<param name="DP" type="object" />
+<param name="Precision" type="object" />
+<![CDATA[//@cmember
+//@param object | Numb |
+//@param object | DP |
+//@param object | Precision | (Optional) Defaults to 10
+//@version sorina.grave | 30-04-02 15:06 |
+//@version chris.moran | 21-05-02 14:01 |
+//@version Darren.Ball | 01-08-02 11:15 |
+//@version Jonny Moo | 16-10-02 10:33 |
+//@i
+
+// Default precision 10
+int prec = 10;
+if(Precision!=NULL) Prec = Precision;
+
+int ErrMultiplier = 10;
+
+double Error = ErrMultiplier.pow((prec*-1)-1);
+Error = Error * 5;
+
+double a       = Numb+Error;
+
+double Multiplier = 10;
+
+multiplier     = multiplier.Pow(dp);
+a              = a * multiplier;
+a = a.Round();
+a = a/multiplier;
+
+Return a;]]>
+</method>
+<method name="Floor">
+<param name="Numb" type="object" />
+<param name="DP" type="object" />
+<param name="Precision" type="object" />
+<![CDATA[//@cmember
+//@param object | Numb |
+//@param object | DP |
+//@param object | Precision |
+//@version sorina.grave | 30-04-02 15:06 |
+//@version Jonny Moo | 29-08-02 09:21 |
+//@i
+
+
+int prec = 10;
+if(Precision!=NULL) Prec = Precision;
+
+int ErrMultiplier = 10;
+
+double Error = ErrMultiplier.pow((prec*-1)-1);
+Error = Error * 5;
+
+
+double a       = Numb+Error;
+
+int multiplier = 10;
+multiplier     = multiplier.Pow(dp);
+a              = a * multiplier;
+a              = a.Floor()/multiplier;
+Return(a);]]>
+</method>
+<method name="Ceil">
+<param name="Numb" type="object" />
+<param name="DP" type="object" />
+<param name="Precision" type="object" />
+<![CDATA[//@cmember
+//@param object | Numb |
+//@param object | DP |
+//@param object | Precision |
+//@version sorina.grave | 30-04-02 15:05 |
+//@version Jonny Moo | 29-08-02 09:30 |
+//@i
+
+
+int prec = 10;
+if(Precision!=NULL) Prec = Precision;
+
+int ErrMultiplier = 10;
+
+double Error = ErrMultiplier.pow((prec*-1)-1);
+Error = Error * 5;
+
+double a       = Numb-Error;
+int multiplier = 10;
+multiplier     = multiplier.pow(dp);
+a              = a * multiplier;
+a              = a.Ceil()/multiplier;
+return a;]]>
+</method>
+<method name="DivideByZero">
+<param name="Numerator" type="object" />
+<param name="Denominator" type="object" />
+<param name="SupressError" type="object" />
+<![CDATA[//@cmember DivideByZero
+//@param object | Numerator |
+//@param object | Denominator |
+//@param object | SupressError |
+//@version Darren.Ball | 20-11-03 09:57 |
+//@i
+if(denominator==NULL||denominator==0)
+{
+    if(SupressError==NULL||!SupressError) Message("Attempted to Divide by Zero.\n\rNumerator = " + Numerator.ToString() + "\n\rDenominator = " + Denominator.ToString(),"Error");
+    Return 0;
+}
+
+Else Return (Numerator / Denominator);]]>
+</method>
+<method name="PackInt" return="string">
+<param name="i" type="int" />
+<![CDATA[//@cmember PackInt
+//@param int | i | integer
+//@return string | packed integer
+//@version Jonny Moo | 19-05-03 16:20 |
+//@i Works only for positive integers
+
+// Pack to base 36 - Convert to ascii characters
+// 0-9 (Ascii 48 - 57)
+// A-Z (Ascii 65 - 90)
+
+int Base = 36;
+
+string sz;
+
+while(1)
+{
+    int r = (i%Base);
+
+    if(r<10)
+    {
+        r = r+ 48;
+    }
+    else
+    {
+        r = r+ 55;
+    }
+
+    sz+=r.charstring();
+
+    if(i<Base) break;
+    i = i/Base;
+}
+
+return sz;]]>
+</method>
+<method name="UnPackInt" return="int">
+<param name="sz" type="string" />
+<![CDATA[//@cmember UnPackInt
+//@param string | sz | integer
+//@return int | unpacked integer
+//@version Jonny Moo | 19-05-03 16:45 |
+//@i
+
+
+int Base = 36;
+int iRet = 0;
+
+for(int i=sz.Length()-1;i>=0;i--)
+{
+    iRet = iRet*Base;
+    // Convert char to number
+    int a = sz.CharAt(i);
+    a = a - 48;
+    if(a>9)
+    {
+        a = a - 7;
+    }
+    iRet = iRet + a;
+
+}
+
+return iRet;]]>
+</method>
+<method name="TestPackInt">
+<![CDATA[//@cmember TestPackInt
+//@version Jonny Moo | 19-05-03 16:28 |
+//@i
+int i=0;
+
+while(1)
+{
+    string sz = PackInt(i);
+    int iRes = Unpackint(sz);
+    if(iRes!=i)
+    {
+        message("Failed on: "+i);
+        return;
+    }
+    int Newi = i+1;
+    if(Newi-1!=i)
+    {
+        message("Max integer: "+i);
+        return;
+    }
+    i = Newi;
+}]]>
+</method>
+</static>
+<return>
+<rmeth name="PackInt" cls="string" />
+<rmeth name="UnPackInt" cls="int" />
+</return>
+</class>

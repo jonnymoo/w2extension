@@ -1,0 +1,46 @@
+<class name="Route" description="W2 Script Reference">
+<members>
+<method name="Delete">
+<![CDATA[//@cmember void Delete(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetAttr">
+<param name="TypeName" type="string" />
+<![CDATA[//@cmember string GetAttr( string TypeName );
+//@param string | TypeName | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetAttr">
+<param name="TypeName" type="string" />
+<param name="Value" type="string" />
+<![CDATA[//@cmember void SetAttr( string TypeName, string Value );
+//@param string | TypeName | 
+//@param string | Value | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetText">
+<param name="text" type="String" />
+<![CDATA[//@cmember void SetText( String text );
+//@param String | text | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Delete" cls="void" />
+<rmeth name="GetAttr" cls="string" />
+<rmeth name="SetAttr" cls="void" />
+<rmeth name="SetText" cls="void" />
+</return>
+</class>

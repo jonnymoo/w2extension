@@ -1,0 +1,17 @@
+<exclude>
+
+<path name="grifftest" />
+<path name="test" />
+<path name="W2ScriptMethods" />
+
+<path name="des" />
+<path name="housing" />
+<path name="InVADE" />
+<path name="revenues" />
+<path name="uhm" />
+<path name="upm" />
+<path name="upmbase" />
+<path name="gf::invoice" />
+<path name="gf::meetings" />
+
+</exclude>

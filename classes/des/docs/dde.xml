@@ -1,0 +1,28 @@
+<class name="DDE" description="W2 Script Reference" base="ClassDef">
+<members sub="Misc">
+<method name="RegisterServer">
+<param name="servername" type="string" />
+<param name="" type="object" />
+<![CDATA[//@cmember void RegisterServer( string servername, object );
+//@param string | servername | 
+//@param object |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="UnregisterServer">
+<param name="servername" type="string" />
+<![CDATA[//@cmember void UnregisterServer( string servername );
+//@param string | servername | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="RegisterServer" cls="void" />
+<rmeth name="UnregisterServer" cls="void" />
+</return>
+</class>

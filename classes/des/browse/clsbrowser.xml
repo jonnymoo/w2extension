@@ -1,0 +1,1856 @@
+<form name="ClsBrowser" description="W2 Class Browser and Help System Viewer" caption="Class Browser" savepos="clsBrowsePos" icon="browser.ico" bk="D4D0C8" hidden="1" esccancel="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:37$" frevision="$Revision: 2$">
+<members>
+<Object name="myHier" cls="Hbase" desc="The Class Hierarchy being Browsed" />
+<Object name="selected" />
+<Integer name="subs" />
+<Integer name="flush" />
+<String name="BrsStrLeft" />
+<Object name="listener" cls="socket" />
+<List name="debugCommands" cls="classes::cpicks" />
+<List name="debugReplies" cls="classes::cpicks" />
+<Object name="m_cs" cls="CriticalSection" />
+<List name="BreakPoints" cls="classes::des::browse::breakpoint" />
+<List name="MethodHistory" cls="classes::CpickS" />
+<Integer name="NextMethodHistoryInd" />
+<method name="openXML" return="void">
+<param name="X" type="object" />
+<param name="pth" type="string" />
+<![CDATA[//@version Andrew Griffin | 20-02-02 09:48 |
+//@i Create a hierarchy from XML code & its references to other files.
+
+if (X==null) return;
+
+string pth2 = (pth!=null && pth!="") ? pth : classes::cpicks::path();
+
+myHier.setTo(X, pth2, 1);
+
+if (myHier.Lmem.count()==0) return;
+myHier.Lmem.setCurrent(0);
+myHier.Lmem[0].EventHierMouseSelect( &idHier );]]>
+</method>
+<method name="openVar" return="void">
+<param name="tag" type="string" />
+<param name="name" type="string" />
+<param name="cls" type="string" />
+<param name="pth" type="string" />
+<![CDATA[//@i Create a hierarchy using a variable declaration as its root.
+
+settext("Browsing : " + cls);
+
+XML myXML;
+myXML.setTag(tag);
+myXML.AddAttr("name", name);
+myXML.AddAttr("cls", cls);
+
+openXML(myXML, pth);]]>
+</method>
+<method name="openVarNew" return="void">
+<param name="tag" type="string" />
+<param name="name" type="string" />
+<param name="cls" type="string" />
+<param name="pth" type="string" />
+<![CDATA[//@cmember openVarNew
+//@param string | tag |
+//@param string | name |
+//@param string | cls |
+//@param string | pth |
+//@version Andrew Griffin | 03-09-01 09:42 |
+//@return void |
+//@i Create a hierarchy using a variable declaration as its root.
+
+BrsStrLeft = "";
+int obt;    // object type. 0==built in, 1==object, 2==list
+
+if (myHier.Lmem.count()) {
+  string classFilename = cls;
+
+
+  switch (tag.toLower()) {
+    case "integer", "int", "string", "label", "edit", "float", "date", "double",
+         "item", "popup" :
+        classFilename = ::AdvSearch::classToPath(tag, pth, 0);
+        break;
+
+    case "list", "object" :
+      if (tag=="list") obt = 2; else obt = 1;
+
+      if (classFilename!="")
+        classFilename = ::AdvSearch::classToPath(classFilename, pth, 0);
+      else
+        classFilename = ::AdvSearch::classToPath(tag, pth, 0);
+  }
+
+  hmem hm = &myHier.Lmem[0];
+
+  if (!hm.classFilename.eq(classFilename)) flush = 1;   // names don't match so flush
+
+  string rty = hm.rType.gettoken(0," ");
+  if (rty.eq( "object" ) && obt!=1 ||
+      rty.eq( "list" ) && obt!=2)
+      flush = 1;                        // List / Object missmatch
+
+  if (!flush) {
+    hm.justName = name;
+    hm.name = name;
+    idHier.SelectRow( hm );
+    hm.EventHierMouseSelect( idHier );
+    return; // Still browsing the same type of stuff...
+  }
+}
+
+flush = 0;
+myHier.Lmem.reset();// clear the hierarchy
+
+settext("Browsing : " + cls);
+
+XML myXML;
+myXML.setTag(tag);
+myXML.AddAttr("name", name);
+myXML.AddAttr("cls", cls);
+
+openXML(myXML, pth);]]>
+</method>
+<method name="doTop" return="void">
+<![CDATA[//@i Toggle Browser Window 'Stay on Top'
+
+if (toping) {
+    idTop.setAttr( "img", "pinOUT.bmp" );
+    SetTopMost(0);
+    toping = 0;
+} else {
+    idTop.SetAttr( "img", "pinIN.bmp" );
+    SetTopMost(1);
+    toping = 1;
+}]]>
+</method>
+<method name="OnTaskBarClick" return="void">
+<![CDATA[//@version Andrew Griffin | 27-05-02 12:14 |
+//@version jonathan.muir | 16-02-10 13:20 |
+//@version Jonathan.Muir | 09-09-16 09:29 |
+
+int mhWnd = GetHWND();
+
+classes::core::wpopupmenu P;
+
+P.Add("W2 Help", "H");
+P.Add("Find in Files", "F", "classes::resource::standard::callfinder.ico" );
+
+P.Add("W2 Designer", "D", "classes::des::designer.ico" );
+
+
+// Class History
+
+classes::core::wpopupmenu P2 = &::History::getPopup( "" );
+P.Add(P2, "Open Class");
+
+
+
+P.AddSeparator();
+P.Add("Close All", "C");
+P.Add("Exit IDE", "X");
+
+// track
+String s = P.Track();
+
+if (s=="") return;
+
+
+if (s=="D") {
+    if (::AdvSearch::OpenClassFilePath("", "", 1)==null) {
+        ::WClassView Q;
+        Q.Init();
+        Q.doNew();
+    }
+    return;
+}
+
+
+
+if (s=="H") {
+    setforeground();    // bring to front of screen elements
+    show(1);            // if minimized bring to front
+    idHier.update();    // redraw
+    SetTopMost(toping);
+    idLocation.setText("help");
+    onChar(13, 0, idLocation);
+    return;
+}
+
+if (s=="C") {           // Close ALL
+
+    closeAllDesWins();
+    return;
+}
+
+if (s=="X") {           // Close IDE
+
+    closeDesIDE();
+    return;
+}
+
+if (s.left(4)=="CLS:") {   // Open A Class Window
+    ::history::restoreClass( s.substring( 4 ) );
+    return;
+}
+
+if (s=="F") {
+    ::search::wSearchinFiles::Main();
+    return;
+}
+
+if (s=="XC") {
+    doFlushAll();
+    return;
+}
+
+message("Unknown Option...");]]>
+</method>
+<method name="OnTaskBarRightClick" return="void">
+<![CDATA[OnTaskBarClick();]]>
+</method>
+<method name="onTaskBarDoubleClick" return="void">
+<![CDATA[OnTaskBarClick();]]>
+</method>
+<method name="onClose" return="void">
+<![CDATA[show(0);]]>
+</method>
+<method name="closeDesIDE">
+<![CDATA[//@version Andrew Griffin | 31-07-02 14:29 |
+//@version andrew.banyard | 20-07-16 17:10 |
+
+if (message("Close W2 IDE (all Designer Windows & Projects)", "W2 IDE", classes::core::windows::MB_ICONASTERISK | classes::core::windows::MB_YESNO )
+    == classes::core::windows::IDNO) return;
+
+if (!closeAllDesWins()) return;
+
+if (openProject.mod) {
+    openProject.setforeground();      // bring to front of screen elements
+    openProject.show(1);              // if minimized bring to front
+    openProject.idProjHier.update();  // redraw
+    if (!openProject.areYouSure("Close All")) return;
+}
+
+openProject.close();    // Close Project Form
+
+//
+// Save class recorder file if updated...
+
+des::search::classrec::aclassrec::saveClassList();
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "DesIcon");
+    if (i==7727) {
+        sys::HWNDSendIPC( mHwnd, i, "closeIDE" );
+        break;
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+myBrowserHid.close();
+
+while (sys::GetWindowCount())
+    sys::GetOpenWindow( 0 ).close();    // close everything else...
+
+sys::terminate(0);]]>
+</method>
+<method name="onChar">
+<param name="Key" type="int" />
+<param name="State" type="int" />
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+if (Ctrl == idLocation && Key == 13) {
+    SetTimer( 100 );
+}]]>
+</method>
+<method name="heightOf" return="int">
+<param name="str" type="string" />
+<param name="multY" type="int" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+int c=0, f=0;
+
+while (1) {
+    f = str.indexOf("\r\n", f);
+    if (f==-1) return (c+1)*multY + 10;
+    c++;
+    f++;
+}]]>
+</method>
+<method name="openHelpDoc" return="int">
+<param name="Filename" type="string" />
+<param name="name" type="string" />
+<param name="stdName" type="string" />
+<param name="addInfo" type="string" />
+<![CDATA[//@version Andrew Griffin | 02-08-01 10:03 |
+//@version Andrew | 22-11-01 18:23 |
+//@i Extract help comments from an XML class file
+
+if (this == myBrowserHid) return; // no help for hidden browser
+
+int retNum = 1;
+
+XML nXML = &classes::des::globalxml::LoadXML( filename );
+if (nXML.tag() == "error") return docError("Error Opening Class File.", 0);
+
+
+/*
+file f; f.open(filename);
+if (f==null) return docError("Error Opening Class File.", 0);
+
+blob b = f.readBlob();
+f.close();
+if (b==null) return docError("Error Reading from Class File.", 0);
+*/
+XML /*nXML = b.GetXMLObject(),*/ iXML, codeXML;
+//if (nXML==null) return docError("Error Parsing Class File.", 0);
+
+if (nXML.count()==0) return docError("Error Parsing Class File.", 0);
+nXML = &nXML.getElement(0);
+
+for (int i=0; i<nXML.count(); i++) {    // loop through member sections
+  XML mXML = &nXML.getElement(i);
+
+  for (int n=0; n<mXML.count(); n++) {  // loop through methods
+    iXML = &mXML.getElement(n);
+    if (iXML.getAttr("name").eq(name)) {
+      codeXML = &iXML.findElement("CDATA");
+      i=9999;
+      break;
+    }
+  }
+}
+
+string str, sCall, sInfo, sExam, sParam, tmp, tmp2;
+
+if (name=="") {
+    sCall = "Class Name   :  " + nXML.getAttr("name");
+    sInfo = nXML.getAttr("description");
+    if (sInfo) sInfo = "Description    :  " + sInfo;
+} else
+
+if (i==nXML.count()) {
+    return docError("None Method/Member Object", 0);
+} else
+
+if (codeXML==null) {
+
+    if (iXML.tag=="method") return docError("No Help Available", addInfo);
+
+    tmp = iXML.getAttr("cls");
+    if (tmp) tmp+=" ";
+
+    sCall = "Member Def  :  " + iXML.tag() + " " + tmp + iXML.getAttr("name");
+    sInfo = iXML.getAttr("desc");
+    if (sInfo)  sInfo = "Description    :  " + sInfo;
+
+    sExam = iXML.getAttr("comment");
+    if (sExam.left(3).eq("@e ")) {
+        sExam = sExam.substring(3);
+        retnum = 2;
+    } else
+    if (sExam) {
+        if (sInfo) sInfo += "\r\n";
+        sInfo += "Comment       :  " + sExam;
+        sExam = "";
+    }
+} else {
+
+    str = codeXML.Content();
+    int pos=0, pos2;
+
+    while (1) {
+        pos = str.indexOf( "//@", pos );
+        if (pos==-1) break;
+
+        pos2 = str.indexOf( "\r\n", pos );
+        if (pos2==-1) pos2=str.length();
+
+        int fsp = str.indexOf(" ", pos+3),
+            fsp2 = str.indexOf("\r", pos+3);
+
+        if (fsp2<fsp && fsp2>-1) fsp = fsp2;
+
+        tmp = str.subString( fsp+1, pos2 ) + "\r\n";
+
+        switch (str.subString( pos+3, fsp ).lower()) {
+            case "call", "c" : sCall += "Method Def  :  " + tmp; break;
+            case "info", "i" : sInfo += tmp; break;
+            case "exam", "e" : sExam += tmp; break;
+            case "param"     :
+                tmp2 = tmp.getToken(0,"|").trim();
+                if (tmp2) {
+                  sParam += tmp2 + "\t";
+                  tmp2 = tmp.getToken(1,"|").trim();
+                  if (tmp2) {
+                    sParam += tmp2 + "\t// ";
+                    tmp2 = tmp.getToken(2,"|").trim();
+                    if (tmp2) sParam += tmp2;
+                  }
+                  sParam += "\r\n";
+                }
+                break;
+            case "return" :
+                tmp2 = tmp.getToken(0,"|").trim();
+                if (!tmp2) break;
+                sParam += "\r\nMethod Returns :\r\n\t" + tmp2;
+                tmp2 = tmp.getToken(1,"|").trim();
+                if (tmp2) sParam += "\t// " + tmp2;
+                sParam += "\r\n";
+                break;
+        }
+
+        pos = pos2+2;
+    }
+
+    if (!scall) sCall = "Method Def  :  " + stdName + "\r\n";
+    if (sInfo) sInfo = "Description  :\r\n" + sInfo;
+    if (sParam) sInfo += "\r\nParameters  :\r\n" + sParam;
+    retNum = 2;
+}
+
+if (sCall != "" && sInfo != "") sCall += "\r\n" + sInfo; else sCall += sInfo;
+
+if (sCall=="") sCall = "No Help Available";
+
+if (addInfo!=null && addInfo) {
+    tmp = idHelp.getText();
+    if (tmp && tmp!="No Help Available") sCall = tmp + "\r\n\r\n" + sCall;
+}
+
+sCall = sCall.trim();
+sExam = sExam.trim();
+
+idHelp.setText( sCall );
+idSource.setText( sExam );
+
+int vI = (sCall != "");
+int vE = (sExam != "");
+
+//if (vI || vE) descGrid.setVisible(1);
+
+//if (vI) {
+//    idSize.setVisible(vI);
+//    idHelp.setVisible(vI);
+//}
+
+idHelp.setH( heightOf( sCall, 13) );
+idSource.setH( heightOf( sExam, 14) + 8);
+
+if (idHideHelp.getText()=="X") {
+//    idSize2.setVisible(vE);
+    idSource.setVisible(vE);
+}
+
+FitRecursive();
+
+return retNum;      // Complete]]>
+</method>
+<method name="openHelpParams" return="string">
+<param name="Filename" type="string" />
+<param name="name" type="string" />
+<![CDATA[//@cmember openHelpParams
+//@param string | Filename |
+//@param string | name |
+//@return string |
+//@version Andrew Griffin | 26-07-01 14:24 |
+//@i Extract help comments from an XML class file
+
+int retNum = 1;
+
+XML nXML = &classes::des::globalxml::LoadXML( filename );
+if (nXML.tag() == "error") return "";
+
+/*
+file f; f.open(filename);
+if (f==null) return "";
+
+blob b = f.readBlob();
+f.close();
+if (b==null) return "";
+*/
+XML /*nXML = b.GetXMLObject(),*/ iXML, codeXML;
+//if (nXML==null) return "";
+
+if (nXML.count()==0) return "";
+nXML = &nXML.getElement(0);
+
+for (int i=0; i<nXML.count(); i++) {    // loop through member sections
+  XML mXML = &nXML.getElement(i);
+
+  for (int n=0; n<mXML.count(); n++) {  // loop through methods
+    iXML = &mXML.getElement(n);
+    if (iXML.getAttr("name").eq(name)) {
+      codeXML = &iXML.findElement("CDATA");
+      i=9999;
+      break;
+    }
+  }
+}
+
+string sa;
+
+if (codeXML == null || !codeXML.Tag()) {
+    return iXML.getAttr("desc");
+}
+
+string str = codeXML.Content(), pm = "~";
+int pos, pos2;
+
+pos = str.indexOf( "//@return", 0 );
+if (pos>=0) {
+    pos2 = str.indexOf( "\r\n", pos );
+    if (pos2==-1) pos2=str.length();
+
+    pm = str.subString( pos, pos2 );
+    pm = pm.gettoken( 1, "|" ).trim();
+}
+
+sa = pm;               // return type description
+pos = 0;
+
+while (1) {
+    pos = str.indexOf( "//@param", pos );
+    if (pos==-1) break;
+
+    pos2 = str.indexOf( "\r\n", pos );
+    if (pos2==-1) pos2=str.length();
+
+    pm = str.subString( pos, pos2 );
+    pm = pm.gettoken( 2, "|" ).trim();
+    if (!pm) pm = "~";
+
+    sa += "¬¬" + pm;    // return type description
+    pos = pos2;
+}
+
+return sa;]]>
+</method>
+<method name="docError" return="int">
+<param name="Error" type="String" />
+<param name="addInfo" type="int" />
+<![CDATA[//@i Used to quickly display an error or no help available message in the
+//@i Help Display Frame.
+
+if (addInfo) {
+    string tmp = idHelp.getText();
+    if (tmp && tmp!="No Help Available") Error = tmp + "\r\n" + Error;
+}
+
+idHelp.setText( Error );
+
+//idSize2.setVisible(0);
+idSource.setVisible(0);
+
+FitRecursive();
+
+return 0;]]>
+</method>
+<method name="hideHelp" return="void">
+<![CDATA[//@i Hides both the help & example source code frames.
+
+int vis = idHideHelp.getText() != "X";
+int vis2 = vis & (idSource.getText() != "");
+
+idHideHelp.setText( vis ? "X" : "O" );
+
+//descGrid.setVisible(vis);
+//idSize.setVisible(vis);
+idHelp.setVisible(vis);
+//idSize2.setVisible(vis2);
+idSource.setVisible(vis2);
+
+FitRecursive();]]>
+</method>
+<method name="openUsingString" return="int">
+<param name="brs" type="string" />
+<param name="openDerived" type="int" />
+<param name="openFound" type="int" />
+<![CDATA[//@cmember openUsingString
+//@param string | brs |
+//@param int | openDerived |
+//@param int | openFound |
+//@return int |
+//@version Andrew Griffin | 23-11-01 10:56 |
+//@i recursively open the hierarchy to display correct
+//@i method or member in open browser view
+
+BrsStrLeft = "";
+
+if (myHier==null || myHier.Lmem.count()==0) return;
+
+if (brs.endsWith(".")) {
+    brs = brs.left(brs.length()-1);
+} else
+if (brs.endsWith("::")) brs = brs.left(brs.length()-2);
+
+int found;
+
+for (int i=myHier.Lmem.count()-1; i>=0; i--) {
+    Hmem cur = &myHier.Lmem[i];
+
+    if (openUSub( &cur, &brs, openDerived, openFound )) found = 1;
+}
+
+if (debug) message( found ? "Found and exiting" : "Not Found and exiting" );
+
+debug = 0;
+
+return found;]]>
+</method>
+<method name="openUSub" return="int">
+<param name="cur" type="Hmem" />
+<param name="brs" type="string" />
+<param name="openDerived" type="int" />
+<param name="openFound" type="int" />
+<![CDATA[//@cmember openUSub
+//@param Hmem | cur |
+//@param string | brs |
+//@param int | openDerived |
+//@param int | openFound |
+//@return int |
+//@version Andrew | 22-11-01 19:01 |
+//@version Andrew Griffin | 23-11-01 10:56 |
+//@i see 'openUsingString()'
+//
+// This part extracts the name from the brs string
+
+// First strip out the important part of the 'brs' string
+
+string s;
+int p = 0, c, lst;
+
+while (p<brs.length()) {
+    c = brs[p];
+    p++;
+
+    if (c=='.') {       // member seperator
+        break;
+    } else
+
+    if (c==':') {       // static seperator
+      if (brs[p]==':') {
+        p++;
+        break;
+      } else return 0;  // error
+    } else
+
+    if (c=='(' || c=='[') {       // method/list indicator
+        int depth = 1;
+        for (; p<brs.length() && depth>0; p++) {
+          switch (brs[p]) {
+            case ')', ']' : depth--; break;
+            case '(', '[' : depth++; break;
+          }
+        }
+        if (c=='[') lst = 1;
+        //p++;
+    } else {
+
+        s += c.charString();
+    }
+
+}
+
+// Find member 's' in class and any base classes
+
+return searchUSub( s, &cur, brs.substring(p), openDerived, lst, openFound );]]>
+</method>
+<method name="searchUSub" return="int">
+<param name="itm" type="string" />
+<param name="cur" type="Hmem" />
+<param name="brs" type="string" />
+<param name="openDerived" type="int" />
+<param name="lst" type="int" />
+<param name="openFound" type="int" />
+<![CDATA[//@cmember searchUSub
+//@param string | itm |
+//@param Hmem | cur |
+//@param string | brs |
+//@param int | openDerived |
+//@param int | lst |
+//@param int | openFound |
+//@return int |
+//@version Andrew Griffin | 23-11-01 10:56 |
+//@i see 'openUsingString()'
+//
+// This is the recursive part!
+
+int found;
+
+for (int i=0; i<cur.Lmem.count(); i++)
+  for (int j=0; j<cur.Lmem[i].Lmem.count(); j++) {
+    Hmem tmp = &cur.Lmem[i].Lmem[j];
+
+    if (!subs && tmp.justname.eq(itm) ||
+         subs && tmp.justname.indexOf(itm,0,1)>=0) {
+
+        tmp.EventHierMouseSelect( idHier );
+        if (this.isVisibleReally()) {
+            FitRecursive();
+            idHier.Update();
+        }
+        idHier.selectRow(tmp);  // select item in Hierarchy
+
+        if (brs) {  // more left to browse into
+            if (debug) message( "Found " + itm.sql() + "+++\r\nBrs " + brs.sql() );
+            tmp.EventHierQuery( idHier );   // open sub class if it has one
+            if (openUSub( &tmp, &brs )) found = 1;
+        } else {
+            if (debug) message( "Found " + itm.sql() + "\r\nBrs " + brs.sql() );
+            if (tmp.classFilename!="" && tmp.Lmem.count()==0 && (openFound==null || openFound==1))
+                tmp.EventHierQuery( idHier );
+
+            found = 1;
+        }
+
+        if (!subs) return found;
+    }
+
+  }
+
+// Base & Derived Classes
+
+if (openDerived==null || openDerived)
+    for (i=0; i<cur.Lbase.count(); i++)
+        if (searchUsub(itm, &cur.Lbase[i], brs, openDerived, Lst, openFound)) {
+            found = 1;
+            if (!subs) break;
+        }
+
+if (!found && !brs) {
+    if (debug) message("Can't find " + itm.sql() );
+    BrsStrLeft = itm;
+    return 0;
+}
+
+return found;]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember onTimer
+//@param
+//@return
+//@version Andrew Griffin | 03-10-01 14:45 |
+//@i Used to fix nasty bug in onChar so that I don't get stack overflow.
+
+KillTimer();
+
+string stc = idLocation.getText();
+
+myHier.Lmem.reset();    // clear the hierarchy
+
+string pth = sys::MakeFullName( path(), "classes::des::docs" ) + "\\";
+
+if (stc=="" || stc.eq("help")) {
+    openVar("Help", "", "Help", pth);
+    return;
+}
+
+if (stc.left(1)!="?")
+    openVar("Object", stc, stc, pth);
+else {
+    // Do a search & build up a search class in browser window
+
+    stc = stc.subString(1);
+
+    subs = 0;
+    if (stc.left(1)=="*") {
+        stc = stc.subString(1);
+        subs = 1;
+    }
+
+    FileFinder FF = &Sys::NewFileFinder();
+//    pth+="des\\docs\\";
+    int ok = FF.FindFirst( pth+"*.xml", "" );
+
+    while( ok ) {
+
+      File f;
+      f.open(pth + FF.FileName, "r");
+      if (f!=null) {
+        blob b = f.readblob();
+        f.close();
+        if (b!=null) {
+          XML x = b.GetXMLObject();
+          if (x!=null) {
+            if (!subs && findInXML(&x, stc) ||
+                 subs && findSubInXML(&x, stc)) {
+
+                settext("Search for " + stc);
+
+                XML myXML;
+                myXML.setTag("search");
+                myXML.AddAttr("name", FF.FileName.left(FF.FileName.length()-4));
+                myXML.AddAttr("cls", FF.FileName.left(FF.FileName.length()-4));
+                openXML(myXML, pth+ff.filename);
+
+            }
+          }
+        }
+      }
+
+      ok = FF.FindNext();
+    }
+
+    openUsingString(stc, 0);
+    subs = 0;
+}]]>
+</method>
+<method name="OnWMCopyData" return="void">
+<param name="cmd" type="object" />
+<param name="val" type="object" />
+<![CDATA[//@version Andrew Griffin | 30-11-01 12:47 |
+//@version Jonny Moo | 28-02-03 15:55 |
+//@version jonathan.muir | 16-02-10 16:38 |
+//@version Jonathan.Muir | 20-10-16 13:40 |
+//@i This is called when another designer is spawned by windows so that we can
+//@i intercept them and relay them back through a single XRunApp Instance.
+
+Sys::debugout("Designer: In OnWMCopyData - val:"+val.Tostring()+", cmd:"+cmd);
+
+if(cmd=="GETFROMSTATIC") {
+    cmd = StaticRequest;
+    StaticRequest = "";
+}
+
+if (val==7723) {
+    if (cmd == "taskbarClicked") {
+        onTaskBarClick();
+    }
+    else if (cmd.left(14)=="SetupListener:")
+    {
+        DoSetupListener(cmd.subString(14).val());
+    }
+
+    else if (cmd.left(4)=="Proj")
+    {
+
+        string fname = cmd.subString(5);
+
+        if (fname.eq("openBrowser")) {
+
+            setforeground();    // bring to front of screen elements
+            show(1);            // if minimized bring to front
+            idHier.update();    // redraw
+            SetTopMost(1);
+            SetTopMost(toping);
+
+        } else
+        if (fname.eq("openRunWrapper")) {
+
+            int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+            while (mhWnd!=0) {
+                int i = Sys::HWNDGetProp(mhWnd, "RunWrap");
+                if (i==7729) {
+                    break;
+                }
+                mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+            }
+            if (mhWnd!=0) sys::HWNDSendIPC( mHwnd, 7729, "showwrapper" );
+
+        } else
+        if (fname.left(7)=="CopyStz") {
+
+            // Copying project from runWrapped
+
+            XML x = &classes::core::xml::globalxml::StringToXML(
+                        fname.subString( 11 ),
+                        0
+                    );
+
+            if (fname.subString(7,10) == "CPT") // Copy
+                openProject.copyHier = x;
+            else {                              // Create New
+                if (fname.subString(7,10) == "CNP")
+                    openProject.bringToFront();
+
+                if (!openProject.onMenuNew()) return;
+
+                openProject.projHier.classes[0].setTo( openProject.projHier.classes[0].classes, x );
+                openProject.projHier.classes[0].SetOpen( 1 );
+
+                if (fname.subString(7,10) != "CNP") openProject.setMod( 0 );
+            }
+
+        } else {
+
+            openProject.setforeground();      // bring to front of screen elements
+            openProject.show(1);              // if minimized bring to front
+            openProject.setTopmost(1);
+            openProject.setTopmost(0);
+
+            if (fname!="") openProject.openFile( fname );
+        }
+    } else if (cmd.eq("CloseIDE")) {
+        closeDesIDE();
+    } else if (cmd.left(10).eq("SourceSafe")) {
+
+        string szFunction = cmd.Substring(11);
+        string szSessionId = szFunction.GetToken(0);
+        string szMode = szFunction.GetToken(1);
+        string szFileName = szFunction.GetToken(2);
+        string szRefresh = szFunction.GetToken(3);
+        for (int i=0;; i++)
+        {
+            object win=&sys::GetOpenWindow(i);
+            if (win==null) break;
+            if (win.getmemberdef("FileName")!=null)
+            {
+                if (szFileName.eq(win.FileName))
+                {
+                    win.SourceSafeCallBack(szSessionID.Val(),szMode.Val(),szFileName,szRefresh.Val());
+                }
+            }
+        }
+
+    }
+    else
+    {
+        classes::des::WClassView::WindowsOpen(cmd, val);
+
+    }
+}]]>
+</method>
+<method name="openSelected">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+//idHier.CurrentRow().EventHierDoubleClick
+if (!selected.HasMethod("EventHierDoubleClick")) return 0;
+
+selected.EventHierDoubleClick( idHier );
+
+return 1;]]>
+</method>
+<method name="DoSetUpListener">
+<param name="port" type="int" />
+<![CDATA[//@cmember DoSetUpListener
+//@param int | port |
+//@version jonathan.muir | 16-02-10 13:17 |
+//@version Jonathan.Muir | 26-02-10 12:59 |
+//@i
+
+if(listener.IsOpen())
+{
+    listener.Close();
+}
+
+if(port>0)
+{
+    listener.Listen(port,this,"NewConnection");
+}]]>
+</method>
+<method name="NewConnection">
+<param name="sock" type="socket" />
+<![CDATA[//@cmember NewConnection
+//@param socket | sock |
+//@version jonathan.muir | 18-02-10 16:11 |
+//@version Jonathan.Muir | 20-12-15 08:59 |
+//@version andrew.banyard | 10-08-16 14:07 |
+//@version Jonathan.Muir | 20-10-16 13:40 |
+//@i
+//Sys::debugout("Designer: In New Connection");
+
+blob requestData;
+
+
+if (!sock.ReadBlocked(requestData,2000,100))
+{
+    sock.Close();
+    //Sys::debugout("Designer: Timeout exceeded");
+    return(0);
+}
+
+
+//sys::debugOut(requestData.toString());
+
+if (!requestData.length()) return(0);
+
+
+string request = requestData.ToString();
+string command = request;
+string param = "";
+
+if(request.indexof(":")>=0)
+{
+    param = command.substring(request.indexof(":")+1);
+    command = command.left(request.indexof(":"));
+}
+
+//sys::debugout("Designer Command = "+command);
+//sys::debugout("Designer Param = "+param);
+
+//sys::debugout("DEBUG COMMAND: "+command);
+
+if (command=="GetDebugCommand")
+{
+
+    string threadGUID = param;
+
+    string debugCommand = GetDebugCommand(threadGUID);
+
+    if(debugCommand)
+    {
+        //sys::debugout("Debugger sending "+debugCommand);
+        sock.SendString(debugCommand);
+        SetDebugCommand("",threadGUID);
+    }
+    else
+    {
+        if(IsDebuggerOpen(threadGUID))
+        {
+            //sys::debugout("Debugger on - Sending WAITING");
+            sock.SendString("WAITING");
+        }
+        else
+        {
+            //sys::debugout("Debugger not on - Sending ENDDEBUG");
+            sock.SendString("ENDDEBUG");
+        }
+    }
+}
+else if(command=="SetDebugReply")
+{
+    string threadGUID = param.GetToken(0);
+    string reply = param.Substring(param.indexof(",")+1);
+    SetDebugReply(reply,threadGUID);
+    sock.SendString("THANKS");
+
+
+}
+else if(command=="Debug")
+{
+
+    // Set debug command to end debug - it will be changed by the class designer
+    // when opening class
+
+    string threadGUID = param.GetToken(4);
+
+    SetDebugCommand("ENDDEBUG",threadGUID);
+
+    //Sys::debugout("Designer: Calling OnWMCopyData - ThreadGUID: "+threadGUID);
+
+    int mhWnd = GetHWND();
+
+    if(mhWnd!=0)
+    {
+        //sys::debugout("Designer Request String: "+request.left(100));
+
+        // Call across to ourselves to open the right class
+
+        staticRequest = request;
+        //OnWMCopyData(request, 7723);
+
+        sys::HWNDSendIPC( mHwnd, 7723, "GETFROMSTATIC" );
+
+    }
+
+    if(GetDebugCommand(threadGUID)=="ENDDEBUG")
+    {
+        // We haven't opened a debug window for some reason
+        //sys::debugout("NOT DONE");
+
+        sock.SendString("NOT DONE");
+    }
+    else
+    {
+        //sys::debugout("DONE");
+        sock.SendString("DONE");
+    }
+}
+else if(command=="GetBreakPoints")
+{
+
+    sock.SendString(GetBreakPointsAsString());
+}
+else if(command=="OpenClass")
+{
+
+      int classIndex = param.tolower().indexof("classes");
+
+      if(classIndex==-1)
+      {
+         Message("Unable to open file " + param +" as there is no root classes directory.");
+         return;
+      }
+
+
+      param = param.substring(classIndex);
+
+      if(classes::des::history::clsHist == NULL || classes::des::history::clsHist.Count() == 0)
+      {
+          Message("Could not determine which system you are using to open " + param +".\r\nPlease open a file from your system first.");
+          return;
+      }
+       // We have some history so open the last file
+      xml x = &classes::des::history::clsHist[classes::des::history::clsHist.Count()-1];
+      string historyClass = x.cls;
+
+      int historyClassIndex = historyClass.tolower().indexof("classes");
+
+      if(historyClassIndex==-1)
+      {
+         Message("Unable file " + param +" as the last history item did not contain a classes directory.");
+         return;
+      }
+
+      string likelyClassName = historyClass.substring(0, historyClassIndex) + param.replace("/","\\") +".xml";
+
+      classes::des::wclassview::main(likelyClassName);
+}
+
+//Blob response;
+//sock.ReadBlocked(response,10000);]]>
+</method>
+<method name="GetHWND" return="int">
+<![CDATA[//@cmember GetHWND
+//@return int |
+//@version jonathan.muir | 16-02-10 13:16 |
+//@i
+
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        break; // send open request and close this instance
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+return mhWnd;]]>
+</method>
+<method name="SetDebugCommand">
+<param name="cmd" type="string" />
+<param name="threadGUID" type="string" />
+<![CDATA[//@cmember SetDebugCommand
+//@param string | cmd |
+//@param string | threadGUID |
+//@version jonathan.muir | 17-02-10 15:59 |
+//@i
+
+
+
+classes::CPickS command = &null;
+
+
+// Lock the list
+
+criticalLock lock = &m_cs.Enter();
+
+// Find the correct row in the list
+
+
+for(int i=0;i<debugCommands.Count();i++)
+{
+    if(debugCommands[i].code == threadGUID)
+    {
+        command = &debugCommands[i];
+    }
+}
+
+
+// If no row then create one
+
+if(command==null)
+{
+    command = &debugCommands.CreateRow();
+}
+
+command.code = threadGUID;
+command.desc = cmd;
+
+
+Lock.UnLock();]]>
+</method>
+<method name="SetDebugReply">
+<param name="sreply" type="string" />
+<param name="threadGUID" type="string" />
+<![CDATA[//@cmember SetDebugReply
+//@param string | sreply |
+//@param string | threadGUID |
+//@version jonathan.muir | 18-02-10 15:55 |
+//@i
+
+
+
+classes::CPickS reply = &null;
+
+
+// Lock the list
+
+criticalLock lock = &m_cs.Enter();
+
+// Find the correct row in the list
+
+
+for(int i=0;i<debugReplies.Count();i++)
+{
+    if(debugReplies[i].code == threadGUID)
+    {
+        reply = &debugReplies[i];
+    }
+}
+
+
+// If no row then create one
+
+if(reply==null)
+{
+    reply = &debugReplies.CreateRow();
+}
+
+reply.code = threadGUID;
+reply.desc = sreply;
+
+
+Lock.UnLock();]]>
+</method>
+<method name="GetDebugCommand" return="string">
+<param name="threadGUID" type="string" />
+<![CDATA[//@cmember GetDebugCommand
+//@param string | threadGUID |
+//@return string |
+//@version jonathan.muir | 17-02-10 16:00 |
+//@i
+
+
+
+string cmd = "";
+
+// Lock the list
+
+criticalLock lock = &m_cs.Enter();
+
+// Find the correct row in the list
+
+
+for(int i=0;i<debugCommands.Count();i++)
+{
+    if(debugCommands[i].code == threadGUID)
+    {
+        cmd = debugCommands[i].desc;
+    }
+}
+
+
+Lock.UnLock();
+
+return cmd;]]>
+</method>
+<method name="GetDebugReply" return="string">
+<param name="threadGUID" type="string" />
+<![CDATA[//@cmember GetDebugReply
+//@param string | threadGUID |
+//@return string |
+//@version jonathan.muir | 18-02-10 15:46 |
+//@i
+
+
+
+string reply = "";
+
+// Lock the list
+
+criticalLock lock = &m_cs.Enter();
+
+// Find the correct row in the list and remove it
+
+
+for(int i=0;i<debugReplies.Count();i++)
+{
+    if(debugReplies[i].code == threadGUID)
+    {
+        reply = debugReplies[i].desc;
+        debugReplies.DeleteRow(i);
+        break;
+    }
+}
+
+
+Lock.UnLock();
+
+return reply;]]>
+</method>
+<method name="SetBreakPoint">
+<param name="ClassName" type="string" />
+<param name="FunctionName" type="string" />
+<param name="cpos" type="int" />
+<param name="deleteFlag" type="int" />
+<![CDATA[//@cmember SetBreakPoint
+//@param string | ClassName |
+//@param string | FunctionName |
+//@param int | cpos |
+//@param int | deleteFlag |
+//@version Jonathan.Muir | 23-02-10 11:00 |
+//@i
+
+criticalLock lock = &m_cs.Enter();
+
+int bExists = 0;
+
+for(int i=0;i<BreakPoints.Count();i++)
+{
+    if(BreakPoints[i].className == ClassName.lower()&&
+       BreakPoints[i].FuncName == functionName.lower()&&
+       breakPoints[i].CPos == cpos)
+    {
+        breakPoints[i].bDelete = deleteFlag;
+        bExists = 1;
+        break;
+    }
+}
+
+if(!bExists)
+{
+    classes::des::browse::breakpoint x = &BreakPoints.CreateRow();
+    x.className  = className.lower();
+    x.FuncName = functionName.lower();
+    x.cpos = cpos;
+    x.bDelete = deleteFlag;
+
+}
+
+lock.UnLock();]]>
+</method>
+<method name="GetBreakPointsAsString" return="s">
+<![CDATA[//@cmember GetBreakPointsAsString
+//@return s |
+//@version Jonathan.Muir | 23-02-10 10:32 |
+//@i This is the string returned to the execution context (e.g. w2 running)
+
+string s;
+
+criticalLock lock = &m_cs.Enter();
+
+for(int i=0;i<BreakPoints.Count();i++)
+{
+    s+=BreakPoints[i].className+","+BreakPoints[i].FuncName+","+BreakPoints[i].CPos.ToString()+","+BreakPoints[i].bDelete.ToString() +",";
+}
+
+lock.Unlock();
+
+return s;]]>
+</method>
+<method name="GetBreakPoints" return="list">
+<param name="ClassName" type="string" />
+<param name="FunctionName" type="string" />
+<![CDATA[//@cmember GetBreakPoints
+//@param string | ClassName |
+//@param string | FunctionName |
+//@return list |
+//@version Jonathan.Muir | 26-02-10 15:59 |
+//@i This is the string returned to the execution context (e.g. w2 running)
+
+criticalLock lock = &m_cs.Enter();
+
+classes::des::browse::breakpoint ret[];
+
+//sys::debugout("CLSBrowser BreakPoint Count:"+BreakPoints.Count());
+
+for(int i=0;i<BreakPoints.Count();i++)
+{
+
+    //sys::debugout("ClassName: "+BreakPoints[i].ClassName+", FuncName: "+BreakPoints[i].FuncName+", bDelete: "+BreakPoints[i].bDelete);
+
+    if(BreakPoints[i].className==ClassName.lower()&&
+       BreakPoints[i].FuncName == FunctionName.lower()&&
+       BreakPoints[i].bDelete==0)
+    {
+
+        classes::des::browse::breakpoint x = &ret.CreateRow();
+        x = BreakPoints[i];
+    }
+}
+
+lock.Unlock();
+
+return ret;]]>
+</method>
+<method name="DeleteBreakPoints">
+<param name="ClassName" type="string" />
+<param name="FunctionName" type="string" />
+<![CDATA[//@cmember DeleteBreakPoints
+//@param string | ClassName |
+//@param string | FunctionName |
+//@version Jonathan.Muir | 23-02-10 10:59 |
+//@i
+
+criticalLock lock = &m_cs.Enter();
+
+for(int i=0;i<BreakPoints.Count();i++)
+{
+    if(BreakPoints[i].className == className.lower()&&
+       BreakPoints[i].FuncName == functionName.lower())
+    {
+        breakPoints[i].bDelete = 1;
+    }
+}
+
+
+lock.UnLock();]]>
+</method>
+<method name="AddMethodHistory">
+<param name="FileName" type="object" />
+<param name="Method" type="object" />
+<![CDATA[//@cmember AddMethodHistory
+//@param object | FileName |
+//@param object | Method |
+//@version Jonathan.Muir | 12-03-10 11:23 |
+//@i
+
+
+//sys::debugout("Add Method History");
+
+for(int i=MethodHistory.Count()-1;i>=NextMethodHistoryInd;i--)
+{
+    MethodHistory.DeleteRow(i);
+}
+
+classes::cpicks x = &MethodHistory.CreateRow();
+x.code = FileName;
+x.desc = Method;
+
+NextMethodHistoryInd++;]]>
+</method>
+<method name="NextMethodHistory">
+<![CDATA[//@cmember NextMethodHistory
+//@version Jonathan.Muir | 12-03-10 11:23 |
+//@i
+
+
+//sys::debugout("Next Method History");
+
+if(NextMethodHistoryInd<MethodHistory.Count())
+{
+    object wc = classes::des::advsearch::OpenClassFilePath(
+        Methodhistory[NextMethodHistoryInd].code,
+        Methodhistory[NextMethodHistoryInd].desc,NULL,NULL,NULL,1);
+
+    NextMethodHistoryInd++;
+
+    if(wc==null)
+    {
+        return NextMethodHistory();
+    }
+
+}]]>
+</method>
+<method name="LastMethodHistory">
+<![CDATA[//@cmember LastMethodHistory
+//@version Jonathan.Muir | 12-03-10 11:23 |
+//@i
+
+
+//sys::debugout("Last Method History");
+
+if(NextMethodHistoryInd-2>0&&(MethodHistory.Count()>0))
+{
+    object wc = classes::des::advsearch::OpenClassFilePath(
+        Methodhistory[NextMethodHistoryInd-2].code,
+        Methodhistory[NextMethodHistoryInd-2].desc,NULL,NULL,NULL,1);
+
+    NextMethodHistoryInd--;
+
+    if(wc==null)
+    {
+        return LastMethodHistory();
+    }
+
+}]]>
+</method>
+</members>
+<static>
+<Object name="openProject" cls="::Project::WProject" />
+<Object name="myBrowser" cls="clsBrowser" />
+<Object name="myBrowserHid" cls="clsBrowser" />
+<Integer name="toping" desc="Set to true if browser is a &quot;Top Window&quot;." />
+<Integer name="debug" />
+<String name="StaticRequest" />
+<method name="openAtCursor" return="clsBrowser">
+<param name="clear" type="int" />
+<![CDATA[//@cmember openAtCursor
+//@param int | clear | Optional, defaults to 1 (clears browser contents)
+//@return clsBrowser |
+//@version Andrew Griffin | 02-08-01 09:24 |
+//@i Finds the open Browser Window and brings it right to the front
+
+if (clear==null || clear==1) {
+    myBrowser.myHier.Lmem.reset();// clear the hierarchy
+}
+
+myBrowser.setforeground();    // bring to front of screen elements
+myBrowser.show(1);            // if minimized bring to front
+myBrowser.idHier.update();    // redraw
+myBrowser.SetTopMost(toping);
+return &myBrowser;]]>
+</method>
+<method name="openHidden" return="void">
+<param name="clear" type="int" />
+<![CDATA[//@cmember openHidden
+//@param int | clear | Optional, defaults to 1 (clears browser contents)
+//@version Andrew Griffin | 02-08-01 09:53 |
+//@return void |
+
+if (clear==null || clear==1) {
+    myBrowser.myHier.Lmem.reset();// clear the hierarchy
+}
+
+//myBrowserHid.setforeground();    // bring to front of screen elements
+//myBrowserHid.show(1);            // if minimized bring to front
+//myBrowserHid.idHier.update();    // redraw
+//myBrowserHid.SetTopMost(toping);
+return &myBrowserHid;]]>
+</method>
+<method name="doInit" return="ClsBrowser">
+<![CDATA[//@version Andrew Griffin | 09-08-02 10:04 |
+//@version Jonathan.Muir | 26-02-10 13:05 |
+//@i 1) Initialises the browser window
+//@i 2) Sets up the taskbar Icon
+//@i 3) Prepares this form to recieve new open requests from other Designer Instances
+
+
+::AdvSearch::intiRootPath();
+
+myBrowser.open();
+myBrowser.SetProp("ClsDes", 7723);    // To allow multiple instance detection
+myBrowser.idSource.SetReadOnly(1);
+
+myBrowserHid.open();    // Open hidden F2 & F4 browser
+
+// Close any crashed toolbar des apps.
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "DesIcon");
+    if (i==7727) {
+        sys::HWNDSendIPC( mHwnd, 7727, "closeCrashed" );
+        return; // send open request and close this instance
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+// Open taskbar Icon App
+
+/*
+String ini = Sys::MakeFullName(Path(),"::des.ini");
+if (Sys::GetPrivateProfileString("ide","TaskbarApp",ini).val()) {
+    String exe = Sys::GetModulePath() + "xrunapp.exe";
+    Sys::ShellExecute( "", exe, sys::MakeFullName( path(), "classes::des::browse::taskbarIcon.xml") , "" );
+} else {*/
+    myBrowser.SetTaskBarIcon("des2.ico", "W2 Class Designer");
+//}
+
+toping = 0;
+
+// Init project form
+openProject.init(this);
+::History::loadHistoryFile();   // load last file history list
+
+// Source Safe Release Path setup
+::sourcesafe::sourcesafe::initReleasePaths();
+::sourcesafe::sourcesafe::initSSProjectsPaths();
+
+des::wversion::checkDesignerVersion();
+
+String ini = Sys::MakeFullName(Path(),"::des.ini");
+String debugport = Sys::GetPrivateProfileString("debug","port",ini);
+
+if(myBrowser.GetHWND()!=0)
+{
+    sys::HWNDSendIPC( myBrowser.GetHWND(), 7723, "SetupListener:"+debugport.tostring() );
+}
+
+return myBrowser;]]>
+</method>
+<method name="findInXML">
+<param name="x" type="XML" />
+<param name="str" type="string" />
+<![CDATA[if (x.getAttr("name").eq(str)) {
+    switch (x.tag().lower()) {
+        case "method", "object", "int", "integer",
+             "float", "double", "string", "list", "date" : return 1;
+    }
+}
+
+for (int i=0; i<x.count(); i++)
+    if (findInXML(&x.getElement(i), str)) return 1;
+
+return 0;]]>
+</method>
+<method name="findSubInXML">
+<param name="x" type="XML" />
+<param name="str" type="string" />
+<![CDATA[if (x.getAttr("name").indexOf(str, 0, 1) >= 0) {
+    switch (x.tag().lower()) {
+        case "method", "object", "int", "integer",
+             "float", "double", "string", "list", "date" : return 1;
+    }
+}
+
+for (int i=0; i<x.count(); i++)
+    if (findSubInXML(&x.getElement(i), str)) return 1;
+
+return 0;]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 09-11-01 16:05 |
+//@i
+
+// Detect other open Class Designers
+//
+
+if (sys::Version() < ::wclassview::w2ver) {
+    classes::core::message::Open( "W2 Designer requires xrunapp.dll version " + ::wclassview::w2ver + " or above", "Dll out of date" );
+    return;
+}
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        sys::HWNDSendIPC( mHwnd, 7723, "Proj:" + cmd );
+        return; // send open request and close this instance
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+// No open browser so proceed
+
+ClsBrowser me = &doInit();
+
+me.onWMCopyData("Proj:" + cmd, 7723);
+
+/*
+if (cmd.IndexOf(".xpj")>=0) {
+
+    openProject.setforeground();      // bring to front of screen elements
+    openProject.show(1);              // if minimized bring to front
+    openProject.openFile( cmd );
+
+} else if (cmd.eq("openProject")) {
+
+    me.setforeground();    // bring to front of screen elements
+    me.show(1);            // if minimized bring to front
+    me.idHier.update();    // redraw
+    me.SetTopMost(1);
+    me.SetTopMost(toping);
+
+}]]>
+</method>
+<method name="closeAllDesWins" return="int">
+<![CDATA[//@version Andrew Griffin | 17-01-02 11:56 |
+
+for (int i=0;;) {
+    form win = &sys::GetOpenWindow(i);
+    if (win==null) break;
+    if (win.getmemberdef("FileName")!=null) {
+        if (win.Modified) {
+            win.setforeground();
+            win.show(1);
+        }
+        if (win.OptionalSave("Closing Class Editor")) win.Close(); else return 0;
+    } else
+    if (win.GetWindowName()=="SearchInFiles") {
+        win.close();
+    } else i++;
+}
+
+return 1;]]>
+</method>
+<method name="IsDebuggerOpen" return="int">
+<param name="ThreadGuid" type="string" />
+<![CDATA[//@cmember IsDebuggerOpen
+//@param string | ThreadGuid |
+//@return int |
+//@version Andrew Griffin | 17-01-02 11:56 |
+//@version jonathan.muir | 18-02-10 10:05 |
+
+for (int i=0;i<sys::GetWindowCount();i++) {
+    form win = &sys::GetOpenWindow(i);
+    if (win==null) continue;
+
+    if(win.HasMethod("GetThreadGUID"))
+    {
+        if(ThreadGuid==win.GetThreadGUID())
+        {
+
+            Control c = &win.GetControl("idDebugGo");
+            if(c!=NULL)
+            {
+                if(c.isVisibleReally()) return 1;
+            }
+        }
+    }
+
+
+}
+
+
+
+return 0;]]>
+</method>
+<method name="doFlushAll">
+<![CDATA[//@cmember doFlushAll
+//@version Andrew Griffin | 26-07-01 16:10 |
+//@i
+
+int c = ::globalXML::cached.count();
+
+string s;
+
+for (int i=0; i<::globalXML::cached.count(); i++) {
+    string nam = ::globalXML::cached[i].name;
+    int j = nam.lastIndexOf( "\\" );
+    if (j>=0) nam = nam.subString( j+1 );
+    j = nam.lastIndexOf( "." );
+    if (j>=0) nam = nam.left( j );
+    s.addToken(nam, ", ");
+}
+
+if (message( "Flush all " + c + " cached XML files\r\n\r\n" + s,
+             "File Cache",
+             classes::core::windows::MB_YESNO | classes::core::windows::MB_ICONASTERISK )
+    == classes::core::windows::IDYES ) {
+
+    ::globalXML::cached.reset();
+}]]>
+</method>
+<method name="doStartStopWeb">
+<param name="mode" type="int" />
+<![CDATA[//@cmember doStartStopWeb
+//@param int | mode | 'S' = startup, 'F' = flush, 'X' = shutdown
+//@version Andrew Griffin | 12-02-02 15:06 |
+//@i
+
+HTTPConnection Q;
+
+String ini = Sys::MakeFullName(Path(),"::des.ini");
+String root = Sys::GetPrivateProfileString("run","root",ini);
+int cpos = root.indexOf("/classes",0,1);
+if (cpos>=0) root = root.left( cpos+1 ); else
+{
+    message( root.sql() + " is missing classes path?", "W2 Desinger", classes::core::windows::MB_ICONEXCLAMATION );
+    return;
+}
+string cstr = root + "scripts/w2isapi.dll?";
+string cstr2, chkStr;
+
+switch (mode) {
+  case 'S': cstr2="startup"; chkStr="Extension dll is loaded"; break;
+  case 'F': cstr2="flush"; chkStr="OK Classes Flushed"; break;
+  case 'X': cstr2="shutdown"; chkStr="shutdown OK"; break;
+}
+cstr+=cstr2;
+
+Blob B = Q.GetFile( cstr, 0, "" );
+int status = Q.GetStatusCode();
+string dllStr = Q.GetResultsString();
+if (dllStr.indexOf( chkStr, 0, 1 )==-1) {
+    message( "Web Server " + cstr2 + " failed!!!", "W2 Designer", classes::core::windows::MB_ICONSTOP );
+} else {
+    message( "Web Server " + cstr2 + " successful", "W2 Designer", classes::core::windows::MB_ICONASTERISK );
+}]]>
+</method>
+</static>
+<grid>
+<row>
+<col align="WH">
+<grid>
+<row>
+<col align="WH">
+<Hierarchy name="idHier" text="Hierarchy" w="150" h="64" bind="myHier" />
+</col>
+</row>
+<row>
+<col align="W">
+<grid name="descGrid">
+<row>
+<col>
+<Label text="Help:" />
+</col>
+<col align="W" />
+<col lpad="4" rpad="4">
+<Label name="idHideHelp" text="X" style="b" onClick="hideHelp" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<Edit name="idHelp" h="32" multi="1" />
+</col>
+</row>
+<row>
+<col align="W">
+<SourceEditor name="idSource" text="SourceEditor" h="32" hide="Y" />
+</col>
+</row>
+<row>
+<col lpad="0" tpad="4" rpad="0" bpad="0" h="20" align="W" bk="128,0,0">
+<grid>
+<row>
+<col lpad="0" tpad="0" rpad="1" bpad="0" align="W" bk="128,0,0">
+<Edit name="idLocation" h="16" border="0" />
+</col>
+<col w="28" align="C" bk="255,255,255">
+<Image name="idTop" text="Image" img="pinout.bmp" onClick="doTop" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="openXML" cls="void" />
+<rmeth name="openVar" cls="void" />
+<rmeth name="openVarNew" cls="void" />
+<rmeth name="doTop" cls="void" />
+<rmeth name="OnTaskBarClick" cls="void" />
+<rmeth name="OnTaskBarRightClick" cls="void" />
+<rmeth name="onTaskBarDoubleClick" cls="void" />
+<rmeth name="onClose" cls="void" />
+<rmeth name="heightOf" cls="int" />
+<rmeth name="openHelpDoc" cls="int" />
+<rmeth name="openHelpParams" cls="string" />
+<rmeth name="docError" cls="int" />
+<rmeth name="hideHelp" cls="void" />
+<rmeth name="openUsingString" cls="int" />
+<rmeth name="openUSub" cls="int" />
+<rmeth name="searchUSub" cls="int" />
+<rmeth name="OnWMCopyData" cls="void" />
+<rmeth name="GetHWND" cls="int" />
+<rmeth name="GetDebugCommand" cls="string" />
+<rmeth name="GetDebugReply" cls="string" />
+<rmeth name="GetBreakPointsAsString" cls="s" />
+<rmeth name="GetBreakPoints" cls="list" />
+<rmeth name="openAtCursor" cls="clsBrowser" />
+<rmeth name="openHidden" cls="void" />
+<rmeth name="doInit" cls="ClsBrowser" />
+<rmeth name="closeAllDesWins" cls="int" />
+<rmeth name="IsDebuggerOpen" cls="int" />
+</return>
+</form>

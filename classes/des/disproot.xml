@@ -1,0 +1,64 @@
+<class name="DispRoot" HierImage="hHier.bmp" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members>
+<String name="Caption" />
+<List name="disps" cls="Disp" />
+<method name="SetTo">
+<param name="X" type="object" />
+<![CDATA[Caption = "Hierarchy Display";
+
+SetQueried(1);
+for(int e=0;;e++) {
+    Object EX = &X.Element(e);
+    if (EX==null) break;
+    disps.CreateRow().SetTo( EX );
+}]]>
+</method>
+<method name="GetXML">
+<param name="X" type="object" />
+<![CDATA[
+X.SetTag("disp");
+
+for(int n=0;n<disps.Count();n++){
+    XML EX;
+    X.AddElement(EX);
+    disps[n].GetXML(EX);
+}]]>
+</method>
+<method name="reset">
+<![CDATA[disps.Reset();]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[// A Disp Item
+
+Hier.GetParent().EditDisp(null);]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:00 |
+
+classes::core::wpopupmenu P;
+P.Add("New Display Item","NH");
+P.Add("Delete Entire Hierarchy Display","DM");
+String s = P.Track(1);
+
+if (s=="NH") {
+    Disp NH = &disps.CreateRow();
+    NH.Init();
+    Hier.SelectRow(NH);
+    NH.EventHierMouseSelect(Hier);  // select itself
+    Hier.GetParent().SetMod();
+} else
+
+if (s=="DM") {
+    Hier.getParent().idMulti.FindPane("DispEdit").doBlank();
+    Hier.GetParent().SetMod();
+    RemoveFromList();
+}]]>
+</method>
+<method name="Init">
+<![CDATA[Caption = "Hierarchy Display";]]>
+</method>
+</members>
+<static />
+</class>

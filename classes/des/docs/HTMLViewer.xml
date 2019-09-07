@@ -1,0 +1,125 @@
+<class name="HTMLViewer" description="W2 Script Reference" base="Control">
+<members>
+ />
+</method>
+<method name="NavNext">
+<![CDATA[//@Call void NavNext( );
+//@i Navigate the browser forwards 
+]]>
+ />
+</method>
+<method name="NavPrev">
+<![CDATA[//@Call void NavPrev(  );
+//@i Navigate the browser backwards 
+]]>
+ />
+</method>
+<method name="GetCookie">
+<![CDATA[//@Call string GetCookie( );
+//@i Get the current cookies from the browser
+]]>
+ />
+</method>
+<method name="GetSource">
+<![CDATA[//@Call string GetSource(  );
+//@i Get the source of the current document in the browser
+]]>
+ />
+</method>
+<method name="GetTitle">
+<![CDATA[//@Call string GetTitle( );
+//@i Get the title of the current document in the browser
+]]>
+ />
+</method>
+<method name="GetURL">
+<![CDATA[//@Call bool Save( string File );
+//@i Get the URL of the current document in the browser
+]]>
+ />
+</method>
+<method name="SetCookie">
+<param name="sCookie" type="string" />
+<![CDATA[//@Call void SetCookie(string sCookie);
+//@i Set a new cookie into the browser
+]]>
+ />
+</method>
+<method name="SetHTML">
+<param name="sHTML" type="string" />
+<![CDATA[//@Call void SetHTML(string sHTML);
+//@i Set some HTML into the browser window
+]]>
+ />
+</method>
+<method name="SetURL">
+<param name="sURL" type="string" />
+<![CDATA[//@Call void SetURL (string sURL);
+//@i Set the browser to a given URL
+]]>
+ />
+</method>
+<method name="getText">
+<![CDATA[//@Call string getText ( );
+//@i Get the source of the current document in the browser
+]]>
+ />
+</method>
+<method name="getLastError">
+<![CDATA[//@Call string getLastError ();
+//@i Get the last error which occurred.  You should test this after every operation.
+]]>
+ />
+</method>
+<method name="getLastErrorHRESULT">
+<![CDATA[//@Call int getLastErrorHRESULT ();
+//@i Get the last error which occurred as an HRESULT.
+]]>
+ />
+</method>
+<method name="getBusy">
+<![CDATA[//@Call int getBusy ();
+//@i Return a 1 if the browser in currently involved in a navigation or download, otherwise 0
+]]>
+ />
+</method>
+<method name="stop">
+<![CDATA[//@Call void stop ();
+//@i Attempt to stop the current navigation
+]]>
+ />
+</method>
+<method name="print">
+<param name="PromtUser" type="int" />
+<![CDATA[//@Call void print (int PromptUser);
+//@i Print the contents. Set promtuser to 1 to display print dialog box
+]]>
+ />
+</method>
+<method name="printpreview">
+<![CDATA[//@Call void printpreview ();
+//@i Display printpriview
+]]>
+ />
+</method>
+
+
+
+</members>
+<return>
+<rmeth name="NavNext" cls="void" />
+<rmeth name="NavPrev" cls="void" />
+<rmeth name="GetCookie" cls="string" />
+<rmeth name="GetSource" cls="string" />
+<rmeth name="GetTitle" cls="string" />
+<rmeth name="GetURL" cls="string" />
+<rmeth name="SetCookie" cls="void" />
+<rmeth name="SetHTML" cls="void" />
+<rmeth name="SetURL" cls="void" />
+<rmeth name="getText" cls="string" />
+<rmeth name="getLastError" cls="string" />
+<rmeth name="getLastHRESULT" cls="int" />
+<rmeth name="getBusy" cls="int" />
+<rmeth name="stop" cls="void" />
+</return>
+</class>

@@ -1,0 +1,94 @@
+<class name="MenuItem" HierImage="hMenuI.bmp" HierImageField="Icon" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:40 $" frevision="$Revision: 2 $">
+<members>
+<String name="Caption" />
+<String name="Tag" />
+<String name="Name" />
+<String name="Action" />
+<String name="Icon" />
+<method name="Init">
+<param name="typ" type="int" />
+<![CDATA[if (typ==0) {
+    Tag = "Separator";
+    Icon = "hMenuS.bmp";
+    Caption = "----------------";
+} else {
+    Tag = "Item";
+    Icon = "hMenuI.bmp";
+    Caption = "New Menu Item";
+}]]>
+</method>
+<method name="SetTo">
+<param name="X" type="object" />
+<![CDATA[
+SetQueried(1);
+
+Caption = X.GetAttr("text");
+Tag = X.Tag();
+if (tag.eq("Item"))
+    Icon = "hMenuI.bmp";
+else {
+    Icon = "hMenuS.bmp";
+    Caption = "----------------";
+}
+
+Name = X.GetAttr("name");
+Action = X.GetAttr("onClick");]]>
+</method>
+<method name="GetXML">
+<param name="X" type="object" />
+<![CDATA[
+X.SetTag(Tag);
+
+if (Tag.eq("Item")) {
+    X.AddAttr("text", Caption);
+    if (Name!="") X.AddAttr("name", Name);
+    if (Action!="") X.AddAttr("onClick", Action);
+}]]>
+</method>
+<method name="reset">
+<![CDATA[mItems.Reset();]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[
+Hier.GetParent().EditMenu(this);]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:03 |
+
+classes::core::wpopupmenu P;
+P.Add("Delete Menu Item","DI");
+String s = P.Track(1);
+object par;
+
+if (s=="DI") {
+    Hier.getParent().idMulti.FindPane("MenuEdit").doBlank();
+    Hier.GetParent().SetMod();
+    RemoveFromList();
+}]]>
+</method>
+<method name="EventHierDrop">
+<param name="Hier" type="object" />
+<![CDATA[Object HFrom = Hier.DropSource();
+if (HFrom==null) { Message("HFrom error!!!"); return; }
+
+Object R = HFrom.CurrentRow(); // current row in source hierarchy
+
+if (R.ClassName()==ClassName())
+  { // same class
+  if (HFrom==Hier){
+    Object L = OwnerList();
+    int from = L.FindIndex( R );
+    int to   = L.FindIndex( this );
+    L.MoveRow(from,to);
+    Hier.SelectRow( R );
+    }
+  }]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="Caption" />
+</disp>
+</class>

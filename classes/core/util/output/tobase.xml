@@ -1,0 +1,56 @@
+<class name="toBase" fauthor="$Author: Andrew.b $" fdate="$Date: 20/08/01 15:50 $" frevision="$Revision: 1 $">
+<members>
+<method name="writeList">
+<param name="theList" type="list" />
+<param name="excludeHeaders" type="int" />
+<param name="width" type="int" />
+<![CDATA[//@cmember writeList
+//@param list | theList | 
+//@param int | excludeHeaders | 
+//@param int | width | 
+//@version Andrew.b | 09-08-01 12:38 | 
+
+return(1);]]>
+</method>
+<method name="writeText">
+<param name="text" type="string" />
+<![CDATA[//@cmember writeText
+//@param string | text | 
+//@version Andrew.b | 09-08-01 12:38 | 
+//@i
+
+return(1);]]>
+</method>
+<method name="writeBreak">
+<![CDATA[//@cmember writeBreak
+//@version Andrew.b | 09-08-01 12:38 | 
+//@i
+
+return(1);]]>
+</method>
+<method name="init">
+<![CDATA[//@cmember init
+//@version Andrew.b | 09-08-01 12:38 | 
+//@i
+
+retrun(1);]]>
+</method>
+<method name="finish">
+<![CDATA[//@cmember finish
+//@version Andrew.b | 09-08-01 12:38 | 
+//@i
+
+return(1);]]>
+</method>
+<method name="writeTitle">
+<param name="title" type="string" />
+<![CDATA[//@cmember writeTitle
+//@param string | title | 
+//@version Andrew.b | 09-08-01 12:38 | 
+//@i
+
+return(1);]]>
+</method>
+</members>
+<static />
+</class>

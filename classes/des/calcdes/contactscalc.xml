@@ -1,0 +1,75 @@
+<form name="ContactsCalc" base="BaseCalc" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<Object name="TheList" cls="classes::callcentre::contact" />
+<List name="ContactList" cls="classes::callcentre::contact" />
+<method name="RunCalc">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+Super.RunCalc();]]>
+</method>
+<method name="GetAddress">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+return TheList.Addr1+" "+TheList.Addr2+" "+TheList.Addr3+" "+TheList.Addr4+" "+TheList.Addr5+" "+TheList.PostCode;]]>
+</method>
+<method name="GetContactList">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+
+if ( ContactList.count() == 0 )
+    classes::core::global::ListQuery( ContactList, "", 1000 );
+]]>
+</method>
+<method name="GetListEntry">
+<param name="i" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+TheList = ContactList[i];
+]]>
+</method>
+<method name="GetListCount">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+return ContactList.Count();]]>
+</method>
+</members>
+<static>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+ContactsCalc TheCalc;
+TheCalc.SetCalc( "C:\\Dev3\\W2\\classes\\Des\\CalcDes\\contacts.xmc" );
+TheCalc.RunCalc();
+TheCalc.SizeToFit();]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+</row>
+</grid>
+</form>

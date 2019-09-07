@@ -1,0 +1,171 @@
+<form name="wfileselect" caption="Load File" savepos="File Select" fauthor="$Author: Sally.woolrich $" fdate="$Date: 11/06/01 13:12 $" frevision="$Revision: 2 $">
+<members>
+<List name="FileList" cls="direntry" />
+<String name="operation" />
+<method name="Dir">
+<param name="path" />
+<param name="wildcard" />
+<![CDATA[
+classes::core::SrvDirectoryListing D;
+D.Path = path;
+D.Wildcard = wildcard;
+D.Attr = "";
+
+Object Res = classes::core::global::ServerMethod( D );
+if (Res==null) {
+    Message( "unable to read files!" );
+    return -1;
+    }
+
+if (Res.Error) {
+    Message( Res.Error );
+    return -1;           
+    }
+
+// ***
+
+Res.DirList.MoveAllTo( FileList );
+FileList.OrderBy( "FileName" );
+FileList.OrderList();
+
+return FileList.Count();]]>
+</method>
+<method name="Init">
+<param name="path" />
+<param name="wildcard" />
+<param name="oper" />
+<![CDATA[
+operation = oper;
+SetText( oper );
+ShowGroup( "Save", (oper.beginsWith( "Save" ) ));
+FitToSize();
+
+return dir( path, wildcard );
+]]>
+</method>
+<method name="OnSelectChange">
+<![CDATA[
+String szFile;
+Object TheFile = &FileList.CurrentRow();
+if (TheFile!=null) szFile = TheFile.Filename;
+
+idFile.SetText( szFile );
+]]>
+</method>
+<method name="OnOK">
+<![CDATA[
+String szFile = idFile.GetText();
+
+if (operation.beginsWith( "Save" )) {
+    Object X = &FileList.FindRow( szFile, 1 );
+    if (X!=null) {
+        int r = MessageBox( "Overwrite existing file ?", "File Exists", 3 );
+        if (r==2) { // cancel
+            close();
+            return;
+            }
+        if (r==7) return; // no
+        }
+    }
+
+close();
+GetParent().OnFileSelect( szFile, operation );
+
+]]>
+</method>
+<method name="OnCancel">
+<![CDATA[
+close();
+]]>
+</method>
+</members>
+<static>
+<method name="OpenWin">
+<param name="parent" />
+<param name="path" />
+<param name="wildcard" />
+<param name="oper" />
+<![CDATA[
+// is the window already open?
+String wnm = "wfileselect: " + parent.GetWindowName() + ", " + oper;
+Object W = Sys::FindWindow(wnm);
+if (W!=null){   
+    W.SetFocus(); 
+    return W; 
+    }
+
+// open viewer
+Object FS = CreateInstance();
+FS.SetWindowName( wnm );
+
+FS.dialog( parent );
+FS.Init( path, wildcard, oper );
+return FS;
+]]>
+</method>
+</static>
+<grid>
+<row>
+<col w="200" h="100" align="WH">
+<ListBox name="idFileList" IsList="Y" list="FileList" onDoubleClick="OnOK" onSelect="OnSelectChange">
+<row>
+<col align="W" bk="64,64,64">
+<Label text="Filename" tx="255,255,255" Header="1" style="b" />
+</col>
+</row>
+<row>
+<col align="W">
+<Label text="filename" bind="FileName" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+<row>
+<col align="W">
+<grid groups="Save">
+<row>
+<col h="6" align="W" />
+</row>
+<row>
+<col align="W">
+<grid>
+<row>
+<col rpad="6" align="V">
+<Label text="Filename:" />
+</col>
+<col align="W">
+<Edit name="idFile" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="6" align="R" />
+</row>
+<row>
+<col align="R">
+<grid>
+<row>
+<col rpad="2">
+<Image text="Image" img="classes::resource::standard::dot_red.bmp" onClick="OnOK" />
+</col>
+<col rpad="10">
+<Label text="OK" onClick="OnOK" />
+</col>
+<col rpad="2">
+<Image text="Image" img="classes::resource::standard::dot_red.bmp" onClick="OnCancel" />
+</col>
+<col>
+<Label text="Cancel" onClick="OnCancel" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

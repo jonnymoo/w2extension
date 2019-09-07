@@ -1,0 +1,216 @@
+<class name="XML" description="W2 Script Reference">
+<members sub="Elements">
+<method name="AddCDATAElement">
+<param name="cdata" type="String" />
+<![CDATA[//@cmember void AddCDATAElement( String cdata );
+//@param String | cdata | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="AddElement">
+<param name="E" type="XML" />
+<![CDATA[//@cmember void AddElement( XML E );
+//@param XML | E | XML to be added as an element
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="AddTextElement">
+<param name="text" type="String" />
+<![CDATA[//@cmember void AddTextElement( String text );
+//@param String | text | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Count">
+<![CDATA[//@cmember int Count(  );
+//@return int | Count of this XML's elements
+//@i element count
+]]>
+ />
+</method>
+<method name="CreateElement">
+<param name="tag" type="String" />
+<![CDATA[//@cmember XML CreateElement( String tag );
+//@param String | tag | Tag string for the new XML element
+//@return XML | A new XML element with tag set
+//@i tag is optional
+]]>
+ />
+</method>
+<method name="Element">
+<param name="i" type="int" />
+<![CDATA[//@cmember XML Element( int i );
+//@param int | i | Index of the XML element to return
+//@return XML | XML element indexed by 'i'
+//@i Get Element indexed by 'i'
+]]>
+ />
+</method>
+<method name="FindElement">
+<param name="Tag" type="string" />
+<param name="idx]" type="[int" />
+<![CDATA[//@cmember XML FindElement( string Tag, [int idx] );
+//@param string | Tag | Tag of the element to find
+//@param [int | idx] | Index of element to begin search at
+//@return XML | The found XML element ot null
+//@i Returns an XML element if found, otherwise returns NULL.  idx is an optional element number to start the search at.
+]]>
+ />
+</method>
+<method name="GetElement">
+<param name="i" type="int" />
+<![CDATA[//@cmember XML GetElement( int i );
+//@param int | i | Index of the XML element to return
+//@return XML | XML element indexed by 'i'
+//@i 
+]]>
+ />
+</method>
+<method name="RemoveElement">
+<param name="E" type="XML" />
+<![CDATA[//@cmember void RemoveElement( XML E );
+//@param XML | E | XML element to be removed
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="XML Object">
+<method name="clone">
+<![CDATA[//@cmember XML clone(  );
+//@return XML | A clone of the this XML
+//@i 
+]]>
+ />
+</method>
+<method name="DebugOut">
+<![CDATA[//@cmember void DebugOut(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Reset">
+<![CDATA[//@cmember void Reset(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Attributes">
+<method name="AddAttr">
+<param name="attr" type="String" />
+<param name="val" type="String" />
+<param1 name="attr" type="String" />
+<param1 name="val" type="int" />
+<![CDATA[//@cmember void AddAttr( {String attr, String val} or {String attr, int val} );
+//@param String | attr | Attribute Name to be added
+//@param String | val | Value to assign to the attribute
+//@param String | attr | Attribute Name to be added
+//@param int | val | Value to assign to the attribute
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="AttrCount">
+<![CDATA[//@cmember int AttrCount(  );
+//@return int | Count of attributes
+//@i count of attributes
+]]>
+ />
+</method>
+<method name="AttrName">
+<param name="i" type="int" />
+<![CDATA[//@cmember String AttrName( int i );
+//@param int | i | Index of the attribute to retrieve the name of
+//@return String | Returns the attribute name indexed by 'i'
+//@i returns "" if out of range
+]]>
+ />
+</method>
+<method name="AttrVal">
+<param name="i" type="int" />
+<![CDATA[//@cmember String AttrVal( int i );
+//@param int | i | Index of the attribute to retrieve the value of
+//@return String | Returns the attribute value indexed by 'i'
+//@i 
+]]>
+ />
+</method>
+<method name="GetAttr">
+<param name="name" type="String" />
+<![CDATA[//@cmember String GetAttr( String name );
+//@param String | name | Name of the attribute to get the value of
+//@return String | returns the value of the attribute named 'name'
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Tag &amp; Contents">
+<method name="Content">
+<![CDATA[//@cmember String Content(  );
+//@return String | 
+//@i text content
+]]>
+ />
+</method>
+<method name="SetContent">
+<param name="tag" type="String" />
+<![CDATA[//@cmember void SetContent( String tag );
+//@param String | tag | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetTag">
+<param name="tag" type="String" />
+<![CDATA[//@cmember void SetTag( String tag );
+//@param String | tag | Tag string to assign to this XML
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Tag">
+<![CDATA[//@cmember String Tag(  );
+//@return String | Tag string assigned to this XML
+//@i ie "class", "CDATA", ""
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddCDATAElement" cls="void" />
+<rmeth name="AddElement" cls="void" />
+<rmeth name="AddTextElement" cls="void" />
+<rmeth name="Count" cls="int" />
+<rmeth name="CreateElement" cls="XML" />
+<rmeth name="Element" cls="XML" />
+<rmeth name="FindElement" cls="XML" />
+<rmeth name="GetElement" cls="XML" />
+<rmeth name="RemoveElement" cls="void" />
+<rmeth name="clone" cls="XML" />
+<rmeth name="DebugOut" cls="void" />
+<rmeth name="Reset" cls="void" />
+<rmeth name="AddAttr" cls="void" />
+<rmeth name="AttrCount" cls="int" />
+<rmeth name="AttrName" cls="String" />
+<rmeth name="AttrVal" cls="String" />
+<rmeth name="GetAttr" cls="String" />
+<rmeth name="Content" cls="String" />
+<rmeth name="SetContent" cls="void" />
+<rmeth name="SetTag" cls="void" />
+<rmeth name="Tag" cls="String" />
+</return>
+</class>

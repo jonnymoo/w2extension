@@ -1,0 +1,606 @@
+<class name="SQLutils" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:37$" frevision="$Revision: 2$">
+<members />
+<static>
+<String name="sqlname" />
+<String name="sqlSeq" />
+<String name="sqlHasDch" />
+<Integer name="isDCH" />
+<Integer name="hasSeq" />
+<method name="ValidateIdentifiers" return="String">
+<param name="SQL" type="String" />
+<param name="DBType" type="int" />
+<param name="Table" type="String" />
+<param name="Members" type="String" />
+<param name="Sequence" type="String" />
+<param name="HasKeyField" type="int" />
+<![CDATA[//@cmember ValidateIdentifiers
+//@param String | SQL | Current SQL
+//@param int | DBType | 1 for Oracle - 0 for SQL Server
+//@param String | Table | Table Name
+//@param String | Members | Comma separated list of members (column identifiers)
+//@param String | Sequence | sequence name
+//@param int | HasKeyField | Indicates if we have a key field and hence if we'll have a primary key
+//@return String | Error or original sql
+//@version jonathan.wright | 14-04-16 12:57 |
+//@i
+
+// Only need to do this for Oracle
+if (!DBType || SQL.beginsWith("Warning")) return SQL;
+
+// Set warning
+String Warn = "";
+
+// Check
+if (Table.Length() > 30) Warn += "Table Name " + Table + " is too large for Oracle - max 30 Characters\r\n";
+if (Sequence.Length() > 30) Warn += "Sequence Name " + Sequence + " is too large for Oracle - max 30 Characters\r\n";
+
+// Check members
+for (int i = 0; ; i++)
+{
+    // Get member/column id
+    String Col = Members.GetToken(i);
+
+    // Finished?
+    if (Col.Eq("")) break;
+
+    // Check
+    if (Col.Length() > 30) Warn += "Column Name " + Col + " is too large for Oracle - max 30 Characters\r\n";
+}
+
+// Check indexes
+if (HasKeyField)
+{
+    // Check key field
+    String Index = Table + "_PK";
+
+    // Check
+    if (Index.Length() > 30) Warn += "Index Name " + Index + " is too large for Oracle - max 30 Characters\r\n";
+}
+
+// Check triggers
+if (sqlHasDch != "")
+{
+    // Modification trigger
+    String TrigMod = Table + "TrigMod";
+
+    // Check
+    if (TrigMod.Length() > 30) Warn += "Trigger Names for modification and delete are too large for Oracle - max 30 Characters\r\n";
+}
+
+// Check
+if (Warn != "") return "Warning: " + Warn + "\r\n";
+
+// Ok
+return SQL;]]>
+</method>
+<method name="getCreateTable" return="string">
+<param name="class" type="string" />
+<param name="dbt" type="int" />
+<param name="doDCH" type="int" />
+<param name="showMsg" type="int" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 06-11-01 15:28 |
+//@version Rob Davis | 15-05-02 14:20 |
+//@version Sorina.Grave | 01-06-05 12:27 |
+//@version Martin Burrow | 05-09-06 11:02 |
+//@version jonathan.wright | 14-04-16 12:33 |
+//@i
+
+int showM = (showMsg==null || showMsg==1);
+
+string name = class;
+int p=name.lastindexof("\\");
+if (p>=0) name = name.subString( p+1 );
+p = name.lastIndexOf(".");
+if (p>=0) name = name.left( p );
+
+sqlname = ""; /*sqlseq = "";*/ isDCH = doDCH; hasSeq = 0;
+string DCH = isDCH ? "DCH" : "";
+string keyFieldName = "";
+int seqFound = 0;
+
+XML X;
+
+if (!loadClassDefs( X, class )) {
+    if (showM) message("Failed to load classdef for " + class);
+    return "";
+}
+
+// Should this have a DCH?
+
+if (isDCH && !sqlHasDch) return "";
+
+if (X.count()==0) {
+    if (showM) message("No members found in class: " + class);
+    return "";
+}
+
+if (!sqlName) return "Error: Missing SQLName";
+
+// Get table name
+
+string tab = sqlname, SQL, SQL_Seq;
+int mtypFound = 0;
+
+// Get table columns (members)
+
+// Store list of values
+String Members = "";
+
+for (int i=0; i<X.count(); i++) {
+
+    XML m = &X[i];
+    if (m.tag().eq("method")) continue; // ignore Methods
+
+    if (m.GetAttr("key")=="Y") keyFieldName += ((keyFieldName!="") ? ", " : "") + m.GetAttr("name");
+
+    string sqlt = m.GetAttr("sql");
+    if (sqlt=="~") continue;
+    if (m.tag().eq("list")) continue;
+    if (!sqlt) sqlt = m.GetAttr("name");
+
+    if (sqlt.eq("modtype")) mtypFound = 1;
+
+    if (SQL) SQL += ",\r\n";
+
+    string pad = " ";
+    for (int j=20; j>sqlt.length(); j--) {
+        pad += " ";
+    }
+    SQL += "  " + sqlt + pad + getMemberSQL( m, dbt ) ;
+
+    // Add member sql
+    Members.AddToken(sqlt);
+
+    if (m.GetAttr("seq")) seqFound = 1;
+}
+
+if (!showM && isDCH && !mTypFound) return "";
+
+if (seqFound && dbt==1 & !isDCH) {
+    SQL_Seq = addDelims("CREATE SEQUENCE " + sqlseq + " start with 100 nocache;\r\n");
+
+}
+
+SQL = SQL_Seq + addDelims("CREATE TABLE " + (dbt ? "" : "dbo.") + tab + DCH + "\r\n" +
+      "(\r\n" +
+      SQL + "\r\n" +
+      ")" +
+      (dbt==0 ? "\r\nGO\r\n" : ";\r\n") );
+
+
+//if (dbt==1) {
+    //SQL = SQL + "TABLESPACE cmdata STORAGE(initial 50K next 50K pctincrease 3);\r\n";
+//}
+
+if (dbt==1 && keyFieldName!="") {
+    SQL += addDelims("CREATE" + (isDCH ? " " : " UNIQUE ") + "INDEX " + tab + DCH + "_PK ON " +
+                tab + DCH + "(" + keyFieldName + ");\r\n");
+                //"TABLESPACE cmindex STORAGE (initial 50K next 50K pctincrease 3);\r\n";
+}
+
+if (dbt==0 && keyFieldName!="") {
+    SQL += addDelims("CREATE" + (isDCH ? " " : " UNIQUE ") + "CLUSTERED INDEX " + tab + DCH + "_PK ON dbo." +
+                tab + DCH + "(" + keyFieldName + ")" +
+                "\r\nGO\r\n");
+}
+
+if (dbt==0 && sqlHasDCH && !isDCH) {
+    SQL += addDelims("ALTER TABLE dbo." + tab + " ADD CONSTRAINT DF_" + tab +
+                "_ModDate default (getDate()) for modDate" +
+                "\r\nGO\r\n");
+
+    SQL += addDelims("ALTER TABLE dbo." + tab + " ADD CONSTRAINT DF_" + tab +
+                "_ModType default ('I') for modType" +
+                "\r\nGO\r\n");
+}
+
+// Validate
+SQL = ValidateIdentifiers(SQL, dbt, tab + DCH, Members, sqlseq, sqlHasDch, (KeyFieldName != ""));
+
+if (showM) {
+    sys::CopyToClipboard( SQL );
+    message(SQL, "Trigger SQL Copied to Clipboard");
+}
+
+return sql;]]>
+</method>
+<method name="loadClassDefs" return="int">
+<param name="X" type="XML" />
+<param name="class" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 02-08-02 16:02 |
+//@i
+
+XML cx1 = &classes::des::globalxml::LoadXML( class );
+
+if (cx1.tag() == "error") {
+    //message("Couldn't load XML " + class);
+    return 0;
+}
+
+XML cx = null;
+
+cx = &cx1.FindElement( "class" );
+if (cx==null)
+{
+    cx = &cx1.FindElement( "form" );
+    if (cx==null)
+     {
+        //message("Couldn't find 'class' section of XML");
+        return 0;
+    }
+}
+
+if (!sqlname) {
+    sqlname = cx.GetAttr("sqlname");
+    sqlseq = cx.GetAttr("sqlseq");
+    sqlHasDch = cx.GetAttr("sqlhasdch");
+}
+
+string base = cx.GetAttr("base");
+if (base)
+    if (!loadClassDefs( X, sys::MakeFullName( class, base )+".xml")) return 0;
+
+cx = &cx.FindElement( "members" );
+if (cx==null) return 1;
+
+for (int i=0; i<cx.Count(); i++)
+    X.AddElement( cx[i] );
+
+return 1;]]>
+</method>
+<method name="getMemberSQL" return="string">
+<param name="Mdef" type="XML" />
+<param name="dbt" type="int" />
+<![CDATA[//@version Rob Davis | 15-05-02 10:19 |
+//@version richard.lee | 08-07-14 12:33 |
+
+int siz = Mdef.GetAttr("size").val();
+int adp = Mdef.GetAttr("adp").val();
+
+String sqlt;
+
+if (dbt==1){    // Oracle
+    switch (Mdef.tag().lower()) {
+      case "integer": sqlt = "number(" + (siz ? siz : "10") + ")"; break;
+      case "string":
+        if (siz==1)   sqlt = "char(1)"; else
+        if (siz>1)    sqlt = "varchar2("+siz+")"; else
+                      sqlt = "varchar2(<<ERROR>>)";
+        break;
+      case "date":    sqlt = "date"; break;
+      case "double":
+        if (adp)      sqlt = "number("+siz+","+adp+")";
+        else          sqlt = "float";
+        break;
+      default: return "<<ERROR: " + Mdef.tag() + ">>";
+    }
+}
+else{           // MS SQL Server
+    switch (Mdef.tag().lower()) {
+      case "integer": sqlt = "integer"; break;
+      case "string":
+        if (siz==1)   sqlt = "char(1)"; else
+        if (siz>1)    sqlt = "varchar("+siz+")"; else
+                      sqlt = "varchar2(<<ERROR>>)";
+        break;
+      case "date":    sqlt = "datetime"; break;
+      case "double":
+        if (adp)      sqlt = "numeric("+siz+","+adp+")";
+        else          sqlt = "float";
+        break;
+      default: return "<<ERROR: " + Mdef.tag() + ">>";
+    }
+}
+
+if (Mdef.GetAttr("seq") && dbt==0) {
+    if (!isDCH)
+    {
+        sqlt += " IDENTITY(100,1)";
+    }
+
+    hasSeq = 1;
+}
+
+if (dbt==1 && !isDCH && Mdef.GetAttr("name").eq("modType"))
+    sqlt += " DEFAULT ('I')";
+
+if (dbt==1 && !isDCH && Mdef.GetAttr("name").eq("modDate"))
+    sqlt += " DEFAULT SYSDATE";
+
+if (Mdef.GetAttr("null").eq("N"))
+    sqlt += " NOT NULL";
+
+return sqlt;]]>
+</method>
+<method name="getCreateTriggers" return="string">
+<param name="class" type="string" />
+<param name="dbt" type="int" />
+<param name="showMsg" type="int" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 30-11-01 09:47 |
+//@version Rob Davis | 15-05-02 14:37 |
+//@version Martin Burrow | 21-04-08 16:11 |
+//@version richard.lee | 08-07-14 12:30 |
+//@i
+
+int showM = (showMsg==null || showMsg==1);
+
+string name = class;
+int p=name.lastindexof("\\");
+if (p>=0) name = name.subString( p+1 );
+p = name.lastIndexOf(".");
+if (p>=0) name = name.left( p );
+
+string lname = sys::MakeRelativeName( path(), class );
+lname.removetoken("xml", ".");
+object cls = &sys::LoadClass( lname );
+if (cls==null) {
+    if (showM) message("Failed to load classdef for " + lname);
+    return "Failed to load classdef for " + lname;
+}
+object obj = &cls.CreateInstance();
+if (obj==null) return "Failed to instance " + lname;
+if (obj.MemberCount()==0) return;
+
+// Get table name
+
+string tab = obj.GetAttr("sqlname"), SQL;
+
+// Get table columns (members)
+
+string SQLs = "    ", SQLsNew = "    ";
+int cnt;
+string iName = obj.MemberDef(0).Name();
+
+for (int i=0; i<obj.MemberCount(); i++) {
+
+    memberdef m = &obj.MemberDef(i);
+    string sqlt = m.SQLName();
+
+    if (sqlt=="~") continue;
+    if (m.IsObject() || m.islist()) continue;
+
+    if (sqlt) {
+        if (cnt>0) { SQLs += ", "; SQLsNew += ", "; }
+        cnt++;
+        if (cnt>8) { cnt=1; SQLs += "\r\n    "; SQLsNew += "\r\n    "; }
+        SQLs += sqlt;
+        SQLsNew += ":new." + sqlt;
+    }
+}
+
+if (dbt==0) {
+
+     // construct Insertion / Modification trigger
+
+    if (hasSeq)
+    {
+        // table has a identity column so need to check in trigger creation whether
+        // dch table is old (has identity) or new style (no identity) when creating trigger
+        SQL +=  "if EXISTS(select name \r\n"+
+                " from sys.identity_columns \r\n"+
+                "where OBJECT_NAME(object_id) = '"+tab+"DCH') \r\n";
+
+        // create identity trigger code
+        SQL += "EXEC('CREATE TRIGGER " + tab + "TrigMod ON dbo." + tab + " FOR INSERT, UPDATE AS\r\n";
+
+        SQL += "  SET IDENTITY_INSERT dbo." + tab + "DCH ON\r\n";
+
+        SQL += "  INSERT INTO dbo." + tab + "DCH\r\n" +
+               "  (\r\n" +
+               SQLs + "\r\n" +
+               "  )\r\n" +
+               "  SELECT\r\n" +
+               SQLs + "\r\n" +
+               "  FROM inserted\r\n')\r\n";
+
+        SQL += "ELSE \r\n";
+
+        SQL += "EXEC('";
+    }
+
+      // create no identity trigger code
+        SQL += "CREATE TRIGGER " + tab + "TrigMod ON dbo." + tab + " FOR INSERT, UPDATE AS\r\n";
+
+        SQL += "  INSERT INTO dbo." + tab + "DCH\r\n" +
+               "  (\r\n" +
+               SQLs + "\r\n" +
+               "  )\r\n" +
+               "  SELECT\r\n" +
+               SQLs + "\r\n" +
+               "  FROM inserted\r\n";
+
+    if (hasSeq)
+    {
+        // close off exec
+        SQL += "')\r\n";
+    }
+
+    SQL += "GO\r\n";
+
+    SQL = addDelims(SQL);
+
+
+    // construct Deletion trigger
+
+    String SQL2 = "CREATE TRIGGER " + tab + "TrigDel ON dbo." + tab + " FOR DELETE AS\r\n";
+
+    SQL2 += "  IF EXISTS( SELECT modType FROM deleted WHERE modType<>'D' )\r\n" +
+           "  BEGIN\r\n" +
+           "    raiserror ( 'Record can not be deleted in this way!', 16, 1)\r\n" +
+           "    rollback transaction\r\n"
+           "    return\r\n" +
+           "  END\r\n" +
+           "GO\r\n";
+
+
+    SQL += addDelims(SQL2);
+
+} else {
+
+    // construct Insertion / Modification trigger
+
+    SQL += addDelims("CREATE OR REPLACE TRIGGER " + tab + "TrigMod\r\n" +
+           "BEFORE insert OR update ON " + tab + " FOR EACH ROW\r\n" +
+           "BEGIN\r\n"
+           "  INSERT INTO " + tab + "DCH\r\n" +
+           "  (\r\n" +
+           SQLs + "\r\n" +
+           "  )\r\n" +
+           "  VALUES\r\n" +
+           "  (\r\n" +
+           SQLsNew + "\r\n" +
+           "  );\r\n" +
+           "END;\r\n/\r\n");
+
+    // construct Deletion trigger
+
+    SQL += addDelims("CREATE OR REPLACE TRIGGER " + tab + "TrigDel\r\n" +
+           "BEFORE delete ON " + tab + " FOR EACH ROW\r\n" +
+           "BEGIN\r\n" +
+           "  IF :old.modType != 'D' THEN\r\n" +
+           "    raise_application_error( -20001, 'Record can not be deleted in this way!');\r\n" +
+           "  END IF;\r\n" +
+           "END;\r\n/\r\n");
+
+}
+
+if (showM) {
+    sys::CopyToClipboard( SQL );
+    message(SQL, "Trigger SQL Copied to Clipboard");
+}
+
+return sql;]]>
+</method>
+<method name="getDropTriggers" return="string">
+<param name="class" type="string" />
+<param name="dbt" type="int" />
+<param name="showMsg" type="int" />
+<![CDATA[//@cmember
+//@param string | class |
+//@param int | dbt |
+//@param int | showMsg |
+//@return string |
+//@version Andrew Griffin | 30-11-01 09:33 |
+//@version Rob Davis | 15-05-02 10:20 |
+//@version Martin Burrow | 05-09-06 10:56 |
+//@i
+
+int showM = (showMsg==null || showMsg==1);
+
+string name = class;
+int p=name.lastindexof("\\");
+if (p>=0) name = name.subString( p+1 );
+p = name.lastIndexOf(".");
+if (p>=0) name = name.left( p );
+
+string lname = sys::MakeRelativeName( path(), class );
+lname.removetoken("xml", ".");
+object cls = &sys::LoadClass( lname );
+if (cls==null) {
+    if (showM || 1) message("Failed to load classdef for " + lname);
+    return;
+}
+object obj = &cls.CreateInstance();
+if (obj==null) return;
+if (obj.MemberCount()==0) return;
+
+// Get table name
+string tab = obj.GetAttr("sqlname"), SQL;
+
+// Get table columns (members)
+
+if (dbt==0) {
+
+    // construct Trigger Removal SQL
+
+    SQL  = addDelims("IF EXISTS (SELECT name FROM sysobjects\r\n" +
+           "WHERE name = '" + tab + "TrigMod' AND type = 'TR')\r\n" +
+           "  DROP TRIGGER " + tab + "TrigMod\r\n" +
+           "GO\r\n");
+
+    SQL += addDelims("IF EXISTS (SELECT name FROM sysobjects\r\n" +
+           "WHERE name = '" + tab + "TrigDel' AND type = 'TR')\r\n" +
+           "  DROP TRIGGER " + tab + "TrigDel\r\n" +
+           "GO\r\n");
+
+}
+
+if (showM) {
+    sys::CopyToClipboard( SQL );
+    message(SQL, "SQL Copied to Clipboard");
+}
+
+return sql;]]>
+</method>
+<method name="getListOfMemberTabs" return="string">
+<param name="class" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+string name = class;
+int p=name.lastindexof("\\");
+if (p>=0) name = name.subString( p+1 );
+p = name.lastIndexOf(".");
+if (p>=0) name = name.left( p );
+
+XML X;
+
+if (!loadClassDefs( X, class )) {
+    return "";
+}
+
+if (X.count()==0) {
+    return "";
+}
+
+// Get table name
+
+string lst;
+
+// Get table columns (members)
+
+for (int i=0; i<X.count(); i++) {
+
+    XML m = &X[i];
+    string sqlt = m.GetAttr("ldbtab");
+    if (sqlt) lst.addtoken( sqlt );
+
+}
+
+return lst;]]>
+</method>
+<method name="addDelims">
+<param name="SQL" type="String" />
+<![CDATA[//@cmember addDelims
+//@param String | SQL |
+//@version Martin Burrow | 05-09-06 10:59 |
+//@i
+
+if (!SQL.endsWith("\r\n"))
+    SQL += "\r\n";
+
+return "--<Begin Statement>\r\n" + SQL + "--<End Statement>\r\n\r\n";]]>
+</method>
+</static>
+<return>
+<rmeth name="ValidateIdentifiers" cls="String" />
+<rmeth name="getCreateTable" cls="string" />
+<rmeth name="loadClassDefs" cls="int" />
+<rmeth name="getMemberSQL" cls="string" />
+<rmeth name="getCreateTriggers" cls="string" />
+<rmeth name="getDropTriggers" cls="string" />
+<rmeth name="getListOfMemberTabs" cls="string" />
+</return>
+</class>

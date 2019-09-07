@@ -1,0 +1,21 @@
+<class name="XMLAttr"
+HierImage="hattr.bmp"
+>
+
+<members>
+
+<String  name="Attr" />
+<String  name="Value" />
+
+<method name="toString"><![CDATA[
+return Attr + "=" + Value;
+]]></method>
+
+</members>
+
+<disp>
+<e f="Attr"  sfx=" = " />
+<e f="Value" />
+</disp>
+
+</class>

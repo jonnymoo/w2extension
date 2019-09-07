@@ -1,0 +1,122 @@
+<class name="ImageObj" description="W2 Script Reference">
+<static sub="Information">
+<method name="GetHeight">
+<![CDATA[//@cmember int GetHeight(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetScaleDenom">
+<![CDATA[//@cmember int GetScaleDenom(  );
+//@return int | Scale denominator
+//@i 
+]]>
+ />
+</method>
+<method name="GetScaleNum">
+<![CDATA[//@cmember int GetScaleNum(  );
+//@return int | Scale numerator
+//@i 
+]]>
+ />
+</method>
+<method name="GetResolution">
+<![CDATA[//@cmember int GetResolution(  );
+//@return int | Scale resolution
+//@i 
+]]>
+ />
+</method>
+<method name="GetXResolution">
+<![CDATA[//@cmember int GetXResolution(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetYResolution">
+<![CDATA[//@cmember int GetYResolution(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetWidth">
+<![CDATA[//@cmember int GetWidth(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="ToString">
+<![CDATA[//@cmember string ToString(  );
+//@return string | The type of object "Image!"
+//@i 
+]]>
+ />
+</method>
+</static>
+<members sub="Manipulation">
+<method name="Despeckle">
+<![CDATA[//@cmember int Despeckle(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="Scale">
+<param name="method" type="String" />
+<param name="xSize" type="int" />
+<param name="YSize" type="int" />
+<![CDATA[//@cmember int Scale( String method, int xSize, int Ysize );
+//@param String | method |(BILINEAR or CUBICSPLINE)  
+//@param int | xSize | Desired Width  (100ths of an inch)
+//@param int | YSize | Desired Width  (100ths of an inch)
+//@return int | 1 - success, 0 - fail
+//@i Will convert the passed image to a thumbnail; you will not neccessarily get the desired width or height as this
+//@i will attempt to keep the image in proportion.
+]]>
+ />
+</method>
+
+<method name="SetScale">
+<param name="scaleNum" type="int" />
+<param name="scaleDenom" type="int" />
+<![CDATA[//@cmember int SetScale( int ScaleNum, int ScaleDenom );
+//@param int | ScaleNum | Scale numerator 
+//@param int | ScaleDenom | Scale denominator
+//@return int | 1 - success, 0 - fail 
+//@i Sets the map scale using the 2 attributes e.g. map scale 1:50,000
+]]>
+ />
+</method>
+
+<method name="SetTo">
+<param name="b" type="blob" />
+<![CDATA[//@cmember void SetTo( blob b );
+//@param blob | b | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+</static>
+<return>
+<rmeth name="Despeckle" cls="int" />
+<rmeth name="GetHeight" cls="int" />
+<rmeth name="GetScaleDenom" cls="int" />
+<rmeth name="GetScaleNum" cls="int" />
+<rmeth name="GetResolution" cls="int" />
+<rmeth name="GetXResolution" cls="int" />
+<rmeth name="GetYResolution" cls="int" />
+<rmeth name="GetWidth" cls="int" />
+<rmeth name="SetTo" cls="void" />
+<rmeth name="Scale" cls="int" />
+<rmeth name="SetScale" cls="int" />
+<rmeth name="ToString" cls="string" />
+</return>
+</class>

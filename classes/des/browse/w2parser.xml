@@ -1,0 +1,485 @@
+<form name="W2Parser" savepos="localParsePos" margin="0" sizeable="0" toolwindow="1" hidden="1" topmost="1" thinframe="1" nocaption="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:37$" frevision="$Revision: 2$">
+<members>
+<String name="script" />
+<String name="scriptOld" />
+<List name="vars" cls="avar" />
+<List name="vars2" cls="avar" />
+<Integer name="p" />
+<Integer name="max" />
+<Integer name="mod" />
+<Object name="CI" cls="Criticalitem" />
+<Object name="CS" cls="CriticalSection" />
+<Object name="CSmod" cls="CriticalSection" />
+<Integer name="wait" />
+<method name="setScript">
+<param name="scriptTxt" type="string" />
+<![CDATA[//@cmember setScript
+//@param string | scriptTxt |
+//@version Andrew Griffin | 11-02-02 11:27 |
+//@i
+
+//message("Obsolete...");
+//script = scriptTxt+";";]]>
+</method>
+<method name="getLocals">
+<param name="scriptTxt" type="string" />
+<param name="par" type="form" />
+<![CDATA[//@cmember getLocals
+//@param string | scriptTxt |
+//@param form | par |
+//@version Andrew Griffin | 28-11-01 10:12 |
+//@version Andrew | 26-01-02 17:22 |
+//@version Andrew Griffin | 19-02-02 09:21 |
+//@version Jonathan.Muir | 26-11-07 13:10 |
+//@i
+
+//sys::debugOut( "        + w2parser::getLocals" );
+
+criticallock lock = &CI.TryEnter();
+if (lock==null) return 0;
+
+criticallock lockmod = &CSmod.Enter();
+if (!mod) {
+    lockmod.unlock();
+    Lock.unlock();
+    //close();//**new
+    return 1;
+}
+
+//string script;
+
+if (sys::Version() < 2108 || !testMode) script = scriptTxt+";";
+else
+{
+    //sys::debugOut( "         1 w2parser::getLocals" );
+    //sys::debugOut( ">" + scriptTxt );
+    //sys::wait(0);
+    script = scriptTxt.padSource();  // ***** Remove comments & strings!!! *****
+    //sys::wait(0);
+    //sys::debugOut( ">" + script );
+    //sys::debugOut( "         2 w2parser::getLocals" );
+    /*file f;
+    f.Create( "c:\\w2\\classes\\des\\tmp.txt" );
+    f.Write( script );
+    f.close();*/
+}
+
+mod = 0;
+lockmod.unlock();
+open( par );
+//par.SetFocus();
+setpos( par.XPos()+par.XSize()-70, par.YPos()-19 );
+setsize( 68,16 );
+
+if (sys::Version() < 2108 || !testMode) wait = 4000; else wait = 1000;
+//if (sys::Version() < 2108 || !testMode) show(1);
+
+p = 0;
+max = script.length();
+vars2.reset();
+
+//sys::debugOut( "         + w2parser::getLocScope" );
+if (sys::Version() < 2108 || !testMode)
+    getLocScope2107( 0, null );
+else
+    getLocScope( 0, null );
+//sys::debugOut( "         - w2parser::getLocScope" );
+
+for (int v=vars2.Count()-1; v>=0; v--) {
+    if (!vars2[v].outp) vars2[v].outp = max+2000;    // record out of scope
+}
+
+//file f;
+//f.Create( "c:\\w2\\classes\\des\\tmp.txt" );
+//f.WriteXML( "vars", vars2 );
+//f.Write( script );
+//f.close();
+
+criticallock lock2 = &CS.Enter();
+vars.reset();
+vars2.MoveAllTo( vars );    // Swap over local variable lists...
+lock2.unlock();
+
+Lock.unlock();
+
+close();
+
+//sys::debugOut( "        - w2parser::getLocals" );
+
+return 1;]]>
+</method>
+<method name="getLocScope">
+<param name="scop" type="int" />
+<param name="fonly" type="int" />
+<![CDATA[//@cmember getLocScope
+//@param int | scop |
+//@param int | fonly |
+//@version Andrew Griffin | 28-11-01 10:12 |
+//@version Andrew | 25-01-02 11:03 |
+//@version Andrew Griffin | 13-02-02 11:59 |
+//@i
+
+// type def begins after { } ( ) ; :
+//   terminated by a space or carrage return
+// var name then begins with an alpha char
+//   terminated by a non alphanumeric char
+//   if next char is a , then resume with same type def, else not...
+
+int mode, typP;
+string typ, sRng;
+
+while (p<max) {
+    wait--;
+    if (wait<0 || wait==101) {
+        idBar.setw( (p*64)/max );
+        FitRecursive();
+        sys::wait(0);
+        if (wait == 101) show(1);
+        wait=100;
+    }
+
+    if (!mode)          sRng = "!~";                // var Type
+    else if (mode==1)   sRng = "!~";                // var Name
+    else if (mode==2)   sRng = "(){{}}:;,,";          // after var Name...
+    else                sRng = "(){{}};;";          // skip type
+
+    p = script.findCharInRange( sRng, p );   // beginning of typedef...
+    if (p==-1) return 0;
+    int c = script.charAt(p);
+
+    switch (c) {
+
+    case ';', ':' :
+        mode = 0;
+        break;
+
+    case ',' :
+        if (mode == 2) mode = 1; else mode = 3;
+        break;
+
+    case '(' :
+        p++;
+        int ret2 = getLocScope( scop, 1 );
+        if (ret2!=')') return ret2;   // bracket mismatch...
+        if (mode==1) mode = 3;
+        break;
+
+    case '{' :
+        p++;
+        int varl = vars2.Count();
+        int ret = getLocScope( scop+1, null );
+        if (ret!='}') return ret;   // bracket mismatch...
+        for (int v=vars2.Count()-1; v>=varl; v--)
+            if (!vars2[v].outp) vars2[v].outp = p;    // record out of scope
+        mode = 0;
+        break;
+
+    case ')', '}' :
+        return c;
+
+    default :
+        if ( c<'A' || c>'Z' && c<'_' || c>'_' && c<'a' || c>'z') {
+            if (mode == 0) mode = 3;
+            else if (mode == 1) mode = 2;
+            break;
+        }
+
+        int i = script.findCharNotInRange( "azAZ09::__[[]]", p+1 );
+        if (i==-1) i = max;
+        string token = script.substring( p, i );
+
+        if (::advSearch::checkKeyword( token )) { p = i-1; mode = 3; break; }
+
+        if (!mode)
+        {
+            if (i<max) {
+                c = script.charAt(i);
+                if (c!=' ' && c!='\r') { p = i-1; mode = 3; break; }
+            }
+            typP = p;
+            typ = token;
+            mode = 1;
+            p = i-1;
+            break;
+        }
+
+        avar nv;
+        nv.type = typ;
+        if (token.endswith( "[]" )) {
+            token=token.left(token.length()-2);
+            nv.isList = 1;
+        }
+        nv.name = token;
+        nv.scope = scop;
+        nv.defp = p;
+        nv.typp = typP;
+        vars2.AddRow( nv );
+        p = i-1;
+
+        mode = 2;   // await a comma... etc...
+        break;
+
+    }
+
+    p++;
+}
+
+return 0;]]>
+</method>
+<method name="getLocScope2107">
+<param name="scop" type="int" />
+<param name="fonly" type="int" />
+<![CDATA[//@cmember getLocScope2107
+//@param int | scop |
+//@param int | fonly |
+//@version Andrew Griffin | 28-11-01 10:12 |
+//@version Andrew | 25-01-02 11:03 |
+//@version Andrew Griffin | 13-02-02 12:19 |
+//@i
+
+//message("into scope: " + p);
+
+int scope = scop;
+string token;
+string typ;
+int valid = 1, tokp, typp;
+
+while (p<max) {
+    wait--;
+    if (wait<0 || wait==401) {
+        idBar.setw( (p*64)/max );
+        FitRecursive();
+        sys::wait(0);
+        if (wait == 401) show(1);
+        wait=400;
+    }
+/*
+    if (wait<0) {
+        idBar.setw( (p*64)/max );
+        FitRecursive();
+        sys::wait(0);
+        wait=100;
+    }*/
+
+    int ch = script.charAt(p);
+
+    if (ch>='a' && ch<'z' || ch>='A' && ch<='Z' || ch==':') {
+        if (!token) tokp = p;
+        token+=ch.charstring();
+    } else
+    if (ch>='0' && ch<='9' || ch=='$' || ch=='[' || ch==']') {
+        if (token) token+=ch.charstring(); else
+        if (valid==2) valid=3; else
+        if (valid==1) valid=0;
+    } else
+
+    switch (ch) {
+      case ' ', '\n', '\r', ',', ';', '=':      // *** TOKEN END ***
+        if (token) {
+          if (valid==1) {
+            if ((ch==' ' || ch=='\n' || ch=='\r') &&
+                !::advSearch::checkKeyword( token ))
+            {   // first token after valid terminator can be a type...
+              valid = 2; typ = token; typp = tokp;
+            } else valid = 0;
+            token = ""; break;
+          } else
+          if (valid==2) {   // new local variable !!!!!!!!!!!!!!!!!!!
+            avar nv;
+
+            nv.type = typ;
+            if (token.endswith( "[]" )) {
+                //nv.type += "[]";
+                token=token.left(token.length()-2);
+                nv.isList = 1;
+            }
+            nv.name = token;
+            nv.scope = scope;
+            nv.defp = tokp;
+            nv.typp = typp;
+            if (!::advSearch::checkKeyword( token )) {
+                vars2.AddRow( nv );
+                valid = 3;
+                //message( "New var " + token.sql() + "\r\ntype " + typ.sql() + "\r\nScope " + scope );
+            } else valid = 0;
+          }
+          token="";
+        }
+        if (ch==' ') break;
+        if (ch==';') valid = 1; else
+        if (ch=='=' && valid==2) valid = 3; else
+        if (ch==',' && valid==3) valid = 2; // ready for next var name
+        break;
+
+      case '/':     // *** COMMENT ***
+        //message("into comment: " + p);
+        p++;
+        if (p<max) {
+          ch = script.charAt(p);
+          if (ch=='/') {
+            p = script.indexOf( "\n", p+1 );
+            if (p==-1) p=max;
+          } else
+          if (ch=='*') {
+            p = script.indexOf( "*/", p ) + 1;
+            if (p==0) p=max;
+          }
+
+        } else valid=0;
+        //message("out of comment: " + p);
+        break;
+
+      case '"', '\'':
+        p++;
+        int ni;
+        while (p<max) {
+          ni = script.charAt(p);
+          if (ni=='\\') p++;
+          else if (ni=='\n') break;
+          else if (ni==ch) break;
+          p++;
+        }
+        token="";
+        break;
+
+      case '{':     // *** SCOPE CHANGE ***
+        p++;
+        int varl = vars2.Count();
+        int ret = getLocScope2107( scope+1, null );
+        if (ret!='}') return ret;   // bracket mismatch...
+        for (int v=vars2.Count()-1; v>=varl; v--)
+            if (!vars2[v].outp) vars2[v].outp = p;    // record out of scope
+        valid = 1; token = ""; typ = "";
+        break;
+
+      case '(':     // *** SCOPE CHANGE ***
+        p++;
+        int ret2 = getLocScope2107( scope, 1 );
+        if (ret2!=')') return ret2;   // bracket mismatch...
+        token = "";
+        break;
+
+      case '}', ')':     // *** SCOPE EXIT ***
+        //message("out of scope: " + p);
+        return ch;
+
+      default:
+        token="";
+        if (valid==2) valid=3; else
+        if (valid==1) valid=0;
+    }
+
+    p++;
+}
+
+return 0;
+//message("out of scope at end: " + p);]]>
+</method>
+<method name="showVars">
+<![CDATA[//@cmember showVars
+//@param
+//@return
+//@version Andrew Griffin | 24-05-02 16:08 |
+//@i
+
+classes::core::wpopupmenu pp;
+for (int i=0; i<vars.Count(); i++)
+  pp.Add( vars[i].type + "\t" + vars[i].name );
+pp.track(1);]]>
+</method>
+<method name="getMod" return="int">
+<![CDATA[//@cmember getMod
+//@return int |
+//@version Andrew Griffin | 20-09-01 10:04 |
+//@version Jonathan.Muir | 23-03-06 12:39 |
+//@i
+
+criticallock lockmod = &CSmod.Enter();
+int i = mod;
+lockmod.unlock();
+return i;]]>
+</method>
+<method name="setMod" return="int">
+<![CDATA[//@cmember setMod
+//@return int |
+//@version Andrew Griffin | 20-09-01 10:04 |
+//@version Jonathan.Muir | 23-03-06 12:34 |
+//@i
+
+criticallock lockmod = &CSmod.Enter();
+mod = 1;
+lockmod.unlock();]]>
+</method>
+<method name="getVar" return="avar">
+<param name="name" type="string" />
+<param name="cpos" type="int" />
+<![CDATA[//@cmember getVar
+//@param string | name |
+//@param int | cpos |
+//@return avar |
+//@version Andrew Griffin | 20-09-01 10:51 |
+//@version Jonathan.Muir | 23-03-06 12:34 |
+//@i
+
+criticallock lock = &CS.Enter();
+avar v = null;
+
+for (int i=0; i<vars.Count(); i++) {
+    v = &vars[i];
+    if (cpos>=v.defp && cpos<=v.outp && v.name.eq( name )) {
+        avar v2 = v;    // make copy to return out of lock
+        lock.unlock();
+        return v2;
+    }
+}
+
+lock.unlock();
+return null;]]>
+</method>
+</members>
+<static>
+<Integer name="testMode" constval="1" />
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 29-10-01 11:21 |
+//@i
+
+/*
+
+w2parser w;
+
+xml x = &::globalXML::LoadXML( "c:\\w2\\classes\\des\\wfuncedit.xml" );
+
+x = &x[0];  // class
+x = &x[0];  // members
+x = &classes::core::xml::globalxml::findAttrib( "name", "doContext", x );  // method 'init'
+w.setScript( x[x.count()-1].Content() );
+
+if (message( x.GetAttr("name"), "OK?", classes::core::windows::MB_YESNO )==classes::core::windows::IDNO) return;
+
+w.getLocals();
+
+w.showVars();]]>
+</method>
+</static>
+<grid bk="212,208,200">
+<row>
+<col lpad="2" tpad="2" rpad="2" bpad="2" w="68" h="14">
+<grid>
+<row>
+<col w="1" h="10" bk="242,242,242">
+<Label name="idBar" tx="0,128,128" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="getMod" cls="int" />
+<rmeth name="setMod" cls="int" />
+<rmeth name="getVar" cls="avar" />
+</return>
+</form>

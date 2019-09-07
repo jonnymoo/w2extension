@@ -1,0 +1,242 @@
+<form name="wFlush" caption="W2 Class Flusher" savepos="classflushPos" margin="8" fauthor="$Author: Andrew.g $" fdate="$Date: 12/07/02 10:02 $" frevision="$Revision: 2 $">
+<members>
+<Integer name="listFrom" pick="pk_ListFrom" />
+<List name="classList" cls="classes::cpicks" />
+<method name="doChangeFrom">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember doChangeFrom
+//@param edit | ctrl |
+//@version Andrew Griffin | 11-07-02 14:03 |
+
+//
+// get classes...
+
+classList.SetRedraw( 0 );
+classList.reset();
+
+if (!listFrom)
+{
+    //
+    // client classes
+
+    stringArray sa = &sys::GetClassList();
+    for (int i=0; i<sa.Count(); i++)
+        classList.CreateRow().code = sa[i];
+}
+else
+{
+    //
+    // server classes
+
+    if (!srvFlush::listClasses( classList ))
+        message( "Failed to return class list from server" );
+}
+
+
+//
+// Change class list to readable form...
+
+string pth, sep = "¬¬¬";
+
+for (int i=0; i<classList.Count(); i++)
+{
+    classes::cpicks row = &classList[i];
+
+    int http = row.code.beginsWith( "http", 0, 1 );
+
+    int p = row.code.indexof( "classes", 0, 1 );
+    if (p>=0)
+    {
+        sep = row.code.charAt( p+7 ).charstring();
+        pth = row.code.left( p+7 );
+    } else
+        pth = "";
+
+    if (!pth ||
+        row.code.indexof( sep + "wFlush",   0,1 )!=-1 ||
+        row.code.indexof( sep + "runwrapped",   0,1 )!=-1 ||
+        row.code.indexof( sep + "srvFlush", 0,1 )!=-1 ||
+        row.code.indexof( sep + "cpick",    0,1 )!=-1 ||
+        row.code.indexof( sep + "global",   0,1 )!=-1 ||
+        row.code.indexof( sep + "SSession", 0,1 )!=-1 ||
+        row.code.indexof( sep + "srvmethod",0,1 )!=-1 ||
+        row.code.indexof( sep + "srvbase",  0,1 )!=-1)
+    {
+        row.RemoveFromList();
+        i--;
+        continue;
+    }
+
+    row.desc = sys::MakeRelativeName( pth, row.code );
+    row.PickType = row.desc.substring( row.desc.lastindexof( ":" )+1 );
+    if (listFrom && http) row.desc += "+";
+}
+
+classList.OrderList();
+
+classList.SetRedraw( 1 );
+FitRecursive();]]>
+</method>
+<method name="doFlush">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doFlush
+//@param label | ctrl |
+//@version Andrew Griffin | 11-07-02 13:51 |
+
+if (!listFrom)
+{
+    //
+    // flush client classes
+
+    for (int i=0; i<classList.Count(); i++)
+        if (classList[i].isselected())
+            sys::FlushClass( classList[i].code );
+}
+else
+{
+    //
+    // flush server classes
+
+    classes::cpicks nList[];
+    for (int i=0; i<classList.Count(); i++)
+        if (classList[i].isselected())
+            nList.CreateRow().code = classList[i].code;
+
+    if (!srvFlush::flushClasses( nList ))
+        message( "Failed to flush classes on server" );
+}
+
+classList.DeleteSelections();
+//doChangeFrom();]]>
+</method>
+<method name="Start">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Start
+//@param string | cmd |
+//@version Andrew Griffin | 11-07-02 13:47 |
+//@i
+
+listFrom = 0;
+Open();
+classList.OrderBy( "picktype" );
+doChangeFrom();]]>
+</method>
+<method name="doOrderBy">
+<param name="ctrl" type="ListBox" />
+<param name="ColNo" type="int" />
+<![CDATA[//@cmember doOrderBy
+//@param ListBox | ctrl |
+//@param int | ColNo |
+//@version Andrew Griffin | 11-07-02 12:02 |
+
+classList.ResetOrder();
+classList.OrderBy( ctrl.CurrentCellID().substring( 2 ) );
+classList.OrderList();]]>
+</method>
+<method name="doPopupMenu">
+<param name="ctrl" type="listbox" />
+<param name="ColNo" type="int" />
+<![CDATA[//@cmember doPopupMenu
+//@param listbox | ctrl |
+//@param int | ColNo |
+//@version Andrew Griffin | 12-07-02 09:59 |
+
+popupmenu p;
+p.Add( "Flush Selected Classes", "F" );
+
+if (p.Track(1)=="F")
+{
+    sys::Wait(0);
+    setTimer(100);
+}]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember onTimer
+//@version Andrew Griffin | 11-07-02 13:26 |
+//@i
+
+KillTimer();
+
+doFlush( idFlush );]]>
+</method>
+<method name="doRefresh">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doRefresh
+//@param label | ctrl |
+//@version Andrew Griffin | 11-07-02 13:58 |
+
+doChangeFrom();]]>
+</method>
+</members>
+<static>
+<List name="pk_ListFrom" cls="classes::cpickn">
+<item code="0" desc="Client Classes" PickType="" />
+<item code="1" desc="Server Classes" PickType="" />
+</List>
+<method name="Go">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Go
+//@param string | cmd |
+//@version Andrew Griffin | 11-07-02 13:36 |
+
+CreateInstance().start();]]>
+</method>
+</static>
+<grid>
+<row>
+<col bpad="8" align="W">
+<grid>
+<row>
+<col rpad="8" align="V">
+<Label text="List Classes From:" />
+</col>
+<col>
+<Edit bind="listFrom" combo="2" onchange="doChangeFrom" />
+</col>
+<col align="W" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label name="idFlush" text="Refresh" tx="255,255,255" txsel="FFFF00" style="b" onclick="doRefresh" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="128" align="WH">
+<ListBox name="idClassList" IsList="Y" list="classList" multi="1" onrightclick="doPopupMenu">
+<row>
+<col lpad="4" tpad="4" rpad="4" bpad="4" align="W" bk="231,241,241">
+<Label name="idpicktype" text="Name" tx="0,83,83" font="Tahoma" size="8" header="1" onclick="doOrderBy" />
+</col>
+<col lpad="4" tpad="4" rpad="4" bpad="4" align="W" bk="231,241,241">
+<Label name="idDesc" text="Path" tx="0,83,83" font="Tahoma" size="8" header="1" onclick="doOrderBy" />
+</col>
+</row>
+<row>
+<col lpad="4" rpad="4" bpad="1" align="W">
+<Label text="Classes..." bind="PickType" font="Tahoma" size="8" />
+</col>
+<col lpad="4" rpad="4" bpad="1" align="W">
+<Label text="Classes..." tx="64,32,16" bind="desc" font="Tahoma" size="7" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+<row>
+<col tpad="8" align="W">
+<grid>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label name="idFlush" text="Flush Selected" tx="255,255,255" txsel="FFFF00" style="b" onclick="doFlush" />
+</col>
+<col align="W" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Close" tx="255,255,255" txsel="FFFF00" style="b" onclick="close" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

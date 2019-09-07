@@ -1,0 +1,209 @@
+<form name="calc">
+<members>
+<Object name="FileXML" cls="XML" />
+<method name="start">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+startit();
+open();
+
+return;
+testgrid();
+open();
+return;
+
+Grid.SetAttr( "bk", "0, 192, 255" );
+for ( int i = 0; i < 5; i++ )
+{
+    Grid.AddRow();
+    Grid.AddColumn();
+    Object obj=Grid.GetCell( i,0);
+    
+    obj.SetControl( "label" );
+    obj.control.settext( "fred" );
+    obj.control.setattr( "style", "b" );
+    obj.control.setattr( "size", "20" );
+    obj.control.setattr( "font", "Arial" );
+    obj.control.Settxcolor( sys::rgb( 0, 0, 255 ) );
+    obj.settpad(10);
+    obj.control.setattr( "bk", "0, 192, 255" );
+    obj.setrpad( 25 );
+}
+open();
+
+]]>
+</method>
+<method name="TestGrid">
+<![CDATA[//@cmember      
+//@param
+//@return
+//@version
+//@i
+for ( int x = 0; x < 50; x++ )
+{
+//    Grid.AddColumn();
+    for ( int y = 0; y < 10; y++ )
+    {
+        Grid.AddRow();
+        Grid.AddColumn();
+        Object obj=Grid.GetCell( x,y );
+    
+        obj.SetControl( "label" );
+        obj.control.settext( ""+x+":"+y );
+        obj.settpad(10);
+        obj.setbpad(10);
+        obj.setlpad(10);
+        obj.setrpad(10);
+    }
+}]]>
+</method>
+<method name="loadgrid">
+<param name="GX" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+
+// Loop through the rows.
+for ( int n = 0; n < GX.Count(); n++ )
+{
+    Object RX = &GX.Element( n );
+    if ( RX.Tag() == "row" )
+    {
+        Grid.AddRow();
+
+        // Loop through the columns in the row.
+        for ( int nCol = 0; nCol < RX.Count(); nCol++ )
+        {
+            Grid.AddColumn();
+
+            Object obj=Grid.GetCell( n,nCol);
+
+            Object CX = &RX.Element(nCol);
+
+            // Loop through the attributes for each cell.
+//            for ( int a = 0; a < CX.count(); a++ )
+int a = 0;
+            {
+                Object CtrlX = &CX.Element(0);
+                String tag = CtrlX.Tag();
+
+                // If its a label.
+                if ( tag == "Label" )
+                {
+                    if ( CtrlX.AttrName(a)=="text" )
+                    {
+    
+                        obj.SetControl( "label" );
+                        obj.control.settext( ""+CtrlX.AttrVal(a) );
+                    }
+    
+                    // Loop through the attributes.
+                    for ( int nAttr = 0;; nAttr++ )
+                    {
+                        if ( CtrlX.AttrName(nAttr) != "" )
+                            HandleAttribute( obj, CtrlX.AttrName(nAttr), CtrlX.AttrVal(nAttr) );
+                        else
+                            break;
+                    }
+                }                
+            
+            }
+        }
+    }
+}
+
+
+
+
+
+/*for(int n=0;n<GX.Count();n++){
+    Object RX = &GX.Element(n);
+    if (RX.Tag()!="row") continue; // not a "<row>" tag
+    Grid.AddRow();
+    for(int cn=0;cn<RX.Count();cn++){
+        Object CX = &RX.Element(cn);
+        if (CX.Tag()!="col") continue; // not a "<col>"
+        Grid.AddColumn();
+        Object Cell = Grid.GetCell(cn, n );
+        for(int a=0;a<CX.AttrCount();a++){
+            Cell.SetAttr( CX.AttrName(a), CX.AttrVal(a) );
+            }
+        for(a=0;a<CX.Count();a++){  // elements
+            Object CtrlX = &CX.Element(0);
+            String tag = CtrlX.Tag();
+            // hack
+            if (tag=="EditM") tag = "Edit"; 
+            // ? ListBox
+            int isList;
+            if (tag=="ListBox"){
+                tag = "grid";
+                isList = 1;
+                }
+            // add the control
+            Object Ctrl = &Cell.AddObject( tag );
+            if (tag=="grid"){
+                if (isList) Ctrl.SetAttr("IsList","Y");
+                LoadGrid( Ctrl, CtrlX );
+                }
+            else
+                LoadControl( Ctrl, CtrlX );
+            }
+        }
+    }
+Grid.FixSpans();
+
+*/]]>
+</method>
+<method name="startit">
+<![CDATA[String fn = "C:\\test.xml";
+if (!fn) return;
+File F;
+if (!F.Open(fn,0)) return;
+Object B = F.ReadBlob();
+Object X = B.toXMLObject();  // XML
+FileXML = X;
+//Grid.Reset();
+
+Object GX = X.Element(0);
+//LoadGrid( idGridEdit, GX );
+//idGridEdit.SetPath(fn);
+LoadGrid(GX);
+//Grid.CalcSizes();
+
+setText(fn.toLower());
+]]>
+</method>
+<method name="HandleAttribute">
+<param name="Obj" />
+<param name="strName" />
+<param name="strVal" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+if ( strName == "style" )
+    obj.control.setattr( "style", strVal );
+
+else if ( strName == "size" )
+    obj.control.setattr( "size", strVal );
+
+else if ( strName == "font" )
+    obj.control.SetAttr( "font", strval );
+]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col />
+</row>
+</grid>
+</form>

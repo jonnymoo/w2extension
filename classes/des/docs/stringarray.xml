@@ -1,0 +1,42 @@
+<class name="StringArray" description="W2 Script Reference">
+<members>
+<method name="Add">
+<param name="" type="string" />
+<![CDATA[//@cmember void Add( string );
+//@param string |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Count">
+<![CDATA[//@cmember int Count(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Order">
+<param name="IgnoreCase]" type="[int" />
+<![CDATA[//@cmember void Order( [int IgnoreCase] );
+//@param [int | IgnoreCase] | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Reset">
+<![CDATA[//@cmember void Reset(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Add" cls="void" />
+<rmeth name="Count" cls="int" />
+<rmeth name="Order" cls="void" />
+<rmeth name="Reset" cls="void" />
+</return>
+</class>

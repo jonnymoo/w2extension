@@ -1,0 +1,9 @@
+<class name="methaudit" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:40 $" frevision="$Revision: 2 $">
+<members>
+<Date name="modDate" />
+<String name="modUser" />
+<String name="methodName" />
+<Integer name="colour" sql="~" />
+</members>
+<static />
+</class>

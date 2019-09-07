@@ -1,0 +1,445 @@
+<class name="HTTPConnection" description="W2 Script Reference" base="OutputStream">
+<members>
+<method name="GetHeader">
+<param name="name" type="String" />
+<![CDATA[//@cmember String GetHeader( String name );
+//@param String | name | 
+//@return String | 
+//@i returns value of HTTP header variable
+]]>
+ />
+</method>
+<method name="GetLastModified">
+<![CDATA[//@cmember string GetLastModified(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetPath">
+<![CDATA[//@cmember String GetPath(  );
+//@return String | The path of the connection 
+//@i returns the path of the Http Connection
+]]>
+ />
+</method>
+<method name="GetUseHTTPS">
+<![CDATA[//@cmember int GetUseHTTPS(  );
+//@return int | Use HTTPS
+//@i Returns if the connection should use HTTPS.
+]]>
+ />
+</method>
+<method name="GetPort">
+<![CDATA[//@cmember int GetPort(  );
+//@return int | Port No
+//@i Gets the manually supplied port number.
+]]>
+ />
+</method>
+<method name="GetPostBlob">
+<![CDATA[//@cmember Blob GetPostBlob(  );
+//@return Blob | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetResults">
+<![CDATA[//@cmember string GetResults(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetServer">
+<![CDATA[//@cmember String GetServer(  );
+//@return String | The server of the connection 
+//@i returns the server of the Http Connection
+]]>
+ />
+</method>
+<method name="OpenTestWin">
+<![CDATA[//@cmember void OpenTestWin(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Results Information">
+<method name="GetError">
+<![CDATA[//@cmember String GetError(  );
+//@return String | 
+//@i description of error
+]]>
+ />
+</method>
+<method name="GetHeaderLine">
+<param name="idx" type="int" />
+<![CDATA[//@cmember String GetHeaderLine( int idx );
+//@param int | idx | 
+//@return String | 
+//@i returns "" when done, or name and value ie: "Server: Microsoft-IIS/4.0"
+]]>
+ />
+</method>
+<method name="GetStatusCode">
+<![CDATA[//@cmember int GetStatusCode(  );
+//@return int | 
+//@i HTTP status code, ie 200 OK, 304 not modified
+]]>
+ />
+</method>
+</members>
+<members sub="Results of a Request">
+<method name="GetObjects">
+<![CDATA[//@cmember Object GetObjects(  );
+//@return Object | 
+//@i de-serialize to a ParamSet - the path used is the server request path
+]]>
+ />
+</method>
+<method name="GetResultsBlob">
+<![CDATA[//@cmember Blob GetResultsBlob(  );
+//@return Blob | 
+//@i all results in a Blob
+]]>
+ />
+</method>
+<method name="GetResultsString">
+<![CDATA[//@cmember String GetResultsString(  );
+//@return String | 
+//@i all results in a String
+]]>
+ />
+</method>
+<method name="GetXMLResults">
+<![CDATA[//@cmember XML GetXMLResults(  );
+//@return XML | 
+//@i get a parsed XMLObject
+]]>
+ />
+</method>
+</members>
+<members sub="Connection Details">
+<method name="UseHTTP">
+<![CDATA[//@cmember Void UseHTTP(  );
+//@return Void | 
+//@i http://
+]]>
+ />
+</method>
+<method name="UseHTTPS">
+<![CDATA[//@cmember Void UseHTTPS(  );
+//@return Void | 
+//@i https://
+]]>
+ />
+</method>
+<method name="UseSoap">
+<param name="enable" type="int" />
+<![CDATA[//@cmember Void UseSoap( int enable );
+//@param int | enable | 
+//@return Void | 
+//@i If using soap a custom header "Content-Type: text/xml; charset=utf-8" is sent with the data stream.
+]]>
+ />
+</method>
+</members>
+<members sub="Preparing a Request">
+<method name="AddCGIParam">
+<param name="name" type="String" />
+<param name="val" type="String" />
+<![CDATA[//@cmember Void AddCGIParam( String name, String val );
+//@param String | name | 
+//@param String | val | 
+//@return Void | 
+//@i ie: Conn.AddCGIParam( "Surname", "SMITH" )
+]]>
+ />
+</method>
+<method name="SetAgent">
+<param name="name" type="String" />
+<![CDATA[//@cmember Void SetAgent( String name );
+//@param String | name | 
+//@return Void | 
+//@i default agent name is "W2"
+]]>
+ />
+</method>
+<method name="SetContentType">
+<param name="contentType" type="String" />
+<![CDATA[//@cmember void SetContentType( string contentType );
+//@param String | contentType | i.e. text/XML
+//@return void | 
+//@i Sets the content type of the connection. The default value is "application/x-www-form-urlencoded\r\n"
+]]>
+ />
+</method>
+<method name="SetPath">
+<param name="name" type="String" />
+<![CDATA[//@cmember Void SetPath( String name );
+//@param String | name | 
+//@return Void | 
+//@i scripts/w2isapi.dll/folder::class?cmdline  Http	SetPostData	 String raw	Void	can be used to reset the data to be posted, ie: SetPostData( " );  Http	SetServer	 String name	Void	www.xyz.com"
+]]>
+ />
+</method>
+<method name="SetPort">
+<param name="Port" type="int" />
+<![CDATA[//@cmember void SetPort( int Port );
+//@param int | Port | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetPostData">
+<param name="" type="string" />
+<![CDATA[//@cmember void SetPostData( string );
+//@param string |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetServer">
+<param name="ServerName" type="string" />
+<![CDATA[//@cmember void SetServer( string ServerName );
+//@param string | ServerName | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetUserPassword">
+<param name="UserName" type="string" />
+<param name="Password" type="string" />
+<![CDATA[//@cmember void SetUserPassword( string UserName, string Password );
+//@param string | UserName | 
+//@param string | Password | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetAlternativeProxy">
+<param name="AlternativeProxy" type="String" />
+<![CDATA[//@cmember void SetAlternativeProxy( String AlternativeProxy );
+//@param String | AlternativeProxy | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetAlternativeUserName">
+<param name="AlternativeName" type="String" />
+<![CDATA[//@cmember void SetAlternativeUserName( String AlternativeName );
+//@param String | AlternativeName | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetAlternativePassword">
+<param name="AlternativePassword" type="String" />
+<![CDATA[//@cmember void SetAlternativePassword( String AlternativePassword );
+//@param String | AlternativePassword | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetAlternativeProxy">
+<![CDATA[//@cmember String GetAlternativeProxy(  );
+//@return String | 
+//@i the alternative proxy
+]]>
+ />
+</method>
+<method name="GetAlternativeUserName">
+<![CDATA[//@cmember String GetAlternativeUserName(  );
+//@return String | 
+//@i the alternative alternative UserName
+]]>
+ />
+</method>
+<method name="GetAlternativePassword">
+<![CDATA[//@cmember String GetAlternativePassword(  );
+//@return String | 
+//@i the alternative alternative Password
+]]>
+ />
+</method>
+</members>
+<members sub="Sending a Request">
+<method name="DoGet">
+<![CDATA[//@cmember int DoGet(  );
+//@return int | 
+//@i basic GET request, not cached
+]]>
+ />
+</method>
+<method name="DoPost">
+<![CDATA[//@cmember int DoPost(  );
+//@return int | 
+//@i basic POST request, not cached
+]]>
+ />
+</method>
+<method name="DoRequest">
+<param name="type" type="String" />
+<param name="post" type="int" />
+<param name="cache" type="int" />
+<param name="opt" type="String" />
+<![CDATA[//@cmember int DoRequest( String type, int post, int cache, String opt );
+//@param String | type | 
+//@param int | post | 
+//@param int | cache | 
+//@param String | opt | 
+//@return int | 
+//@i type "GET", "POST", "HEAD" etc
+]]>
+ />
+</method>
+<method name="SendXML">
+<param name="Name" type="string" />
+<param name="" type="object" />
+<![CDATA[//@cmember void SendXML( string Name, object );
+//@param string | Name | 
+//@param object |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Utility Function">
+<method name="GetFile">
+<param name="url" type="String" />
+<param name="cache" type="bool" />
+<param name="opt" type="String" />
+<![CDATA[//@cmember Blob GetFile( String url, bool cache, String opt );
+//@param String | url | 
+//@param bool | cache | 
+//@param String | opt | 
+//@return Blob | 
+//@i full url, "http://www.yahoo.com/index.htm" - does a GET request cache parameter is optional (default 0) opt = optional headers - must have terminating "\n"
+]]>
+ />
+</method>
+
+<method name="LocalPostClass">
+<param name="szPath" type="String" />
+<param name="szCurrentPath" type="String" />
+<![CDATA[//@cmember void LocalPostClass( String szPath, String opt );
+//@param String | szPath | Path of a server method
+//@param String | szCurrentPath | The current path on the server
+//@return void | 
+//@i If this is used then a HTTP connection will not be used on DoPost(). 
+// This is used by classes::core::global::GetHTTP if it detects it is already on  the server
+]]>
+ />
+</method>
+
+
+<method name="SetReceiveTimeOut">
+<param name="t" type="int" />
+<![CDATA[//@cmember void SetReceiveTimeOut( int t );
+//@param int | t | time in ms to set receive time out
+//@return void | 
+//@i Set HTTP Receive TimeOut in ms
+//@i Note: Data will have been sent to server so server may 
+//@i actually do the work even though a timeout is received.  This
+//@i could cause duplication of work.  
+//@i This timeout will not stop a server method from running.
+]]>
+ />
+</method>
+
+<method name="SetSendTimeOut">
+<param name="t" type="int" />
+<![CDATA[//@cmember void SetSendTimeOut( int t );
+//@param int | t | time in ms to set send time out
+//@return void | 
+//@i Set HTTP Send TimeOut in ms
+]]>
+ />
+</method>
+
+<method name="SetRetryCount">
+<param name="count" type="int" />
+<![CDATA[//@cmember void SetRetryCount( int count );
+//@param int | count | Number of times to retry
+//@return void | 
+//@i Set the number of times a request (post) will retry automatically if timed out
+//@i Note: If time out is because of a receive time 
+//@i the server method may eventually finish and a resend will duplicate the work
+
+]]>
+ />
+</method>
+
+<method name="SetHideRetryCount">
+<param name="count" type="int" />
+<![CDATA[//@cmember void SetHideRetryCount( int count );
+//@param int | count | Number of times to hide user prompt on a retry
+//@return void | 
+//@i A retry will prompt the user unless the retry number is less than this.
+//@i E.g. if retry count is 3 and 
+//@i hide retry is 2 then only the last retry will prompt the user.
+
+]]>
+ />
+</method>
+
+
+
+
+</members>
+<return>
+<rmeth name="GetError" cls="String" />
+<rmeth name="GetHeaderLine" cls="String" />
+<rmeth name="GetStatusCode" cls="int" />
+<rmeth name="GetObjects" cls="Object" />
+<rmeth name="GetPath" cls="String" />
+<rmeth name="GetUseHTTPS" cls="int" />
+<rmeth name="GetPort" cls="int" />
+<rmeth name="GetPostBlob" cls="Blob" />
+<rmeth name="GetResults" cls="String" />
+<rmeth name="GetResultsBlob" cls="Blob" />
+<rmeth name="GetResultsString" cls="String" />
+<rmeth name="GetServer" cls="String" />
+<rmeth name="GetXMLResults" cls="XML" />
+<rmeth name="AddCGIParam" cls="Void" />
+<rmeth name="SetAgent" cls="Void" />
+<rmeth name="SetContentType" cls="Void" />
+<rmeth name="SetPath" cls="Void" />
+<rmeth name="SetPort" cls="void" />
+<rmeth name="SetPostData" cls="void" />
+<rmeth name="SetServer" cls="void" />
+<rmeth name="SetUserPassword" cls="void" />
+<rmeth name="SetAlternativeProxy" cls="void" />
+<rmeth name="SetAlternativeUserName" cls="void" />
+<rmeth name="SetAlternativePassword" cls="void" />
+<rmeth name="GetAlternativeProxy" cls="String" />
+<rmeth name="GetAlternativeUserName" cls="String" />
+<rmeth name="GetAlternativePassword" cls="String" />
+<rmeth name="UseHTTP" cls="Void" />
+<rmeth name="UseHTTPS" cls="Void" />
+<rmeth name="UseSoap" cls="Void" />
+<rmeth name="DoGet" cls="int" />
+<rmeth name="DoPost" cls="int" />
+<rmeth name="DoRequest" cls="int" />
+<rmeth name="GetFile" cls="Blob" />
+<rmeth name="GetHeader" cls="String" />
+<rmeth name="GetLastModified" cls="String" />
+<rmeth name="OpenTestWin" cls="void" />
+<rmeth name="SendXML" cls="void" />
+<rmeth name="LocalPostClass" cls="void" />
+<rmeth name="SetReceiveTimeout" cls="void" />
+<rmeth name="SetSendTimeout" cls="void" />
+<rmeth name="SetRetryCount" cls="void" />
+<rmeth name="SetHideRetryCount" cls="void" />
+</return>
+</class>

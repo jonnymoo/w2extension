@@ -1,0 +1,228 @@
+<class name="Blob" description="W2 Script Reference" base="OutputStream">
+<members>
+<method name="?stream">
+<![CDATA[//@cmember int ?stream(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="append">
+<param name="a" type="string" />
+<param name="b]" type="[string" />
+<param name="c]" type="[string" />
+<param name="" type="[...]" />
+<![CDATA[//@cmember int append( string a, [string b], [string c], [...] );
+//@param string | a | first string to append to blob
+//@param [string | b] | second string to append to blob
+//@param [string | c] | third string to append to blob
+//@param [...] |  | 
+//@return int | 1 on successful appending of strings to blob
+//@i Append strings to a blob
+]]>
+ />
+</method>
+<method name="reset">
+<![CDATA[//@cmember void reset(  );
+//@return void | 
+//@i Resets a blob to empty
+]]>
+ />
+</method>
+<method name="setbuffer">
+<param name="Len" type="int" />
+<![CDATA[//@cmember void setbuffer( int Len );
+//@param int | Len | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Information">
+<method name="beginswith">
+<param name="str" type="String" />
+<![CDATA[//@cmember int beginswith( String str );
+//@param String | str | Compare start of blob with this string (case sensitive)
+//@return int | 1 if blob begins with 'str'
+//@i Case sensitive comparison
+]]>
+ />
+</method>
+<method name="endswith">
+<param name="str" type="String" />
+<![CDATA[//@cmember int endswith( String str );
+//@param String | str | Compare end of blob with this string (case sensitive)
+//@return int | 1 if blob ends with 'str'
+//@i case sensitive comparison
+]]>
+ />
+</method>
+<method name="indexof">
+<param name="token" type="String" />
+<param name="startpos]" type="[int" />
+<![CDATA[//@cmember int indexof( String token, [int startpos] );
+//@param String | token | substring to be found (case sensitive)
+//@param [int | startpos] | offset into blob to begin search at
+//@return int | index into blob or -1 if not found
+//@i case sensitive comparison
+]]>
+ />
+</method>
+<method name="length">
+<![CDATA[//@cmember int length(  );
+//@return int | length of blob in bytes (characters)
+//@i length of data
+]]>
+ />
+</method>
+<method name="max">
+<![CDATA[//@cmember int max(  );
+//@return int | maximum size the blob can reach before more memory is allocated
+//@i maximum size the blob can reach before more memory is allocated
+]]>
+ />
+</method>
+</members>
+<members sub="Parse Content">
+<method name="byteAt">
+<param name="pos" type="int" />
+<![CDATA[//@cmember int byteAt( int pos );
+//@param int | pos | Index into the blob (0..length()-1)
+//@return int | The byte in the blob indexed at 'pos'
+//@i Returns the byte charactor at index 'pos' (first byte is at index 0)
+]]>
+ />
+</method>
+<method name="GetBytes">
+<param name="pos" type="int" />
+<param name="num" type="int" />
+<param name="dest]" type="[blob" />
+<![CDATA[//@cmember blob GetBytes( int pos, int num, [blob dest] );
+//@param int | pos | Index into the blob (0..length()-1)
+//@param int | num | number of bytes to retrieve
+//@param [blob | dest] | (Optional) Copy bytes into destination blob
+//@return blob | The bytes
+//@i Returns a number of bytes from a blob
+]]>
+ />
+</method>
+<method name="GetObjects">
+<param name="path" type="String" />
+<![CDATA[//@cmember Object GetObjects( String path );
+//@param String | path | Path to file to be serialized
+//@return Object | serialized objects from file
+//@i read serialized objects - path must be specified
+]]>
+ />
+</method>
+<method name="GetXML2">
+<![CDATA[//@cmember XML GetXML2(  );
+//@return XML | XML converted from the blob or null
+//@i 
+]]>
+ />
+</method>
+<method name="GetXMLObject">
+<![CDATA[//@cmember XML GetXMLObject(  );
+//@return XML | XML converted from the blob or null
+//@i produce an XML object
+]]>
+ />
+</method>
+<method name="subString">
+<param name="start" type="int" />
+<param name="end]" type="[int" />
+<![CDATA[//@cmember string subString( int start, [int end] );
+//@param int | start | first charactor to return
+//@param [int | end] | last charactor (defaults to the end of the blob)
+//@return string | substring of a blob between start & end
+//@i Returns a substring of a blob
+]]>
+ />
+</method>
+<method name="toString">
+<![CDATA[//@cmember String toString(  );
+//@return String | String converted from the blob
+//@i produce a string
+]]>
+ />
+</method>
+</members>
+<members sub="Content Modification">
+<method name="compress">
+<param name="level" type="int" />
+<![CDATA[//@cmember blob compress( int level );
+//@param int | level | Compression Level 0-9 (0 quickest smallest compression, 9 fastest largest compression)
+//@return blob | Compressed blob
+//@i Returns blob compressed using zlib compression.
+]]>
+ />
+</method>
+<method name="decompress">
+<param name="len" type="int" />
+<![CDATA[//@cmember blob decompress( int len );
+//@param int | len | length of blob prior to compression
+//@return blob | decompressed blob
+//@i Returns blob decompressed a zlib compressed blob 
+]]>
+ />
+</method>
+<method name="gzcompress">
+<param name="level" type="int" />
+<![CDATA[//@cmember blob compress( int level );
+//@param int | level | Compression Level 0-9 (0 quickest smallest compression, 9 fastest largest compression)
+//@return blob | Compressed blob
+//@i Returns blob compressed using gzip compression.
+]]>
+ />
+</method>
+<method name="gzdecompress">
+<param name="len" type="int" />
+<![CDATA[//@cmember blob decompress( int len );
+//@param int | len | length of blob prior to compression
+//@return blob | decompressed blob
+//@i Returns blob decompressed a gzip compressed blob 
+]]>
+ />
+</method>
+<method name="encodebase64">
+<![CDATA[//@cmember blob encodebase64();
+//@return blob | Base 64 encoded blob
+//@i Returns blob base 64 encoded
+]]>
+ />
+</method>
+<method name="decodebase64">
+<![CDATA[//@cmember blob decodebase64();
+//@return blob | decode blob
+//@i Returns blob base 64 decoded
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="beginswith" cls="int" />
+<rmeth name="endswith" cls="int" />
+<rmeth name="indexof" cls="int" />
+<rmeth name="length" cls="int" />
+<rmeth name="max" cls="int" />
+<rmeth name="byteAt" cls="int" />
+<rmeth name="GetBytes" cls="blob" />
+<rmeth name="GetObjects" cls="Object" />
+<rmeth name="GetXML2" cls="XML" />
+<rmeth name="GetXMLObject" cls="XML" />
+<rmeth name="subString" cls="string" />
+<rmeth name="toString" cls="String" />
+<rmeth name="?stream" cls="int" />
+<rmeth name="append" cls="int" />
+<rmeth name="reset" cls="void" />
+<rmeth name="setbuffer" cls="void" />
+<rmeth name="compress" cls="blob" />
+<rmeth name="decompress" cls="blob" />
+<rmeth name="gzcompress" cls="blob" />
+<rmeth name="gzdecompress" cls="blob" />
+<rmeth name="encodebase64" cls="blob" />
+<rmeth name="decodebase64" cls="blob" />
+</return>
+</class>

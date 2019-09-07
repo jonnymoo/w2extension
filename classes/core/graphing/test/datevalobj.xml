@@ -1,0 +1,25 @@
+<class name="dateValObj" fauthor="$Author: Andrew.g $" fdate="$Date: 13/09/02 16:37 $" frevision="$Revision: 1 $">
+<members>
+<Date name="dat" />
+<Double name="weight" />
+<String name="caption" />
+<method name="setTo">
+<param name="dat" type="date" />
+<param name="val" type="double" />
+<param name="caption" type="string" />
+<![CDATA[//@cmember setTo
+//@param date | dat |
+//@param double | val |
+//@param string | caption |
+//@version Andrew Griffin | 10-09-02 11:51 |
+//@i
+
+this.dat = dat;
+weight = val;
+if (caption!=null) this.caption = caption;
+
+return this;]]>
+</method>
+</members>
+<static />
+</class>

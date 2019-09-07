@@ -1,0 +1,97 @@
+<class name="Hsub" description="A subfolder holding methods &amp; members" HierImageField="Icon" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members>
+<String name="Icon" />
+<String name="name" />
+<String name="parentFilename" />
+<List name="Lmem" cls="Hmem" />
+<method name="Init">
+<![CDATA[Icon = "..\\hClass.bmp";
+Name = "waiting for query event...";]]>
+</method>
+<method name="setTo">
+<param name="nam" type="string" />
+<param name="X" />
+<param name="aPath" type="string" />
+<param name="parFilename" type="string" />
+<param name="hStr" type="string" />
+<![CDATA[// X is a members or static XML element
+//
+
+name = nam;
+parentFilename = parFilename;
+
+string tmpS = X.getAttr("sub");
+if (tmpS!="") {
+    if (name=="members")
+        name = tmpS; else
+        name = tmpS + " (" + name + ")";
+}
+
+for (int i=0;;i++) {
+    XML sXML = &X.getElement(i);
+    if (sXML==null) break;
+
+    string hStr2 = hStr;
+    if (nam!="members") {
+        hStr2 = sys::makeRelativeName(::AdvSearch::preRootPath, parentFilename);
+        hStr2 = hStr2.left(hStr2.indexOf(".xml",0,1));
+        if (hStr2.startswith("classes::des::docs::")) hStr2 = hStr2.subString(20);
+    }
+
+    Lmem.createRow().setTo(sXML, aPath, 0, hStr2, nam=="members");
+}
+
+setQueried(1);
+
+return i;]]>
+</method>
+<method name="setError">
+<param name="mes" type="string" />
+<![CDATA[
+Name = mes;
+Icon = "hError.bmp";
+setQueried(1);]]>
+</method>
+<method name="setStrucTo">
+<param name="title" type="string" />
+<param name="nam" type="string" />
+<param name="X" />
+<param name="aPath" type="string" />
+<param name="parFilename" type="string" />
+<param name="hStr" type="string" />
+<![CDATA[// X is a Grid or Menu XML element
+//
+
+name = title;
+parentFilename = parFilename;
+
+if (title.eq("menu"))
+    icon = "..\\hMenuB.bmp"; else
+    icon = "..\\hgrid.bmp";
+
+lookinGrid(X, aPath, hStr);
+setQueried(1);
+
+return Lmem.count();]]>
+</method>
+<method name="lookInGrid">
+<param name="X" />
+<param name="aPath" type="string" />
+<param name="hStr" type="string" />
+<![CDATA[for (int i=0;;i++) {
+    XML sXML = &X.getElement(i);
+    if (sXML==null) return;
+
+    string nam = sXML.getAttr("name");
+    if (nam!="") Lmem.createRow().setTo(sXML, aPath, 0, hStr);
+
+    lookInGrid(sXML, aPath, hStr);
+}
+]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="name" />
+</disp>
+</class>

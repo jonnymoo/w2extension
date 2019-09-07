@@ -1,0 +1,120 @@
+<class name="ImageServer" description="W2 Script Reference">
+<members>
+<method name="SetConnection">
+<param name="server" type="string" />
+<param name="logon" type="string" />
+<![CDATA[//@cmember void SetConnection( String server, String logon );
+//@param String | server | 
+//@param String | logon | 
+//@return void | 
+//@i sets the connection attributes
+]]>
+ />
+</method>
+<method name="SetConnectionForTransfer">
+<param name="server1" type="string" />
+<param name="logon1" type="string" />
+<param name="server2" type="string" />
+<param name="logon2" type="string" />
+<![CDATA[//@cmember int SetConnectionForTransfer( String server1, String logon1, String server2, String logon2 );
+//@param String | server1 | 
+//@param String | logon1 | 
+//@param String | server2 | 
+//@param String | logon2 | 
+//@return int | 1=success, 0=failure
+//@i sets the connection attributes for transfering images between 2 image servers.
+]]>
+ />
+</method>
+<method name="GetBlob">
+<param name="id" type="int" />
+<![CDATA[//@cmember Blob GetBlob( int id );
+//@param int | id | 
+//@return Blob | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetErrorText">
+<![CDATA[//@cmember string GetErrorText(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetFile">
+<param name="id" type="int" />
+<param name="File" type="string" />
+<![CDATA[//@cmember int GetFile( int id, string File );
+//@param int | id | 
+//@param string | File | 
+//@return int | 
+//@i int ok = GetFile( 345343, "c:\\temp\\xxx.tif" );
+]]>
+ />
+</method>
+<method name="GetLastError">
+<![CDATA[//@cmember int GetLastError(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SendToStream">
+<param name="Stream" type="object" />
+<param name="id" type="int" />
+<![CDATA[//@cmember int SendToStream( object Stream, int id );
+//@param object | Stream | 
+//@param int | id | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SubmitBlob">
+<param name="b" type="Blob" />
+<param name="icls" type="string" />
+<![CDATA[//@cmember int SubmitBlob( Blob b, string icls );
+//@param Blob | b | 
+//@param string | icls | 
+//@return int | 
+//@i int id = IS.SubmitBlob( B, "PERM" );
+]]>
+ />
+</method>
+<method name="SubmitFile">
+<param name="File" type="string" />
+<param name="icls" type="string" />
+<![CDATA[//@cmember int SubmitFile( string File, string icls );
+//@param string | File | 
+//@param string | icls | 
+//@return int | 
+//@i int id = IS.SubmitFile( "c:\\temp\\dooda.tif", "PERM" )
+]]>
+ />
+</method>
+<method name="Transfer">
+<param name="handler" type="int" />
+<param name="icls" type="string" />
+<![CDATA[//@cmember int Transfer( string Handler, string icls );
+//@param int | hdl1 | image handler on the first server
+//@param string | icls | image server volume of the second server where the image is transfered
+//@return int | image handler on the second server
+//@i int  transfers from one image server to another e.g. hdl2 = IS.Transfer( hdl1 , "PERM" )
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="SetConnection" cls="Void" />
+<rmeth name="SetConnectionForTransfer" cls="int" />
+<rmeth name="GetBlob" cls="Blob" />
+<rmeth name="GetErrorText" cls="string" />
+<rmeth name="GetFile" cls="int" />
+<rmeth name="GetLastError" cls="int" />
+<rmeth name="SendToStream" cls="int" />
+<rmeth name="SubmitBlob" cls="int" />
+<rmeth name="SubmitFile" cls="int" />
+<rmeth name="Transfer" cls="int" />
+</return>
+</class>

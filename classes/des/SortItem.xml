@@ -1,0 +1,7 @@
+<class name="SortItem" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<Integer name="Index" />
+<Integer name="OriginalIndex" />
+</members>
+<static />
+</class>

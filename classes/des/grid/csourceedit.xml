@@ -1,0 +1,128 @@
+<form name="CSourceEdit" base="CtrlBase" bk="224,224,192" margin="0" fauthor="$Author: Andrew.g $" fdate="$Date: 25/07/01 11:38 $" frevision="$Revision: 3 $">
+<members>
+<method name="Init">
+<![CDATA[
+//idXCreateNotes.SetYesNo();
+//idXEditNotes.SetYesNo();
+
+super.Init();
+]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" />
+<![CDATA[
+for(int n=0;;n++)
+    {
+    Object Con = &GetControl(n); if (Con==null) break;
+    String id = Con.ControlID(); if (id=="") continue;
+    if (!id.beginsWith("idX")) continue;
+    String attr = id.right( id.length()-3 );
+    String val  = Ctrl.GetAttr(attr);
+    Con.SetText(val);
+    }
+
+super.ShowCtrl(Ctrl);]]>
+</method>
+<method name="DoModCon">
+<param name="Con" />
+<![CDATA[
+String id = Con.ControlID();
+String attr = id.right( id.length()-3 );
+
+SetAttr( attr, Con.GetText() );]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[//@version Andrew Griffin | 25-07-01 11:10 | 
+switch (attrName.lower()) {
+  case  "onchange", "onleftclick", "onrightclick", "onfunctionkey" : return 1;
+}
+
+return 0;]]>
+</method>
+</members>
+<static />
+<grid rpad="2" bpad="1" bk="224,224,192">
+<row>
+<col align="V">
+<Label text="Name:" />
+</col>
+<col align="W">
+<Edit name="idName" w="120" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="TabStop:" />
+</col>
+<col>
+<Edit name="idTabStop" combo="2" onChange="DoTabStop" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Enabled:" />
+</col>
+<col>
+<Edit name="idEnabled" combo="2" onChange="DoEnabled" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Visible:" />
+</col>
+<col>
+<Edit name="idVisible" combo="2" onChange="DoVisible" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups:" />
+</col>
+<col align="W">
+<Edit name="idGroups" w="120" onChange="DoGroups" border="0" />
+</col>
+</row>
+<row>
+<col lpad="1" tpad="1" rpad="1" bpad="1" align="V" bk="224,192,128">
+<Label text="Events" />
+</col>
+<col align="W" bk="224,192,128" />
+</row>
+<row>
+<col align="V">
+<Label text="onChange" />
+</col>
+<col align="W">
+<Edit name="idXonChange" w="120" onChange="DoModCon" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="onLeftClick" />
+</col>
+<col align="W">
+<Edit name="idXonLeftClick" w="120" onChange="DoModCon" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="onRightClick" />
+</col>
+<col align="W">
+<Edit name="idXonRightClick" w="120" onChange="DoModCon" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="onFunctionKey" />
+</col>
+<col align="W">
+<Edit name="idXonFunctionKey" w="120" onChange="DoModCon" border="0" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

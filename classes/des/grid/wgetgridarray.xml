@@ -1,0 +1,244 @@
+<form name="wGetGridArray" bk="F9F8F7" margin="0" sizeable="2" toolwindow="1" hidden="1" topmost="1" thinframe="1" closeondeactivate="1" nocaption="1" esccancel="1" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:39 $" frevision="$Revision: 2 $">
+<members>
+<String name="sel" />
+<Integer name="maxX" />
+<Integer name="maxY" />
+<Integer name="selX" />
+<Integer name="selY" />
+<method name="doClicked">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doClicked
+//@param label | ctrl |
+//@version Andrew Griffin | 26-07-02 15:33 |
+
+sel = ctrl.GetControlAttr( "param" );
+close();]]>
+</method>
+<method name="doMouseOver">
+<param name="ctrl" type="label" />
+<param name="PStr" type="string" />
+<![CDATA[//@cmember doMouseOver
+//@param label | ctrl |
+//@param string | PStr |
+//@version Andrew Griffin | 01-08-02 09:33 |
+//@i
+
+string sel = ctrl.GetControlAttr( "param" );
+int x = sel.gettoken(0,"x").val();
+int y = sel.gettoken(1,"x").val();
+
+//string col = PStr=="1" ? "blueSquare.bmp" : "whiteSquare.bmp";
+
+if (PStr=="0") return;
+
+string col; int bx, ex;
+
+//
+// Enlarge/Shrink horizontally
+
+if (x>selX)     // more to be highlighted...
+{
+    col = "blueSquare.bmp";
+    bx = selX;
+    ex = x;
+}
+else            // less to be highlighed...
+{
+    col = "whiteSquare.bmp";
+    bx = x;
+    ex = selX;
+}
+
+for (int yy=0; yy<selY; yy++)
+{
+    gridRow gr = &idGrid.GetRow( yy );
+    for (int xx=bx; xx<ex; xx++)
+        gr.GetCell( xx ).control.SetAttr( "img", col );
+}
+
+selX = x;
+
+//
+// Enlarge/Shrink virtically
+
+if (y>selY)     // more to be highlighted...
+{
+    col = "blueSquare.bmp";
+    bx = selY;
+    ex = y;
+}
+else            // less to be highlighed...
+{
+    col = "whiteSquare.bmp";
+    bx = y;
+    ex = selY;
+}
+
+for (yy=bx; yy<ex; yy++)
+{
+    gridRow gr = &idGrid.GetRow( yy );
+    for (int xx=0; xx<selX; xx++)
+        gr.GetCell( xx ).control.SetAttr( "img", col );
+}
+
+selY = y;
+
+//
+// Show title
+
+if (PStr=="1")
+    idDispSize.setText( "" + x + " x " + y );
+else
+    idDispSize.setText( "Cancel" );
+
+//
+// Grow grid size???
+
+
+if (x>=maxX)    // increase width...
+{
+    idGrid.AddColumn();
+    FitRecursive();
+    maxX++;
+
+    for (yy=1; yy<=maxY; yy++)
+    {
+        gridRow gr = &idGrid.GetRow( yy-1 );
+        control c = &gr.GetCell( maxX-1 ).setControl( "image" );
+        c.SetAttr( "onClick", "doClicked" );
+        c.SetAttr( "onMouseOver", "doMouseOver 1" );
+        c.SetAttr( "onMouseOut", "doMouseOver 0" );
+        c.SetAttr( "param", "" + maxX + "x" + yy );
+        c.SetAttr( "img", "whiteSquare.bmp" );
+    }
+
+    SizeFormToContent();
+}
+
+if (y>=maxY)    // increase width...
+{
+    idGrid.AddRow();
+    maxY++;
+
+    gridRow gr = &idGrid.GetRow( maxY-1 );
+    for (int xx=1; xx<=maxX; xx++)
+    {
+        control c = &gr.GetCell( xx-1 ).setControl( "image" );
+        c.SetAttr( "onClick", "doClicked" );
+        c.SetAttr( "onMouseOver", "doMouseOver 1" );
+        c.SetAttr( "onMouseOut", "doMouseOver 0" );
+        c.SetAttr( "param", "" + xx + "x" + maxY );
+        c.SetAttr( "img", "whiteSquare.bmp" );
+    }
+
+    SizeFormToContent();
+}]]>
+</method>
+<method name="onCharDown">
+<param name="Key" type="int" />
+<param name="State" type="int" />
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember onCharDown
+//@param int | Key |
+//@param int | State |
+//@param control | Ctrl |
+//@version Andrew Griffin | 09-07-02 10:37 |
+//@i
+
+if (key==27) close();]]>
+</method>
+</members>
+<static>
+<method name="getGridSize" return="string">
+<param name="par" type="form" />
+<param name="gCell" type="gridCell" />
+<![CDATA[//@cmember getGridSize
+//@param form | par |
+//@param gridCell | gCell |
+//@return string |
+//@version Andrew Griffin | 26-07-02 15:34 |
+
+wGetGridArray gA;
+gA.open();
+
+gA.maxX = 8;
+gA.maxY = 8;
+
+//
+// Populate form...
+
+grid g = &gA.idGrid;
+
+for (int i=0; i<ga.maxY-1; i++)
+    g.DuplicateRow( i );
+
+for (int y=1; y<=gA.maxY; y++)
+{
+    gridRow gr = &g.GetRow( y-1 );
+    for (int x=1; x<=ga.maxX; x++)
+    {
+        control c = &gr.GetCell( x-1 ).Control;
+        c.SetAttr( "param", "" + x + "x" + y );
+    }
+}
+
+gA.SizeFormToContent();
+gA.SnapToCell( gCell );
+
+//
+// Display Form
+
+gA.Show( 1 );
+gA.SetFocus();
+
+gA.waitOnClose();
+
+par.SetFocus();
+sys::Wait( 0 );
+
+return gA.sel;]]>
+</method>
+</static>
+<grid>
+<row>
+<col lpad="4" tpad="4" rpad="4" bpad="4">
+<grid name="idGrid" rpad="1" bpad="1">
+<row>
+<col w="12" h="12" align="XY">
+<Image text="Image" img="whitesquare.bmp" onclick="doClicked" onmouseover="doMouseOver 1" onmouseout="doMouseOver 0" />
+</col>
+<col w="12" h="12" align="XY">
+<Image text="Image" img="whitesquare.bmp" onclick="doClicked" onmouseover="doMouseOver 1" onmouseout="doMouseOver 0" />
+</col>
+<col w="12" h="12" align="XY">
+<Image text="Image" img="whitesquare.bmp" onclick="doClicked" onmouseover="doMouseOver 1" onmouseout="doMouseOver 0" />
+</col>
+<col w="12" h="12" align="XY">
+<Image text="Image" img="whitesquare.bmp" onclick="doClicked" onmouseover="doMouseOver 1" onmouseout="doMouseOver 0" />
+</col>
+<col w="12" h="12" align="XY">
+<Image text="Image" img="whitesquare.bmp" onclick="doClicked" onmouseover="doMouseOver 1" onmouseout="doMouseOver 0" />
+</col>
+<col w="12" h="12" align="XY">
+<Image text="Image" img="whitesquare.bmp" onclick="doClicked" onmouseover="doMouseOver 1" onmouseout="doMouseOver 0" />
+</col>
+<col w="12" h="12" align="XY">
+<Image text="Image" img="whitesquare.bmp" onclick="doClicked" onmouseover="doMouseOver 1" onmouseout="doMouseOver 0" />
+</col>
+<col w="12" h="12" align="XY">
+<Image text="Image" img="whitesquare.bmp" onclick="doClicked" onmouseover="doMouseOver 1" onmouseout="doMouseOver 0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col tpad="1" bpad="1" w="24" align="C" bk="219,216,209">
+<Label name="idDispSize" text="0 x 0" tx="128,128,128" onclick="close" txsel="808080" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="getGridSize" cls="string" />
+</return>
+</form>

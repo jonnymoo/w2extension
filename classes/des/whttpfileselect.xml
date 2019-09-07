@@ -1,0 +1,53 @@
+<form name="WHTTPFileSelect" caption="Load File from Net" sizeable="0">
+<members>
+<method name="DoOK">
+<![CDATA[
+String s = idFileName.GetText();
+if (s=="") return;
+
+Show(0);
+int ok = GetParent().ReadFile(s);
+if (ok) Close();
+else Show(1);
+]]>
+
+</method>
+<method name="SetFileName">
+<param name="fn" />
+<![CDATA[
+idFileName.SetText(fn);
+]]>
+
+</method>
+</members>
+<static />
+<grid bpad="4">
+<row>
+<col>
+<Label text="File Name: (ie: http://server/classes/login/WLogin.xml" />
+</col>
+<col />
+</row>
+<row>
+<col>
+<Edit name="idFileName" w="300" />
+</col>
+<col />
+</row>
+<row>
+<col align="R">
+<grid lpad="4">
+<row>
+<col>
+<Button text="OK" onClick="DoOK" />
+</col>
+<col>
+<Button text="Cancel" onClick="Close" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+</grid>
+</form>

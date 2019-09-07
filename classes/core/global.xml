@@ -1,0 +1,2850 @@
+<class name="Global" description="Client Side Methods" fauthor="$Author: Jonathan Muir $" fdate="$Date: 30/09/04 12:27 $" frevision="$Revision: 107 $">
+<members />
+<static>
+<Integer name="Connected" />
+<Integer name="HTTPStatusCode" />
+<String name="ServerName" />
+<String name="LivePath" />
+<String name="UserID" />
+<String name="UserFullName" desc="Not instatiated by this class" comment="Set in classes::workers::wlogin::DoLogin()&#13;&#10;" />
+<String name="UserJobTitle" />
+<String name="Extension" />
+<String name="ServerVersion" />
+<Integer name="telephonyEnabled" constval="-1" />
+<Integer name="timeSkew" comment="Timeskew in seconds between the server and local PC" />
+<Date name="timeQueried" />
+<String name="DBISAPIServer" />
+<String name="DBISAPICommand" />
+<String name="m_strFTRServer" />
+<String name="m_strFTRPath" />
+<String name="m_strFTRNote" />
+<String name="m_strBulkPrintIndex" desc="Bulk print index default value " comment="Whether &apos;Index to Source Contact&apos; is checked or unchecked by default.&#13;&#10;The default is for it to be checked." />
+<String name="m_strTimeServer" />
+<String name="m_strTimeServerCommand" />
+<Object name="m_GetServerCS" cls="criticalsection" />
+<method name="GetDBISAPIServer">
+<![CDATA[//@cmember GetDBISAPIServer
+//@version David Salter | 15-04-03 17:11 |
+//@i
+if ( DBISAPIServer.length() == 0 )
+    DBISAPIServer = classes::core::srvGetProfileString::GetProfileString( "config.ini", "DBISAPI", "Host" );
+
+if ( DBISAPIServer.length() == 0 )
+    DBISAPIServer = ".";
+
+return DBISAPIServer;]]>
+</method>
+<method name="GetTimeServer">
+<![CDATA[//@cmember GetTimeServer
+//@version David Salter | 25-06-2003 14:46 |
+//@version David.Salter | 25-06-03 14:55 |
+//@i
+if ( m_strTimeServer.length() == 0 )
+    m_strTimeServer = classes::core::srvGetProfileString::GetProfileString( "config.ini", "srvISAPI", "TimeServer" );
+
+if ( m_strTimeServer.length() == 0 )
+    m_strTimeServer = ".";
+
+return m_strTimeServer;]]>
+</method>
+<method name="GetDBISAPICommand">
+<![CDATA[//@cmember GetDBISAPICommand
+//@version David Salter | 06-03-03 16:51 |
+//@i
+if ( DBISAPICommand.length() == 0 )
+    DBISAPICommand = classes::core::srvGetProfileString::GetProfileString( "config.ini", "DBISAPI", "Command" );
+
+return DBISAPICommand;]]>
+</method>
+<method name="GetTimeServerCommand">
+<![CDATA[//@cmember GetTimeServerCommand
+//@version David Salter | 06-03-03 16:51 |
+//@version David.Salter | 25-06-03 14:55 |
+//@i
+if ( m_strTimeServerCommand.length() == 0 )
+    m_strTimeServerCommand = classes::core::srvGetProfileString::GetProfileString( "config.ini", "srvISAPI", "TimeCommand" );
+
+return m_strTimeServerCommand;]]>
+</method>
+<method name="GetFTRServer">
+<![CDATA[//@cmember GetFTRServer
+//@version Scott.Goodwin | 03-04-03 12:20 |
+//@i
+
+if ( m_strFTRServer.length() == 0 )
+    m_strFTRServer = classes::core::srvGetProfileString::GetProfileString( "config.ini", "FTR", "Host" );
+
+return m_strFTRServer;]]>
+</method>
+<method name="GetFTRPath">
+<![CDATA[//@cmember GetFTRPath
+//@version Scott.Goodwin | 03-04-03 12:15 |
+//@i
+
+if ( m_strFTRPath.length() == 0 )
+    m_strFTRPath = classes::core::srvGetProfileString::GetProfileString( "config.ini", "FTR", "Path" );
+
+return m_strFTRPath;]]>
+</method>
+<method name="GetUserID" return="string">
+<![CDATA[//@cmember GetUserID
+//@return string | A user ID string
+//@i Returns the current log in user ID
+
+if (UserID=="")
+    UserID = Sys::GetNetworkUser().upper();
+    // UserID = "SYSTEM";
+
+return UserID;]]>
+</method>
+<method name="GetHTTP" return="HTTPConnection">
+<param name="path" type="string" />
+<![CDATA[//@cmember GetHTTP
+//@param string | path | path of a server method
+//@return HTTPConnection | a new HTTPConnection
+//@version Barry Parkinson | V1.00 | Initial Version
+//@version David Salter | V1.01 11-04-2001 | Added support for HTTPS.
+//@version Simon Carroll | 14-09-01 15:37 |
+//@version Andrew Barrett | 16-10-01 15:27 | made the connection none static and added option to get server name from a configuration file
+//@version Simon Carroll | 09-01-02 17:20 |
+//@version Jonathan.Muir | 29-03-04 12:01 |
+//@i Initiates an HTTPConnection
+//@i 'path' must be a server method
+
+string sPath = path();
+// Get the servername
+GetServerName();
+
+// Create the connection
+HTTPConnection newConnection;
+newConnection.SetServer( ServerName );
+newConnection.SetPath(LivePath + "scripts/w2isapi.dll/" + path );
+newConnection.SetPostData("");
+
+// Do SSL stuff
+if (sPath.beginsWith("https://"))
+    newConnection.UseHTTPS(1);
+
+// Set the version number if necessary
+if (!ServerVersion)
+{
+    string sServerVersion = newConnection.GetHeader( "Server" );
+    if (sServerVersion!="")
+        serverVersion = sServerVersion;
+    else
+        serverVersion = "UNKNOWN";
+}
+
+
+return(newConnection);]]>
+</method>
+<method name="GetBulkPrintIndexOption">
+<![CDATA[//@cmember GetBulkPrintIndexOption
+//@version Scott.Goodwin | 22-04-03 12:53 |
+//@version Scott Goodwin | 23-09-03 16:19 | Now checks client side
+//@i
+if ( m_strBulkPrintIndex.length() == 0 )
+{
+    string sFile = Sys::GetModulePath() + "w2env_global.ini";
+    m_strBulkPrintIndex = Sys::GetPrivateProfileString("Settings","BulkPrintIndexSourceContact",sFile);
+}
+
+return m_strBulkPrintIndex;]]>
+</method>
+<method name="GetFTRNoteOption">
+<![CDATA[//@cmember GetFTRNoteOption
+//@version Scott.Goodwin | 22-04-03 12:56 |
+//@version Scott Goodwin | 02-06-04 20:29 |
+//@i
+
+if ( m_strFTRNote.length() == 0 )
+{
+    m_strFTRNote = classes::core::srvGetProfileString::GetProfileString( "config.ini", "FTR", "FTRSubmitNotes" );
+    if (m_strFTRNote != "1")
+        m_strFTRNote = "0";
+}
+return m_strFTRNote.eq("1");]]>
+</method>
+<method name="ListQuery" return="int">
+<param name="L" type="list" />
+<param name="wh" type="string" />
+<param name="max" type="int" />
+<param name="qik" type="int" />
+<param name="Curs" type="int" />
+<param name="AppCallBack" type="string" />
+<param name="Compress" type="int" />
+<![CDATA[//@cmember ListQuery
+//@param list | L | List to be populated by the DB query
+//@param string | wh | The SQL where clause
+//@param int | max | The maximum number of rows to retrieve
+//@param int | qik | If true, column names default to '1','2','3', ... (optional)
+//@param int | Curs |
+//@param string | AppCallBack | If this is filled then all application handlers with this method will be called on the server with the list as a parameter
+//@param int | Compress |  Set to 1 to compress the results on the way back
+//@return int | 1 = success, 0 = fail
+//@version Andrew Griffin | 25-07-01 13:26 |
+//@version Simon Carroll | 01-03-02 14:51 | If run on a server method, the list is copied to a local list
+//@version David Salter | 13-02-03 12:48 |
+//@version Scott.Goodwin | 03-04-03 15:29 |
+//@version David Salter | 30-04-03 12:53 |
+//@version Jonathan.Muir | 30-09-04 12:20 |
+//@i Populate a list with rows from its database table
+//@i  filtered by a given where clause
+SetWaitCursor();
+
+
+if(!OnServer())
+{
+
+    HTTPConnection Q = GetHTTP("classes::core::SrvListQuery");
+
+    String path = L.Class().ClassName(); // ie "http://....//Borough"
+    int i = path.indexOf("classes");
+    path = path.right( path.length() - i );
+    path = path.replace("/","::");
+    path = path.replace("\\","::");
+
+    Q.AddCGIParam( "cls", path );
+    Q.AddCGIParam( "sql", wh );
+    Q.AddCGIParam( "max", max+"" );
+    if (qik!=null)
+        Q.AddCGIParam( "qik", qik );
+    if (Curs != null )
+    {
+        if ( Curs == 1 )
+        Q.AddCGIParam( "curs", "1" );
+    }
+
+    if(AppCallBack!=null)
+    {
+        Q.AddCGIParam( "appcallback",AppCallBack);
+    }
+
+
+    if((Compress!=null&&Compress==1)||
+       (Compress==null&&classes::core::sysconfig::GetConfig("ListCaching",1))
+      )
+    {
+        Q.AddCGIParam( "compress","1");
+    }
+
+    int ok = Q.DoPost();
+
+    if (!ok){
+        Message( Q.GetError() );
+       return 0;
+        }
+
+    Object Res = Q.GetObjects();
+
+    if (Res==null){
+        Message("Error getting XML results\nServer: " +
+                ServerName + "\nClass: " + path );
+       Message( Q.GetResults().toString() );
+       return 0;
+       }
+
+    String err = Res.Error;
+    if (err){
+        Message(err);
+        return 0;
+        }
+
+    L.Reset();
+    Object LX;
+
+    if(Res.ReturnType=="Normal")
+    {
+        LX = Res.LX;
+    }
+    else
+    {
+        // Compressed
+
+        LX = Res.TheList.GetObject();
+
+    }
+    String s = Path();
+
+    //If run on the server, need to change the contents of each row to be the server class
+
+    if (!(s.beginsWith("http://") || s.BeginsWith("https://")))
+    {
+        Object NewList = sys::loadclass(path).CreateList();
+        for (int j = 0; j<LX.Count(); j++)
+        {
+            Object C = NewList.CreateRow();
+            cloneobject(LX[j],C);
+         }
+
+        LX.Reset();
+        NewList.MoveAllTo(LX);
+    }
+
+    LX.MoveAllTo( L );
+
+    return 1;
+}
+else
+{
+    object DB = classes::core::srvGlobal::GetDB("ISE",NULL,Curs);
+    if(!DB.Valid())
+    {
+        return 0;
+    }
+
+    return classes::core::srvlistquery::DoQuery(DB,L,wh,max,AppCallBack);
+}]]>
+</method>
+<method name="ListFromSQL" return="list">
+<param name="dataSource" type="object" />
+<param name="sql" type="object" />
+<param name="maxRows" type="object" />
+<![CDATA[//@cmember ListfromSQL
+//@param string | datasource    | the datasource to query
+//@param string | sql           | the sql to run
+//@param int    | maxRows       | The maximum number of rows to return
+//@return a list of query results
+//@version Andrew Barrett | V1.00 21/05/2001 | Initial Version
+//@version David Salter | 23-04-03 12:29 |
+//@version Jonathan.Muir | 20-08-04 09:41 |
+//@i Used to query the database and return a list of results for a specific sql String
+String strDBISAPIServer = GetDBISAPIServer();
+
+if ( strDBISAPIServer.length() < 2 )
+{
+    srvSQLQuery query;
+    query.dataSource = dataSource;
+    query.sql = sql;
+    query.maxRows = maxRows;
+
+    object output = global::ServerMethod(query);
+    if(output==NULL)
+    {
+        return NULL;
+    }
+    if (output.error!="")
+    {
+        Message(output.error);
+        return(null);
+    }
+
+    return (output.data);
+}
+
+else
+{
+    String strSQL = sql;
+    HTTPConnection Q;
+    Q.SetServer( strDBISAPIServer );
+    String strPath = "/dbisapi/dbisapi.dll?SQLQuery&sql="+strSQL+"&Max="+maxRows+"&Curs=0";
+    Q.SetPath( strPath );
+    int ok = Q.DoGet();
+    if (!ok){
+        Message( Q.GetError() );
+        return null;
+        }
+
+    Object Res = Q.GetObjects();
+
+    return res.data;
+/*
+    if (Res==null){
+        Message("Error getting XML results\nServer: " +
+                ServerName + "\nClass: " + strClass );
+        Message( Q.GetResults().toString() );
+        return 0;
+        }
+
+    String err = Res.Error;
+    if (err){
+        Message(err);
+        return 0;
+        }
+
+    L.Reset();
+    Object LX = Res.LX;
+    String s = Path();
+    //If run on the server, need to change the contents of each row to be the server class
+
+    //if (!(s.beginsWith("http://") || s.BeginsWith("https://")))
+    {
+        Object NewList = sys::loadclass(strClass).CreateList();
+        for (int j = 0; j<LX.Count(); j++)
+        {
+            Object C = NewList.CreateRow();
+            cloneobject(LX[j],C);
+        }
+
+        LX.Reset();
+        NewList.MoveAllTo(LX);
+    }
+
+    LX.MoveAllTo( L );
+    return 1;
+*/}]]>
+</method>
+<method name="ExecSP">
+<param name="DataSource" type="object" />
+<param name="name" type="object" />
+<param name="Params" type="object" />
+<param name="Package" type="object" />
+<param name="max" type="object" />
+<![CDATA[//@cmember ExecSP
+//@param object | DataSource |
+//@param object | name |
+//@param object | Params |
+//@param object | Package |
+//@param object | max |
+//@version Simon Carroll | 07-01-03 15:16 |
+//@version Scott.Goodwin | 31-01-03 15:24 |
+//@version David Salter | 28-04-03 13:03 |
+//@version Jonathan.Muir | 27-09-04 12:33 |
+//@i
+
+SetWaitCursor();
+
+string strDBISAPIServer = GetDBISAPIServer();
+
+if ( strDBISAPIServer.length() <2 )
+{
+    HTTPConnection Q = GetHTTP("classes::core::srvExecSP");
+
+    Q.AddCGIParam( "name", name );
+    Q.AddCGIParam( "params", Params );
+    Q.AddCGIParam( "max", max+"" );
+    Q.AddCGIParam( "package", package);
+    Q.AddCGIParam( "ds", Datasource);
+
+    int ok = Q.DoPost();
+
+    if (!ok){
+        Message( Q.GetError() );
+        return null;
+        }
+
+    Object Res = Q.GetObjects();
+
+    if (Res==null){
+        Message("Error getting XML results\nServer: " +
+                ServerName + "\nClass: "  );
+        Message( Q.GetResults().toString() );
+        return null;
+        }
+
+    String err = Res.Error;
+    if (err){
+        Message(err);
+        return null;
+        }
+
+
+    return Res.data;
+}
+else
+{
+    HTTPConnection Q;
+    Q.SetServer( strDBISAPIServer );
+    String strPath = "/dbisapi/dbisapi.dll?ExecSP&package="+package+"&sp="+name+"&params="+params+"&max="+max;
+    Q.SetPath( strPath );
+    int ok = Q.DoGet();
+    if (!ok){
+        Message( Q.GetError() );
+        return null;
+        }
+
+    Object Res = Q.GetObjects();
+
+    return res.data;
+
+}]]>
+</method>
+<method name="PartialListQuery">
+<param name="LX" type="object" />
+<param name="wh" type="object" />
+<param name="max" type="object" />
+<param name="type" type="object" />
+<![CDATA[//@cmember PartialListQuery
+//@param object | LX |
+//@param object | wh |
+//@param object | max |
+//@param object | type |
+//@version Simon Carroll | 07-01-03 15:17 |
+//@i
+
+//get
+
+string g = LX.Class().Classname();
+string relpath = sys::makerelativename(path(),g);
+
+if (relpath=="")
+{
+    message("error querying class "+g);
+    return 0;
+}
+
+Object CX = sys::loadclass(relPath);
+if (CX==null)
+{
+    message("Unable to load class "+relpath);
+    return 0;
+}
+
+string colsql = CX.getColumnSQL(type);
+
+if (colsql == "")
+{
+    message("class "+relpath+" has no columns of type "+type);
+    return 0;
+}
+
+string ds = CX.getDataSource();
+if (!ds)
+{
+    message("no datasource for "+relpath+" found");
+    return 0;
+}
+
+//get sql
+string allsql = colsql+(wh ? " where "+wh : "");
+
+Object Res = listFromSQL(ds,allsql,max);
+
+if (Res != null)
+{
+    LX.reset();
+    CopyListInto(Res, LX);
+    return 1;
+}
+
+return 0;]]>
+</method>
+<method name="ObjectQuery" return="object">
+<param name="cls" type="string" />
+<param name="wh" type="string" />
+<![CDATA[//@cmember ObjectQuery
+//@param string | cls | Path + Class to be populated by the DB query
+//@param string | wh | SQL Where Clause to pull out a single row
+//@version David Salter | 02-05-03 10:35 |
+//@return object | The retrieved object of type 'cls'
+//@i Retrieve a single row of a database table by
+//@i  filtering using a given where clause
+//@i Returns null if the row is not found or on an error
+
+SetWaitCursor();
+string strDBISAPIServer = GetDBISAPIServer();
+
+if ( strDBISAPIServer.length() > 2 )
+{
+    object class = Sys::LoadClass(cls);
+    if ( class != null )
+    {
+        Object obj = class.CreateInstance();
+
+        String strTable = obj.Class().GetAttr("SQLName" );
+
+        String strSQL = "select * from "+strTable + " where " + wh;
+
+        HTTPConnection Q;
+        Q.SetServer( GetDBISAPIServer() );
+        String strPath = GetDBISAPICommand()+"GetObject&cls="+cls+"&sql="+strSQL ;
+        Q.SetPath( strPath );
+        int ok = Q.DoGet();
+        if (!ok){
+            Message( Q.GetError() );
+            return null;
+            }
+
+        Object Res = Q.GetObjects();
+
+        if (Res==null){
+            Message("Error getting XML results\nServer: " +
+                    ServerName + "\nClass: " + cls );
+            Message( Q.GetResults().toString() );
+            return null;
+            }
+
+        String err = Res.Error;
+        if (err){
+            Message(err);
+            return null;
+            }
+
+
+        //return Res.Obj;
+        Object ObjRes;
+        CloneObject(Res.Obj,ObjRes);
+        return Obj;
+    }
+    else
+        return NULL;
+}
+else
+{
+    HTTPConnection Q = GetHTTP("classes::core::srvGetObject");
+
+    int i = cls.indexOf("classes");
+    cls = cls.right( cls.length() - i );
+    cls = cls.replace("/","::");
+    cls = cls.replace("\\","::");
+
+    Q.AddCGIParam( "cls", cls );
+    Q.AddCGIParam( "sql", wh );
+
+    int ok = Q.DoPost();
+
+    if (!ok){
+        Message( Q.GetError() );
+        return null;
+        }
+
+    Object Res = Q.GetObjects();
+
+    if (Res==null){
+        Message("Error getting XML results\nServer: " +
+                ServerName + "\nClass: " + cls );
+        Message( Q.GetResults().toString() );
+        return null;
+        }
+
+    String err = Res.Error;
+    if (err){
+        Message(err);
+        return null;
+        }
+
+
+    return Res.Obj;
+}]]>
+</method>
+<method name="RefreshObject" return="int">
+<param name="Obj" type="object" />
+<![CDATA[//@cmember RefreshObject
+//@param object | Obj | An object to be refreshed in the DB
+//@return int | 1 = Success, 0 = fail, -1 = not found
+//@version simon.carroll | 07-11-01 16:17 |
+//@version Simon Carroll | 01-03-02 14:48 |
+//@version David Salter | 17-04-03 16:14 |
+//@i Refreshes from the database all Obj's fields
+//@i  based upon its key field.
+//@i Make sure the key field of Obj is set before
+//@i  calling this method.
+SetWaitCursor();
+
+string strDBISAPIServer = GetDBISAPIServer();
+
+if ( strDBISAPIServer.length() > 2 )
+{
+    String strClass = Obj.Class().ClassName(); // ie "http://....//Borough"
+    int i = strClass.indexOf("classes");
+    strClass = strClass.right( strClass.length() - i );
+    strClass = strClass.replace("/","::");
+    strClass = strClass.replace("\\","::");
+
+    int mx = obj.MemberCount();
+    int found;
+
+    String wh = globalObject::getKeySQLWhere(Obj);
+
+    String strTable = obj.Class().GetAttr("SQLName" );
+    String strSQL = "select * from "+strTable + " where " + wh;
+
+    HTTPConnection Q;
+    Q.SetServer( GetDBISAPIServer() );
+
+//messagE( ""+GetDBISAPIServer() );
+
+    String strPath = GetDBISAPICommand()+"RefreshObject&cls="+strClass+"&sql="+strSQL ;
+    Q.SetPath( strPath );
+    int ok = Q.DoGet();
+    if (!ok){
+        Message( Q.GetError() );
+        return 0;
+        }
+
+    Object Res = Q.GetObjects();
+    if (Res==null){
+        Message("Error getting XML results");
+        return 0;
+        }
+
+    String err = Res.Error;
+    if (err){
+        if (err=="#NotFound") // special error!!!
+            return -1;
+        Message(err);
+        return 0;
+        }
+
+    CloneObject(Res.Obj,Obj);
+
+    return 1;
+}
+else
+{
+    HTTPConnection Q = GetHTTP("core::SrvObjectQuery");
+
+    Q.Write("<Data>");
+    Q.WriteXML("Obj",Obj);
+    Q.Write("</Data>");
+
+    int ok = Q.DoPost();
+    if (!ok){
+        Message( Q.GetError() );
+        return 0;
+        }
+
+    Object Res = Q.GetObjects();
+    if (Res==null){
+        Message("Error getting XML results");
+        return 0;
+        }
+
+    String err = Res.Error;
+    if (err){
+        if (err=="#NotFound") // special error!!!
+            return -1;
+        Message(err);
+        return 0;
+        }
+
+    String s = Path();
+    // get ServerName
+    if (s.beginsWith("http://") || s.beginsWith("https://"))
+        Obj = Res.Obj; // assign
+    else
+    {
+        /*for (int i=0;i<Res.Obj.MemberCount();i++)
+        {
+            If (res.Obj[i].sqlname() != "~")
+                Obj[i] = Res.Obj[i];
+        } */
+        CloneObject(Res.Obj,Obj);
+    }
+
+    return 1;
+}]]>
+</method>
+<method name="InsertObject" return="int">
+<param name="Obj" type="object" />
+<param name="modDate" type="date" />
+<![CDATA[//@cmember InsertObject
+//@param object | Obj | An object to be inserted into the DB
+//@param date | modDate | Optional date to assign to DCH if it has one
+//@return int | 1 = Success, 0 = fail
+//@version Andrew Griffin | 28-09-01 14:05 |
+//@version Simon Carroll | 01-11-02 10:28 |
+//@i Inserts the object 'Obj' into the DB table.
+
+SetWaitCursor();
+
+HTTPConnection Q = GetHTTP("core::SrvInsertObject");
+
+globalobject::DCHstampMods( Obj, "I", modDate );
+
+Q.Write("<Data>");
+Q.WriteXML("Obj",Obj);
+Q.Write("</Data>");
+
+int ok = Q.DoPost();
+if (!ok){
+    Message( Q.GetError() );
+    return 0;
+    }
+
+Object Res = Q.GetObjects();
+if (Res==null){
+    Message("Error getting XML results");
+    return 0;
+    }
+
+String err = Res.Error;
+if (err){
+    Message(err);
+    // Res.ErrorCode;
+    return 0;
+    }
+
+String s = Path();
+// get ServerName
+if (s.beginsWith("http://") || s.beginsWith("https://"))
+    Obj = Res.Obj; // assign
+else
+{
+    /*for (int i=0;i<Res.Obj.MemberCount();i++)
+    {
+        If (res.Obj[i].sqlname() != "~")
+            Obj[i] = Res.Obj[i];
+    } */
+    CloneObject(Res.Obj,Obj);
+}
+return 1;]]>
+</method>
+<method name="UpdateObject" return="int">
+<param name="Obj" type="object" />
+<param name="ChkCount" type="int" />
+<param name="modDate" type="date" />
+<![CDATA[//@cmember UpdateObject
+//@param object | Obj | An object to update in the database
+//@param int | ChkCount | optional flag, 1 = update 'Obj' with new identity value
+//@param date | modDate | Optional date to assign to DCH if it has one
+//@return int | 1 = Success, 0 = fail
+//@version Andrew Griffin | 28-09-01 15:56 |
+//@version David Salter | 28-04-03 16:47 |
+//@i Finds the row in the DB table that matches
+//@i  Obj's key field,
+//@i Updates all the other fields in the DB row
+//@i  to match Obj's members
+
+SetWaitCursor();
+
+globalobject::DCHstampMods( Obj, "U", modDate );
+
+string strDBISAPIServer = GetDBISAPIServer();
+
+if ( strDBISAPIServer.length() <2 )
+{
+
+    HTTPConnection Q = GetHTTP("core::SrvUpdateObject");
+
+    Q.Write("<Data>");
+    Q.WriteXML("Obj",Obj);
+    classes::CPickN t;
+    t.code = (ChkCount==null) ? 0 : ChkCount;
+    Q.WriteXML("Chk",t);
+    Q.WriteXML("Test", "Data" );        // Fudge for Win 2000.
+    Q.Write("</Data>");
+
+    return StdPost(Q,"UpdateObject");
+}
+else
+{
+    HTTPConnection Q;
+    Q.SetServer( GetDBISAPIServer() );
+
+    String strSQL = classes::core::globalObject::getupdatesql(Obj);
+
+
+    String strPath = GetDBISAPICommand()+"UpdateObject&sql="+strSQL ;
+    Q.SetPath( strPath );
+    int ok = Q.DoGet();
+    if (!ok){
+        Message( Q.GetError() );
+        return 0;
+        }
+
+    Object Res = Q.GetObjects();
+    if (Res==null){
+        Message("Error getting XML results");
+        return 0;
+        }
+
+    String err = Res.Error;
+    if (err)
+    {
+       Message(err);
+        return 0;
+    }
+
+    return 1;
+}]]>
+</method>
+<method name="UpdateObjectQuiet" return="int">
+<param name="Obj" type="object" />
+<param name="ChkCount" type="int" />
+<param name="modDate" type="date" />
+<![CDATA[//@cmember UpdateObjectQuiet
+//@param object | Obj | An object to update in the database
+//@param int | ChkCount | optional flag, 1 = update 'Obj' with new identity value
+//@param date | modDate | Optional date to assign to DCH if it has one
+//@return int | 1 = Success, 0 = fail
+//@version Andrew Griffin | 28-09-01 15:56 |
+//@i Finds the row in the DB table that matches
+//@i  Obj's key field,
+//@i Updates all the other fields in the DB row
+//@i  to match Obj's members. Does not output any error message to the user
+
+SetWaitCursor();
+
+globalobject::DCHstampMods( Obj, "U", modDate );
+
+HTTPConnection Q = GetHTTP("core::SrvUpdateObject");
+
+Q.Write("<Data>");
+Q.WriteXML("Obj",Obj);
+classes::CPickN t;
+t.code = (ChkCount==null) ? 0 : ChkCount;
+Q.WriteXML("Chk",t);
+Q.WriteXML("Test", "Data" );        // Fudge for Win 2000.
+Q.Write("</Data>");
+
+int ok = Q.DoPost();
+if (!ok) return 0;
+Object Res = Q.GetObjects();
+if (Res==null) return 0;
+String err = Res.Error;
+if (err) return 0;
+
+return 1;   // success]]>
+</method>
+<method name="DeleteObject" return="int">
+<param name="Obj" type="object" />
+<param name="modDate" type="date" />
+<![CDATA[//@cmember DeleteObject
+//@param object | Obj | An object to be delete from a DB table
+//@param date | modDate | Optional date to assign to DCH if it has one
+//@return int | 1 = Success, 0 = fail
+//@version Andrew Griffin | 27-09-01 12:16 |
+//@version David Salter | 02-05-03 12:05 |
+//@i Finds the object in the DB table matching
+//@i  Obj's key field,
+//@i Deletes the object from the DB table
+SetWaitCursor();
+string strDBISAPIServer = GetDBISAPIServer();
+
+if ( strDBISAPIServer.length() > 2 )
+{
+    int useDCH = globalobject::DCHstampMods( Obj, "D", modDate );
+
+    HTTPConnection Q;
+    Q.SetServer( GetDBISAPIServer() );
+
+    String strTable, strKeyField, strKeyValue, strModDate, strModUser;
+    if ( useDCH != 0 )
+    {
+        strModUser = Obj.moduser.sql();
+        strModDate = Obj.ModDate.sql();
+    }
+    strTable = obj.Class().GetAttr("SQLName" );
+    strKeyField = classes::core::globalObject::GetKeyField(Obj);
+    strKeyValue = classes::core::globalObject::GetKeyFieldValue(Obj);
+
+    String strPath = GetDBISAPICommand()+"DeleteObject&table="+strTable+"&keyfield="+strKeyField
+                     + "&keyvalue="+strKeyValue+"&moddate="+strModDate+"&moduser="+strModUser;
+
+    Q.SetPath( strPath );
+    int ok = Q.DoGet();
+    if (!ok)
+    {
+        Message( Q.GetError() );
+        return 0;
+    }
+
+    Object Res = Q.GetObjects();
+    if (Res==null)
+    {
+        Message("Error getting XML results");
+        return 0;
+    }
+
+    String err = Res.Error;
+    if (err)
+    {
+        Message(err);
+        return 0;
+    }
+
+    return 1;
+}
+else
+{
+    int useDCH = globalobject::DCHstampMods( Obj, "D", modDate );
+
+    HTTPConnection Q = GetHTTP("core::SrvDeleteObject");
+
+    Q.Write("<Data>");
+    Q.WriteXML("Obj",Obj);
+    Q.WriteXML("useDCH", useDCH);
+    Q.WriteXML("Test", "Data" );        // Fudge for Win 2000.
+    Q.Write("</Data>");
+
+    return StdPost(Q,"DeleteObject");
+}]]>
+</method>
+<method name="DeleteList" return="int">
+<param name="LXDel" type="list" />
+<param name="modDate" type="date" />
+<![CDATA[//@cmember DeleteList
+//@param list | LXDel | An object to be delete from a DB table
+//@param date | modDate | Optional date to assign to DCH if it has one
+//@return int | 1 = Success, 0 = fail
+//@version Andrew Griffin | 27-09-01 12:16 |
+//@i Finds the object in the DB table matching
+//@i  Obj's key field,
+//@i Deletes the object from the DB table
+
+if (!LXDel.count()) return 1;
+
+SetWaitCursor();
+
+int useDCH = globalobject::DCHstampMods( LXDel[0], "D", modDate );
+
+HTTPConnection Q = GetHTTP("classes::core::SrvDeleteList");
+
+Q.Write("<Data>");
+Q.WriteXML("LX",LXDel);
+Q.WriteXML("useDCH", useDCH);
+Q.WriteXML("Test", "Data" );        // Fudge for Win 2000.
+Q.Write("</Data>");
+
+return StdPost(Q,"DeleteList");]]>
+</method>
+<method name="InsertList" return="int">
+<param name="LX" type="list" />
+<param name="DelWhere" type="string" />
+<![CDATA[//@cmember InsertList
+//@param list | LX | List of objects to insert into a DB table
+//@param string | DelWhere | Optional SQL Where clause to delete DB rows.
+//@return int | 1 = Success, 0 = fail
+//@version David Salter | V1.00  | Initial Version
+//@version David Salter | V1.01 11/06/2001 | Added fudge for Win 2000.
+//@version Andrew Griffin | 02-08-02 12:02 |
+//@i Inserts all the objects in the list LX as
+//@i  seperate rows into a database table.
+//@i 'DelWhere' is a string like "LinkNo in (33,22,55)"
+//@i  If none empty, rows matching Del will be deleted
+//@i  before any inserting is done
+
+date cDate = getTimeFromServer();
+globallist::DCHstampMods( LX, "I", cDate );
+
+HTTPConnection Q = GetHTTP("core::SrvInsertList");
+
+Q.Write("<Data>");
+Q.WriteXML("LX",LX);
+Q.WriteXML("Del",DelWhere);
+Q.WriteXML("modUser", UserID);
+Q.WriteXML("modDate", cDate.sql());
+Q.WriteXML("Test", "Data" );        // Fudge for Win 2000.
+Q.Write("</Data>");
+
+Object Res = StdGetResults(Q,"InsertList");
+
+if (Res==null) return 0;
+
+for(int n=0;n<LX.Count();n++){  // copy
+    LX[n] = Res.LX[n];
+}
+
+return 1;]]>
+</method>
+<method name="UpdateList" return="int">
+<param name="LX" type="List" />
+<param name="LXDel" type="List" />
+<![CDATA[//@cmember UpdateList
+//@param List | LX | List of objects to insert into a DB table
+//@param List | LXDel | Optional list of objects to delete from the table.
+//@return int | 1 = Success, 0 = fail
+//@version Andrew Griffin | 25-07-01 13:43 |
+//@version andrew.broad | 05-09-01 12:05 | Added Win 2000 / IIS 5 fix
+//@version Andrew Griffin | 02-08-02 12:02 |
+//@i Updates all the rows in the DB table whos
+//@i  key fields match the objects in list LX.
+//@i 'Del' is a list of objects to be removed
+//@i  from the same table.
+
+date cDate = getTimeFromServer();
+globallist::DCHstampMods( LX, "U", cDate );
+
+HTTPConnection Q = GetHTTP("core::SrvUpdateList");
+
+Q.Write("<Data>");
+Q.WriteXML("LX",LX);
+Q.WriteXML("LXDel",LXDel);
+Q.WriteXML("modUser", UserID);
+Q.WriteXML("modDate", cDate.toString());
+Q.WriteXML("Test", "Data" );        // Fudge for Win 2000.
+Q.Write("</Data>");
+
+Object Res = StdGetResults(Q,"UpdateList");
+
+if (Res==null) return 0;
+
+for(int n=0;n<LX.Count();n++){  // copy
+    LX[n] = Res.LX[n];
+}
+
+return 1;]]>
+</method>
+<method name="ServerMethod" return="object">
+<param name="Obj" type="object" />
+<param name="ErrorOutput" type="object" />
+<![CDATA[//@cmember ServerMethod
+//@param object | Obj | Instance of a server class
+//@param object | ErrorOutput | (Optional) Output stream to put error message (Otherwise message to terminal)
+//@return object | same return type as Obj.OnRequest(ECB)
+//@version Simon Carroll | 01-03-02 14:47 |
+//@version Jonny Moo | 03-12-02 10:10 |
+//@version Jonathan.Muir | 30-09-04 10:08 |
+//@i Creates a copy of Obj on the server machine
+//@i  duplicating its data instance.
+//@i Executes the server versions Obj.onRequest method
+//@i All returned data is passed back to the client.
+//@i (see classes::worktray::srvprocessquery)
+
+SetWaitCursor();
+
+HTTPConnection Q = GetHTTP("core::SrvMethod");
+
+Q.Write("<Data>");
+Q.WriteXML("obj",Obj);
+Q.WriteXML("Test", "Data" );        // Fudge for Win 2000.
+Q.Write("</Data>");
+
+int ok = Q.DoPost();
+if (!ok)
+{
+    if(ErrorOutput==NULL)
+    {
+        Message( Q.GetError() );
+    }
+    else
+    {
+        ErrorOutput.Write(Q.GetError());
+    }
+    return null;
+}
+
+if (Obj.HasMethod("DebugSRV"))
+{
+    Obj.DebugSRV( Q );
+}
+
+Object Res = Q.GetObjects();
+
+if (Res==null)
+{
+    Object B = Q.GetResultsBlob();
+    if(ErrorOutput==NULL)
+    {
+        string sz = sys::GetTempFileName("W2E");
+        string szHtm = sz.left(sz.LastIndexOf("."))+".htm";
+        File F;
+        F.CreateFile(szHtm);
+        F.Open(szHtm,"w");
+        F.WriteBlob(B);
+        F.Close();
+        sys::ShellExecute("",szHtm,"","");
+        F.DeleteFile(sz);
+        if(Message("ERROR CALLING SERVER\r\nSee Error info page behind.\r\n\r\nClick Yes to copy error to clipboard","Error getting XML results",classes::core::windows::MB_YESNO+classes::core::windows::MB_DEFBUTTON2)
+           ==classes::core::windows::IDYES)
+        {
+            sys::copyToClipboard(B.ToString()+"\r\n\r\n"+Q.GetServer()+Q.GetPath());
+        }
+        F.DeleteFile(szHtm);
+    }
+    else
+    {
+        ErrorOutput.Write("Error getting XML results:\r\n"+B.ToString());
+    }
+    return null;
+}
+
+return Res;]]>
+</method>
+<method name="ServerClusterMethod" return="object">
+<param name="Obj" type="object" />
+<![CDATA[//@cmember ServerClusterMethod
+//@param object | Obj | Instance of a server class
+//@return object | same return type as Obj.OnRequest(ECB)
+//@version Simon Carroll | 01-03-02 14:47 |
+//@version Jonny Moo | 03-12-02 10:10 |
+//@version Jonathan.Muir | 09-07-04 12:05 |
+//@i Creates a copy of Obj on the server machine
+//@i  duplicating its data instance.
+//@i Executes the server versions Obj.onRequest method
+//@i If on a cluster will ensure that this gets run on
+//@i ALL servers (if one is down then an error will be reported)
+//@i OnRequest must populate an Error element to report errors
+//@i No other information is guaranteed to be passed back
+
+SetWaitCursor();
+
+string URL = "classes::core::srvClusterMethod";
+
+HTTPConnection Q = GetHTTP(URL);
+
+Q.Write("<Data>");
+Q.WriteXML("obj",Obj);
+Q.WriteXML("Test", "Data" );        // Fudge for Win 2000.
+Q.Write("</Data>");
+
+int ok = Q.DoPost();
+if (!ok)
+{
+    Message( Q.GetError() );
+    return null;
+}
+
+Object Res = Q.GetObjects();
+if (Res==null)
+{
+    Object B = Q.GetResultsBlob();
+    Message(B.toString(),"Error getting XML results");
+    return null;
+}
+
+return Res;]]>
+</method>
+<method name="SubmitBlob" return="object">
+<param name="path" type="string" />
+<param name="B" type="blob" />
+<![CDATA[//@cmember SubmitBlob
+//@param string | path | Path to a file relative to server root
+//@param blob | B | The Blob to submit
+//@version David.Salter | 02-07-03 10:52 |
+//@version Jonathan.Muir | 09-07-04 11:37 |
+//@return object | standard http return object
+//@i Saves a blob from the client to a file on the server
+//@i returns a ParamSet
+//@i DEPRICATED - DOES NOT WORK WITH CLUSTERS
+Object Res;
+
+// If we are in a cluster environment
+if ( classes::core::cluster::GetIsClustered() == 1 )
+{
+    // Loop through all the nodes in the cluster.
+    for ( int i = 0; i < classes::core::cluster::m_ClusterNodes.Count(); i++ )
+    {
+        SetWaitCursor();
+        classes::debug::showObj(classes::core::cluster::m_clusterNodes);
+        HTTPConnection Q = GetHTTP(path);
+        Q.SetServer(classes::core::cluster::m_ClusterNodes[i].Code );
+
+        Q.WriteBlob(B);
+
+        int ok = Q.DoPost();
+        if (!ok){
+            Message( Q.GetError() );
+            return null;
+            }
+
+        Res = Q.GetObjects();
+        if (Res==null){
+            Blob BX = Q.GetResultsBlob();
+            String xxx; if (BX!=null) xxx = BX.toString();
+            Message("Global::SubmitBlob()\n\nError getting XML results\n\n"+
+                path + "\n\n" + xxx );
+            return null;
+            }
+    }
+    return Res;
+}
+else
+{
+    SetWaitCursor();
+
+    HTTPConnection Q = GetHTTP(path);
+
+    Q.WriteBlob(B);
+
+    int ok = Q.DoPost();
+    if (!ok){
+        Message( Q.GetError() );
+        return null;
+        }
+
+    Res = Q.GetObjects();
+    if (Res==null){
+        Blob BX = Q.GetResultsBlob();
+        String xxx; if (BX!=null) xxx = BX.toString();
+        Message("Global::SubmitBlob()\n\nError getting XML results\n\n"+
+            path + "\n\n" + xxx );
+        return null;
+        }
+
+    return Res;
+}]]>
+</method>
+<method name="GetBlob" return="blob">
+<param name="filename" type="string" />
+<param name="noCache" type="int" />
+<![CDATA[//@cmember GetBlob
+//@param string | filename | path of a file relative to server root
+//@param int | noCache | Optional, 1 = Cache the file, 0 = don't cache
+//@version Andrew Griffin | 25-07-01 13:45 |
+//@version Simon Carroll | 14-09-01 11:37 |
+//@return blob | The returned blob
+//@i Loads a blob from a file on the server to the client
+
+SetWaitCursor();
+
+HTTPConnection Q = GetHTTP("");
+Q.SetPath( LivePath+filename );
+
+int cach = 1;
+if (nocache!=null) cach = nocache;
+
+int ok = Q.DoRequest("GET",0,cach); // use cache options
+if (!ok){
+    Message( Q.GetError() );
+    return null;
+    }
+
+HTTPStatusCode = Q.GetStatusCode();
+
+if (HTTPStatusCode==404){ // not found
+    // Message( "The file:\n\n[" + filename + "]\n\n...was not found on the server" );
+    return null;
+    }
+
+return Q.GetResultsBlob();]]>
+</method>
+<method name="GetLastMod" return="string">
+<param name="fnm" type="string" />
+<![CDATA[//@cmember GetLastMod
+//@param string | fnm | path of a file relative to server root
+//@version Rob Davis | 10-10-01 16:36 |
+//@return string | Date as a string
+//@i Returns the date the file 'fnm' was last modified.
+//@i note: The date is returned as a string
+
+if (fnm){
+    HTTPConnection Q = GetHTTP("");
+    Q.SetPath( fnm );
+
+    if (ServerVersion=="Microsoft-PWS/3.0"){
+        int ok = Q.DoRequest("GET",0,0);
+        if (!ok) return "";
+        }
+    else{
+        int ok = Q.DoRequest("HEAD",0,0);
+        if (!ok) return "";
+        }
+    return Q.GetHeader( "Last-Modified" );
+}
+return "";]]>
+</method>
+<method name="LoadList" return="int">
+<param name="path" type="string" />
+<param name="L" type="list" />
+<![CDATA[//@cmember LoadList
+//@param string | path | path of a file
+//@param list | L | list to populate
+//@version Jonathan.Muir | 22-09-04 16:12 |
+//@return int | 1 = Success, 0 = Failed
+//@i Reads in a list from a file
+
+// int ok = Global::LoadList( "classes/client/xxx.txt", LX );
+// int ok = Global::LoadList( "scripts/w2isapi.dll/SrvLX::zod", LX );
+
+path = path.replace("/","::");
+return L.ReadFromFile(path,"",1);
+
+/*
+Blob B = GetBlob(path,999);
+if (B==null) return 0;
+if (HTTPStatusCode!=200){
+    Message(B.toString(),"Global::LoadList() Error " + path);
+    return 0;
+    }
+
+XML XB = B.toXMLObject();  // Blob tag
+if (XB==null) return 0;
+
+XML X = XB.Element(0); // "List" tag
+if (X==null) return 0;
+
+for(int n=0;;n++){
+    XML Z = X.Element(n); if (Z==null) break;
+    String tag = Z.Tag();
+    if (tag=="!--") continue;
+    Object R = L.CreateRow();
+    for(int a=0;a<Z.AttrCount();a++){
+        R.SetMember( Z.AttrName(a), Z.AttrVal(a) );
+        }
+    }
+
+return 1;
+*/]]>
+</method>
+<method name="SaveList" return="int">
+<param name="path" type="string" />
+<param name="L" type="list" />
+<param name="SaveDir" type="int" />
+<param name="IgnoreNonSQL" type="int" />
+<![CDATA[//@cmember SaveList
+//@param string | path | path of file on server
+//@param list | L | list to save
+//@param int | SaveDir | (Optional) 1 = Create directory structure
+//@param int | IgnoreNonSQL | (Optional) Fields with an sql of ~ will be ignored
+//@return int | 1 = Success, 0 = Failed
+//@i Saves a list to a file
+//@version 1.1 | Andrew Barrett | 10/07/2001 | Added sequenec capability
+//@version Andrew Barrett | 01-10-01 12:32 | The XML is now made in ListToXML
+//@version Jonathan.Muir | 19-08-04 08:26 |
+
+SetWaitCursor();
+
+XML X = ListToXML(&L,IgnoreNonSQL);
+
+Blob B;
+B.WriteXML(X);
+
+return SaveBlobToFile(path,B,SaveDir);]]>
+</method>
+<method name="ListToXML" return="XML">
+<param name="L" type="List" />
+<param name="IgnoreNonSQLCols" type="int" />
+<![CDATA[//@cmember ListToXML
+//@param List | L |
+//@param int | IgnoreNonSQLCols |
+//@return XML |
+//@version Andrew Barrett | 01-10-01 12:31 |
+//@version Jonathan.Muir | 19-08-04 08:24 |
+//@i
+
+if (L.count()>0)
+{
+    for(int c=0;;c++)
+    {
+        Object M = &L[0].GetMember(c); if (M==null) break;
+        if (M.getAttr("seq")=="Y")
+        {
+            for (int nRow=0; nRow<L.count(); nRow++)
+            {
+                M=&L[nRow].GetMember(c);
+                if (M.toString()=="") M=L.IncrementSequence();
+            }
+            break;
+        }
+    }
+}
+
+
+XML X;
+X.SetTag("List");
+
+String clx = Sys::MakeRelativeName( Path(), L.Class().ClassName() );
+X.AddAttr("cls",clx);
+X.AddAttr("sequence",L.GetSequence());
+
+for(int n=0;n<L.Count();n++){
+    Object R = &L[n];
+    XML Z = X.CreateElement("Item");
+    for(int c=0;;c++){
+        Object M = &R.GetMember(c); if (M==null) break;
+        if(IgnoreNonSQLCols!=NULL&&IgnoreNonSQLCols==1&&M.GetAttr("sql")=="~") continue;
+        String xx = M.toString();
+        if (xx=="") continue;
+        Z.AddAttr( M.Name(), M.toString() );
+        }
+    }
+
+return(X);]]>
+</method>
+<method name="SaveBlobToFile" return="int">
+<param name="path" type="string" />
+<param name="B" type="blob" />
+<param name="SaveDir" type="object" />
+<![CDATA[//@cmember SaveBlobToFile
+//@param string | path | Path to file on server
+//@param blob | B | Blob to save
+//@param object | SaveDir | (Optional) Set to 1 to create directories
+//@return int | 1 = Success, 0 = Failed
+//@version Jonathan.Muir | 20-07-04 16:49 |
+//@i Saves a blob on the client to a file on the server.
+
+SetWaitCursor();
+
+// make sure path is like "classes::client::xxx.txt"
+path = path.replace("/","::");
+path = path.replace("\\","::");
+
+classes::core::srvsaveclusterblob x;
+x.SavePath = path;
+x.SaveBlob = B;
+if(SaveDir!=NULL)x.SaveDir = SaveDir;
+
+object res = classes::core::global::ServerClusterMethod(x);
+
+//Object Res = SubmitBlob( "classes::core::SrvSaveBlob?" + path, B );
+
+if (Res==null) return 0;
+if (Res.Error){
+    Message(Res.Error);
+    return 0;
+    }
+
+return 1;]]>
+</method>
+<method name="StdPost" return="int">
+<param name="Q" type="HTTPConnection" />
+<param name="cap" type="string" />
+<![CDATA[//@cmember StdPost
+//@param HTTPConnection | Q | The HTTPConnection to Post
+//@param string | cap | Caption for error messages
+//@return int | 1 = Success, 0 = Failed
+//@i Posts an HTTPConnection and reports errors to user.
+
+int ok = Q.DoPost();
+if (!ok){
+    Message( Q.GetError() );
+    return 0;
+    }
+
+Object Res = Q.GetObjects();
+if (Res==null){
+    Message("Error getting XML results",cap);
+    return 0;
+    }
+
+String err = Res.Error;
+if (err){
+    Message(err,cap);
+    return 0;
+    }
+
+return 1;]]>
+</method>
+<method name="Broadcast" return="void">
+<param name="cmd" type="string" />
+<param name="p1" type="object" />
+<param name="p2" type="object" />
+<param name="p3" type="object" />
+<![CDATA[//@cmember Broadcast
+//@param string | cmd | Command string to pass around
+//@param object | p1 | Arbitary object type, optional
+//@param object | p2 | Arbitary object type, optional
+//@param object | p3 | Arbitary object type, optional
+//@version Andrew Griffin | 25-07-01 13:33 |
+//@i Calls the onBroadcast method of all open windows that
+//@i  contain such a method.
+
+for(int n=0;;n++){
+    Object X = Sys::GetOpenWindow(n);
+    if (X==null) break;
+
+    if (X.HasMethod("onbroadcast")) X.OnBroadCast(cmd,p1,p2,p3);
+}]]>
+</method>
+<method name="StdGetResults" return="object">
+<param name="Q" type="HTTPConnection" />
+<param name="cap" type="string" />
+<![CDATA[//@cmember StdGetResults
+//@param HTTPConnection | Q | The HTTPConnection to Post
+//@param string | cap | Caption for error messages
+//@return object | result of post or null
+//@i Posts an HTTPConnection and reports errors to user.
+//@i Returns the results of a succesful post as an ParamSet
+
+int ok = Q.DoPost();
+if (!ok){
+    Message( Q.GetError() );
+    return null;
+    }
+
+Object Res = Q.GetObjects();
+if (Res==null){
+    Message("Error getting XML results",cap);
+    return null;
+    }
+
+if (Res.Error){
+    Message(Res.Error,cap);
+    return null;
+    }
+
+return Res;]]>
+</method>
+<method name="DoesEnvHideMe" return="int">
+<param name="strID" type="string" />
+<![CDATA[//@cmember DoesEnvHideMe
+//@param string | strID | Control Name
+//@return int | 1 = environment hides the control
+//@version David Salter | v1.00 15/02/2001 | Initial version
+//@i Checks if the named control (strID) is hidden
+//@i (based upon environment file) when the form is first opened
+//@i A return value of 1 indicates the control will be hidden
+//@i A return value of 0 indicates the control will not be hidden
+
+String strIni = Sys::GetModulePath();
+String strHide = Sys::GetPrivateProfileString( "Hide", strID, strIni+"w2env.ini" );
+
+return strHide.Val();]]>
+</method>
+<method name="CountRelatedProcesses" return="int">
+<param name="RefType" type="string" />
+<param name="KeyNum" type="int" />
+<param name="KeyText" type="string" />
+<![CDATA[//@cmember CountRelatedProcesses
+//@param string | RefType | Name of the key object (e.g. Contact)
+//@param int | KeyNum | The key number of the key object (if applicable)
+//@param string | KeyText | The key text of the key object (if applicable)
+//@return int | The number of processes related to the specified key object.
+//@version David Salter | v1.00 15/02/2001 | Initial version.
+//@i Counts the number of processes related to the specified
+//@i key object.
+
+string sql = "select count(*) from w2process where keyobject='"+RefType+"' and KeyNumb="+KeyNum+" and KeyText='"+KeyText+"'";
+
+object Res = classes::core::srvSQLquery::DoQuery("ISE", sql, 1);
+
+if ( Res == null )
+    return 1;
+if ( Res.Error )
+{
+    Message( Res.Error );
+    return 1;
+}
+
+String strVal = ""+res.data[0].getmember(0);
+
+return strVal.Val();]]>
+</method>
+<method name="CountObjectsWhere" return="int">
+<param name="ObjClass" type="string" />
+<param name="wh" type="string" />
+<![CDATA[//@cmember CountObjectsWhere
+//@param string | ObjClass | Class name of objects to count
+//@param string | wh | Where clause for SQL count.
+//@return int | The number of records found
+//@version Andrew Griffin | v1.00 6/05/2001 | Initial version.
+//@version Simon Carroll | 20-01-03 10:49 |
+//@i Counts the number of records of type 'ObjClass' that match the
+//@i sql criteria set in 'wh'
+
+object o = sys::loadclass( ObjClass );
+string sql = "select count(*) as counter from " + o.Class().GetAttr("sqlname") + " where " + wh;
+
+object Res = classes::core::srvSQLquery::DoQuery(o.Class().GetAttr("DataSource"), sql, 1);
+
+if ( Res == null )
+    return 1;
+if ( Res.Error )
+{
+    Message( Res.Error );
+    return 1;
+}
+
+String strVal = ""+res.data[0].counter;
+
+return strVal.Val();]]>
+</method>
+<method name="DoesEnvMandateMe" return="int">
+<param name="strID" type="string" />
+<![CDATA[//@cmember DoesEnvMandateMe
+//@param string | strID | Control Name
+//@return int | 1 = environment mandates the control
+//@version David Salter | v1.00 15/02/2001 | Initial version
+//@i Checks if the named control (strID) is mandated
+//@i (based upon environment file) when the form is first opened
+//@i A return value of 1 indicates the control will be mandated
+//@i A return value of 0 indicates the control will not be mandated
+
+String strIni = Sys::GetModulePath();
+String strHide = Sys::GetPrivateProfileString( "Mandatory", strID, strIni+"w2env.ini" );
+
+return strHide.Val();]]>
+</method>
+<method name="HideFromEnv" return="object">
+<param name="TheForm" type="form" />
+<![CDATA[//@cmember HideFromEnv
+//@param form | TheForm | The form to check
+//@return object | always null
+//@version David Salter | v1.00 15/02/2001 | Initial version.
+//@i Hides dynamically generated controls based upon settings in
+//@i the environment file. Always returns null.
+
+String strIni = Sys::GetModulePath();
+
+for ( int i = 0; ; i++ )
+{
+    Object Con = TheForm.GetControl( i );
+    if ( Con == null )
+        break;
+
+    String strControlID = Con.GetControlAttr( "name" );
+
+    if ( strControlID == "" )
+        continue;
+
+    String strHide = Sys::GetPrivateProfileString( "Hide",
+                                                   strControlID,
+                                                   strIni+"w2env.ini" );
+
+    if ( strHide.val() == 1 )
+        Con.SetVisible( 0 );
+}
+
+return null;]]>
+</method>
+<method name="CheckMandatoryControls" return="Control">
+<param name="TheForm" type="form" />
+<![CDATA[//@cmember CheckMandatoryControls
+//@param form | TheForm | The form to check
+//@return control | The first mandatory control that is empty.
+//@version David Salter | V1.00 15/02/2001 | Initial Version
+//@i Checks the controls on a form to see whether mandatory
+//@i data has been entered.  If not, the control that has not
+//@i been specified is set to have focus and is returned to the caller.
+
+for ( int i = 0; ; i++ )
+{
+    Object Con = TheForm.GetControl( i );
+    if ( Con == null )
+        break;
+
+    String strMand = Con.GetControlAttr( "mandatory" );
+    if ( ( strMand.tolower() == "y" ) && ( Con.GetText() == "" ) )
+    {
+        Con.SetFocus();
+        return Con;
+    }
+}
+
+return null;]]>
+</method>
+<method name="InitFormAll" return="void">
+<param name="TheForm" type="form" />
+<param name="resize" type="int" />
+<![CDATA[//@cmember InitFormAll
+//@param form | TheForm | The form to init
+//@param int | resize | resize the form after all init's called?
+//@version Andrew Griffin | V1.00 6/04/2001 | Initial Version
+//@i Calls the init method on all form components and
+//@i Instantiates all custom attribute members.
+//@i Finnally the form is resized if 'resize' is true.
+
+int rez = 1;
+if (resize!=null && resize==0) rez = 0;
+
+for ( int i = 0; ; i++ )
+{
+    Control Con = &TheForm.GetControl( i );
+    if ( Con == null ) break;
+    if (!Con.isType("component") ||
+        !Con.ComponentValid()) continue;
+
+    InitFormAttributes( con );
+    if (Con.hasmethod( "init" )) Con.init();
+    if (rez) con.sizeformtocontent();
+}
+
+if (rez) TheForm.sizeformtocontent();]]>
+</method>
+<method name="InitFormControls" return="void">
+<param name="TheForm" type="form" />
+<param name="resize" type="int" />
+<![CDATA[//@cmember InitFormControls
+//@param form | TheForm | The form to init
+//@param int | resize | resize the form after all init's called? (optional)
+//@version Andrew Griffin | 25-07-01 13:33 | Initial Version
+//@i Calls the init method on all form components,
+//@i then resizes the form if 'resize' is true.
+
+for ( int i = 0; ; i++ )
+{
+    Control Con = &TheForm.GetControl( i );
+    if ( Con == null ) break;
+    if (Con.hasmethod( "init" )) Con.init();
+}
+
+if (resize==null || resize==1) TheForm.sizeformtocontent();]]>
+</method>
+<method name="InitFormAttributes" return="void">
+<param name="TheForm" type="form" />
+<![CDATA[//@cmember InitFormAttributes
+//@param form | TheForm | The form to instatiate
+//@version Andrew Griffin | V1.00 20/03/2001 | Initial Version
+//@i Instantiates all custom attribute members of a form in a component.
+
+for (int i=0; i<TheForm.memberCount(); i++) {
+  memberDef m = &TheForm.memberDef(i);
+  if (m.GetAttr("cattr")=="Y")
+    TheForm.setMember( m.name(), TheForm.GetOuterControl().getControlAttr( m.name() ) );
+}]]>
+</method>
+<method name="SetupComp" return="void">
+<param name="comp" type="component" />
+<param name="class" type="string" />
+<param name="resize" type="int" />
+<![CDATA[//@cmember SetupComp
+//@param component | comp | The component to set
+//@param string | class | The class to insert into the component
+//@param int | resize | resize the component after init is called? (optional)
+//@version Andrew Griffin | 25-07-01 13:33 | Initial Version
+//@i 1) Sets the component to the specified class 'class'
+//@i 2) Calls the init method on that class (if it has one).
+//@i 3) Instantiates the component's custom attribute members
+//@i 4) Resizes the component if 'resize' is true.
+
+comp.setComp( class );
+//comp.InstanceControl();
+InitFormAttributes( comp );
+if (comp.hasmethod( "init" )) comp.init();
+if (resize==null || resize==1) comp.sizeformtocontent();]]>
+</method>
+<method name="cloneObject" return="object">
+<param name="source" type="object" />
+<param name="dest" type="object" />
+<![CDATA[//@cmember cloneObject
+//@param object | source | Object to be copied
+//@param object | dest | Optional Object to place the copy into
+//@return object | An exact copy of 'O'
+//@version Andrew Griffin | 25-07-01 13:36 | Initial Version
+//@version simon.carroll | 08-11-01 09:28 |
+//@version Andrew Griffin | 06-02-02 16:02 |
+//@version Andrew.Barrett | 05-08-02 17:35 |
+//@version Scott Goodwin | 31-03-04 16:25 |
+//@i Creates a clone of an object and ALL its members recursivly.
+
+if (source==null) {
+    return null;    // User Error... Can't duplicate null.
+}
+if (dest==null) return cloneObject2( source );
+if (source.isList()) return copyList( source, dest );
+
+
+//
+// Clone members that exist in both source & destination
+
+for (int i=0; i<source.memberCount(); i++) {
+    object tmp = &source[i];
+    if (tmp==null) continue;
+
+    if (tmp.isObject() || tmp.isList())
+    {
+        switch (tmp.className().lower())
+        {
+            case "blob" : dest[i].WriteBlob(tmp); break;
+            case "xml"  : dest[i] = tmp.Clone(); break;
+            case "criticalsection": break;
+            default     : cloneObject( tmp, dest[i] );
+        }
+    }
+    else
+        if (source[i].isBlank())    // null style vars
+            dest[i].reset();
+        else
+            dest[i] = source[i];
+}
+
+return dest;]]>
+</method>
+<method name="cloneObject2" return="object">
+<param name="O" type="object" />
+<![CDATA[//@cmember cloneObject
+//@param object | O | The object to clone
+//@return object | An exact copy of 'O'
+//@version Andrew Griffin | 14-02-02 13:17 | Initial Version
+//@version Andrew.Barrett | 05-08-02 17:26 |
+//@i Creates a clone of an object and ALL its members recursivly.
+
+object NewO = null, DObj = null, curO = null;
+int max;
+
+if (O.isList()) {
+    DObj = &O.class().createList();
+
+    for (int n=0; n<O.count(); n++) {
+
+        NewO = &DObj.createRow();
+        NewO = O[n];
+
+        for (int i=0; i<O[n].memberCount(); i++) {
+            object tmp = &O[n][i];
+            if (tmp==null) continue;
+            if (tmp.isObject() || tmp.isList())
+                NewO[i] = cloneObject2( tmp );
+        }
+    }
+
+    return DObj;
+
+} else {
+
+    switch (O.className().lower())
+    {
+        case "blob" : blob tmp; tmp.WriteBlob( O ); return tmp;
+        case "xml"  : return O.Clone();
+        case "criticalsection": return(null);
+    }
+
+    NewO = &O.class().createInstance();
+    cloneObject( O, NewO );
+
+    return NewO;
+
+}]]>
+</method>
+<method name="appendClone" return="object">
+<param name="O" type="object" />
+<param name="dList" type="List" />
+<![CDATA[//@cmember appendClone
+//@param object | O | The object to clone
+//@param List | dList | The List to append the clone to
+//@return object | The newly appended list
+//@version Andrew Griffin | 14-02-02 13:17 | Initial Version
+//@i Appends a clone of an object (and ALL its members recursivly)
+//@i  to the passed in list.
+
+object NewO = null, DObj = null, curO = null;
+int max;
+
+NewO = &dList.createRow();
+
+cloneObject( NewO, O );
+
+return NewO;]]>
+</method>
+<method name="copyList" return="list">
+<param name="source" type="List" />
+<param name="dest" type="List" />
+<param name="append" type="int" />
+<![CDATA[//@cmember copyList
+//@param List | source | List to be copied
+//@param List | dest | List to copy into
+//@param int | append | (optional) 1 = append to dest, defaults to 0
+//@return list | A copy of list 'source'
+//@version Andrew Griffin | 30-07-02 14:54 | Initial Version
+//@i Creates a clone of an entire list
+
+if (append==null || !append)
+    dest.reset();
+
+object NewO = null, DObj = null, curO = null;
+int max;
+
+for (int n=0; n<source.count(); n++) {
+
+    NewO = &dest.createRow();
+    NewO = source[n];
+
+    for (int i=0; i<source[n].memberCount(); i++) {
+        object tmp = &source[n][i];
+        if (tmp==null) continue;
+
+        switch (tmp.className())
+        {
+            case "blob" : NewO[i].WriteBlob(tmp); break;
+            case "xml"  : NewO[i] = tmp.Clone(); break;
+            default     :
+            {
+                if (tmp.isObject() || tmp.isList())
+                    NewO[i] = cloneObject( tmp );
+            }  break;
+
+        }
+
+    }
+}
+
+return dest;]]>
+</method>
+<method name="GetDirectoryList" return="object">
+<param name="path" type="object" />
+<param name="wildcard" type="object" />
+<param name="attr" type="object" />
+<param name="Recurse" type="int" />
+<![CDATA[//@cmember GetDirectoryList
+//@param string | path | The path to dir e.g. classes::core
+//@param string | wildcard | The dir wildcard, e.g. *.*
+//@param string | attr | The attributes to dir hsrw
+//@param int | Recurse | 1 to recurse down subdirectories (file names will be relative to this path)
+//@returns dirEntry[] | a list of files and associated details
+//@version Andrew Barrett | V1.00 08/05/2001 | Initial Version
+//@version Jonny Moo | 03-12-02 12:54 |
+//@i Used to dir a directory on the server
+
+string sAttr="";
+string sPath="";
+string sWildCard="";
+
+if (path!=null) sPath=path;
+if (attr!=null) sAttr=attr;
+if (wildcard!=null) sWildcard=wildCard;
+
+classes::core::SrvDirectoryListing D;
+D.Path = sPath;
+D.Attr = sAttr;
+D.Wildcard = sWildcard;
+if(Recurse!=NULL) D.Recurse = Recurse;
+
+Object Res = classes::core::global::ServerMethod( D );
+
+if (Res==null) return(null); // Unable to load server method
+if (Res.Error) return(null); // Error loading files
+
+return(Res.DirList);]]>
+</method>
+<method name="AddInterval">
+<param name="IntervalType" type="object" />
+<param name="interval" type="object" />
+<![CDATA[//@cmember AddInterval
+//@param   IntervalType | string | code e.g W for working days WH for working hours etc
+//@return  Date | the date after the interval has been added
+//@version v1.0 | Simon Carroll | Version 1
+//@version Andrew Griffin | 02-08-02 12:30 |
+//@i This method will be called from this class and wswitchstage.  It requires
+//@i the kind of interval being sent in and the interval to add/
+//@i it will then add this interval to the system time.
+
+//Intervals we have are:
+//M - Month
+//WH - Working Hours
+//"" = Days
+//W - Working Days
+//H - Hours
+
+//Months, days and hours are easy as there is a core function for this.
+
+If (IntervalType == "M")
+    return getTimeFromServer().AddMonths(Interval);
+
+If (IntervalType == "")
+    return getTimeFromServer().AddDays(Interval);
+
+If (intervalType == "H")
+    return getTimeFromServer().AddHours(Interval);
+
+If (intervaltype == "W")
+    return classes::worktray::diary::wworkdays::AddWorkingDays(getTimeFromServer(), interval);
+
+If (intervaltype == "WH")
+    return classes::worktray::diary::wworkdays::AddworkingHours(getTimeFromServer(), interval);]]>
+</method>
+<method name="CopyObjectInto">
+<param name="source" type="object" />
+<param name="dest" type="object" />
+<![CDATA[//@cmember copyObjectInto
+//@param object | source | The object to copy
+//@param object | dest | The object to copy into
+//@return object | 1 if it's worked or a negative value
+//@version Andrew Barrett | V1.00 06/06/2001 | Initial Version
+//@version Andrew Griffin | 06-02-02 16:02 |
+//@version Andrew.Barrett | 05-08-02 17:35 |
+//@i Copies the source object into teh destination object.  Only matching members will be copied.
+
+if (source==null) return(-1);
+if (dest==null) return(-1);
+
+for (int i=0; i<dest.memberCount(); i++)
+{
+    object destMember = &dest[i];
+    object sourceMember = &source.Getmember( destMember.name() );
+    if (destMember==null) continue;
+    if (sourceMember==null) continue;
+
+    if (sourceMember.isObject() || sourceMember.isList())
+    {
+        switch (sourceMember.classname())
+        {
+            case "blob" : destMember.WriteBlob(sourceMember); break;
+            case "xml"  : destMember = sourceMember.Clone(); break;
+            case "criticalsection": break;
+            default     : cloneObject( sourceMember, destMember );
+        }
+    }
+    else
+        if (sourceMember.isBlank())    // null style vars
+            destMember.reset();
+        else
+            destMember = sourceMember;
+}
+
+return(1);]]>
+</method>
+<method name="CopyListInto">
+<param name="source" type="object" />
+<param name="dest" type="object" />
+<![CDATA[//@cmember CopyListInto
+//@param object | source | The object to copy
+//@param object | dest | The object to copy into
+//@return object | 1 if it's worked or a negative value
+//@version Andrew Barrett | V1.00 06/06/2001 | Initial Version
+//@version Andrew Griffin | 06-02-02 16:02 |
+//@version Andrew.Barrett | 09-10-02 14:19 |
+//@i Copies the source object into teh destination object.  Only matching members will be copied.
+
+for (int nRow=0; nRow<source.count(); nRow++)
+    CopyObjectInto(source[nRow],dest.createRow());
+
+return(dest);]]>
+</method>
+<method name="SendEMail">
+<param name="whoto" type="string" />
+<param name="subject" type="string" />
+<param name="message" type="string" />
+<param name="attach" type="string" />
+<param name="whocc" type="object" />
+<param name="sProfile" type="string" />
+<param name="sPassword" type="string" />
+<param name="nQuiet" type="int" />
+<![CDATA[//@cmember SendEMail
+//@param string | whoto | e-mail of person
+//@param string | subject | subject of the e-mail
+//@param string | message | body of the message
+//@param string | attach | file attachment (e.g "c:\w2\w2contact.ini")
+//@param object | whocc |
+//@param string | sProfile |
+//@param string | sPassword |
+//@param int | nQuiet |
+//@return int | 1 if successful, 0 if not
+//@version Simon Carroll | Initial Version | 11/07/2001
+//@version Nick.Gomm | 01-08-02 17:50 |
+//@version Andrew Griffin | 07-08-02 16:08 |
+//@version Nick.Gomm | 18-09-02 16:22 |
+//@version Jonathan.Muir | 11-12-03 16:26 |
+//@version Scott Goodwin | 01-04-04 10:33 |
+//@version scott.goodwin | 06-04-04 14:39 |
+//@version Scott Goodwin | 08-04-04 11:55 |
+//@version Sorina.Grave | 17-08-04 09:45 |
+//@i This will send an email using the above parameters.  The attach parameter
+//@i is a string but can be many files seperated by a comma.
+int nIsQuiet = 0;
+
+if (nQuiet != null && nQuiet > 0)
+{
+    nIsQuiet = 1;
+}
+if ( !nIsQuiet && 0 == ValidateAttachmentSize(attach)) return 0;
+
+Int CominoMail = (classes::core::sysconfig::GetConfig("CominoMailModule")!=null ? classes::core::sysconfig::GetConfig("CominoMailModule") : 0);
+
+if(CominoMail)
+{
+    return SendCominoEmail(whoto,subject,message,attach,whocc,sProfile,sPassword,nIsQuiet);
+}
+else
+{
+    return SendMapiEmail(whoto,subject,message,attach,whocc,sProfile,sPassword,nIsQuiet);
+}]]>
+</method>
+<method name="SendMapiEmail">
+<param name="whoto" type="string" />
+<param name="subject" type="string" />
+<param name="message" type="string" />
+<param name="attach" type="string" />
+<param name="whocc" type="object" />
+<param name="sProfile" type="string" />
+<param name="sPassword" type="string" />
+<param name="nQuiet" type="int" />
+<![CDATA[//@cmember SendMapiEmail
+//@param string | whoto | e-mail of person
+//@param string | subject | subject of the e-mail
+//@param string | message | body of the message
+//@param string | attach | file attachment (e.g "c:\w2\w2contact.ini")
+//@param object | whocc |
+//@param string | sProfile |
+//@param string | sPassword |
+//@param int | nQuiet |
+//@version Sorina.Grave | 17-08-04 09:45 |
+//@return int | 1 if successful, 0 if not
+//@i This will send an email using MAPI with the above parameters.  The attach parameter
+//@i is a string but can be many files seperated by a comma.
+
+object M;
+MAPISession TheMapiSession;
+string sProfileLogon = "";
+string sProfilePassword = "";
+
+if (sProfile != null && sProfile.length() > 0)
+    sProfileLogon = sProfile;
+if (sPassword != null && sPassword.length() > 0)
+    sProfilePassword = sPassword;
+
+int ok = TheMAPISession.Logon(sProfileLogon,sProfilePassword);
+if(ok)
+{
+    M = TheMapiSession;
+}
+else if (!nQuiet)
+{
+    // Try logging in with the dialog box
+
+    classes::core::wblank DummyWindow;
+    Dummywindow.open();
+    MAPISession TheMapiSession2;
+    ok = TheMapiSession2.Logon("","",Dummywindow);
+    M=TheMapiSession2;
+    Dummywindow.close();
+}
+
+If (ok)
+{
+    If (attach != "")
+    {
+        for (int j = 0;;j++)
+        {
+            string thisattach = attach.GetToken(j);
+            If (thisattach == "") break;
+            M.AttachFile(thisattach);
+        }
+
+    }
+
+    int k = M.Send(whoto, subject, message,whocc);
+    If (!k) return 0;
+
+    return 1;
+
+}
+else
+{
+    if (!nQuiet)
+    message("Could not connect to a Mapi client.");
+    return 0;
+}]]>
+</method>
+<method name="SendCominoEmail">
+<param name="whoto" type="string" />
+<param name="subject" type="string" />
+<param name="message" type="string" />
+<param name="attach" type="string" />
+<param name="whocc" type="object" />
+<param name="sProfile" type="string" />
+<param name="sPassword" type="string" />
+<param name="nQuiet" type="int" />
+<![CDATA[//@cmember SendCominoEmail
+//@param string | whoto | e-mail of person
+//@param string | subject | subject of the e-mail
+//@param string | message | body of the message
+//@param string | attach | file attachment (e.g "c:\w2\w2contact.ini")
+//@param object | whocc |
+//@param string | sProfile |
+//@param string | sPassword |
+//@param int | nQuiet |
+//@return int | 1 if successful, 0 if not
+//@version Sorina.Grave | 20-09-04 16:32 |
+//@i This will send an email using the above parameters.This uses CominoMail module functionality
+
+classes::email::BaseClasses::messageOut M;
+
+If (attach != "")
+{
+    for (int j = 0;;j++)
+    {
+        string thisattach = attach.GetToken(j);
+        If (thisattach == "") break;
+        Classes::Email::BaseClasses::Attachment A;
+        File F;
+        if(!F.Open(thisattach,0))
+        {
+            if(!nQuiet) message("File not found: " + thisattach,"Attachment Error",classes::core::windows::MB_ICONSTOP);
+            return 0;
+        }
+        A.fileName    = thisattach.substring(thisattach.lastindexof("\\"));
+        A.Description = thisattach;
+        A.fileContent = F.ReadBlob().EncodeBase64().toString();
+        M.attachmentList.AddRow(A);
+    }
+}
+blob body;
+body.Write(message);
+M.to = whoto;
+M.cc = whocc;
+M.subject = subject;
+M.body = body.EncodeBase64().toString();
+M.displayFrom = UserFullName;
+
+// login using the default account
+int k = classes::EMAIL::EmailActions::Login(null,nQuiet);
+if(k) k = classes::EMAIL::EmailActions::SendMessage(M,null,nQuiet);
+if(k) k= classes::EMAIL::EmailActions::Logout(null,nQuiet);
+return k;]]>
+</method>
+<method name="getTimeFromServer" return="date">
+<![CDATA[//@cmember getTimeFromServer
+//@return date |
+//@version Simon Carroll | 31-01-02 10:21 |
+//@version Andrew Griffin | 02-08-02 14:02 |
+//@version Simon Carroll | 02-12-02 10:51 |
+//@version David.Salter | 08-07-03 10:09 |
+//@i
+
+date now = sys::Time();
+
+int firstTime = !timeQueried.Valid();
+
+if (sys::getEnv("global","MapEditStandAlone").val()) //no web server so return the client time
+    return now;
+
+if (firstTime || now>timeQueried)
+{
+    Object Res;
+    date dServer;
+
+
+    // If no time server is specified
+    if ( GetTimeServer().length() < 2 )
+    {
+        srvGetTime Q;
+        Res = Servermethod(Q);
+        dServer = Res.CurrentTime;
+    }
+    else
+    {
+        Res = GetTimeFromTimeServer();
+        dServer = res.CurrentTime;
+    }
+
+    //
+    // Calculate clock skew...
+
+    //timeSkew = Res.CurrentTime.SecondsSince( now );
+    timeSkew = dServer.SecondsSince(now);
+
+    if (firstTime && timeSkew.abs() > 60*10)
+    {
+        message( "Large Time Skew Detected between local machine and server\r\n" +
+                 "Current skew is " + (timeSkew/60) + " minutes\r\n" +
+                 "Consider re-setting your clock and restarting this application",
+                 "Time Skew Warning", classes::core::windows::MB_ICONASTERISK );
+    }
+
+    sys::DebugOut( "Clock Skew: " + timeSkew + " second(s) laps" );
+
+    timeQueried = Res.CurrentTime;
+    timeQueried.AddMinutes( 10 );   // requery after 10 mins
+}
+
+//
+// Use clock skew to determine server time from local time
+
+return now.AddSeconds( timeSkew );]]>
+</method>
+<method name="RefreshListOnServer">
+<param name="StaticListName" type="object" />
+<![CDATA[//@cmember RefreshListOnServer
+//@param object | StaticListName |
+//@version Simon Carroll | 09-08-02 09:22 |
+//@version David.Salter | 30-06-03 16:14 |
+//@i
+
+// If we are in a cluster environment
+if ( classes::core::cluster::GetIsClustered() == 1 )
+{
+    // Loop through all the nodes in the cluster.
+    for ( int i = 0; i < classes::core::cluster::m_ClusterNodes.Count(); i++ )
+    {
+        SetWaitCursor();
+
+        HTTPConnection Q = GetHTTP("core::SrvRefreshList");
+        Q.SetServer(classes::core::cluster::m_ClusterNodes[i].Code );
+        Q.AddCGIParam("ListLocation",StaticListName);
+
+        int ok = Q.DoPost();
+        if (!ok){
+            Message( Q.GetError() );
+            return 0;
+            }
+
+        Object Res = Q.GetObjects();
+        if (Res==null){
+            Message("Error getting XML results");
+            return 0;
+            }
+
+        String err = Res.Error;
+        if (err){
+            if (err=="#NotFound") // special error!!!
+                return -1;
+            Message(err);
+            return 0;
+            }
+
+    }
+    return 1;
+}
+else
+{
+    SetWaitCursor();
+
+    HTTPConnection Q = GetHTTP("core::SrvRefreshList");
+
+    Q.AddCGIParam("ListLocation",StaticListName);
+
+    int ok = Q.DoPost();
+    if (!ok){
+        Message( Q.GetError() );
+        return 0;
+        }
+
+    Object Res = Q.GetObjects();
+    if (Res==null){
+        Message("Error getting XML results");
+        return 0;
+        }
+
+    String err = Res.Error;
+    if (err){
+        if (err=="#NotFound") // special error!!!
+            return -1;
+        Message(err);
+        return 0;
+        }
+
+    return 1;
+}]]>
+</method>
+<method name="isTelephonyEnabled">
+<![CDATA[//@cmember isTelephonyEnabled
+//@version Andrew.Barrett | 18-09-02 17:11 |
+//@i returns 1 if telephony is enabled
+
+if (telephonyEnabled<0)
+{
+
+    telephonyEnabled=0;
+
+    string sConfig = sys::getModulePath()+"config.ini";
+    if (Sys::GetPrivateProfileString("Telephony","Enabled",sConfig).eq("y"))
+    {
+        if (sys::LoadClass("classes::telephony::cti::telephony")!=null)
+            telephonyEnabled=1;
+    }
+}
+
+return(telephonyEnabled);]]>
+</method>
+<method name="main">
+<![CDATA[//@cmember main
+//@version Andrew.Barrett | 18-09-02 17:08 |
+//@i
+
+message(isTelephonyEnabled()+"");]]>
+</method>
+<method name="RefreshListOnServerByList">
+<param name="strStaticListName" type="String" />
+<param name="lstUpdatedRecords" type="List" />
+<param name="lstUpdatedRecordData" type="List" />
+<![CDATA[//@cmember RefreshListOnServerByList
+//@param String | strStaticListName |
+//@param List | lstUpdatedRecords |
+//@param List | lstUpdatedRecordData |
+//@version Scott.Goodwin | 15-01-03 17:24 |
+//@version David.Salter | 30-06-03 16:14 |
+//@i Calls the server method to update the given list with data
+//@i provided in lstUpdatedUsersData.
+
+// If we are in a cluster environment
+if ( classes::core::cluster::GetIsClustered() == 1 )
+{
+    // Loop through all the nodes in the cluster.
+    for ( int i = 0; i < classes::core::cluster::m_ClusterNodes.Count(); i++ )
+    {
+        SetWaitCursor();
+
+        HTTPConnection Q = GetHTTP("core::SrvRefreshListByList");
+        Q.SetServer(classes::core::cluster::m_ClusterNodes[i].Code );
+
+        Q.WriteXML("ListLocation",strStaticListName);
+        Q.WriteXML("UpdatedRecords",lstUpdatedRecords);
+        Q.WriteXML("UpdatedRecordsData",lstUpdatedRecordData);
+
+        int ok = Q.DoPost();
+        if (!ok){
+            Message( Q.GetError() );
+            return 0;
+            }
+        Object Res = Q.GetObjects();
+        if (Res==null){
+            Message("Error getting XML results");
+            return 0;
+            }
+
+        String err = Res.Error;
+        if (err){
+            if (err=="#NotFound") // special error!!!
+                return -1;
+            Message(err);
+            return 0;
+            }
+    }
+    return 1;
+}
+else
+{
+    SetWaitCursor();
+
+    HTTPConnection Q = GetHTTP("core::SrvRefreshListByList");
+
+    Q.WriteXML("ListLocation",strStaticListName);
+    Q.WriteXML("UpdatedRecords",lstUpdatedRecords);
+    Q.WriteXML("UpdatedRecordsData",lstUpdatedRecordData);
+
+    int ok = Q.DoPost();
+    if (!ok){
+        Message( Q.GetError() );
+        return 0;
+        }
+    Object Res = Q.GetObjects();
+    if (Res==null){
+        Message("Error getting XML results");
+        return 0;
+        }
+
+    String err = Res.Error;
+    if (err){
+        if (err=="#NotFound") // special error!!!
+            return -1;
+        Message(err);
+        return 0;
+        }
+
+    return 1;
+}]]>
+</method>
+<method name="UpdatePassword">
+<param name="strUserID" type="string" />
+<param name="strDigest" type="string" />
+<param name="strNewDigest" type="string" />
+<param name="strModUser" type="string" />
+<![CDATA[//@cmember UpdatePassword
+//@param string | strUserID |
+//@param string | strDigest |
+//@param string | strNewDigest |
+//@param string | strModUser |
+//@version Scott.Goodwin | 03-02-03 10:44 |
+//@version Scott Goodwin | 11-09-03 14:41 | Add error checking
+//@version Jonathan.Muir | 25-05-04 16:38 |
+//@i Attempts to change the specified users password via the srvUpdatePass
+//@i server method.
+SetWaitCursor();
+
+HTTPConnection objLogin = GetHTTP("classes::workers::util::srvUpdatePass");
+
+objLogin.AddCGIParam( "strUserID", strUserID );
+objLogin.AddCGIParam( "strDigest", strDigest );
+objLogin.AddCGIParam( "strNewDigest", strNewDigest );
+objLogin.AddCGIParam( "strModUser", strModUser );
+
+int nResult = objLogin.DoPost();
+if (!nResult)
+{
+    Message( objLogin.GetError() );
+    return 0;
+}
+
+object oResult = objLogin.GetObjects();
+if (oResult==null)
+{
+    Message("Error getting XML results.  Password unchanged.");
+    return 0;
+}
+
+string sError = oResult.Error;
+if (sError)
+{
+    classes::core::functions::ReportError(oResult);
+    return 0;
+}
+return 1;]]>
+</method>
+<method name="GetTimeFromTimeServer">
+<![CDATA[//@cmember GetTimeFromTimeServer
+//@version David.Salter | 25-06-03 15:24 |
+//@i
+string strTimeServer = GetTimeServer();
+if ( strTimeServer.length() < 2 )
+    return null;
+
+HTTPConnection Q;
+Q.SetServer( GetTimeServer() );
+
+
+String strPath = GetTimeServerCommand();
+if ( strPath.length() == 0 )
+    return null;
+
+Q.SetPath( strPath );
+int ok = Q.DoGet();
+if (!ok){
+    Message( Q.GetError() );
+    return 0;
+    }
+
+Object Res = Q.GetObjects();
+
+return res;]]>
+</method>
+<method name="GetNonStaticMethodList">
+<param name="TheClass" type="ClassDef" />
+<![CDATA[//@cmember GetNonStaticMethodList
+//@param ClassDef | TheClass |
+//@version Sorina Grave | 11-12-03 15:00 |
+//@version Jonathan.Muir | 05-01-04 13:13 |
+//@i
+
+xml x = &classes::core::xml::globalxml::LoadXML( TheClass.ClassName()+".xml");
+
+Classes::CPickS TheReturn[];
+
+object x1     = x.FindElement("Class");
+if(x1==NULL)
+{
+    x1 = x.FindElement("Form");
+
+}
+if(x1!=NULL)
+{
+    x     = x1.FindElement("Members");
+
+    if(x!=NULL)
+    {
+
+        For(int i=0;i<x.Count();i++)
+        {
+            XML TheElement = x.Element(i);
+            If(TheElement.Tag().Eq("Method"))
+            {
+                Object R = &TheReturn.CreateRow();
+                R.Code = TheElement.GetAttr("Name");
+                R.Desc = TheElement.GetAttr("Name");
+                String Params = "";
+                For (int j=0;j<TheElement.Count();j++)
+                {
+                    If(TheElement.Element(j).Tag().Eq("Param"))
+                    {
+                        Params.AddToken(TheElement.Element(j).GetAttr("Type") + " " + TheElement.Element(j).GetAttr("Name"));
+                    }
+                }
+                R.Desc = R.Desc + "(" + Params + ")";
+            }
+        }
+    }
+}
+
+return TheReturn;]]>
+</method>
+<method name="GetStaticMethodList">
+<param name="TheClass" type="ClassDef" />
+<![CDATA[//@cmember GetStaticMethodList
+//@param ClassDef | TheClass |
+//@version Sorina Grave | 11-12-03 15:00 |
+//@i
+
+xml x = &classes::core::xml::globalxml::LoadXML( TheClass.ClassName()+".xml");
+x     = x.FindElement("Class");
+x     = x.FindElement("Static");
+
+Classes::CPickS TheReturn[];
+
+For(int i=0;i<x.Count();i++)
+{
+    XML TheElement = x.Element(i);
+    If(TheElement.Tag().Eq("Static"))
+    {
+        Object R = &TheReturn.CreateRow();
+        R.Code = TheElement.GetAttr("Name");
+        R.Desc = TheElement.GetAttr("Name");
+        String Params = "";
+        For (int j=0;j<TheElement.Count();j++)
+        {
+            If(TheElement.Element(j).Tag().Eq("Param"))
+            {
+                Params.AddToken(TheElement.Element(j).GetAttr("Type") + " " + TheElement.Element(j).GetAttr("Name"));
+            }
+        }
+        R.Desc = R.Desc + "(" + Params + ")";
+    }
+}
+
+return TheReturn;]]>
+</method>
+<method name="OnServer" return="int">
+<![CDATA[//@cmember OnServer
+//@return int |  Returns a 1 if you are running on the server
+//@version Jonathan.Muir | 24-03-04 09:35 |
+//@i
+
+
+
+String s = Path().lower();
+
+return (!s.beginsWith("http://") && !s.BeginsWith("https://"));]]>
+</method>
+<method name="GetServerName">
+<![CDATA[//@cmember GetServerName
+//@param
+//@return
+//@version Jonathan.Muir | 30-09-04 09:41 |
+//@i
+
+string sPath = path();
+
+object lock = m_GetServerCS.Enter();
+// Get the servername
+if (!servername)
+{
+    String cfg = Sys::GetModulePath() + "config.ini";
+    servername = Sys::GetPrivateProfileString("Config","ServerName",cfg);
+
+    if (!servername)
+    {
+        int nThirdSlash=0;
+
+        if (sPath.beginsWith("http://"))
+        {
+            nThirdSlash = sPath.indexOf("/",7);
+            ServerName = sPath.substring(7,nThirdSlash);
+        }
+        else if (sPath.beginsWith("https://"))
+        {
+            nThirdSlash = sPath.indexOf("/",8);
+            ServerName = sPath.substring(8,nThirdSlash);
+        }
+        else
+            serverName="localhost";
+    }
+
+}
+
+// Get the class path
+if (!LivePath)
+{
+
+    String cfg = Sys::GetModulePath() + "config.ini";
+    LivePath = Sys::GetPrivateProfileString("Config","LivePath",cfg);
+
+    if (!LivePath)
+    {
+        int ci = sPath.indexOf("/classes/");
+        int nThirdSlash = sPath.indexOf("/",8);
+        LivePath = sPath.substring(nThirdSlash+1,ci+1);
+    }
+
+    if (LivePath.right(1)!="/") LivePath+="/";
+
+}
+lock.unlock();]]>
+</method>
+<method name="ValidateAttachmentSize">
+<param name="strAttachments" type="string" />
+<![CDATA[//@cmember ValidateAttachmentSize
+//@param string | strAttachments |
+//@version Scott Goodwin | 31-03-04 16:00 |
+//@i  Returns 0 if user chooses not to send email, 1 otherwise
+
+// should we check the total attach size
+if (classes::core::sysconfig::GetConfig("EMAILATTACHMENTLIMIT") != NULL)
+{
+    // get the max size
+    double warnsize = classes::core::sysconfig::GetConfig("EMAILATTACHMENTLIMIT");
+    if (warnsize>0)
+    {
+        // add up all file sizes
+        double totsize=0;
+        File F;
+        for (int a=0;;a++)
+        {
+            // get next file
+            string fnm = strAttachments.GetToken(a);
+            if (!fnm) break;
+            //
+            int filesize = File::FileLength(fnm);
+            if (filesize>0) totsize+=filesize;
+
+        }
+
+        // convert totsize to KB
+        totsize = totsize/1024;
+        totsize = totsize.ceil();
+
+        //compare
+        if (totsize > warnsize)
+        {
+            string msg = "The attachments total " + totsize + "KB in size.";
+            msg+="\nAre you sure you want to send this?";
+            if (!globalForm::areYouSure(msg,"Attachments Exceed " + warnsize + "KB") )
+                return 0;
+        }
+    }
+}
+
+return 1;]]>
+</method>
+<method name="GetCacheTempDir">
+<param name="bCreate" type="object" />
+<![CDATA[//@cmember GetCacheTempDir
+//@param object | bCreate |
+//@version Jonathan.Muir | 29-07-04 10:13 |
+//@i
+
+
+GetServerName();
+
+string szDir = sys::GetTempDir();
+if(!szDir.right(1).eq("\\")) szDir+="\\";
+
+szDir+="CominoTempFiles\\";
+
+file fdir;
+fdir.CreateDir(szDir);
+
+if(ServerName)
+{
+    szDir+=ServerName+"\\";
+
+    if(bCreate!=NULL&&bCreate)
+    {
+        // Attemp to create directory (incase it doesn't exist)
+        fdir.CreateDir(szDir);
+    }
+}
+
+if(LivePath)
+{
+    string szLivePath = LivePath;
+    if(LivePath.Right(1)=="/")
+    {
+        szLivePath = livePath.Left(LivePath.Length()-1);
+    }
+    szDir+=szLivePath+"\\";
+    if(bCreate!=NULL&&bCreate)
+    {
+        // Attemp to create directory (incase it doesn't exist)
+        fdir.CreateDir(szDir);
+    }
+}
+
+fdir.close();
+return szDir;]]>
+</method>
+</static>
+<return>
+<rmeth name="GetUserID" cls="string" />
+<rmeth name="GetHTTP" cls="HTTPConnection" />
+<rmeth name="ListQuery" cls="int" />
+<rmeth name="ListFromSQL" cls="list" />
+<rmeth name="ObjectQuery" cls="object" />
+<rmeth name="RefreshObject" cls="int" />
+<rmeth name="InsertObject" cls="int" />
+<rmeth name="UpdateObject" cls="int" />
+<rmeth name="UpdateObjectQuiet" cls="int" />
+<rmeth name="DeleteObject" cls="int" />
+<rmeth name="DeleteList" cls="int" />
+<rmeth name="InsertList" cls="int" />
+<rmeth name="UpdateList" cls="int" />
+<rmeth name="ServerMethod" cls="object" />
+<rmeth name="ServerClusterMethod" cls="object" />
+<rmeth name="SubmitBlob" cls="object" />
+<rmeth name="GetBlob" cls="blob" />
+<rmeth name="GetLastMod" cls="string" />
+<rmeth name="LoadList" cls="int" />
+<rmeth name="SaveList" cls="int" />
+<rmeth name="ListToXML" cls="XML" />
+<rmeth name="SaveBlobToFile" cls="int" />
+<rmeth name="StdPost" cls="int" />
+<rmeth name="Broadcast" cls="void" />
+<rmeth name="StdGetResults" cls="object" />
+<rmeth name="DoesEnvHideMe" cls="int" />
+<rmeth name="CountRelatedProcesses" cls="int" />
+<rmeth name="CountObjectsWhere" cls="int" />
+<rmeth name="DoesEnvMandateMe" cls="int" />
+<rmeth name="HideFromEnv" cls="object" />
+<rmeth name="CheckMandatoryControls" cls="Control" />
+<rmeth name="InitFormAll" cls="void" />
+<rmeth name="InitFormControls" cls="void" />
+<rmeth name="InitFormAttributes" cls="void" />
+<rmeth name="SetupComp" cls="void" />
+<rmeth name="cloneObject" cls="object" />
+<rmeth name="cloneObject2" cls="object" />
+<rmeth name="appendClone" cls="object" />
+<rmeth name="copyList" cls="list" />
+<rmeth name="GetDirectoryList" cls="object" />
+<rmeth name="getTimeFromServer" cls="date" />
+<rmeth name="OnServer" cls="int" />
+</return>
+</class>

@@ -1,0 +1,2807 @@
+<form name="wFloatCtrlEdit" caption="Control" savepos="Control Attr Editor" icon="::designer.ico" margin="0" toolwindow="1" minsize="1" fauthor="$Author: Chris Moran$" fdate="$Date: 26 03 04 8:29$" frevision="$Revision: 3$" xxsizeable="1" xxtoolwindow="1" comment="This is the floating window for editting a control properties">
+<members>
+<String name="oldname" />
+<List name="cAttrib" cls="classes::CPickS" />
+<String name="relGroups" />
+<String name="relAttrs" />
+<List name="projList" cls="classes::CPickS" />
+<List name="cStretch" cls="classes::CPickS" />
+<Integer name="isDocked" />
+<String name="cName" desc="Control Type Name (ie. &quot;Edit&quot;)" />
+<method name="Init">
+<![CDATA[//@version Andrew Griffin | 12-12-01 09:56 |
+
+SetWindowName("ControlEditor");
+
+if (!cFontFaces.count()) {      // populate font list
+    classes::cpicks afont;
+    stringarray Z = &Sys::GetFontFamilies();
+    for (int c=0;c<Z.Count();c++) {
+        afont.desc = Z[c];
+        if (afont.desc=="MS Sans Serif") afont.code=""; else afont.code = afont.desc;
+        cFontFaces.AddRow( afont );
+    }
+}
+
+isDocked = getParent().hasmethod( "readfile" );]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" type="edobject" />
+<![CDATA[//@cmember ShowCtrl
+//@param edobject | Ctrl |
+//@version Andrew Griffin | 11-06-02 15:03 |
+//@version Scott.Goodwin | 17-06-03 13:29 |
+//@version Jonathan.Muir | 12-04-05 08:58 |
+//@version darren.ball | 22-04-08 12:30 |
+
+// params: Ctrl - an EdObject or EdGrid from the GridEditor
+
+cAttrib.reset();
+if (Ctrl!=null)
+{
+    ShowGroup( "gHeader", 1 );
+
+    CName = Ctrl.TypeName;
+    // is it a list grid box?
+    if (CName=="grid"){
+        if (Ctrl.GetAttr("IsList")=="Y")        CName = "ListBox";
+        if (Ctrl.GetAttr("IsComp")=="Y")        CName = "Component";
+        if (Ctrl.GetAttr("IsMultiPane")=="Y")   CName = "MultiPane";
+    }
+    // go
+    setText(CName); // set windows caption
+
+    // Loop through controls...
+
+    relGroups = "";
+    relAttrs = "";
+    int ok, anyData = 1;
+    object lastGrpCtr;
+    string data;
+    string cid = cname.tolower();   // Control Id for visible groups...
+    if (cid=="sourceeditor") cid="st";
+    else cid = cid.left(1) + cid.right( 1 );
+
+    for (int i=0; i<ControlCount(); i++) {
+        control c = &GetControl(i);
+        string app = c.GetControlAttr( "gapp" );
+
+        if (app) {
+            string grp = c.GetControlAttr( "param" );
+
+            if (lastGrpCtr!=null) {
+                doDropOptions( lastGrpCtr, anyData );
+                anyData = 0;
+            }
+
+            //if (app=="custom") continue;
+
+            // Only show relevent Drop Down Control Sections
+            lastGrpCtr = &c;
+
+
+            ok = app=="custom" || app.findtoken( cid )>=0;
+            showGroup( grp+"Bar", ok );
+            showGroup( grp, ok );
+              if (ok) {
+                relGroups.addtoken( grp );
+                //relAttrs.addtoken( "_" + grp );
+            }
+        }
+
+        //  Only show relevent controls
+        app = c.GetControlAttr( "app" );
+
+        ok = !app || app.findtoken( cid )>=0;
+        if (app) c.setVisible( ok );
+
+        if (ok) {   // Init control values...
+            string setAttr = c.GetControlAttr( "setAttr" );
+            if (setAttr) {
+                switch (setAttr) {
+                  case "name": data = ctrl.name; break;
+                  case "text": data = ctrl.text; break;
+                  case "img":  data = trimImg( ctrl.img ); break;
+                  case "imgtile": data = ctrl.imgtile.toString(); break;
+                  case "bk": data = colIntToStr( ctrl.bkcolor ); break;
+                  case "bkimg": data = trimImg( ctrl.BKimg ); break;
+                  case "lpad": data = ""+ctrl.leftpad; break;
+                  case "rpad": data = ""+ctrl.rightpad; break;
+                  case "tpad": data = ""+ctrl.toppad; break;
+                  case "bpad": data = ""+ctrl.bottompad; break;
+                  case "shadt":data = ""+ctrl.shadt; if (data=="0") data=""; break;
+                  case "shadx":data = ""+ctrl.shadx; if (data=="0") data=""; break;
+                  case "shady":data = ""+ctrl.shady; if (data=="0") data=""; break;
+                  case "Ter32Control": {
+                    data = ctrl.GetAttr( setAttr );
+                    if(data.eq("")) data = "N";
+                  }
+                  default:     data = ctrl.GetAttr( setAttr );
+                }
+                c.setText( data );   // Set current control Text
+                if (data) anyData = 1;
+                if (c.GetControlAttr( "setCol" )) doColorEd( c, 1 );   // if it's a colour selector
+                relAttrs.addtoken( setAttr );
+            }
+            else {
+                setAttr = c.GetControlAttr( "theplist" );   // If it's a picklist->attribute drop down
+                if (setAttr) {
+                    data = getAttrOption( setAttr, ctrl );
+                    c.setText( data );
+                    if (data) anyData = 1;
+                }
+
+                setAttr = c.GetControlAttr( "setCol" );
+                if (setAttr) {
+                    switch (setAttr) {
+                      case "tx" :
+                        c.setBkColor( ctrl.TextColor );
+                        if (ctrl.TextColor!=-1) anyData = 1;
+                        break;
+                      case "shadc" :
+                        c.setBkColor( ctrl.shadc );
+                        if (ctrl.shadc!=-1) anyData = 1;
+                        break;
+                      case "tlc" :
+                        c.setBkColor( ctrl.tlc );
+                        if (ctrl.tlc!=-1) anyData = 1;
+                        break;
+                      case "brc" :
+                        c.setBkColor( ctrl.brc );
+                        if (ctrl.brc!=-1) anyData = 1;
+                        break;
+                      default:
+                        data = ctrl.GetAttr( setAttr );
+                        DoJustButtonColor( c, data );
+                        if (data) anyData = 1;
+                    }
+                }
+            }
+            string call = c.GetControlAttr( "call" );
+            if (call) {
+                if (call=="doUseGrid") {
+                    if (Ctrl.Rows()) c.SetText("1");
+                    else             c.SetText("");
+                } else
+                if (call!="doName") ExecMethod( call, c );    // if it has a specific method to call...
+            }
+        }
+
+    }
+
+//    showGroup("gCAttr", 1);
+    setupCAttr( Ctrl );
+
+    // are we within a list box...
+    edgridcell egc = &GetGridParent().idGridEdit.CurrentCell();
+    if (egc!=null)
+        while (1) {
+            egc = &egc.getParentCell();
+            if (egc == null) break;
+
+            edObject obj = &egc.GetObject();
+            if (obj==null) continue;
+
+            if (obj.GetAttr("IsList")=="Y") {
+                cName = "ListBox";
+                break;
+            }
+        }
+
+} else {
+    CName = "";
+    relGroups = "";
+    for (int i=0; i<ControlCount(); i++) {
+        control c = &GetControl(i);
+        string app = c.GetControlAttr( "gapp" );
+        if (app) {
+            string grp = c.GetControlAttr( "param" );
+            showGroup( grp+"Bar", 0 );
+            showGroup( grp, 0 );
+        }
+    }
+    setText("Empty Cell");
+    ShowGroup( "gHeader", 0 );
+    SizeFormNow();
+}]]>
+</method>
+<method name="setupCAttr">
+<param name="Ctrl" type="Control" />
+<![CDATA[//@version Andrew Griffin | 12-12-01 09:56 |
+//showGroup("cAttr", 1);
+
+// show the load attributes button...?
+idLoadable.setVisible( Ctrl.GetAttr("IsComp")=="Y" );
+
+for (int i=0;; i++) {
+    string n = Ctrl.AttrName(i);
+    if (n=="") break;
+    string v = Ctrl.AttrValue(i);
+    if (builtInAttrib(n) || v=="") continue;
+
+    classes::CPickS nr = &cAttrib.createRow();
+
+    nr.code = n;
+    nr.desc = v;
+}
+
+idCustomAttr.cancelSelect();
+idCustomAttr.setFocus();
+idCustomAttr.setCurrent( cAttrib.count()-1 );
+
+SizeFormNow();]]>
+</method>
+<method name="OnClose">
+<![CDATA[
+Show(0);]]>
+</method>
+<method name="SetCtrlAttr">
+<param name="attr" type="object" />
+<param name="val" type="object" />
+<![CDATA[//@version Andrew Griffin | 12-12-01 09:53 |
+
+WGridEdit P = &GetGridParent();
+if (P==null) return;
+
+Object X = &P.idGridEdit.CurrentCell();
+if (X==null){ // nothing selected
+    P.idGridEdit.TheGrid.SetAttr( attr, val );
+    P.idGridEdit.CalcSizesIf();
+    }
+else{
+    P.idGridEdit.SetControlAttr( attr, val );
+    P.idGridEdit.CalcSizesIf();
+    }
+
+P.getparent().SetMod(null,1);]]>
+</method>
+<method name="ShowAllAttr">
+<![CDATA[//@version Andrew Griffin | 12-12-01 09:41 |
+
+Object P = &GetGridParent();
+if (P==null) return;
+Object X = &P.idGridEdit.CurrentCell();
+if (X==null) return; // nothing selected
+Object Obj = X.GetObject();
+if (Obj==null) return;
+
+string s;
+for(int n=0;;n++)
+{
+    string nm = Obj.AttrName(n); if (!nm) break;
+    string vl = Obj.AttrValue(n); if (!vl) continue;
+    s += nm + "='" + vl + "'\r\n";
+}
+
+if (s) Message(s,"Other Attributes...");]]>
+</method>
+<method name="doAdd">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+classes::core::WinputBox::Open(this, "addAttrib", "Enter New Attribute name", "Add Custom Attribute", "");]]>
+</method>
+<method name="addAttrib">
+<param name="str" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 12-12-01 09:56 |
+//@i
+
+if (str=="") return;
+
+str.toLower();
+
+if (str.indexOf(" ")>=0) {
+    message("Custom Attributes can't contain spaces. Please try again.");
+    doAdd();
+    return;
+}
+
+if (builtInAttrib(str)) {
+    message("This is a reserved attribute name. Please choose a different name.");
+    doAdd();
+    return;
+}
+
+classes::CPickS nr = &cAttrib.findRow( str );
+
+if (nr!=null) {
+    message("This custom attribute already exists, choose a new name");
+    doAdd();
+    return;
+}
+
+nr = &cAttrib.createRow();
+
+nr.code = str;
+nr.desc = "<enter value>";
+
+SizeFormNow();
+idCustomAttr.cancelSelect();
+idCustomAttr.setFocus();
+idCustomAttr.setCurrent( cAttrib.count()-1 );
+
+SetCtrlAttr( str, nr.desc );]]>
+</method>
+<method name="doDel">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 12-12-01 09:56 |
+//@i
+
+int i = cAttrib.CurrentIndex();
+if (i==-1) return;
+
+SetCtrlAttr( cAttrib[i].code, "" );
+
+cAttrib.deleteRow(i);
+
+SizeFormNow();]]>
+</method>
+<method name="getCAttrs">
+<![CDATA[//@version Andrew Griffin | 12-12-01 09:50 |
+
+string cls = idClassName.getText();
+
+if (cls=="") return;
+
+object clas = GetGridParent().GetParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+
+object o = &sys::newObject( cls, tPath );
+if (o==null) {
+    message("Class does not exist. Please check the file name");
+    return;
+}
+
+classes::CPickS atrBack[];
+for (int i=0; i<cAttrib.count(); i++)
+    atrBack.addRow( cAttrib[i] );
+
+cAttrib.reset();
+
+for (i=0; i<o.memberCount(); i++) {
+  memberDef m = &o.memberDef(i);
+  if (m.GetAttr("cattr")=="Y") {
+
+    classes::CPickS nr = &cAttrib.findRow( m.name().lower() );
+    if (nr!=null) continue;
+    nr = &cAttrib.createRow();
+    nr.code = m.name().lower();
+
+    object o2 = &atrBack.findRow( nr.code );
+    if (o2==null) {
+        nr.desc = m.GetAttr("constval");
+        if (nr.desc=="") nr.desc = "<enter value>";
+    } else {
+        nr.desc = o2.desc;
+        o2.removeFromList();
+    }
+
+    SetCtrlAttr( nr.code, nr.desc );
+  }
+}
+
+if (atrBack.count() > 0) {
+
+  string atrStr;
+  for (i=0; i<atrBack.count(); i++)
+    atrStr += (atrStr ? ", " : "") + atrBack[i].code;
+
+  int ans = (message( "Do you want to delete the attributes listed below:\r\n" + atrStr,
+      "Delete unspecified attributes",
+      classes::core::windows::MB_YESNO ) == classes::core::windows::IDYES);
+
+    for (i=0; i<atrBack.count(); i++)
+      if (!ans) cAttrib.addRow( atrBack[i] );
+           else SetCtrlAttr( atrBack[i].code, "" );
+
+  }
+
+FitContentToForm();
+
+idCustomAttr.cancelSelect();
+idCustomAttr.setFocus();
+idCustomAttr.setCurrent( cAttrib.count()-1 );]]>
+</method>
+<method name="changeCustom">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+classes::CPickS nr = &idCustomAttr.currentRow();
+
+if (nr==null) return;   // should never happen...
+
+SetCtrlAttr( nr.code, nr.desc );]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[//@cmember builtInAttrib
+//@param string | builtInAttrib | attribute name to check
+//@return int | 1 = This is a built in attribute, 0 = otherwise
+//@version Andrew Griffin | 09-10-01 12:04 |
+//@i Returns true if the passed attribute name is a built in attribute.
+
+switch (attrName) {
+  case "IsComp", "IsComp2", "IsList" : return 1;
+}
+
+return (relAttrs.findtoken( attrName )>=0);]]>
+</method>
+<method name="onChar">
+<param name="Key" type="int" />
+<param name="State" type="int" />
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember onChar
+//@param int | Key |
+//@param int | State |
+//@param control | Ctrl |
+//@version Andrew Griffin | 12-12-01 09:41 |
+//@i
+
+if (key==13 && Ctrl==idClassName) {
+    loadNewComponent();
+    return;
+}
+
+GetGridParent().onChar( Key, State, Ctrl );]]>
+</method>
+<method name="doExpandAll">
+<![CDATA[//@cmember doExpandAll
+//@version Andrew Griffin | 12-12-01 09:56 |
+//@i
+
+for (int i=0;; i++) {
+    string grp = relGroups.gettoken( i );
+    if (!grp) break;
+
+    doDropOptions( GetControl( grp ), 1 );
+    //ShowGroup( grp, 1 );
+}
+
+SizeFormNow();]]>
+</method>
+<method name="doShrinkWrap">
+<![CDATA[//@cmember doShrinkWrap
+//@version Andrew Griffin | 12-12-01 09:41 |
+//@i
+
+WGridEdit P = &GetGridParent();
+if (P==null) return;
+
+Object X = &P.idGridEdit.CurrentCell();
+if (X!=null) X = &X.GetObject(); else X = &P.idGridEdit.TheGrid;
+
+showCtrl(X);]]>
+</method>
+<method name="doAttrChange">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember doAttrChange
+//@param edit | ctrl |
+//@version Andrew Griffin | 05-10-01 09:46 |
+//@i
+
+string attrName = ctrl.GetControlAttr( "setattr" );
+string callmeth = ctrl.GetControlAttr( "call" );
+
+if (attrName) SetCtrlAttr( attrName, ctrl.getText() );
+
+if (callmeth && HasMethod( callmeth ))
+    ExecMethod( callmeth, ctrl );]]>
+</method>
+<method name="doAttrOptionChange">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember doAttrOptionChange
+//@param edit | ctrl |
+//@version Andrew Griffin | 30-10-01 15:18 |
+//@i
+
+string thePList = ctrl.GetControlAttr( "theplist" );
+classes::cpicks l = &getstaticmember( thePList );
+
+string val = ctrl.getText();
+
+// clear attributes
+for (int i=0; i<l.Count(); i++) {
+    string tok = l[i].code.gettoken(0);
+    if (!tok) continue;
+    SetCtrlAttr( tok, ((val.findtoken( tok )==-1) ? "" : "1") );
+}
+
+string callmeth = ctrl.GetControlAttr( "call" );
+if (callmeth && HasMethod( callmeth ))
+    ExecMethod( callmeth, ctrl );]]>
+</method>
+<method name="getAttrOption">
+<param name="thePList" type="string" />
+<param name="ctrl" type="edobject" />
+<![CDATA[//@cmember getAttrOption
+//@param string | thePList |
+//@param edobject | ctrl |
+//@version Andrew Griffin | 05-10-01 13:10 |
+//@i
+
+classes::cpicks l = &getstaticmember( thePList );
+string tok;
+
+for (int i=0; i<l.count(); i++)
+    relAttrs.addtoken( l[i].code.gettoken(0) );
+
+for (i=l.count()-1; i>=0; i--) {
+    for (int j=0;; j++) {
+        tok = l[i].code.gettoken( j );
+        if (!tok) return l[i].code; // control has all needed tokens...
+        if ( ctrl.GetAttr( tok )!="1" ) break;
+    }
+}
+
+return "";]]>
+</method>
+<method name="ShowValidation">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember ShowValidation
+//@param edit | ctrl |
+//@version Andrew Griffin | 12-12-01 09:56 |
+String s = ctrl.GetText();
+
+if ( s == "Normal" )
+    ShowGroup( "ValidText", 1 );
+else
+    ShowGroup( "ValidText", 0 );
+
+if ( s == "Numeric" )
+    ShowGroup( "ValidDate", 1 );
+else
+    ShowGroup( "ValidDate", 0 );
+
+SizeFormNow();
+//SizetoFit();]]>
+</method>
+<method name="DoName">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember DoName
+//@param control | ctrl |
+//@version Andrew Griffin | 12-12-01 09:53 |
+
+WGridEdit wG = &GetGridParent();
+::WClassView wC = &wG.getparent();
+::Grid G = &wC.XFile.Classes[0].Grids[0];
+
+string nName = ctrl.getText();
+
+G.updateControl( oldName, nName, wC );
+oldName = nName;]]>
+</method>
+<method name="doColorEd">
+<param name="ctrl" type="edit" />
+<param name="dontAttr" type="object" />
+<![CDATA[//@cmember doColorEd
+//@param edit | ctrl |
+//@param object | dontAttr |
+//@version Andrew Griffin | 04-10-01 11:26 |
+
+string attrName = ctrl.GetControlAttr( "setattr" );
+string val = ctrl.getText();
+
+if (dontAttr==null) SetCtrlAttr( attrName, val );
+
+ctrl.GetGrid().GetCell( 0, 1 ).Control.setBkColor(
+    (!val) ? (-1) : (::WClsDef::ColorToInt( val ))
+);
+
+/*
+
+String s = con.getControlAttr("name");
+int i = s.indexOf("_");
+
+if (dontAttr==null) SetCtrlAttr(s.left(i), con.getText() );
+
+getControl( s.left(i) + "_P" ).setBkColor(
+    (con.getText()=="") ? -1 :
+        ::WClsDef::ColorToInt( con.getText() )
+);]]>
+</method>
+<method name="doColorSel">
+<param name="ctrl" type="button" />
+<![CDATA[//@cmember doColorSel
+//@param button | ctrl |
+//@version Andrew Griffin | 23-05-02 13:26 |
+
+int i = Sys::GetColor( ctrl.getBkColor() );
+if (i==-1) return;
+
+edit ebox = &ctrl.GetGrid().GetCell( 0, 0 ).Control;
+
+string cols;
+if (i!=-2) cols = colIntToStr( i, ebox.getText().indexOf(",")==-1 );
+else i = -1;
+
+SetCtrlAttr( ebox.GetControlAttr( "setattr" ), cols);
+
+ctrl.setBkColor( i );
+ebox.setText( cols );]]>
+</method>
+<method name="doColorSel2">
+<param name="ctrl" type="button" />
+<![CDATA[//@cmember doColorSel2
+//@param button | ctrl |
+//@version Andrew Griffin | 11-06-02 15:55 |
+
+edit ebox = &ctrl.GetGrid().GetCell( 0, 0 ).Control;
+
+int i = classes::Des::Grid::wCustomColor::getColor(
+    ::WClsDef::ColorToInt( ebox.getText() ), this, ctrl.GetCell()
+);
+
+//int i = Sys::GetColor( ctrl.getBkColor() );
+if (i==-1) return;
+
+string cols;
+if (i!=-2) cols = colIntToStr( i, ebox.getText().indexOf(",")==-1 );
+else i = -1;
+
+SetCtrlAttr( ebox.GetControlAttr( "setattr" ), cols);
+
+ctrl.setBkColor( i );
+ebox.setText( cols );]]>
+</method>
+<method name="doColorDel">
+<param name="ctrl" type="button" />
+<![CDATA[//@cmember doColorDel
+//@param button | ctrl |
+//@version Andrew Griffin | 04-10-01 11:26 |
+
+edit ebox = &ctrl.GetGrid().GetCell( 0, 0 ).Control;
+button colb = &ctrl.GetGrid().GetCell( 0, 1 ).Control;
+
+SetCtrlAttr( ebox.GetControlAttr( "setattr" ), "" );
+colb.setBkColor( -1 );
+ebox.setText( "" );]]>
+</method>
+<method name="ChooseBind">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember ChooseBind
+//@param label | ctrl |
+//@version Andrew Griffin | 12-12-01 09:53 |
+
+Object GE = &GetGridParent(); // the grid editor
+if (GE==null) return;
+::wclassview CE = &GE.getparent();  // class editor!
+if (CE==null) return;
+
+if (!CE.Modified && CE.readOnly) CE.SetMod(null,1);
+
+edit ebox = &ctrl.GetGrid().GetCell( 0, 0 ).Control;
+string inListCell;
+
+if (ctrl.GetControlAttr( "bindtobox" )=="1") {
+    // Check incase we are in a listbox control...
+    edgridcell egc = &GetGridParent().idGridEdit.CurrentCell();
+    while (1) {
+        egc = &egc.getParentCell();
+        if (egc == null) break;
+
+        edObject obj = &egc.GetObject();
+        if (obj==null) continue;
+
+        if (obj.GetAttr("IsList")=="Y") {
+            inListCell = obj.GetAttr( "list" ) + ".";
+        }
+    }
+
+}
+
+::minibrowse::WbindTo::browseClass( CE.FileName, ebox.getText(), inListCell, this, "bindChosen", ebox );]]>
+</method>
+<method name="bindChosen">
+<param name="ebox" type="edit" />
+<param name="fullname" type="string" />
+<![CDATA[//@cmember bindChosen
+//@param edit | ebox |
+//@param string | fullname |
+//@version Andrew Griffin | 08-11-01 12:47 |
+
+if (!fullname) return;
+
+ebox.setText( fullname );
+SetCtrlAttr( ebox.GetControlAttr( "setattr" ), fullname );]]>
+</method>
+<method name="doDropOptions">
+<param name="ctrl" type="control" />
+<param name="override" type="int" />
+<![CDATA[//@cmember doDropOptions
+//@param control | ctrl |
+//@param int | override |
+//@version Andrew Griffin | 12-12-01 09:56 |
+//@version Scott.Goodwin | 08-07-03 19:58 |
+//@i
+
+grid pgrid = &ctrl.GetGrid();
+image img = &pgrid.getcell( 0,0 ).control;
+string state = img.GetControlAttr( "popped" );
+
+if (override!=null)
+  if (override) state="up"; else state="";
+
+if (state) {
+    state = "";
+    img.setAttr( "img", "upbutt.bmp" );
+} else {
+    state = "up";
+    img.setAttr( "img", "downbutt.bmp" );
+}
+
+img.setAttr( "popped", state );
+showgroup( img.getControlAttr( "param" ), !state );
+
+SizeFormNow();]]>
+</method>
+<method name="DoJustButtonColor">
+<param name="ctrl" type="control" />
+<param name="overrideColour" type="string" />
+<![CDATA[//@cmember DoJustButtonColor
+//@param control | ctrl |
+//@param string | overrideColour |
+//@version Andrew Griffin | 11-06-02 15:55 |
+
+string attrName = ctrl.GetControlAttr( "setCol" );
+string col = "";
+int i;
+
+WGridEdit P = &GetGridParent();
+if (P==null) return;
+
+edgridcell egc = &P.idGridEdit.CurrentCell();
+if (egc==null) return;
+edobject gctrl = &egc.GetObject();
+if (gctrl==null) return;
+
+if (overrideColour==null) {
+//    i = Sys::GetColor( ctrl.getBkColor() );
+    int scol;
+    switch (attrName)
+    {
+      case "tx" : scol = gctrl.TextColor; break;
+      case "shadc" : scol = gctrl.shadc; break;
+      case "tlc" : scol = gctrl.tlc; break;
+      case "brc" : scol = gctrl.brc; break;
+    }
+    i = classes::Des::Grid::wCustomColor::getColor(
+        scol, this, ctrl.getCell()
+    );
+
+    if (i==-1) return;
+    if (i!=-2) col = hex( i );
+            else i = -1;
+
+    SetCtrlAttr( attrName, col );
+} else {
+    i = ::WClsDef::ColorToInt( overrideColour );
+    //if (i!=-1) message( "Override: " + overrideColour + " -> " + i );
+}
+
+ctrl.setBkColor( i );]]>
+</method>
+<method name="findMethod">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember findMethod
+//@param label | ctrl |
+//@version Andrew Griffin | 07-05-02 14:21 |
+control ob=null;
+
+for (int i=0; i<ControlCount(); i++)
+  if (GetControl( i ) == ctrl)
+  {
+    do {
+        i++;
+        ob = &GetControl( i );
+    } while (!ob.istype("edit"));   // clicked on label, get the edit box to it's right
+
+    string params = "ctrl," + cName;
+
+    if (cName.eq("listbox"))
+        switch (ctrl.getText().tolower())
+        {
+          case "onclick", "ondblclick", "onrclick" :
+            params.addtoken( "ColNo" );
+            params.addtoken( "int" );
+          break;
+        }
+
+    if (ob.getText().indexof(" ")>=0)  // parameter string
+    {
+        params.addtoken( "PStr" );
+        params.addtoken( "string" );
+    }
+
+    ::AdvSearch::findMethod(
+            GetGridParent().GetParent(),
+            ob.getText().getToken(0, " "),
+            ob, params);
+    break;
+  }]]>
+</method>
+<method name="DoImage">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember DoImage
+//@param control | ctrl |
+//@version Andrew Griffin | 12-12-01 09:50 |
+//@version Scott.Goodwin | 08-07-03 20:12 |
+//@version DazzaBee | 01-03-04 11:12 |
+
+label img = &ctrl.GetGrid().GetCell( 0, 0 ).Control;
+string attrib = img.GetControlAttr( "setAttr" );
+
+EdGridCell X = &GetGridParent().idGridEdit.CurrentCell();
+if (X==null) X = &GetGridParent().idGridEdit.TheGrid;
+        else X = X.getObject();
+
+string fn,
+       pth = GetGridParent().GetParent().filename;
+
+if (attrib=="img") fn = X.img;
+else fn = X.bkimg;
+
+int i = pth.lastIndexOf("\\");
+if (i>=0) pth = pth.left(i+1);
+
+if (fn!="") fn=::AdvSearch::classToPath( fn, pth, 1);
+
+
+fn = GetOpenFileName("Image","BMP Files|*.bmp|All|*.*",fn);
+if (!fn) return;
+
+String szPath = pth.lower();
+int iIndex = szPath.IndexOf(".bmp",0,1);
+if(iIndex>-1) szPath = szPath.Left(iIndex).lower();
+iIndex = szPath.LastIndexOf("\\");
+if(iIndex>-1) szPath = szPath.Left(iIndex).lower();
+
+fn = sys::MakeFullName( szPath, fn );
+fn = sys::MakeRelativeName( szPath, fn );
+
+iIndex = fn.Indexof("classes::",0,1);
+if(iIndex>-1) fn = fn.SubString(iIndex,fn.Length()).Lower();
+
+iIndex = fn.Indexof(":::",0,1);
+if(iIndex>-1) fn = fn.SubString(iIndex+3,fn.Length()).Lower();
+
+SetCtrlAttr( attrib, fn );
+
+img.SetText( trimimg( fn ) );]]>
+</method>
+<method name="DoNoImage">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember DoNoImage
+//@param control | ctrl |
+//@version Andrew Griffin | 09-10-01 11:46 |
+
+label img = &ctrl.GetGrid().GetCell( 0, 0 ).Control;
+
+string attrib = img.GetControlAttr( "setAttr" );
+
+SetCtrlAttr( attrib, "" );
+img.SetText( "" );]]>
+</method>
+<method name="CheckSteps">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember CheckSteps
+//@param control | ctrl |
+//@version Andrew Griffin | 12-12-01 09:56 |
+
+string txt = ctrl.getText();
+int ok = (txt=="3");
+showGroup( "valtwo", ok );
+SizeFormNow();]]>
+</method>
+<method name="browseFile">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 12-12-01 09:50 |
+//@version DazzaBee | 01-03-04 11:01 |
+//@i
+
+EdGridCell X = &GetGridParent().idGridEdit.CurrentCell();
+if (X==null) return;
+
+string fileTyp = ctrl.GetControlAttr("filetype");
+string description = ctrl.GetControlAttr("desc");
+control bindTo = &ctrl.GetGrid().GetCell( 0, 0 ).Control;
+
+string filename = X.GetObject().GetAttr( "cls" );
+filename = sys::MakeFullName( GetGridParent().GetParent().FileName, filename );
+
+string filter;
+
+switch (filetyp.lower()) {
+  case "xml": filter.addToken("XML files|*.xml", ";");
+              if (filename) filename += ".xml";
+              break;
+  case "bmp": filter.addToken("BMP files|*.bmp", ";");
+              break;
+  case "ico": filter.addToken("Icon files|*.ico", ";");
+              break;
+}
+
+filename = GetOpenFileName( "Choose a " + description, filter, filename );
+
+if (!filename) return 0;
+
+String szPath = GetGridParent().GetParent().FileName.lower();
+int iIndex = szPath.IndexOf(".xml");
+if(iIndex>-1) szPath = szPath.Left(iIndex).lower();
+iIndex = szPath.LastIndexOf("\\");
+if(iIndex>-1) szPath = szPath.Left(iIndex).lower();
+
+filename = sys::MakeFullName( szPath, filename );
+filename = sys::MakeRelativeName( szPath, filename );
+
+if (filetyp.eq("xml")) {
+    int i = filename.indexof(".xml",0,1);
+    if (i>=0) filename = filename.left( i );
+}
+
+iIndex = filename.Indexof("classes::",0,1);
+if(iIndex>-1) FileName = FileName.SubString(iIndex,FileName.Length()).Lower();
+
+iIndex = filename.Indexof(":::",0,1);
+if(iIndex>-1) FileName = FileName.SubString(iIndex+3,FileName.Length()).Lower();
+
+bindTo.setText( filename );
+doAttrChange( bindTo );
+
+if (bindTo == idClassName) {
+    loadNewComponent();
+}]]>
+</method>
+<method name="loadNewComponent">
+<![CDATA[//@cmember loadNewComponent
+//@param
+//@return
+//@version Andrew Griffin | 12-12-01 09:50 |
+//@i
+
+getCAttrs();
+wgridedit frm = &GetGridParent();
+edGridCell eg = &frm.idGridEdit.CurrentCell();
+
+XML X;
+frm.GetXML( X, eg.GetGrid() );
+frm.LoadGrControl( eg, X, GetGridParent().GetParent().FileName );
+
+frm.idGridEdit.CalcSizes();
+frm.GridClicked();]]>
+</method>
+<method name="getProjectClasses">
+<![CDATA[//@cmember getProjectClasses
+//@param
+//@return
+//@version Andrew Griffin | 12-12-01 09:56 |
+//@i
+
+// Get Project Controls
+string ppath = GetGridParent().GetParent().FileName;
+string cnames = ::browse::ClsBrowser::openProject.getFormComps( ppath, idName.getText() );
+
+ProjList.reset();
+
+if (cnames) {
+    //showgroup( "Proj", 1 );
+    for (int i=0;; i++) {
+        string s = cnames.gettoken( i );
+        if (!s) break;
+        CPickS tmp = &ProjList.CreateRow();
+        tmp.desc = s;
+        s = sys::MakeRelativeName( ppath, s );
+        tmp.desc = s.left( s.lastIndexOf(".") );
+    }
+    idProjList.CalcWidths();
+} //else showGroup( "Proj", 0 );
+
+SizeFormNow();]]>
+</method>
+<method name="doOpenClass">
+<![CDATA[//@version Andrew Griffin | 12-12-01 09:50 |
+//@version Jonathan.Muir | 26-02-10 13:43 |
+
+string cls = idClassName.getText();
+if (cls=="") return;
+
+object clas = GetGridParent().GetParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+
+object win = ::AdvSearch::OpenClassFile( cls, tPath, "" );
+win.show(1);]]>
+</method>
+<method name="doOpenClassProj">
+<![CDATA[//@cmember doOpenClassProj
+//@version Andrew Griffin | 12-12-01 09:50 |
+//@version Jonathan.Muir | 26-02-10 13:43 |
+
+string cls = ProjList.CurrentRow().desc;
+if (cls=="") return;
+
+object clas = GetGridParent().GetParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+
+object win = ::AdvSearch::OpenClassFile( cls, tPath, "" );
+if(win!=null) win.show(1);]]>
+</method>
+<method name="DoUseGrid">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember DoUseGrid
+//@param edit | ctrl |
+//@version Andrew Griffin | 12-12-01 09:41 |
+
+String s = ctrl.GetText();
+
+wgridedit GED =  &GetGridParent();
+edgridcell Cel = &GED.idGridEdit.CurrentCell();
+edgrid G =       &Cel.GetGrid();
+
+if (s)
+{
+    if (G.Rows()) return;
+    G.UseGrid(1); // Message("ADD ROWS");
+}
+else
+{ // no
+    if (!G.Rows()) return;
+    G.UseGrid(0); // Message("DELETE ROWS");
+}]]>
+</method>
+<method name="doChangeOrientation">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember doChangeOrientation
+//@param edit | ctrl |
+//@version Andrew Griffin | 09-10-01 15:42 |
+//@i
+
+string res = ctrl.getText();
+
+cStretch.reset();
+classes::cpicks nw;
+
+nw.code = "";
+nw.desc = "stretches " + (!res ? "right" : "bottom") + " pane";
+cStretch.AddRow( nw );
+
+nw.code = "1";
+nw.desc = "stretches " + (!res ? "left" : "top") + " pane";
+cStretch.AddRow( nw );
+
+idformresize.setText( idformresize.getText() );]]>
+</method>
+<method name="GetGridParent" return="wgridedit">
+<![CDATA[//@cmember GetGridParent
+//@return wgridedit |
+//@version Andrew Griffin | 12-12-01 09:41 |
+//@i
+
+form par = &GetParent();
+if (par.hasmethod( "readfile" )) return par.idMulti.FindPane("GridEdit");
+
+return par;]]>
+</method>
+<method name="SizeFormNow">
+<![CDATA[//@cmember SizeFormNow
+//@param
+//@return
+//@version Andrew Griffin | 12-12-01 10:00 |
+//@i
+
+if (!isDocked)
+    SizeFormToContent();
+else
+    FitRecursive();]]>
+</method>
+<method name="doGroupMenu">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doGroupMenu
+//@param label | ctrl |
+//@version Andrew Griffin | 24-07-02 12:34 |
+
+classes::Des::grid grd;
+
+grd.newGroups.reset();
+grid::wGridEdit oZ = &getParent();
+GridEditor gEdit = &oZ.idGridEdit;
+Object X = gEdit.theGrid;
+grd.findGroupsInGrid( X );
+
+grd.newGroups.OrderBy( "Disp" );
+grd.newGroups.OrderList();
+
+popupmenu p, p2, p3;
+
+for (int i=0; i<grd.newGroups.Count(); i++)
+{
+    if (grd.newGroups[i].countSel != grd.newGroups[i].counter)
+        p2.Add( grd.newGroups[i].Disp + "\t(" + grd.newGroups[i].counter + ")", "+" + grd.newGroups[i].Disp );
+    if (grd.newGroups[i].countSel)
+        p3.Add( grd.newGroups[i].Disp + "\t(" + grd.newGroups[i].counter + ")", "-" + grd.newGroups[i].Disp );
+}
+
+p.Add( "Add to new group", "NEW" );
+p.AddSeparator();
+p.Add( p2, "Add to group" );
+p.Add( p3, "Remove from group" );
+
+string res = p.Track( 1 );
+
+if (res=="NEW")
+{
+    classes::core::winputbox::Open( this, "newGroupCB", "Enter new group name", "Add controls to new group", "" );
+    return;
+}
+
+if (res.left(1)=="+")   // Add to group
+{
+    grd.updateGroups( X, 1, res.substring( 1 ) );
+    oZ.GridMod();
+    oZ.GridClicked();
+    return;
+}
+
+if (res.left(1)=="-")   // Remove from group
+{
+    grd.updateGroups( X, 2, res.substring( 1 ) );
+    oZ.GridMod();
+    oZ.GridClicked();
+    return;
+}]]>
+</method>
+<method name="newGroupCB">
+<param name="group" type="string" />
+<![CDATA[//@cmember newGroupCB
+//@param string | group |
+//@version Andrew Griffin | 24-07-02 12:26 |
+
+classes::Des::grid grd;
+
+grid::wGridEdit oZ = &getParent();
+GridEditor gEdit = &oZ.idGridEdit;
+Object X = gEdit.theGrid;
+
+grd.updateGroups( X, 1, group );
+oZ.GridMod();
+oZ.GridClicked();]]>
+</method>
+</members>
+<static>
+<List name="cYesNo" cls="classes::cpicks">
+<item code="Y" desc="Yes" />
+<item code="N" desc="No" />
+</List>
+<List name="cYesNoRev" cls="classes::cpicks">
+<item code="" desc="Yes" />
+<item code="Y" desc="No" />
+</List>
+<List name="cYes" cls="classes::cpicks">
+<item code="1" desc="Yes" />
+<item code="" desc="No" />
+<item code="0" desc="No" PickType="" />
+</List>
+<List name="cYesOverride" cls="classes::cpicks">
+<item code="0" desc="No" PickType="" />
+<item code="1" desc="Yes" />
+<item code="2" desc="User Defined" />
+</List>
+<List name="cBorder" cls="classes::cpicks">
+<item code="0" desc="None" />
+<item code="" desc="Indent" />
+<item code="2" desc="Thin" />
+</List>
+<List name="cEdType" cls="classes::cpicks">
+<item code="" desc="Normal" />
+<item code="multi" desc="Multiline Wrap" />
+<item code="scroll,multi" desc="Multiline Scroll" />
+<item code="ucase" desc="Upper" />
+<item code="lcase" desc="Lower" />
+<item code="numeric" desc="Numeric" />
+<item code="date" desc="Date" />
+<item code="datetime" desc="Date &amp; Time" />
+<item code="pword" desc="Password" />
+<item code="cipword" desc="Password (aAzZ)" />
+</List>
+<List name="cCombo" cls="classes::cpicks">
+<item code="" desc="None" />
+<item code="1" desc="Edit + List" />
+<item code="2" desc="No Edit" />
+</List>
+<List name="cFontSizes" cls="classes::cpicks">
+<item code="6" desc="6" />
+<item code="7" desc="7" />
+<item code="8" desc="8" />
+<item code="9" desc="9" />
+<item code="10" desc="10" />
+<item code="11" desc="11" />
+<item code="12" desc="12" />
+<item code="13" desc="13" />
+<item code="14" desc="14" />
+<item code="16" desc="16" />
+<item code="18" desc="18" />
+<item code="20" desc="20" />
+<item code="24" desc="24" />
+<item code="32" desc="32" />
+</List>
+<List name="cFontStyle" cls="classes::cpicks">
+<item code="" desc="Normal" />
+<item code="b" desc="bold" />
+<item code="i" desc="italic" />
+<item code="bi" desc="bold-italic" />
+</List>
+<List name="cFontBold" cls="classes::cpicks">
+<item code="" desc="Normal" />
+<item code="b" desc="bold" />
+</List>
+<List name="cFontFaces" cls="classes::cpicks" />
+<List name="cFXTypes" cls="classes::cpicks">
+<item code="" desc="Offset" />
+<item code="1" desc="Thick" />
+</List>
+<List name="c2or3" cls="classes::cpicks">
+<item code="" desc="2 steps" />
+<item code="3" desc="3 steps" />
+</List>
+<List name="cTileOptions" cls="classes::CPickN">
+<item code="0" desc="Tile" />
+<item code="1" desc="Stretch" />
+<item code="7" desc="Single" />
+</List>
+<List name="cToolbar" cls="classes::CPickN">
+<item code="0" desc="None" />
+<item code="" desc="Top" />
+<item code="2" desc="Bottom" />
+</List>
+<List name="cOrientation" cls="classes::CPickS">
+<item code="" desc="Delimited Text List" />
+<item code="1" desc="Vertical List" />
+</List>
+<List name="cOrientation2" cls="classes::CPickS">
+<item code="" desc="Run Vertical" />
+<item code="1" desc="Run Horizontal" />
+</List>
+<List name="cTextOrientation" cls="classes::CPickS">
+<item code="" desc="Horizontal" />
+<item code="1" desc="Vertical" />
+</List>
+<List name="cImagePick" cls="classes::cpicks">
+<item code="1" desc="Yes" PickType="" />
+<item code="2" desc="Yes (Small)" PickType="" />
+<item code="" desc="No" PickType="" />
+<item code="" desc="No" PickType="" />
+</List>
+<method name="trimImg" return="string">
+<param name="filename" type="string" />
+<![CDATA[//@cmember trimImg
+//@param string | filename |
+//@return string |
+//@version Andrew Griffin | 08-10-01 09:42 |
+//@i
+
+int i = filename.lastindexof( "\\" );
+if (i>=0) filename = filename.substring( i+1 );
+i = filename.lastindexof( ":" );
+if (i>=0) filename = filename.substring( i+1 );
+
+return filename;]]>
+</method>
+<method name="hex" return="string">
+<param name="i" type="int" />
+<![CDATA[//@cmember hex
+//@param int | i |
+//@return string |
+//@version Andrew Griffin | 10-05-02 15:26 |
+//@i
+
+String s = i.toString("08X"); //r+","+g+","+b;
+if (s.beginsWith("00")) s = s.substring(2);
+
+return s;]]>
+</method>
+<method name="colIntToStr" return="string">
+<param name="col" type="int" />
+<param name="toHex" type="int" />
+<![CDATA[//@cmember colIntToStr
+//@param int | col |
+//@param int | toHex |
+//@return string |
+//@version Andrew Griffin | 11-06-02 15:38 |
+//@i
+
+if (col==-1) return "";
+
+if (toHex==null || toHex || col & 0xFF000000) return hex( col );
+
+int r = (col & 0xFF0000) / 0x10000;
+int g = (col & 0xFF00) / 0x100;
+int b = col & 0xFF;
+
+return ""+r+","+g+","+b;]]>
+</method>
+</static>
+<grid tpad="1" bk="224,224,192">
+<row>
+<col align="W">
+<grid rpad="2" bpad="1">
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Name" tx="64,32,16" groups="gHeader" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit name="idName" w="80" onChange="doAttrChange" border="0" setattr="name" call="doName" groups="gHeader" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Env Name" groups="gHeader" />
+</col>
+<col align="W">
+<Edit name="idEnvName" w="80" onChange="doAttrChange" border="0" setattr="envname" groups="gHeader" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Groups" tx="64,32,16" groups="gHeader" font="Tahoma" size="8" onclick="doGroupMenu" onrightclick="doGroupMenu" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="groups" groups="gHeader" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid groups="gDisplayBar">
+<row>
+<col align="V">
+<Image name="gDisplay" text="Image" img="upbutt.bmp" Param="gDisplay" onClick="doDropOptions" gapp="et,ll,bn,cx,ct,gd,gt,hy,ie,lx,mp,me,py,ro,rr,sr,st,ir,sn,wr,mr" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Display..." txsel="000000" onClick="doDropOptions" font="Tahoma" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" bpad="2" align="V">
+<grid groups="gDisplay">
+<row>
+<col lpad="1" rpad="4" align="V">
+<Label text="Tab" tx="64,32,16" app="et,bn,cx,ct,gt,hy,lx,mp,me,py,ro,rr,st,ir" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="noTab" pick="cYesNoRev" app="et,bn,cx,ct,gt,hy,lx,mp,me,py,ro,rr,st,ir" />
+</col>
+<col lpad="4" rpad="4" w="48" align="V">
+<Label text="Enabled" tx="64,32,16" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="disable" pick="cYesNoRev" />
+</col>
+<col lpad="4" rpad="4" align="WV">
+<Label text="Visible" tx="64,32,16" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="hide" pick="cYesNoRev" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="WH">
+<grid rpad="2" bpad="1" groups="gDisplay">
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Ter32 Control" app="rr" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="Ter32Control" pick="cYesNo" app="rr" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Border" tx="64,32,16" app="et,lx,mp,py,hr,wr,we" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="80" onChange="doAttrChange" combo="2" border="0" setattr="border" pick="cBorder" app="et,lx,mp,py,hr,wr,we" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Edit Type" tx="64,32,16" app="et" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="102" combo="2" onChange="doAttrOptionChange" border="0" pick="cEdType" theplist="cEdType" call="showValidation" app="et" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Combo List" tx="64,32,16" app="et" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="80" combo="2" onChange="doAttrChange" border="0" setattr="combo" pick="cCombo" app="et" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Text" tx="64,32,16" app="ll,bn,cx,ro,sn" font="Tahoma" size="8" />
+</col>
+<col align="WH">
+<Edit name="idText" w="80" h="30" multi="1" onChange="doAttrChange" border="0" app="ll,bn,cx,ro,sn" setattr="text" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Image" tx="64,32,16" app="cx,ie,ro" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid app="cx,ie,ro">
+<row>
+<col align="WV" bk="255,255,255">
+<Label text="image..." w="80" h="16" onClick="DoImage" app="cx,ie,ro" setattr="img" />
+</col>
+<col>
+<Button text="?" w="16" h="16" onClick="DoImage" app="cx,ie,ro" />
+</col>
+<col>
+<Button text=" x" w="16" h="16" onClick="DoNoImage" app="cx,ie,ro" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Small Icon" tx="64,32,16" app="ie" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="smallIcon" pick="cYes" app="ie" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Bk Color" tx="64,32,16" app="gd" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid app="gd">
+<row>
+<col align="WY">
+<Edit w="80" onChange="doColorEd" border="0" setattr="bk" app="gd" setcol="1" />
+</col>
+<col>
+<Button w="16" h="16" onClick="doColorSel2" app="gd" />
+</col>
+<col>
+<Button text=" x" w="16" h="16" onClick="doColorDel" app="gd" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Bk Image" tx="64,32,16" app="gd" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid app="gd">
+<row>
+<col align="WV" bk="255,255,255">
+<Label text="image..." w="80" h="16" onClick="DoImage" app="gd" setattr="bkimg" />
+</col>
+<col>
+<Button text="?" w="16" h="16" onClick="DoImage" app="gd" />
+</col>
+<col>
+<Button text=" x" w="16" h="16" onClick="DoNoImage" app="gd" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Tiling" tx="64,32,16" app="gd" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="64" combo="2" onChange="doAttrChange" border="0" setattr="imgtile" pick="cTileOptions" app="gd" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Steps" tx="64,32,16" app="cx" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="steps" call="checkSteps" pick="c2or3" app="cx" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Font" tx="64,32,16" app="ll,bn,rr,sn,wr" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" combo="2" onChange="doAttrChange" border="0" app="ll,bn,rr,sn,wr" pick="cFontFaces" setattr="font" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Style" tx="64,32,16" app="ll,cx,sn,rr" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid app="ll, cx,rr,sn">
+<row>
+<col rpad="2">
+<Button w="32" h="14" onClick="DoJustButtonColor" app="ll,cx" setcol="tx" />
+</col>
+<col rpad="2" align="W">
+<Edit w="40" h="18" combo="1" onChange="doAttrChange" border="0" app="cx,sn,ll,rr,wr" pick="cFontSizes" setattr="size" />
+</col>
+<col>
+<Edit w="70" combo="2" onChange="doAttrChange" border="0" app="cx,sn,ll" pick="cFontStyle" setattr="style" />
+</col>
+<col>
+<Edit w="70" combo="2" onChange="doAttrChange" border="0" app="cx" pick="cFontBold" setattr="style" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Scroll bar" tx="64,32,16" app="ct" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="scrolls" pick="cYes" app="ct" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="H Scroll Bar" tx="64,32,16" app="hy,rr,wr" font="Tahoma" size="8" />
+</col>
+<col>
+<grid app="hy,rr,wr">
+<row>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="hscroll" pick="cYesNoRev" app="hy,rr,wr" />
+</col>
+<col lpad="8" rpad="4" w="74" align="R">
+<Label text="V Scroll Bar" tx="64,32,16" app="rr,wr" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="vscroll" pick="cYesNoRev" app="rr,wr" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Multi Select" tx="64,32,16" app="lx" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="multi" pick="cYes" app="lx" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Use Grid" tx="64,32,16" app="lx" font="Tahoma" size="8" />
+</col>
+<col w="64">
+<grid app="lx">
+<row>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" pick="cYes" app="lx" call="doUseGrid" />
+</col>
+<col lpad="8" rpad="4" w="74" align="R">
+<Label text="Fix Size" tx="64,32,16" app="lx" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="fixsize" pick="cYes" app="lx" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Read Only" tx="64,32,16" app="mp,rr,wr,mr" font="Tahoma" size="8" />
+</col>
+<col>
+<grid app="mp,rr,wr,mr">
+<row>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="readonly" pick="cYes" app="mp,rr,wr,mr" />
+</col>
+<col lpad="8" rpad="4" w="74" align="R">
+<Label text="Text Only" tx="64,32,16" app="rr" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="textonly" pick="cYes" app="rr" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Tool Bar" tx="64,32,16" app="me" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="64" combo="2" onChange="doAttrChange" border="0" setattr="tb" pick="cToolbar" app="me" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Tool Bar" tx="64,32,16" app="rr,wr,mr" font="Tahoma" size="8" />
+</col>
+<col>
+<grid app="rr,wr,mr">
+<row>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="tb" pick="cYes" app="rr,wr,mr" />
+</col>
+<col lpad="8" rpad="4" w="74" align="R">
+<Label text="Status Bar" tx="64,32,16" app="rr,wr,mr" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="sb" pick="cYes" app="rr,wr,mr" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Title Bar" tx="64,32,16" app="wr,mr" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="ttb" pick="cYes" app="wr,mr" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Menu Bar" tx="64,32,16" app="wr,mr" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="mb" pick="cYes" app="wr,mr" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Ruler" tx="64,32,16" app="rr" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="ruler" pick="cYes" app="rr" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Orientation" tx="64,32,16" app="py" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="100" combo="2" onChange="doAttrChange" border="0" setattr="vert" pick="cOrientation" app="py" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Show Value" tx="64,32,16" app="py" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="showval" pick="cYesNoRev" app="py" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Sort Values" tx="64,32,16" app="py" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="sortvalues" pick="cYesNo" app="py" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Orientation" tx="64,32,16" app="sr" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="100" combo="2" onChange="doAttrChange" border="0" setattr="vert" pick="cOrientation2" app="sr" call="doChangeOrientation" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="form resize" tx="64,32,16" app="sr" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit name="idformresize" w="100" combo="2" onChange="doAttrChange" border="0" setattr="otherway" pick="cStretch" app="sr" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Create Notes" tx="64,32,16" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="100" combo="2" onChange="doAttrChange" border="0" setattr="createnotes" pick="cYesOverride" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Edit Notes" tx="64,32,16" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="100" combo="2" onChange="doAttrChange" border="0" setattr="editnotes" pick="cYesOverride" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Tool Tip" tx="64,32,16" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="help" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Soft Edges" tx="64,32,16" font="Tahoma" size="8" app="sn" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="SoftEdges" pick="cYes" app="sn" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Default Colour" tx="64,32,16" font="Tahoma" size="8" app="sn" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col align="WY">
+<Edit w="80" onChange="doColorEd" border="0" setattr="DefaultColour" app="sn" setcol="1" />
+</col>
+<col>
+<Button w="16" h="16" onClick="doColorSel2" app="sn" />
+</col>
+<col>
+<Button text=" x" w="16" h="16" onClick="doColorDel" app="sn" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Focus Colour" tx="64,32,16" font="Tahoma" size="8" app="sn" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col align="WY">
+<Edit w="80" onChange="doColorEd" border="0" setattr="FocusColour" app="sn" setcol="1" />
+</col>
+<col>
+<Button w="16" h="16" onClick="doColorSel2" app="sn" />
+</col>
+<col>
+<Button text=" x" w="16" h="16" onClick="doColorDel" app="sn" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Disabled Colour" tx="64,32,16" font="Tahoma" size="8" app="sn" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col align="WY">
+<Edit w="80" onChange="doColorEd" border="0" setattr="DisabledColour" app="sn" setcol="1" />
+</col>
+<col>
+<Button w="16" h="16" onClick="doColorSel2" app="sn" />
+</col>
+<col>
+<Button text=" x" w="16" h="16" onClick="doColorDel" app="sn" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid groups="gValidBar">
+<row>
+<col align="V">
+<Image name="gValid" text="Image" img="upbutt.bmp" Param="gValid" onClick="doDropOptions" gapp="et" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Data Validation..." txsel="000000" onClick="doDropOptions" font="Tahoma" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gValid">
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Template" tx="64,32,16" groups="ValidText" app="et" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" groups="ValidText" setattr="template" app="et" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="From" tx="64,32,16" groups="ValidDate" app="et" font="Tahoma" size="8" />
+</col>
+<col align="X">
+<grid app="et">
+<row>
+<col w="54" align="X">
+<Edit onChange="doAttrChange" border="0" groups="ValidDate" setattr="minval" app="et" />
+</col>
+<col rpad="5" align="R">
+<Label text="to" tx="64,32,16" groups="ValidDate" app="et" font="Tahoma" size="8" />
+</col>
+<col w="54" align="X">
+<Edit border="0" groups="ValidDate" onChange="doAttrChange" setattr="maxval" app="et" />
+</col>
+</row>
+<row>
+<col colspan="3" align="W" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Mandatory" tx="64,32,16" app="et" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="64" combo="2" onChange="doAttrChange" border="0" setattr="mandatory" pick="cYes" app="et" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid groups="gEffectsBar">
+<row>
+<col align="V">
+<Image name="gEffects" text="Image" img="upbutt.bmp" Param="gEffects" onClick="doDropOptions" gapp="ll" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Special Effects..." txsel="000000" onClick="doDropOptions" font="Tahoma" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gEffects">
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Type" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col align="WV">
+<Edit w="50" combo="2" onChange="doAttrChange" border="0" setattr="shadt" pick="cFXTypes" app="ll" />
+</col>
+<col lpad="4" align="V">
+<Label text="X " tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" onChange="doAttrChange" border="0" setattr="shadx" app="ll" numeric="1" />
+</col>
+<col lpad="4" align="V">
+<Label text="Y " tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" onChange="doAttrChange" border="0" setattr="shady" app="ll" numeric="1" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Shadow" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col>
+<grid>
+<row>
+<col align="V">
+<Button w="32" h="14" onClick="DoJustButtonColor" setcol="shadc" app="ll" />
+</col>
+<col lpad="8" align="RV">
+<Label text="Top Left " tx="64,32,16" app="ll" font="Tahoma" size="7" />
+</col>
+<col>
+<Button w="32" h="14" onClick="DoJustButtonColor" app="ll" setcol="tlc" />
+</col>
+<col lpad="8" align="RV">
+<Label text="Bot Right " tx="64,32,16" app="ll" font="Tahoma" size="7" />
+</col>
+<col>
+<Button w="32" h="14" onClick="DoJustButtonColor" app="ll" setcol="brc" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Wrap Text" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" combo="2" onChange="doAttrChange" border="0" setattr="wrap" pick="cYes" app="ll" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Orientation" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="100" combo="2" onChange="doAttrChange" border="0" setattr="vertical" pick="cTextOrientation" app="ll" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid groups="gBindBar">
+<row>
+<col align="V">
+<Image name="gBind" text="Image" img="upbutt.bmp" Param="gBind" onClick="doDropOptions" gapp="et,ll,cx,ct,hy,lx,me,py,ro" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Data Binding..." txsel="000000" onClick="doDropOptions" font="Tahoma" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gBind">
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Bind To" tx="64,32,16" app="et,ll,cx,hy,py,ro" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid app="et,ll,cx,hy,py,ro">
+<row>
+<col align="WY">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="bind" app="et,ll,cx,hy,py,ro" />
+</col>
+<col>
+<Image text="Image" img="p_right.bmp" onClick="ChooseBind" app="et,ll,cx,hy,py,ro" bindtobox="1" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Bind List" tx="64,32,16" app="lx" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid app="lx">
+<row>
+<col align="WY">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="list" app="lx" />
+</col>
+<col>
+<Image text="Image" img="p_right.bmp" onClick="ChooseBind" app="lx" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Key Field" tx="64,32,16" app="lx" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="keytofield" app="lx" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Pick List" tx="64,32,16" app="et,py" font="Tahoma" size="8" />
+</col>
+<col align="X">
+<grid app="et,py">
+<row>
+<col align="WY">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="pick" app="et,py" />
+</col>
+<col align="V">
+<Image text="Image" img="p_right.bmp" onClick="ChooseBind" app="et,py" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Format" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="dfmt" app="ll" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Value" tx="64,32,16" app="ro" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="value" app="ro" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Group" tx="64,32,16" app="ro" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="group" app="ro" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Value 0" tx="64,32,16" app="cx" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="v0" app="cx" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Value 1" tx="64,32,16" app="cx" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="v1" app="cx" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62">
+<Label text="Value 2" tx="64,32,16" app="cx" groups="valtwo" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="v2" app="cx" groups="valtwo" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Class" tx="64,32,16" app="ct" onClick="doOpenClass" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid app="ct">
+<row>
+<col align="WY">
+<Edit name="idClassName" w="80" onChange="doAttrChange" border="0" setattr="cls" app="ct" />
+</col>
+<col>
+<Image text="Image" img="p_right.bmp" onClick="browseFile" app="ct" filetype="xml" desc="Component Class" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<ListBox name="idProjList" bpad="1" IsList="Y" groups="gProject" hide="Y" list="projList" fixsize="1" border="0" onClick="doOpenClassProj" app="ct,me" call="getprojectclasses">
+<row>
+<col rpad="2" w="62" align="V" bk="224,224,192">
+<Label text="  Proj Cls" tx="64,32,16" font="Tahoma" size="8" />
+</col>
+<col align="W" bk="255,255,255">
+<Label text="&gt;&gt;" w="80" tx="0,0,128" bind="desc" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid groups="gEventBar">
+<row>
+<col align="V">
+<Image name="gEvent" text="Image" img="upbutt.bmp" Param="gEvent" onClick="doDropOptions" gapp="et,ll,bn,cx,gt,hy,ie,lx,py,ro,rr,st,ir,sn,hr,wr,mr" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Events..." txsel="000000" onClick="doDropOptions" font="Tahoma" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gEvent">
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Change" tx="64,32,16" onClick="findMethod" app="et,py,rr,st,wr,mr" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onchange" app="et,py,rr,st,wr,mr" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Pre-Select" tx="64,32,16" onClick="findMethod" app="lx" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onpreselect" app="lx" />
+</col>
+</row>
+<row>
+<col rpad="2" w="62" align="XV">
+<grid app="lx,mp">
+<row>
+<col lpad="1" align="WV">
+<Label text="Select" tx="64,32,16" onClick="findMethod" app="lx" font="Tahoma" size="8" />
+</col>
+</row>
+<row>
+<col lpad="1" align="WV">
+<Label text="Stage Select" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+</row>
+</grid>
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onselect" app="lx,mp" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Clear" tx="64,32,16" onClick="findMethod" app="et,ex" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onclear" app="et,ex" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Pre Click" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onPreClick" app="mp" />
+</col>
+</row>
+<row>
+<col rpad="2" w="62" align="XV">
+<grid app="ll,bn,cx,gt,ie,lx,ro,mp,sn">
+<row>
+<col lpad="1" align="WV">
+<Label text="Click" tx="64,32,16" onClick="findMethod" app="sn,ll,bn,cx,gt,ie,lx,ro" font="Tahoma" size="8" />
+</col>
+</row>
+<row>
+<col lpad="1" align="WV">
+<Label text="Stage Click" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+</row>
+</grid>
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onclick" app="ll,bn,cx,gt,ie,lx,ro,mp,sn" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Click DDL" tx="64,32,16" onClick="findMethod" app="et" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onclick" app="et" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Left Click" tx="64,32,16" onClick="findMethod" app="st" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onleftclick" app="st" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Double Click" tx="64,32,16" onClick="findMethod" app="lx" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="ondoubleclick" app="lx" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Modify" tx="64,32,16" onClick="findMethod" app="gt" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onmod" app="gt" />
+</col>
+</row>
+<row>
+<col rpad="2" w="62" align="WV">
+<grid app="ll,ie,lx,mp,st" size="8">
+<row>
+<col lpad="1" align="WV">
+<Label text="Right Click" tx="64,32,16" onClick="findMethod" app="ll,ie,lx,st" font="Tahoma" size="8" />
+</col>
+</row>
+<row>
+<col lpad="1" align="WV">
+<Label text="Stage R-Click" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+</row>
+</grid>
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onrightclick" app="ll,ie,lx,mp,st" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Drop Objects" tx="64,32,16" onClick="findMethod" app="lx" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="ondropobjects" app="lx" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Mouse Over" tx="64,32,16" onClick="findMethod" app="ll,ie" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onmouseover" app="ll,ie" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Mouse Out" tx="64,32,16" onClick="findMethod" app="ll,ie" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onmouseout" app="ll,ie" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Param" tx="64,32,16" app="ll,ie" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="param" app="ll,ie" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Multi-Select" tx="64,32,16" app="hy" font="Tahoma" size="8" />
+</col>
+<col w="64">
+<Edit w="64" combo="2" onChange="doAttrChange" border="0" setattr="multiselect" pick="cYes" app="hy" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="DD Copy" tx="64,32,16" app="hy" font="Tahoma" size="8" />
+</col>
+<col w="64">
+<Edit w="64" combo="2" onChange="doAttrChange" border="0" setattr="ddcopy" pick="cYesNoRev" app="hy" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="DD Move" tx="64,32,16" app="hy" font="Tahoma" size="8" />
+</col>
+<col w="64">
+<Edit w="64" combo="2" onChange="doAttrChange" border="0" setattr="ddmove" pick="cYesNoRev" app="hy" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Make Link" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onmakelink" app="mp" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Route Select" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onrouteselect" app="mp" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Route Click" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onrouteclick" app="mp" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Route R-Click" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onrouterightclick" app="mp" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Map Click" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onmapclick" app="mp" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Map R-Click" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onmaprightclick" app="mp" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Map Modify" tx="64,32,16" onClick="findMethod" app="mp" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onrmapmodify" app="mp" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="preCreateNote" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="precreatenote" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Create Note" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="oncreatenote" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Edit Note" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="oneditnote" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Delete Note" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="ondeletenote" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Move Note" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onmovenote" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Select Note" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onselectnote" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Dbl Click Note" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="ondoubleclicknote" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="preCreateMeas" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="preCreateMeas" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="CreateMeas" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onCreateMeas" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Edit Measure" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onEditMeas" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Delete Meas" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onDeleteMeas" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Move Meas" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onMoveMeas" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Select Meas" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onSelectMeas" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Dbl Click Meas" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onDoubleClickMeas" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="preCreate Zone" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="preCreateZone" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Create Zone" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onCreateZone" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Edit Zone" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onEditZone" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Delete Zone" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onDeleteZone" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Move Zone" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onMoveZone" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Select Zone" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onSelectZone" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Double Click Zone" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onDblClickZone" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Rotate Image" tx="64,32,16" onClick="findMethod" app="ir" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onRotateImage" app="ir" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="On New Document" tx="64,32,16" onClick="findMethod" app="hr" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="onDocument" app="hr" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid groups="gColourBar">
+<row>
+<col align="V">
+<Image name="gColour" text="Image" img="upbutt.bmp" Param="gColour" onClick="doDropOptions" gapp="et,ll" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Event Colouring..." txsel="000000" onClick="doDropOptions" font="Tahoma" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gColour">
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Text Select" tx="64,32,16" app="et,ll" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid app="et,ll">
+<row>
+<col align="WY">
+<Edit w="80" onChange="doColorEd" border="0" setattr="txsel" app="et,ll" setcol="1" />
+</col>
+<col>
+<Button w="16" h="16" onClick="doColorSel2" app="et,ll" />
+</col>
+<col>
+<Button text=" x" w="16" h="16" onClick="doColorDel" app="et,ll" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Backgroud Select" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<grid app="ll">
+<row>
+<col align="WY">
+<Edit w="80" onChange="doColorEd" border="0" setattr="bksel" app="ll" setcol="1" />
+</col>
+<col>
+<Button w="16" h="16" onClick="doColorSel2" app="ll" />
+</col>
+<col>
+<Button text=" x" w="16" h="16" onClick="doColorDel" app="ll" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Text Field" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="txfield" app="ll" />
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Background Field" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col align="W">
+<Edit w="80" onChange="doAttrChange" border="0" setattr="bkfield" app="ll" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid groups="glistBar">
+<row>
+<col align="V">
+<Image name="glist" text="Image" img="upbutt.bmp" Param="glist" onClick="doDropOptions" gapp="ll" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="List Options..." txsel="000000" onClick="doDropOptions" font="Tahoma" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="glist">
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Is Header" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col>
+<grid app="ll">
+<row>
+<col>
+<Edit w="32" onChange="doAttrChange" border="0" combo="2" pick="cYes" app="ll" setattr="header" />
+</col>
+<col lpad="8" rpad="4" w="52" align="RV">
+<Label text="Is Image" tx="64,32,16" app="ll" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="80" onChange="doAttrChange" border="0" combo="2" pick="cImagePick" app="ll" setattr="isimg" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid groups="gCellPadBar">
+<row>
+<col align="V">
+<Image name="gCellPad" text="Image" img="upbutt.bmp" Param="gCellPad" onClick="doDropOptions" gapp="gd,lx" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Cell Padding..." txsel="000000" onClick="doDropOptions" font="Tahoma" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gCellPad">
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Left" tx="64,32,16" app="gd,lx" font="Tahoma" size="8" />
+</col>
+<col>
+<grid>
+<row>
+<col>
+<Edit w="32" onChange="doAttrChange" border="0" app="gd,lx" setattr="lpad" numeric="1" />
+</col>
+<col lpad="8" rpad="4" w="52" align="RV">
+<Label text="Right" tx="64,32,16" app="gd,lx" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" onChange="doAttrChange" border="0" app="gd,lx" setattr="rpad" numeric="1" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="1" rpad="2" w="62" align="V">
+<Label text="Top" tx="64,32,16" app="gd,lx" font="Tahoma" size="8" />
+</col>
+<col>
+<grid>
+<row>
+<col>
+<Edit w="32" onChange="doAttrChange" border="0" app="gd,lx" setattr="tpad" numeric="1" />
+</col>
+<col lpad="8" rpad="4" w="52" align="RV">
+<Label text="Bottom" tx="64,32,16" app="gd,lx" font="Tahoma" size="8" />
+</col>
+<col>
+<Edit w="32" onChange="doAttrChange" border="0" app="gd,lx" setattr="bpad" numeric="1" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="X">
+<grid groups="gCAttrBar">
+<row>
+<col align="V">
+<Image name="gCAttr" text="Image" img="upbutt.bmp" Param="gCAttr" onClick="doDropOptions" gapp="custom" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Custom Attribs..." onClick="doDropOptions" txsel="000000" font="Tahoma" />
+</col>
+<col lpad="4" rpad="4" bk="224,192,128">
+<Label name="idLoadable" text="Load" onClick="getCAttrs" font="Tahoma" />
+</col>
+<col lpad="4" rpad="4" bk="224,192,128">
+<Label text="Add" onClick="doAdd" font="Tahoma" />
+</col>
+<col lpad="4" rpad="4" bk="224,192,128">
+<Label text="Del" onClick="doDel" font="Tahoma" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col bpad="2" align="X" bk="224,224,192">
+<ListBox name="idCustomAttr" IsList="Y" list="cAttrib" border="0" fixsize="1" groups="gCAttr">
+<row>
+<col lpad="1" rpad="2" w="62" align="V" bk="224,224,192">
+<Label text="&lt;name&gt;" tx="64,32,16" bind="code" font="Tahoma" size="8" />
+</col>
+<col rpad="2" h="16" align="W">
+<Edit bind="desc" border="2" onChange="changeCustom" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+<row>
+<col align="R">
+<grid>
+<row>
+<col lpad="4" rpad="4" align="R">
+<Label text="Expand All" onClick="doExpandAll" font="Microsoft Sans Serif" size="6" />
+</col>
+<col lpad="4" rpad="4" align="R">
+<Label text="Shrink wrap" onClick="doShrinkWrap" font="Microsoft Sans Serif" size="6" />
+</col>
+<col lpad="4" align="R">
+<Label text="???" onClick="ShowAllAttr" font="Arial" size="6" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+<rmeth name="GetGridParent" cls="wgridedit" />
+<rmeth name="trimImg" cls="string" />
+<rmeth name="hex" cls="string" />
+<rmeth name="colIntToStr" cls="string" />
+</return>
+</form>

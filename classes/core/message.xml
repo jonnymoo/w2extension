@@ -1,0 +1,104 @@
+<form name="Message" caption="Message" margin="0" sizeable="0" hidden="1" esccancel="1" fauthor="$Author: Sally.woolrich $" fdate="$Date: 14/06/01 12:20 $" frevision="$Revision: 2 $">
+<members>
+<String name="CallBack" />
+<method name="Start">
+<![CDATA[open();
+SizeToFit();
+// SnapToCursor();
+CenterForm();
+Show(1);
+SetFocus();]]>
+</method>
+<method name="OnAction">
+<![CDATA[OnClose();]]>
+</method>
+<method name="OnDefaultKey">
+<![CDATA[OnClose();]]>
+</method>
+<method name="OnClose">
+<![CDATA[Object P = GetParent();
+
+if (P!=null)
+    P.EnableForm(1);
+
+Close();]]>
+</method>
+</members>
+<static>
+<method name="Open">
+<param name="txt" />
+<param name="cap" />
+<param name="opt" />
+<param name="callback" />
+<![CDATA[
+Message X;
+
+X.idText.SetText(txt);
+if (cap!=null) X.SetText(cap);
+
+X.SetWindowName("MessageBox");
+
+Object W = Sys::ActiveWindow();
+if (W!=null){
+    X.Dialog(W);
+    W.EnableForm(0);
+    }
+
+X.Start();
+return X;]]>
+</method>
+</static>
+<grid bk="224,224,224">
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col tpad="8">
+<grid>
+<row>
+<col lpad="12" rpad="16" align="V">
+<Image text="Image" img="classes::resource::standard::2013.ico" />
+</col>
+<col rpad="16" align="CV">
+<Label name="idText" text="This is some text&#13;&#10;This is an example" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col />
+<col />
+<col lpad="8" tpad="12" bpad="8" align="CV">
+<grid>
+<row>
+<col align="CV" bk="255,255,255" />
+<col h="1" align="CV" bk="255,255,255" />
+<col bk="255,255,255" />
+</row>
+<row>
+<col w="1" align="CV" bk="255,255,255" />
+<col w="66" h="24" align="CV" bk="224,224,224">
+<Label text="OK" style="b" onClick="OnAction" txsel="FFFFFF" bksel="800000" />
+</col>
+<col w="1" bk="128,128,128" />
+</row>
+<row>
+<col align="CV" bk="255,255,255" />
+<col h="1" align="CV" bk="128,128,128" />
+<col bk="128,128,128" />
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

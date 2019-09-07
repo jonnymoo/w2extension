@@ -1,0 +1,351 @@
+<class name="Grid" HierImage="hgrid.bmp" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:39 $" frevision="$Revision: 2 $">
+<members>
+<String name="T" />
+<Object name="GridData" cls="XML" />
+<List name="controls" cls="gridMemberDef" />
+<List name="newControls" cls="gridMemberDef" hier="N" />
+<List name="newGroups" cls="gridMemberDef" hier="N" />
+<Integer name="clearSel" />
+<method name="SetTo">
+<param name="X" type="object" />
+<![CDATA[
+SetQueried(1);
+T = "Form Template";
+if (X!=null)
+   GridData = X;]]>
+</method>
+<method name="GetXML">
+<param name="Win" type="object" />
+<![CDATA[
+grid::wgridedit Z = &Win.idMulti.FindPane("GridEdit");
+if (Z!=null){
+    GridData = Z.GetGridXML(Win.FileName); // was return Z....
+    }
+return GridData;]]>
+</method>
+<method name="Init">
+<![CDATA[]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="control" />
+<![CDATA[//@cmember EventHierRightClick
+//@param control | Hier |
+
+//@version Andrew Griffin | 24-07-02 11:48 |
+
+populateCtrlList( Hier.getParent() );
+
+//
+//
+
+newGroups.reset();
+grid::wGridEdit oZ = &Hier.getParent().idMulti.FindPane("GridEdit");
+GridEditor gEdit = &oZ.idGridEdit;
+Object X = gEdit.theGrid;
+findGroupsInGrid( X );
+
+newGroups.OrderBy( "Disp" );
+newGroups.OrderList();
+
+//
+//
+
+popupmenu p, p2;
+
+for (int i=0; i<newGroups.Count(); i++)
+    p2.Add( newGroups[i].Disp + "\t(" + newGroups[i].counter + ")", "@" + newGroups[i].Disp );
+
+p.Add( p2, "Select Group" );
+p.AddSeparator();
+p.Add( "Delete Form", "DEL", classes::core::icons::clipboard_delete );
+
+
+string res = p.Track( 1 );
+
+if (res=="DEL")
+{
+    if (message("Are you sure?\r\nYou can't undo this operation!",
+                "Delete Grid?",
+                classes::core::windows::MB_ICONQUESTION |
+                classes::core::windows::MB_YESNO) == classes::core::windows::IDYES)
+    {
+        oZ.idGridEdit.theGrid.reset();
+        oZ.show(0);
+        oZ.show(1);
+        oZ.FitRecursive();
+        oZ.GridClicked();
+        oZ.GridMod();
+    }
+    return;
+}
+
+if (res.left(1) == "@")
+{
+    // highlight all members of selected group
+
+    clearSel = 1;
+    findGroupsInGrid( X, res.substring( 1 ), gEdit );
+    oZ.GridClicked();
+}]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[
+Hier.GetParent().EditGrid(GridData);]]>
+</method>
+<method name="GetControlInfo">
+<param name="id" type="object" />
+<param name="X" type="object" />
+<![CDATA[
+if (X==null){
+    if (GridData==null) return null;
+    return GetControlInfo(id,GridData);
+    }
+
+String qa = X.GetAttr("name");
+if (qa.eq(id)){
+    return X;
+    }
+
+for(int n=0;;n++){
+    Object Z = X.Element(n); if (Z==null) break;
+    Object Q = GetControlInfo(id,Z);
+    if (Q!=null) return Q;
+    }
+
+return null;]]>
+</method>
+<method name="populateCtrlList">
+<param name="par" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+wclassview w = &par;
+
+Object oZ = w.idMulti.FindPane("GridEdit");
+if (oZ==null)
+{
+    grid::WGridEdit X;
+    w.idMulti.AddPane(X);
+    X.SetWindowName("GridEdit");
+    X.Init();
+    oZ = &X;
+    oZ.SetGridXML(gridData, w.FileName);
+}
+
+GridEditor gEdit = &oZ.idGridEdit;
+
+Object X = gEdit.theGrid;
+findInGrid( X );
+
+// Compare old and new controls to update list
+
+for (int i=0; i<newControls.count(); i++)
+  if (controls.FindRow( newControls[i].Disp )==null)
+    controls.AddRow( newControls[i] );
+
+for (i=0; i<controls.count(); i++)
+  if (newControls.FindRow( controls[i].Disp )==null) {
+    controls.DeleteRow( i );
+    i--;
+  }
+
+// Now order alphabetically
+
+controls.ResetOrder();
+controls.OrderBy( "Disp", "asc" );
+controls.OrderList();
+
+newControls.reset();
+SetOpen(1);]]>
+</method>
+<method name="findInGrid">
+<param name="g" type="edGrid" />
+<![CDATA[//@cmember findInGrid
+//@param edGrid | g |
+//@version Andrew Griffin | 24-07-02 11:08 |
+
+EdGridCell  tc=null;
+EdGrid      sg=null;
+EdObject    o=null;
+
+for (int y=0; y<g.rows(); y++)
+  for (int x=0; x<g.columns(); x++) {
+
+    tc = &g.getcell(y, x);
+    o = &tc.getobject();
+
+    if (o!=null) {  // if Control found then add it.
+        if (o.GetAttr( "iscomp2" ).eq("Y")) return;    // don't look inside components
+
+        if (o.name)
+        {
+            gridMemberDef newCon = &newControls.CreateRow();
+            string CName = o.TypeName;
+            if (CName.eq("grid"))
+            {
+                if (o.GetAttr("IsList")=="Y") CName = "ListBox"; else
+                if (o.GetAttr("IsComp")=="Y") CName = "Component"; else
+                if (o.GetAttr("IsMultiPane")=="Y") CName = "MultiPane";
+            }
+
+            newCon.initControl( CName, o.name );
+        }
+    }
+
+    sg = &tc.getGrid();
+    if (sg!=null) {
+        findInGrid( sg );
+    }
+  }]]>
+</method>
+<method name="findGroupsInGrid">
+<param name="g" type="edGrid" />
+<param name="find" type="string" />
+<param name="gridedit" type="gridEditor" />
+<![CDATA[//@cmember findGroupsInGrid
+//@param edGrid | g |
+//@param string | find |
+//@param gridEditor | gridedit |
+//@version Andrew Griffin | 24-07-02 12:30 |
+
+EdGridCell  tc=null;
+EdGrid      sg=null;
+EdObject    o=null;
+
+for (int y=0; y<g.rows(); y++)
+  for (int x=0; x<g.columns(); x++) {
+
+    tc = &g.getcell(y, x);
+    o = &tc.getobject();
+
+    if (o!=null) {  // if Control found then add it.
+        if (o.GetAttr( "iscomp2" ).eq("Y")) return;    // don't look inside components
+
+        string grps = o.GetAttr( "groups" );
+        if (grps)
+        {
+            if (find==null)
+            {
+                for (int i=0;;i++)
+                {
+                    string tok = grps.gettoken(i).trim();
+                    if (!tok) break;
+                    gridmemberdef tmpg = &newGroups.FindRow( tok );
+                    if (tmpg==null)
+                    {
+                        tmpg = &newGroups.CreateRow();
+                        tmpg.initGroup( tok );
+                    }
+                    else
+                        tmpg.counter++; // count number of instances...
+
+                    if (tc.IsSelected()) tmpg.countSel++;
+                }
+            }
+            else
+            {
+                if (grps.findtoken( find )>=0)
+                {
+                    gridedit.select( tc, clearSel );
+                    clearSel = 0;
+                }
+            }
+        }
+    }
+
+    sg = &tc.getGrid();
+    if (sg!=null) {
+        findGroupsInGrid( sg, find, gridedit );
+    }
+  }]]>
+</method>
+<method name="updateControl">
+<param name="oldName" type="string" />
+<param name="newName" type="string" />
+<param name="par" type="wClassView" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+gridMemberDef gM = &controls.FindRow( oldName, 1 );
+if (gM==null) { // add control
+
+    populateCtrlList( par );
+    gM = &controls.FindRow( newName, 1 );
+    if (gM!=null) {
+        par.idResults.SelectRow( gM );
+    }
+
+} else {    // edit control
+
+    if (newName == "") {    // delete control
+        gM.RemoveFromList();
+    } else {    // edit Name
+        gM.name = newName;
+        gM.Disp = newName + " " + gM.Disp.getToken(1, " ");
+        par.idResults.SelectRow( gM );
+    }
+
+}
+
+controls.OrderList();]]>
+</method>
+<method name="updateGroups">
+<param name="g" type="edGrid" />
+<param name="mode" type="int" />
+<param name="group" type="string" />
+<![CDATA[//@cmember updateGroups
+//@param edGrid | g |
+//@param int | mode |
+//@param string | group |
+//@version Andrew Griffin | 24-07-02 12:19 |
+
+//
+// modify all selected cells with controls to add/remove them from a group
+
+EdGridCell  tc=null;
+EdGrid      sg=null;
+EdObject    o=null;
+
+for (int y=0; y<g.rows(); y++)
+  for (int x=0; x<g.columns(); x++)
+  {
+
+    tc = &g.getcell(y, x);
+    o = &tc.getobject();
+
+    if (o!=null)    // if Control found then add it.
+    {
+        if (o.GetAttr( "iscomp2" ).eq("Y")) return;    // don't look inside components
+
+        if (tc.IsSelected())
+        {
+            string grps = o.GetAttr( "groups" );
+            switch (mode)
+            {
+              case 1:   // Add
+                grps.addtoken( group );
+                break;
+              case 2:   // Remove
+                grps.removetoken( group );
+                break;
+            }
+            o.SetAttr( "groups", grps );
+        }
+    }
+
+    sg = &tc.getGrid();
+    if (sg!=null) {
+        updateGroups( sg, mode, group );
+    }
+  }]]>
+</method>
+</members>
+<static />
+</class>

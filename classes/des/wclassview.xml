@@ -1,0 +1,4078 @@
+<form name="wclassview" caption="Class Editor" icon="designer.ico" bk="FFFFFF" margin="0" acceptfiles="1" hidden="1" minsize="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:42$" frevision="$Revision: 2$" notrace="1">
+<members>
+<Object name="XFile" cls="XMLFile" />
+<String name="FileName" />
+<Integer name="Modified" />
+<Object name="XX_Cls" cls="ClassDef" />
+<Integer name="readOnly" />
+<String name="backupDate" time="Y" />
+<Integer name="tmode" />
+<List name="funcHist" cls="classes::cpicks" />
+<List name="ClassHist" cls="classes::cpicks" />
+<List name="errors" cls="errors" />
+<Object name="overviewXML" cls="XML" />
+<String name="sessionId" />
+<Object name="debugObj" cls="XML" />
+<Object name="debugVDesc" cls="classes::cpicks" />
+<Object name="clearcase" cls="classes::des::crfsystem::clearcase" />
+<Integer name="CCEnabled" />
+<List name="DebugThreadList" cls="classes::CPickS" />
+<List name="CallStackList" cls="classes::CPickS" />
+<String name="ThreadGuid" />
+<Integer name="cpos" />
+<Integer name="CallStackLevel" />
+<String name="callstack" />
+<Integer name="SaveDebugHistory" />
+<method name="DoOpenUnitTests">
+<![CDATA[//@cmember DoOpenUnitTests
+//@version andrew.banyard | 09-09-16 12:29 |
+//@i
+
+string path = XFile.Classes[0].ClassPath;
+string className = path.substring(path.lastindexof("\\")+1);
+// trim .xml
+className = className.substring(0, className.length()-4);
+string testsLocation = path.substring(0, path.lastindexof("\\")) + "\\UnitTests\\" + className + "Tests";
+
+advsearch::OpenClassFile( testsLocation, "", "" );]]>
+</method>
+<method name="doCopyClassName">
+<param name="ctrl" type="image" />
+<![CDATA[//@cmember doCopyClassName
+//@param image | ctrl |
+//@version andrew.banyard | 17-11-15 14:14 |
+//@i
+string name = XFile.Classes[0].ClassPath;
+int root = name.tolower().indexof("classes");
+if(root>0){
+  name = name.substring(root);
+}
+
+name = name.replace("\\","::").replace("/","::");
+if(name.tolower().endsWith(".xml")){
+  name = name.substring(0,name.length()-4);
+}
+
+sys::CopyToClipboard(name);]]>
+</method>
+<method name="OpenFolder">
+<![CDATA[//@cmember OpenFolder
+//@version andrew.banyard | 19-06-15 12:45 |
+//@i
+
+// Get the current folder
+string path = FileName;
+
+int lastFolderIdx = path.lastindexof("\\");
+if(lastFolderIdx>-1){
+  path = path.substring(0,lastFolderIdx);
+}
+
+sys::ShellExecute("",path);]]>
+</method>
+<method name="Init">
+<param name="bDontShow" type="object" />
+<![CDATA[//@cmember Init
+//@param object | bDontShow |
+//@version Andrew Griffin | 15-08-02 10:20 |
+//@version Jonny Moo | 06-02-03 14:29 |
+//@version Richard.Talbot | 22-09-04 16:25 |
+//@version Tim.Simpson | 28-09-04 16:30 |
+//@version Jonathan.Muir | 22-02-06 15:41 |
+//@version Darren Ball | 08-02-06 09:46 |
+//@version Ashley.Gibbs | 13-12-13 15:59 |
+//@version andrew.banyard | 15-06-15 16:02 |
+
+open();
+
+String szWindowName = "Window"+sys::TickCount();
+SetWindowName(szWindowName);
+
+String ini = Sys::MakeFullName(Path(),"des.ini");
+String RunFromHttp = Sys::GetPrivateProfileString("run","FromHTTP",ini);
+
+CheckMenuItem( "MN_SYNC", 1 );
+
+if ( RunFromHttp.val() == 1 )
+    CheckMenuItem( "MN_USEHTTP", 1 );
+else
+    CheckMenuItem( "MN_USEHTTP", 0 );
+
+wfuncedit::autoTips = Sys::GetPrivateProfileString("ide","MethodTips",ini).val();
+CheckMenuItem( "MN_AMTIPS", wfuncedit::autoTips );
+
+wfuncedit::autoList = Sys::GetPrivateProfileString("ide","MethodList",ini).val();
+CheckMenuItem( "MN_AMLIST", wfuncedit::autoList );
+
+autoParseOnSave = Sys::GetPrivateProfileString("ide","ParseOnSave",ini).val();
+CheckMenuItem( "MN_POSAVE", autoParseOnSave );
+
+//func::autoVersion = Sys::GetPrivateProfileString("ide","MethodVersionTagging",ini).val();
+//CheckMenuItem( "MN_MVTAG", func::autoVersion );
+func::autoVersion = 1;
+
+string tmp = sys::GetNetworkUser();
+func::me = Sys::GetPrivateProfileString("ide","username_" + tmp, ini);
+if (!func::me) func::me = tmp;
+
+grid::wgridedit::loadComps = Sys::GetPrivateProfileString("ide","LoadComponents",ini).val();
+CheckMenuItem( "MN_LOADCOMPS", grid::wgridedit::loadComps );
+
+grid::wgridedit::showCtrlToolbar = Sys::GetPrivateProfileString("ide","ShowControlToolbar",ini).val();
+CheckMenuItem( "MN_SHOWCTRLTOOLBAR", grid::wgridedit::showCtrlToolbar );
+
+string cacheS = Sys::GetPrivateProfileString("ide","xmlCacheLimit",ini);
+if (cacheS) globalXML::cache = cacheS.val();
+
+string tmps = Sys::GetPrivateProfileString("backup","Path",ini);
+if (!tmps.endswith("\\")) tmps+="\\";
+backup::backupDir = tmps;
+backup::backupEnabled = Sys::GetPrivateProfileString("backup","Enabled",ini).val();
+backup::backupLevels = Sys::GetPrivateProfileString("backup","Levels",ini).val();
+backup::backupEvery = Sys::GetPrivateProfileString("backup","Every",ini).val();
+
+grid::wgridedit::CtrlEditDocked = Sys::GetPrivateProfileString("ide","dockedCtrlEdit",ini).val();
+
+if(Sys::GetPrivateProfileString("ide","saveDebugHistory",ini) == null || Sys::GetPrivateProfileString("ide","saveDebugHistory",ini) == "")
+{
+    SaveDebugHistory = 0;
+}
+else
+{
+    SaveDebugHistory = Sys::GetPrivateProfileString("ide","saveDebugHistory",ini).val();
+}
+
+// Set sort members: On by default now it is function only.
+string savedSortMembers = Sys::GetPrivateProfileString("ide", "sortmembers",  ini);
+SortMembers = (savedSortMembers==null || savedSortMembers=="" || savedSortMembers.val());
+
+search::classrec::aclassrec::enableIndexing =
+    Sys::GetPrivateProfileString("ide","ClassIndexing",ini).val();
+CheckMenuItem( "MN_CLASSINDEX", search::classrec::aclassrec::enableIndexing );
+
+sessions::asession::sessionDB = Sys::GetPrivateProfileString("SourceSafe","SessionsDB",ini);
+sessions::asession::OverrideClass = Sys::GetPrivateProfileString("SourceSafe","OverrideClass",ini);
+
+sessions::asession::useSessions = (sessions::asession::sessionDB != ""&&sessions::asession::OverrideClass=="" );
+
+// Set up Clearcase Menu if it is in use
+
+
+CCEnabled = Sys::GetPrivateProfileString("ClearCase","Enabled",ini).val();
+
+if(CCEnabled)
+{
+    clearCase.SetParentWindow(szWindowName);
+    doClearCase("ccbuildmenu");
+}
+else
+{
+    SSMenu();
+}
+
+if(bDontShow==null||bDontShow!=1)
+{
+    Show(1);
+}
+
+funcHist.reset();
+classHist.Reset();]]>
+</method>
+<method name="DoNewWin">
+<![CDATA[//@version Andrew Griffin | 20-02-02 13:36 |
+
+WClassView Q; Q.Init();
+Q.DoNew();]]>
+</method>
+<method name="DoNew">
+<![CDATA[//@version Andrew Griffin | 19-07-01 13:34 |
+//@version Darren Ball | 13-01-06 12:32 |
+//@version G | 22-10-13 10:53 |
+
+if (!OptionalSave("Create New Class")) return;
+XFile.resetContent();
+Object Z = idMulti.FindPane("GridEdit");
+if (Z!=null) Z.Close();
+Modified = 0;
+FileName = "";
+readonly = 0;
+SetCaption(); // SetText("New Class");
+
+ClassDef Cls = &XFile.Classes.CreateRow();
+Cls.SetTo(null);
+
+EditGrid( xfile.Classes[0].Grids[0].GridData );
+
+EditClassDef(Cls);
+idResults.SelectRow(Cls);
+
+funcHist.reset();
+classHist.reset();
+
+FitRecursive();]]>
+</method>
+<method name="OnDropFiles">
+<param name="Files" type="object" />
+<![CDATA[//@version richard.lee | 28-04-05 14:35 |
+
+String fn = Files[0];
+if (!fn.lower().endsWith(".xml")) return;
+SetForeground();
+if (!OptionalSave("Load File: "+fn)) return;
+// Message("Open File :"+fn);
+ReadFile(fn);]]>
+</method>
+<method name="ReadFile">
+<param name="fn" type="filename" />
+<param name="refresh" type="int" />
+<param name="display" type="int" />
+<param name="rename" type="string" />
+<param name="errors" type="errors" />
+<![CDATA[//@cmember ReadFile
+//@param filename | fn |
+//@param int | refresh |
+//@param int | display |
+//@param string | rename |
+//@param errors | errors |
+//@version Andrew Griffin | 01-11-01 13:52 |
+//@version Richard.Talbot | 22-09-04 16:27 |
+//@version Tim.Simpson | 06-04-05 16:39 |
+//@version Jonathan.Muir | 10-03-10 16:45 |
+//@version tim.simpson | 27-07-11 12:13 |
+//@version Tim Simpson | 10-11-11 13:05 |
+
+Object Z = idMulti.GetPane(0);
+string cMeth, state;
+if (refresh!=null) {    // Refresh load so return to same method we were currently in...
+    func ob = &idResults.CurrentRow();
+    if (ob!=null && ob.hasmethod("parseTest")) cMeth = ob.FuncName;
+
+    if (Z!=null && Z.hasMethod("StoreState")) state = Z.StoreState();
+}
+
+XML X;
+Object B;
+if (fn.beginsWith("http")) {
+    HTTPConnection Con;
+    B = Con.GetFile(fn);
+    readonly = 1;
+    message("Designer is running over an http connection... Update shortcut to run correctly");
+    if (B==null) return 0;
+    X = &B.toXMLObject();
+    if (X==null) return 0;
+
+} else {
+    x = &globalXML::LoadXML( fn, null, 0 );
+
+    //File F;
+    //if (!F.Open(fn,0)) return 0;
+
+    int i = fn.lastindexof("\\",9999);
+    String path = fn.left(i);
+    File::SetCurrentDirectory(path);
+    /*
+    B = F.ReadBlob();
+    F.close();
+    */
+    FileFinder FF = &Sys::NewFileFinder();
+    int ok = FF.FindFirst( fn, "" );
+    readonly = ok && FF.isReadOnly;
+}
+
+
+
+// got anything?
+
+FileName = (rename==null) ? fn : rename;
+
+
+Object EX = &X.Element(0);
+if (EX==null) return 0;
+
+// Transform XML moving Return Types to their methods
+
+TransformXMLReturns(EX);
+
+//if (display!=null || display==0) return 1;
+
+// close GridEdit if open...
+
+int vug;
+Z = &idMulti.FindPane("GridEdit");
+if (Z!=null){
+    if (Z.isVisible()) vug = 1;
+    Z.Close();
+    }
+
+
+
+if (EX.Tag()=="class" || EX.Tag()=="form")
+{
+    XFile.resetContent();
+    Object Cls = XFile.Classes.CreateRow();
+    Cls.SetTo(EX);
+    Cls.ClassPath = fn;
+    EditClassDef(Cls);
+}
+
+else{ // junk
+    /* Stop if junk - just warn
+    XFile.SetTo(EX);
+    idResults.SetObject( XFile );
+    setText( "File: " + fn.lower() );
+    */
+    if(errors!=NULL)
+    {
+        errors.ertyp = 1;
+        errors.erContext = "Error loading class file";
+        errors.Error = "Error: XML file not editable in W2 Designer.";
+        errors.filename = (rename==null) ? fn : rename;
+    }
+    else
+    {
+        //message(fn+" file not editable in W2 Designer.","File Open Error!");
+
+        // do something more useful with the file
+        sys::ShellExecute("","notepad.exe",fn,"");
+    }
+    close();
+    return 0;
+}
+
+// done
+Modified = 0;
+SetCaption();
+
+
+
+// if grid was open, open the new one
+if (vug){
+    if (XFile.Classes.Count()){
+        Object Cls = XFile.Classes[0];
+        if (Cls.Grids.Count()){
+            Grid G = &Cls.Grids[0];
+            if (G.GridData!=null){
+                if (G.GridData.Count())
+                    EditGrid( G.GridData );
+                }
+            }
+        }
+    }
+
+if (display==null || display==1) {
+    Object Cls = XFile.Classes[0];
+    if (Cls.Grids.Count()) {
+        grid G = &Cls.Grids[0];
+        if (G.GridData!=null){
+            G.populateCtrlList( this );
+            idResults.Update();
+        }
+    }
+}
+
+// Bring up method if this is a refresh
+if (cMeth) advsearch::openMethodMember( this, cMeth );
+else idResults.SelectRow( XFile.Classes[0] );
+
+if (state) {
+    Z = &idMulti.GetPane(0);
+    if (Z!=null && Z.HasMethod( "RestoreState" ))
+        Z.RestoreState( state );
+}
+
+//  Enable or Disable the relevant ClearCase Menus
+doClearCase("ccsetmenu");
+FitRecursive();
+return 1;]]>
+</method>
+<method name="DoOpen">
+<![CDATA[//@version Andrew Griffin | 05-02-02 11:05 |
+//@version Richard.Talbot | 20-09-04 13:53 |
+//@version Jonathan.Muir | 26-02-10 13:37 |
+
+//if (!OptionalSave("Open Other Class")) return;
+
+String fn = GetOpenFileName("Open XML","XML Files|*.xml", Filename);
+
+if (!fn) return;
+fn=fn.left( fn.lastindexOf(".xml",fn.length(),1) );
+if (!fn) return;
+object win = advsearch::OpenClassFile( fn, "", "" );
+if(win!=null) win.show(1);
+//ReadFile(fn);]]>
+</method>
+<method name="DoOpenHTTP">
+<![CDATA[
+if (!OptionalSave("Open Other Class")) return;
+
+WHTTPFileSelect Z;
+Z.dialog(this);
+if (FileName=="") Z.SetFileName( Path() );
+else              Z.SetFileName( FileName );]]>
+</method>
+<method name="EditMethod">
+<param name="M" type="object" />
+<param name="makeHist" type="int" />
+<param name="bquiet" type="int" />
+<![CDATA[//@cmember EditMethod
+//@param object | M |
+//@param int | makeHist |
+//@param int | bquiet |
+//@version Andrew Griffin | 05-02-02 12:02 |
+//@version Ricky LEE | 30-03-06 16:38 |
+//@version Jonathan.Muir | 26-02-10 15:55 |
+//@version Ashley.Gibbs | 13-12-13 15:54 |
+
+WFuncEdit Z = &idMulti.FindPane("MethodEdit");
+if (Z==null)
+{
+WFuncEdit X;
+idMulti.AddPane(X);
+X.SetWindowName("MethodEdit");
+X.FileName=fileName;
+X.Init();
+Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);
+Z.FitRecursive();
+
+
+classes::des::browse::clsbrowser browser = &classes::des::browse::clsbrowser::mybrowser;
+if((browser!=null)&&(!ThreadGuid)&&(bQuiet==null||bQuiet==0))
+{
+    browser.AddMethodHistory(FileName,M.funcname);
+}
+
+
+if (makeHist==null || makeHist) {
+    history::makeHistory(&this.Filename, ThreadGuid, SaveDebugHistory, "MethodEdit", M.funcName, "Method");
+    makeFuncHist( M.funcName, "" );
+}
+
+return Z;]]>
+</method>
+<method name="EditMember">
+<param name="M" type="object" />
+<![CDATA[//@version Andrew Griffin | 05-02-02 12:02 |
+//@version Ashley.Gibbs | 13-12-13 15:54 |
+
+Object Z = idMulti.FindPane("MemberEdit");
+if (Z==null)
+{
+WMembEdit X;
+idMulti.AddPane(X);
+X.SetWindowName("MemberEdit");
+X.Init();
+Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);
+
+history::makeHistory(&this.Filename, ThreadGuid, SaveDebugHistory, "MemberEdit", M.memberName, M.memberType);]]>
+</method>
+<method name="EditSection">
+<param name="M" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("SectionEdit");
+if (Z==null)
+{
+WSectionEdit X;
+idMulti.AddPane(X);
+X.SetWindowName("SectionEdit");
+X.Init();
+Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);]]>
+</method>
+<method name="EditGrid">
+<param name="GXML" type="object" />
+<![CDATA[//@version Andrew Griffin | 05-02-02 12:02 |
+//@version Darren Ball | 10-01-06 15:08 |
+//@version Ashley.Gibbs | 13-12-13 15:55 |
+
+Object Z = idMulti.FindPane("GridEdit");
+if (Z==null)
+{
+grid::WGridEdit X;
+idMulti.AddPane(X);
+X.SetWindowName("GridEdit");
+X.Init();
+Z = &X;
+Z.SetGridXML(GXML,FileName);
+}
+Z.openingView();
+idMulti.ShowPane(Z,"max");
+
+history::makeHistory(&this.Filename, ThreadGuid, SaveDebugHistory, "GridEdit", "", "Grid");]]>
+</method>
+<method name="EditClassDef">
+<param name="CD" type="object" />
+<![CDATA[//@version Andrew Griffin | 05-02-02 12:02 |
+//@version Jonathan.Muir | 01-03-06 14:00 |
+//@version Ashley.Gibbs | 13-12-13 15:55 |
+
+if (idMulti.FindPane("ClsEdit")==null)
+{
+    WClsDef X;
+    idMulti.AddPane(X);
+    X.SetWindowName("ClsEdit");
+    X.Init();
+}
+
+
+Object Z = idMulti.FindPane("ClsEdit");
+
+Z.Setup(CD);
+idMulti.ShowPane(Z,"max");
+
+history::makeHistory(&CD.classpath, ThreadGuid, SaveDebugHistory, "ClsEdit", "", "ClassDef");]]>
+</method>
+<method name="EditMenu">
+<param name="M" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("MenuEdit");
+if (Z==null) {
+    WMenuEdit X;
+    idMulti.AddPane(X);
+    X.SetWindowName("MenuEdit");
+    X.Init();
+    Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);]]>
+</method>
+<method name="EditDisp">
+<param name="M" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("DispEdit");
+if (Z==null) {
+    WDispEdit X;
+    idMulti.AddPane(X);
+    X.SetWindowName("DispEdit");
+    X.Init();
+    Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);]]>
+</method>
+<method name="EditXMLObj">
+<param name="M" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("ItemEdit");
+if (Z==null)
+{
+WItemEdit X;
+idMulti.AddPane(X);
+X.SetWindowName("ItemEdit");
+X.Init();
+Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);]]>
+</method>
+<method name="GetVarName">
+<![CDATA[
+/* PopupMenu P;
+XFile.Classes[0].GetMemberPop(P,FileName,"");
+String s = P.Track();
+if (s) Message(s); */
+
+if (XFile.Classes.Count()==0) return;
+
+Object M = &Sys::TrackObjMenu( &XFile.Classes[0] );
+if (M==null) return "";
+return M.Selection();]]>
+</method>
+<method name="DoBrowse">
+<![CDATA[//@version Andrew Griffin | 28-11-01 11:58 |
+
+// Open class browser
+
+if (XFile==null) return;
+if (XFile.classes.count()==0) return;
+object o = XFile.classes[0];
+if (o==null) return;
+
+//int i = o.classPath.lastIndexOf("\\");
+browse::clsBrowser myBrowser = &browse::clsBrowser::openAtCursor(0);
+
+//myBrowser.OpenVarNew("Object", "this", o.className, o.classPath.left(i+1));
+
+string fname = filename.getToken(0,".");
+string cname = fname.subString( fname.lastindexof("\\")+1 );
+if (!cname) cname = "NewClass";
+myBrowser.OpenVarNew( "object", "this", cname, fname);
+
+//String s = GetVarName();
+//if (s) Message(s);]]>
+</method>
+<method name="DoRun">
+<param name="con" type="control" />
+<param name="funcName" type="string" />
+<![CDATA[//@cmember DoRun
+//@param control | con |
+//@param string | funcName |
+//@version Andrew Griffin | 22-04-02 09:51 |
+//@version Jonathan.Muir | 23-03-10 14:24 |
+
+runwrapped::closeDeadSessions();
+
+string tmpFilename = filename;
+
+if (!tmpFileName) {
+    // Run without saving...
+    tmpFilename = classname().left( classname().lastindexof( "\\" )+1 ) + "debug\\debugRun.xml";
+}
+
+if (Modified){
+    if (!DoSave( null, tmpFilename )) return;
+}
+
+SetWaitCursor();
+
+// executable
+String exe = Sys::GetModulePath() + "xrunapp.exe";
+
+if (!IsMenuItemChecked("MN_USEHTTP")){
+//    Sys::ShellExecute("",exe,FileName,"");
+    string rW = sys::MakeFullName( path(), "runWrapped.xml" );
+    Sys::ShellExecute("",exe, "-n "+rW + "; " + tmpFileName,"");
+    return;
+    }
+
+// got: "http://host/classes/xxx.xml
+String ini = Sys::MakeFullName(Path(),"des.ini");
+
+String root = Sys::GetPrivateProfileString("run","root",ini);
+
+if (!root) root = Path(); // root=http://localhost/classes/
+
+String cpath = Path();        // ie "c:\w2\classes\des\WClassView"
+int i = cpath.indexof("\\des\\");
+if (i<0) i = cpath.indexof("//des//");
+cpath = cpath.left( i + 1 );  // ie "c:\w2\classes\"
+
+String rel = Sys::MakeRelativeName(cpath,tmpFileName);
+
+String got = Sys::MakeFullName(root,rel);
+String wrap = Sys::MakeFullName(root,"classes::des::runWrapped.xml");
+
+if (funcName!=null) got += " -run " + funcName;
+
+//if (TestParam){
+//    got += "; " + TestParam;
+//    }
+
+Sys::ShellExecute("",exe, "-n "+wrap + "; " + got,"");]]>
+</method>
+<method name="DoRunOptions">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember
+//@param label | ctrl |
+//@version Andrew Griffin | 27-05-02 13:51 |
+//@i
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "RunWrap");
+    if (i==7729) {
+        break;
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+classes::core::wpopupmenu p;
+
+if (mhWnd!=0) {
+    p.Add( "Show Wrapper", "SW" );
+    p.AddSeparator();
+    p.Add( "Refresh Classes", "RC" );
+    p.Add( "Forced Stop", "FS" );
+    p.AddSeparator();
+}
+
+p.Add("Start", "WS_S");
+p.Add("Flush", "WS_F");
+p.Add("Stop", "WS_X");
+
+string s = p.Track(1, ctrl,NULL,NULL,1);
+
+if (s=="FS") {
+    sys::HWNDSendIPC( mHwnd, 7729, "shutdown" );
+} else
+if (s=="SW") {
+    sys::HWNDSendIPC( mHwnd, 7729, "showwrapper" );
+} else
+if (s=="RC") {
+    sys::HWNDSendIPC( mHwnd, 7729, "refresh" );
+} else
+if (s.left(2)=="WS")
+    browse::clsBrowser::doStartStopWeb( s[3] );]]>
+</method>
+<method name="SetCaption">
+<![CDATA[//@version Andrew Griffin | 01-11-01 13:20 |
+//@version jonathan.muir | 17-02-10 15:32 |
+
+String cap;
+int i = FileName.lastIndexOf("\\",9999);
+if (i<0) i = FileName.lastIndexOf("/",9999);
+if (i>0) cap = FileName.substring(i+1,9999);
+else     cap = "New Class";
+if (Modified) cap += " *";
+if (ThreadGuid) cap+= " Debugging Thread "+ThreadGuid;
+if (FileName) cap += "  (" + FileName + ")";
+if (Readonly) cap += "  <Read Only>";
+if (BackupDate) cap += "  <Backup Version " + BackupDate + ">";
+SetText(cap);]]>
+</method>
+<method name="SetMod">
+<param name="con" type="control" />
+<param name="flushBrowser" type="int" />
+<![CDATA[//@cmember SetMod
+//@param int | flushBrowser |
+//@version Andrew Griffin | 25-02-02 10:27 |
+//@version Jonny Moo | 06-02-03 14:30 |
+//@version Jonathan.Muir | 11-03-10 11:33 |
+
+if(GetThreadGuid()) return;
+
+if (flushBrowser!=null && flushBrowser==1) DoBrowseFlush(null, 0);
+
+if (Modified) return;
+Modified = 1;
+
+if (readonly)
+{
+
+    int bDoCheckOut = 1;
+
+    if(sessions::asession::OverrideClass)
+    {
+        object TheOverrideClass = sys::LoadClass(sessions::asession::OverrideClass);
+        if(TheOverrideClass!=NULL&&TheOverrideClass.HasMethod("DoSourceSafe"))
+        {
+            // This will return 1 for OK
+            // 0 error
+            // -1 means don't override this mode
+            int iRet = TheOverrideClass.DoSourceSafe("CO",this,this);
+            if(iRet!=-1)
+            {
+                bDoCheckOut = 0;
+            }
+        }
+    }
+
+    if(bDoCheckOut)
+    {
+
+        int id = sessions::wCheckOutSession::go( this );
+        if (id!=0)
+        {
+            sessionId = "CO";
+            if (id>0) sessionId = sessionId + id.tostring();
+            tmode = 1;
+            setTimer( 100 );
+        }
+    }
+}
+
+SetCaption(); // SetText( "Class: " + FileName + " *" );]]>
+</method>
+<method name="OnClose">
+<![CDATA[
+if (!OptionalSave("Closing Class Editor")) return;
+
+Close();]]>
+</method>
+<method name="OptionalSave">
+<param name="cap" type="object" />
+<![CDATA[//@version Andrew Griffin | 16-11-01 12:50 |
+
+if (!Modified) return 1;
+String q = "This class has been modified\n"
+           "Do you want to save it?";
+int r = Message(q,cap,3); // yesnocancel
+if (r==2) return 0; // CANCEL
+if (r==6){ // YES
+   if (DoSave()==0) return 0;
+   }
+return 1;]]>
+</method>
+<method name="DoSaveAs">
+<![CDATA[//@version Andrew Griffin | 20-03-02 14:37 |
+//@version Jonny Moo | 06-02-03 14:31 |
+//@version Jonathan.Muir | 30-11-04 13:15 |
+
+for (int sc=0; sc<XFile.Classes[0].Sections.count(); sc++)
+  for (int mm=0; mm<XFile.Classes[0].Sections[sc].Functions.count(); mm++) {
+    func fc = &XFile.Classes[0].Sections[sc].Functions[mm];
+    if (fc.Mod) fc.updateVersion( this );
+  }
+
+// Parse All?
+if (AutoParseOnSave)
+    if (!doParseAll( null, 0 )) return 0;
+
+
+String fn = GetSaveFileName("Save XML","XML Files|*.xml",FileName);
+if (!fn) return 0;
+
+if (fn.indexOf(".")<0)
+    fn += ".xml";
+
+int e = fn.lastIndexOf(".");
+int s = fn.lastIndexOf("\\");
+
+String cnm = fn.substring(s+1,e);
+
+if (XFile.Classes.count()==0) {
+    message("Error:  First create a new class to save!");
+    return 0;
+}
+
+Object CD = &XFile.Classes[0];
+
+if (!CD.ClassName.eq(cnm)){
+    CD.ClassName = cnm;
+    }
+
+CD.ClassPath = fn;
+
+int ok = SaveTheFile(fn);
+
+if (ok)
+{
+    // Quick, assign to a session...
+    int bDoNew = 1;
+
+    if(sessions::asession::OverrideClass)
+    {
+        object TheOverrideClass = sys::LoadClass(sessions::asession::OverrideClass);
+        if(TheOverrideClass!=NULL&&TheOverrideClass.HasMethod("DoSourceSafe"))
+        {
+            // This will return 1 for OK
+            // 0 error
+            // -1 means don't override this mode
+            int iRet = TheOverrideClass.DoSourceSafe("NEW",this,this);
+            if(iRet!=-1)
+            {
+                bDoNew = 0;
+            }
+        }
+    }
+}
+
+return ok;]]>
+</method>
+<method name="DoSave">
+<param name="con" type="control" />
+<param name="tmpfilename" type="string" />
+<![CDATA[//@cmember DoSave
+//@param control | con |
+//@param string | tmpfilename |
+//@version Andrew Griffin | 24-04-02 15:22 |
+//@version Jonathan.Muir | 11-09-03 15:21 |
+//@version andrew.banyard | 17-11-15 14:12 |
+
+string origFilename = this.FileName;
+int mod = Modified;
+
+string Filename =
+    tmpFilename==null ? origFilename : tmpFilename;
+
+if (FileName=="")
+    return DoSaveAs();
+
+for (int sc=0; sc<XFile.Classes[0].Sections.count(); sc++)
+  for (int mm=0; mm<XFile.Classes[0].Sections[sc].Functions.count(); mm++) {
+    func fc = &XFile.Classes[0].Sections[sc].Functions[mm];
+    if (fc.Mod) fc.updateVersion( this );
+  }
+
+// Parse All?
+if (AutoParseOnSave)
+    if (!doParseAll( null, 0 )) return 0;
+
+
+int e = FileName.lastIndexOf(".");
+int s = FileName.lastIndexOf("\\");
+
+String cnm = FileName.substring(s+1,e);
+
+Object CD = &XFile.Classes[0];
+
+if (!CD.ClassName.eq(cnm)){
+    CD.ClassName = cnm;
+    }
+
+CD.ClassPath = FileName;
+
+int ok = SaveTheFile(FileName);
+
+if (tmpfilename!=null && !this.FileName.eq(origFilename)) {
+    this.FileName = origFilename;
+    CD.ClassPath = origFilename;
+    if (mod) SetMod();
+}
+
+return ok;]]>
+</method>
+<method name="DoSaveRight">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember
+//@param label | ctrl |
+//@version Andrew Griffin | 27-05-02 13:50 |
+//@i
+
+classes::core::wpopupmenu P;
+if (!readonly) {
+
+    sessions::assafetrans stra = &sessions::aSSafeTrans::getTransaction( filename );
+
+    P.add( "Check IN to SourceSafe", "CI");
+    P.add( "Check IN/Keep OUT of SourceSafe", "CK");
+    P.AddSeparator();
+    P.add( "Undo Check Out from SourceSafe", "UD");
+
+    if (stra==null && sessions::asession::useSessions)
+    {
+        P.AddSeparator();
+        P.add( sessions::asession::getActiveSessionPopup( "AS" ),
+               "Assign to Session" );
+    }
+}
+if (readonly)
+{
+    if (sessions::asession::useSessions)
+        P.add( sessions::asession::getActiveSessionPopup( "CO" ),
+               "Check OUT into Session" );
+    else
+        P.add( "Check OUT of SourceSafe", "CO");
+}
+
+P.AddSeparator();
+P.add( "Get Latest from SourceSafe", "GL");
+
+string trk = P.track(1, ctrl,NULL,NULL,1);
+
+if (trk.beginsWith( "AS" ))
+{
+    int sesId = trk.substring(2).val();
+    sessions::aSSafeTrans::registerSSAFE( filename, sesId, 0 );
+    return;
+}
+
+if (trk) DoSourceSafe(trk);]]>
+</method>
+<method name="DoSourceSafe">
+<param name="mode" type="string" />
+<param name="callbackclass" type="form" />
+<![CDATA[//@cmember DoSourceSafe
+//@param string | mode |
+//@param form | callbackclass |
+//@version Andrew Griffin | 20-02-02 10:58 |
+//@version Jonny Moo | 06-02-03 14:31 |
+//@version Jonathan.Muir | 18-11-04 15:12 |
+
+if (!OptionalSave("Accessing Source Safe")) return;
+
+sessions::aSession se = null;
+form callb = &this;
+if (callbackclass!=null) callb = &callbackclass;
+
+if(sessions::asession::OverrideClass)
+{
+    object TheOverrideClass = sys::LoadClass(sessions::asession::OverrideClass);
+    if(TheOverrideClass!=NULL&&TheOverrideClass.HasMethod("DoSourceSafe"))
+    {
+        // This will return 1 for OK
+        // 0 error
+        // -1 means don't override this mode
+        int iRet = TheOverrideClass.DoSourceSafe(mode,callbackclass,this);
+        if(iRet!=-1)
+        {
+            return;
+        }
+    }
+}
+
+switch (mode.left(2)) {
+  case "CI":
+    if (sessions::asession::useSessions)
+    {
+        sessions::assafetrans st = &sessions::assafetrans::getTransaction( filename );
+        if (st!=null) {
+            se = &sessions::aSession::getSession( st.sesId );
+        }
+    }
+    SourceSafe::SourceSafe::checkIn( FileName, callb, se );
+    break;
+  case "CK":
+    SourceSafe::SourceSafe::checkInKeepOut( FileName, callb );
+    break;
+  case "CO":
+    sessionId = mode;
+    sessions::aSession::lastSesId = mode.substring(2).val();
+    if (sessions::aSession::useSessions &&
+        !sessions::aSession::lastSesId)
+    {
+        int ses = sessions::wCheckOutSession::go( callb );
+        if (!ses) return;
+        if (ses!=-1)
+        {
+            sessions::aSession ns;
+            ns.sesId = ses;
+            se = &ns;
+        }
+    } else
+    if (sessions::aSession::lastSesId) {
+        sessions::aSession ns;
+        ns.sesId = sessions::aSession::lastSesId;
+        se = &ns;
+    }
+    SourceSafe::SourceSafe::checkOut( FileName, callb, se );
+    break;
+  case "GL":
+    SourceSafe::SourceSafe::getLatest( FileName, callb );
+    break;
+  case "UD":
+    SourceSafe::SourceSafe::undoCheckOut( FileName, callb );
+    break;
+}]]>
+</method>
+<method name="SourceSafeCallBack">
+<param name="sessionId" type="int" />
+<param name="mode" type="int" />
+<param name="unused" type="string" />
+<param name="refresh" type="int" />
+<![CDATA[//@cmember SourceSafeCallBack
+//@param int | sessionId |
+//@param int | mode |
+//@param string | unused |
+//@param int | refresh |
+//@version Andrew Griffin | 29-04-02 09:54 |
+
+//
+// Add Session Id to this class when we check it out...
+
+if (refresh==null || refresh)
+    ReadFile( filename, 1 );
+else
+{   // mark file as readonly/writable...
+    FileFinder FF = &Sys::NewFileFinder();
+    int ok = FF.FindFirst( filename, "" );
+    readonly = ok && FF.isReadOnly;
+    SetCaption();
+}
+
+if (!sessions::asession::useSessions || !mode) return;
+sessions::aSSafeTrans::registerSSAFE( filename, sessionId, mode );]]>
+</method>
+<method name="SaveTheFile">
+<param name="fn" type="string" />
+<![CDATA[//@cmember SaveTheFile
+//@param string | fn |
+//@version Andrew Griffin | 15-08-02 10:24 |
+//@version Jonathan.Muir | 12-09-03 12:36 |
+//@version Richard.Talbot | 22-09-04 16:26 |
+//@version Jonathan.Muir | 26-06-06 16:31 |
+//@version andrew.banyard | 15-09-16 11:31 |
+// set method versions
+
+
+// Store state of designer edit window
+Object Z = idMulti.GetPane(0);
+string state;
+if (Z!=null && Z.hasMethod("StoreState")) state = Z.StoreState();
+
+/*for (int sc=0; sc<XFile.Classes[0].Sections.count(); sc++)
+  for (int mm=0; mm<XFile.Classes[0].Sections[sc].Functions.count(); mm++) {
+    func fc = &XFile.Classes[0].Sections[sc].Functions[mm];
+    if (fc.Mod) fc.updateVersion( this );
+  }*/
+
+// Save file...
+SetWaitCursor();
+
+String oldfnm = FileName;
+FileName = fn;
+
+if (Filename != oldfnm ) DoBrowseFlush( null, 0 );
+
+XML X;
+XFile.GetXML(X,this);
+
+// UnTransform XML moving Return Types from their methods to the end of the XML file
+UnTransformXMLReturns(&X);
+
+File F;
+
+// Check version numbers to check we are not overwritting a modified class!!
+XML OX = &classes::des::globalXML::LoadXML( fn, null, -1 );
+if (OX.tag()!="error" && OX[0].getAttr("frevision").subString(10).val() > X.getAttr("frevision").substring(10).val())
+{
+    if (message("It appears another user has updated the local copy of your class.\r\n" +
+                "Saving the file now might loose there changes.\r\n" +
+                "Either save under a different name or save and then use source safe\r\n" +
+                "to check differences before checking the file in.\r\n" +
+                "Do you want to continue with the save?", "Save Warning",
+                classes::core::windows::MB_ICONSTOP + classes::core::windows::MB_YESNO) == classes::core::windows::IDNO)
+        return 0;
+}
+
+// Backup Old Class File
+if (backup::backupEnabled) backup::backupFile( fn );
+
+
+// Now save new class
+if (!F.Create(fn)){
+    F.CreateDir(fn.substring(0,fn.lastindexof("\\")));
+    if (!F.Create(fn)){
+        message("Failed to save file: " + Filename, "Save Error", classes::core::windows::MB_ICONSTOP);
+        FileName = oldfnm;
+        return 0;
+    }
+}
+
+F.WriteXML(X);
+xml nX;
+nX.setTag("XML");
+nX.addElement( X );
+
+globalXML::CacheXML( nX, fn );
+
+Modified = 0;
+readonly = 0;
+backupDate = "";
+SetCaption();
+
+// reset all method mods
+
+for (int sc=0; sc<XFile.Classes[0].Sections.count(); sc++)
+  for (int mm=0; mm<XFile.Classes[0].Sections[sc].Functions.count(); mm++) {
+    func fc = &XFile.Classes[0].Sections[sc].Functions[mm];
+    fc.Mod = "";
+    fc.ScriptOld = fc.Script;
+  }
+
+// file class
+String clsname = fn.left( fn.length() - 4 );
+
+// alerts for server...
+String tick = F.LastModTick().toString();
+Sys::WritePrivateProfileString( "Validate","Tick",tick,"w2dbg.ini" );
+Sys::WritePrivateProfileString( "Classes",clsname,tick,"w2dbg.ini" );
+
+// *** Refresh Designer to reflect save changes ***
+
+if (state) {
+    Z = &idMulti.GetPane(0);
+    if (Z!=null && Z.HasMethod( "RestoreState" ))
+        Z.RestoreState( state );
+}
+
+// Update class recorder
+
+if (search::classrec::aclassrec::enableIndexing)
+    search::classrec::aclassrec::enumerateClass( FileName, 0 );
+
+// sync running forms?
+if (!IsMenuItemChecked("MN_SYNC"))
+    return 1;
+// http class
+
+// look for run path first relative to this file
+
+String cpath = filename.lower();        // ie "c:\w2\classes\des\WClassView"
+
+int i = cpath.indexof("\\classes\\");
+if (i<0) i = cpath.indexof("/classes/");
+cpath = cpath.left( i + 9 );  // ie "c:\w2\classes\"
+
+string ini = sys::MakeFullName(path(),"des.ini");
+string root = sys::GetPrivateProfileString("run","root "+cpath,ini);
+
+// Not set get from designer ini file
+
+if(!root)
+{
+    root = Sys::GetPrivateProfileString("run","root",ini);
+}
+
+if (!root) root = Path();
+
+
+String rel = Sys::MakeRelativeName(cpath,FileName); // "swale::WMenu"
+
+for(int j=0;;j++)
+{
+
+    string s = root.getToken(j,";");
+    if(!s) break;
+
+    String got = Sys::MakeFullName(s,rel);
+
+    got = got.left( got.length() - 4 );
+
+    //  Enable or Disable the relevant ClearCase Menus
+    doClearCase("ccsetmenu");
+
+    // Clearcase
+    // check we are not modifying this or the grid editor!!
+    i = got.indexof("classes\\des\\");
+    if (i>=0) return 1;
+    i = got.indexof("classes/des/");
+    if (i>=0) return 1;
+    /*i = got.indexof("\\grid\\");
+    if (i>0) return 1;
+    i = got.indexof("/grid/");
+    if (i>0) return 1;*/
+
+
+    // send notify messages
+    int h = 0;
+    for(int n=0;n<10000;n++){
+        // get next
+        h = Sys::HWNDFindEx(0,h,"WFL32WNDCLASS","");
+        if (!h) break;
+        // send message
+        Sys::HWNDSendIPC(h,911,clsname);
+        Sys::HWNDSendIPC(h,911,got);
+        }
+}
+
+return 1;]]>
+</method>
+<method name="OnMenu">
+<param name="mId" type="string" />
+<![CDATA[//@cmember OnMenu
+//@param string | mId |
+//@version Andrew Griffin | 15-08-02 10:17 |
+//@version Jonathan.Muir | 12-09-03 12:16 |
+//@version Richard.Talbot | 22-09-04 16:30 |
+//@version Jonathan.Muir | 23-02-06 16:41 |
+//@version Nick Gomm | 17-06-08 17:29 |
+//@version Jonathan.Muir | 22-03-13 14:18 |
+
+String s;
+if (mId==null) s = MenuID(); else s = mId;
+
+if (s=="IE")
+    Sys::ShellExecute("","iexplore.exe","","");
+else if (s=="MapEdit")
+    classes::core::maps::WMapDesign::OpenWin();
+else if (s=="MN_HELP_FORMS")
+    DoHelp("forms_frames.htm");
+else if (s=="MN_HELP_SCRIPT")
+    DoHelp("script_frames.htm");
+else if (s=="MN_HELP_HOWTO")
+    Sys::ShellExecute( "open", sys::MakeFullName( path(), "docs::wordDocs::W2 How To.doc"), "", "" );
+else if (s=="MN_HELP_REF")
+    Sys::ShellExecute( "open", sys::MakeFullName( path(), "docs::wordDocs::W2 IDE Overview & Reference Manual.doc"), "", "" );
+else if (s=="MN_HELP_FAQ")
+    Sys::ShellExecute( "open", sys::MakeFullName( path(), "docs::wordDocs::Designer FAQ.doc"), "", "" );
+else if (s=="MN_HELP_UPDATES")
+    wversion::checkDesignerVersion( 1 );
+else if (s=="MN_CONSOLE")
+    Sys::ShellExecute( "", Sys::GetModulePath() + "xrunapp.exe", "", "" );
+else if (s=="MN_CONFIG")
+    WConfig::OpenWin(this);
+else if (s=="MN_ABOUT")
+    wVersion::dispAbout();
+else if (s=="MN_USEHTTP"){
+    int i = IsMenuItemChecked(s);
+    CheckMenuItem( s, !i );
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+    Sys::WritePrivateProfileString("run","FromHTTP",""+!i, ini);
+}
+else if (s=="MN_SYNC"){
+    int i = IsMenuItemChecked(s);
+    CheckMenuItem( s, !i );
+}
+else if (s=="MN_AMTIPS"){
+    int i = !IsMenuItemChecked(s);
+    CheckMenuItem( s, i );
+    WFuncEdit::autoTips = i;
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+    Sys::WritePrivateProfileString("ide","MethodTips",i.toString(),ini);
+}
+else if (s=="MN_AMLIST"){
+    int i = !IsMenuItemChecked(s);
+    CheckMenuItem( s, i );
+    WFuncEdit::autoList = i;
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+    Sys::WritePrivateProfileString("ide","MethodList",i.toString(),ini);
+}
+else if (s=="MN_POSAVE"){
+    AutoParseOnSave = !IsMenuItemChecked(s);
+    CheckMenuItem( s, AutoParseOnSave );
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+    Sys::WritePrivateProfileString("ide","ParseOnSave",AutoParseOnSave.toString(),ini);
+}
+else if (s=="MN_MVTAG"){
+    func::autoVersion = !IsMenuItemChecked(s);
+    CheckMenuItem( s, func::autoVersion );
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+    Sys::WritePrivateProfileString("ide","MethodVersionTagging",func::autoVersion.toString(),ini);
+}
+else if (s=="MN_CLASSINDEX"){
+    int stat = !IsMenuItemChecked(s);
+    search::classrec::aclassrec::enableIndexing = stat;
+    CheckMenuItem( s, stat );
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+    Sys::WritePrivateProfileString("ide","ClassIndexing",stat.toString(),ini);
+}
+else if (s=="MN_LOADCOMPS"){
+    int i = !IsMenuItemChecked(s);
+    CheckMenuItem( s, i );
+    grid::wgridedit::loadComps = i;
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+    Sys::WritePrivateProfileString("ide","LoadComponents",i.toString(),ini);
+    grid::wgridedit wgr = &idMulti.FindPane("GridEdit");
+    if (wgr!=null) wgr.showHideComps();
+}
+else if (s=="MN_SHOWCTRLTOOLBAR"){
+    int i = !IsMenuItemChecked(s);
+    CheckMenuItem( s, i );
+    grid::wgridedit::showCtrlToolbar = i;
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+    Sys::WritePrivateProfileString("ide","ShowControlToolbar",i.toString(),ini);
+    grid::wgridedit wgr = &idMulti.FindPane("GridEdit");
+    if (wgr!=null) wgr.toggleCtrlToolbar();
+}
+else if (s=="UTIL")
+    Browse::Utilities::DoPop(this,XFile.Classes[0]);
+else if (s=="GotoLine"){
+    Object Z = idMulti.FindPane("MethodEdit");
+    if (Z==null) return;
+    classes::core::WinputBox::Open(this, "gotoLine", "Enter a line number", "Goto Line", "");
+}
+else if (s=="SearchReplace")
+    SearchReplace(null,"");
+else if (s=="FindProject"){
+    Project::wFindProject fP;
+    fP.startSearch( FileName, &this );
+}
+else if (s.beginsWith("SSafe")) {
+    DoSourceSafe( s.gettoken(1, ":") );
+    }
+//if a clearcase menu option has been selected
+//do the relevant cmd note: Clearcase menus are built during init.
+else if (s.beginsWith("cc")) {
+    DoClearCase( s );
+
+}
+else if (s.beginsWith("CLOSEALL")) {
+    browse::clsBrowser::closeAllDesWins();
+}
+else if (s.beginsWith("EXIT")) {
+  int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+  while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        sys::HWNDSendIPC( mHwnd, 7723, "CloseIDE" );
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+  }
+}
+else if ( s=="CALCBUILD" )
+{
+    classes::des::calcdes::wcalcview::OpenWindow();
+}
+else if ( s=="RTFEdit" )
+{
+    classes::core::letter::wrtftemplateeditor::main();
+}
+else if ( s=="SQLTool" )
+{
+    sql::sqltool::Main();
+}
+else if ( s=="SQLExtractor" )
+{
+    sql::wsqlextract::Main(FileName);
+}
+else if (s=="ParseClasses" )
+{
+    sys::ShellExecute("",sys::getModulePath()+"\\xrunapp.exe",sys::makefullname(path(),"classes::des::search::wparseall.xml")+";"+sys::makefullname(FileName,"classes"),"");
+}
+else if (s=="CircRef" )
+{
+    classes::core::debugobjects::wDebugReferencedObjects::open(this);
+}
+else if ( s=="SESSIONED" )
+{
+    sessions::wSessionEdit::Main( FileName );
+}
+else if ( s=="BREFTREE" || s=="BREFTREEALL" )
+{
+    if (!classes::core::globalForm::areYouSure( "Build reference tree of classes directory?", "W2 Designer" )) return;
+    SetWaitCursor();
+    classes::Des::Search::classRec::aClassRec::enumerateClasses( s=="BREFTREEALL" );
+    message( "Parse complete", "W2 Designer", classes::core::windows::MB_ICONASTERISK );
+}
+else Message("Menu Command " + s + " TBD");]]>
+</method>
+<method name="DoHelp">
+<param name="htm" type="object" />
+<![CDATA[
+String ini = Sys::MakeFullName(Path(),"des.ini");
+String root = Sys::GetPrivateProfileString("help","root",ini);
+if (!root)
+    WConfig::OpenWin();
+else
+    Sys::ShellExecute("",root + htm,"","");]]>
+</method>
+<method name="DoConHelp">
+<param name="Con" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:05 |
+
+String s = Con.GetControlAttr("help");
+if (!s) return;
+
+classes::core::wpopupmenu P;
+P.Add(s);
+
+P.Track(1,null,0,20);]]>
+</method>
+<method name="GetClassDef">
+<![CDATA[// to allow popups owned by the designer to access a class def
+
+if (!XFile.Classes.Count()) return null;
+
+return XFile.Classes[0];]]>
+</method>
+<method name="DoProjHistoryBrowse">
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:05 |
+// Project History
+
+classes::core::wpopupmenu P3;
+
+classes::CPickS ph[] = &Project::WProject::ProjHist;
+
+string cprj = browse::ClsBrowser::openProject.projPath +
+              browse::ClsBrowser::openProject.projName + ".xpj";
+
+for (int i=0; i<ph.count(); i++) {
+    if (ph[i].code.eq( cprj )) continue;
+    int cp = ph[i].code.IndexOf("classes\\projects",0,1);
+    string pth = (cp==-1) ? ph[i].code : ph[i].code.subString(cp+17);
+    P3.Add(ph[i].desc + "\t(" + pth + ")", ph[i].code);
+}
+
+String s = P3.Track();
+
+if (!s) return;
+browse::ClsBrowser::openProject.openFile( s, 1 );]]>
+</method>
+<method name="DoWindowBrowse">
+<param name="ctrl" type="label" />
+<param name="PStr" type="string" />
+<![CDATA[//@cmember DoWindowBrowse
+//@param label | ctrl |
+//@param string | PStr |
+//@version Andrew Griffin | 06-08-02 09:56 |
+history::chooseClass(Filename, ctrl,this,PStr!=null);]]>
+</method>
+<method name="OnChar">
+<param name="TheKey" type="object" />
+<param name="TheState" type="object" />
+<param name="TheObject" type="object" />
+<![CDATA[//@cmember OnChar
+//@param object | TheKey |
+//@param object | TheState |
+//@param object | TheObject |
+//@version Andrew Griffin | 20-03-02 14:43 |
+//@version Tim.Simpson | 05-10-04 17:21 |
+//@version Darren Ball | 13-01-06 12:32 |
+//@version Jonathan.Muir | 21-03-06 16:53 |
+//@version jonathan.muir | 18-02-10 13:09 |
+//@version Jonathan.Muir | 26-02-10 15:36 |
+//@version Ashley.Gibbs | 17-01-14 17:10 |
+//@version ashley.gibbs | 17-01-14 17:13 |
+/*if ( TheKey == 116 ) {      // F5
+    tmode = 2;
+    setTimer(10);
+}
+else
+ */
+
+classes::des::browse::clsBrowser browser = &classes::des::browse::clsBrowser::myBrowser;
+
+if ( TheKey == 114 )        // F3
+    SearchReplace( null, "" );
+else
+if ( TheKey == 83 && TheState == 2) //Check for CTRL+S (Save)
+    DoSave();
+else if(TheKey==121&&TheState==1) // Step over F10
+{
+    killDebugSession(idDebugStepOver);
+}
+else if(TheKey==122&&TheState==0) // Step into F11
+{
+    killDebugSession(idDebugStepInto);
+}
+else if(TheKey==122&&TheState==3) // Step out Shift F11
+{
+    killDebugSession(idDebugStepOut);
+}
+else if(TheKey==116&&TheState==0&&ThreadGuid!=null&&ThreadGuid!="") // Continue F5
+{
+    killDebugSession(idDebugGo);
+}
+else if(TheKey==187&&TheState==2)
+{
+    browser.NextMethodHistory();
+}
+else if(TheKey==189&&TheState==2)
+{
+    browser.LastMethodHistory();
+}
+
+
+
+
+
+
+
+//sys::debugout("WClassView TheKey: "+TheKey.tostring()+
+//              ", TheState: "+TheState.ToString());]]>
+</method>
+<method name="gotoLine">
+<param name="str" type="string" />
+<![CDATA[//@cmember gotoLine
+//@param string | str | Line number to jump to
+//@return void
+//@version Andrew Griffin | v1
+//@version ashley.gibbs | 08-01-14 15:24 |
+//@i Jumps to a given line number in the source
+
+Object Z = idMulti.FindPane("MethodEdit");
+if (Z==null) return;
+
+Z.gotoLine(str.val(), 1);]]>
+</method>
+<method name="SearchReplace">
+<param name="con" type="control" />
+<param name="str" type="string" />
+<![CDATA[//@cmember SearchReplace
+//@param control | con |
+//@param string | str | The Search String
+//@return void |
+//@version Andrew Griffin | 05-12-01 12:30 |
+//@version andrew.banyard | 20-05-15 17:01 |
+//@i Initiates a Search & Replace
+
+string fnd = (str != null) ? str : "";
+
+WFuncEdit Z = &idMulti.FindPane("MethodEdit");
+if (Z!=null) {
+    Z.idSearch.setText( fnd );
+    Z.doBIGSearch( null );
+}
+
+search::wSearch::newSearch(&XFile, fnd, null, this );]]>
+</method>
+<method name="addMember">
+<param name="con" type="object" />
+<![CDATA[//@cmember addMember
+//@param object | con |
+//@version Andrew Griffin | 03-08-01 17:06 |
+//@version Jonathan.Muir | 11-03-10 11:33 |
+//@i
+
+ClassSection sec = null;
+
+
+// current section?
+
+object cr = &idResults.currentRow();
+
+while (cr!=null) {
+    if (cr.classname().indexOf("classsection",0,1)>=0) {
+        sec = &cr;
+        break;
+    }
+
+    cr = &cr.OwnerList();
+    if (cr==null) break;
+    cr = &cr.ownerRow();
+}
+
+if (sec==null) sec = &XFile.Classes[0].Sections[0];
+
+Object NM;
+
+if (con==idNewMember) {
+    NM = &sec.MemberDefs.CreateRow();
+} else
+if (con==idNewMethod) {
+    NM = &sec.functions.CreateRow();
+}
+
+if (nm==null) return;
+
+NM.Init();
+idResults.SelectRow(NM);
+NM.EventHierMouseSelect(idResults);  // select itself
+
+SetMod(null,1);]]>
+</method>
+<method name="showShortCuts">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 06-02-02 10:21 |
+//@i
+
+message(    "W2 Designer Short cuts:\r\n" +
+            "\r\n" +
+            "F1 - Browse\r\n" +
+            "F2 - List Methods & Members\r\n" +
+            "F3 - Search & Replace\r\n" +
+            "F4 - Source Hint\r\n" +
+            "F5 - Run Class...\r\n" +
+            "F6 - Match Bracket\r\n" +
+            "F7 - Parse Method\r\n" +
+            "F8 - Spell Check Method/Form\r\n" +
+            "F11 - Find Full Class Path\r\n" +
+            "F12 - Open class/method/member\r\n" +
+            "\r\n" +
+            "Auto Correct Strings:\r\n" +
+            "\r\n" +
+            "ccg#  - classes::core::global\r\n" +
+            "ccw#  - classes::core::windows\r\n" +
+            "ccx#  - classes::core::globalxml\r\n" +
+            "ccd#  - classes::debug::showObj(\r\n" +
+            "doc#  - classes::client::document\r\n" +
+            "proc# - classes::worktray::process\r\n" +
+            "cc#   - classes::core::\r\n",
+
+            "W2 Designer",
+
+            classes::core::windows::MB_ICONINFORMATION );]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 22-04-02 16:17 |
+//@version jonathan.muir | 18-02-10 14:06 |
+//@version Jonathan.Muir | 02-03-10 10:06 |
+//@i
+
+KillTimer();
+if (tmode == 1)
+{
+    DoSourceSafe( sessionId );
+}
+else if (tmode == 2)
+{
+    DoRun();
+}
+else if (tmode == 3) // end trace mode...
+{
+    //ShowGroup( "debug", 0 );
+    FitRecursive();
+    tmode =4;
+    SetTimer(2000);
+    return;
+}
+else if (tmode == 4)
+{
+    Close();
+}
+tmode = 0;]]>
+</method>
+<method name="getTriggerSQL">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+browse::SQLutils::getMSQLTrigger( FileName );]]>
+</method>
+<method name="makeFuncHist">
+<param name="fname" type="string" />
+<param name="mod" type="string" />
+<param name="oldfname" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 05-02-02 14:10 |
+//@i
+
+if (!fname) return;
+
+classes::cpicks ob = null;
+if (oldfname!=null) ob = &funcHist.FindRow( oldfname );
+              else  ob = &funcHist.FindRow( fname );
+
+if (ob!=null) {
+    if (ob.desc=="*") mod = "*";
+    ob.RemoveFromList();
+}
+
+classes::cpicks n = &funcHist.CreateRow(0);
+n.code = fname;
+n.desc = mod;
+
+while (funcHist.Count()>12)
+    funcHist.DeleteRow( 12 );]]>
+</method>
+<method name="doFindInFiles">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+search::wSearchinFiles::init( filename.left( filename.lastindexOf( "\\" )+1 ) );]]>
+</method>
+<method name="DoBrowseFlush">
+<param name="con" type="control" />
+<param name="dispMsg" type="int" />
+<![CDATA[//@cmember DoBrowseFlush
+//@param control | con |
+//@param int | dispMsg |
+//@version Andrew Griffin | 31-07-02 14:29 |
+//@i
+
+browse::ClsBrowser::myBrowser.flush = 1;
+browse::ClsBrowser::myBrowserHid.flush = 1;
+overviewXML.reset();
+
+if (dispMsg==null || dispMsg)
+    message("Quick Browse Cache Flushed");]]>
+</method>
+<method name="doParseAll">
+<param name="con" type="control" />
+<param name="dispOk" type="int" />
+<![CDATA[//@cmember
+//@param control | con |
+//@param int | dispOk |
+//@version Andrew Griffin | 20-03-02 11:30 |
+//@version Jonathan.Muir | 09-03-06 12:57 |
+//@i
+
+// loop through funcs.. open and parse.. return to original func if one is displayed
+
+int ok;
+
+resetErrors();
+setwaitcursor();
+
+Object Z = idMulti.GetPane(0);
+if (Z==null) return;    // not possible!?!
+string state;
+
+if (Z.hasMethod("StoreState")) {
+    state = Z.StoreState();
+}
+
+popups::popDummy pForm;
+int s;
+int m;
+
+// Parse Methods
+
+WFuncEdit wf;
+wf.openForParse = 1;
+wf.Init();
+wf.setParent( this );
+
+for (s=0; s<XFile.Classes[0].Sections.count(); s++)
+  for (m=0; m<XFile.Classes[0].Sections[s].Functions.count(); m++) {
+    func f = &XFile.Classes[0].Sections[s].Functions[m];
+
+    if (onlyParseMod && !f.Mod) continue;
+
+
+    wf.Setup( f );
+
+    ok = f.ParseTest( wf, 0, 1, this, pForm );
+    if (ok==-1&&(dispOK==NULL||dispOK!=0)) {                       // only display error if there is one...
+        idresults.SelectRow( f );
+        wfuncedit wf2 = &EditMethod( f, 0 );
+        f.ParseTest( wf2, 1, 0, null, pForm );
+        wf.close();
+        return 0;
+    }
+
+    //if(pForm!=NULL) pForm.close();
+
+  }
+
+wf.close();
+
+// Check for duplicate method / member names
+
+XML nams;
+
+for (s=0; s<XFile.Classes[0].Sections.count(); s++) {
+
+  for (m=0; m<XFile.Classes[0].Sections[s].MemberDefs.count(); m++) {
+    MemberDef md = &XFile.Classes[0].Sections[s].MemberDefs[m];
+
+    string fnd = nams.GetAttr( md.MemberName );
+    if (!fnd) {
+        nams.addAttr( md.MemberName, "Member" );
+        continue;
+    }
+
+    AddError( 20, md.MemberName, 0, 0, "Member " + md.MemberName.sql(), "Warning: Member name duplicated in another " + fnd + " within this class", "" );
+  }
+
+  for (m=0; m<XFile.Classes[0].Sections[s].Functions.count(); m++) {
+    func f = &XFile.Classes[0].Sections[s].Functions[m];
+
+    string fnd = nams.GetAttr( f.FuncName );
+    if (!fnd) {
+        nams.addAttr( f.FuncName, "Function" );
+        continue;
+    }
+
+    AddError( 20, f.FuncName, 0, 0, "Method " + f.FuncName.sql(), "Warning: Method name duplicated in another " + fnd + " within this class", "" );
+  }
+}
+
+//CheckDebugCommands
+if (CheckSaveWithDebugCommands()) return 0;
+
+// Check all interface methods are implemented
+CheckInterfaceMethods();
+
+object o = idResults.CurrentRow();  // reselect last bit of hierarchy if no errors.
+if (o!=null) {
+    if (o.HasMethod( "EventHierMouseSelect" ))
+        o.EventHierMouseSelect( idResults );
+    if (Z.HasMethod( "RestoreState" ))
+        Z.RestoreState( state );
+}
+
+if (dispOk==null || dispOk==1) message("Parsed Successfully", "Syntax Check...", classes::core::windows::MB_ICONINFORMATION);
+
+return 1;]]>
+</method>
+<method name="DoRevert">
+<![CDATA[//@cmember DoRevert
+//@version Andrew Griffin | 24-05-02 16:05 |
+//@version Jonathan.Muir | 26-02-10 13:37 |
+//@i
+
+if (!backup::backupEnabled) {
+    message( "Backups not enabled...", "W2 Designer", classes::core::windows::MB_ICONEXCLAMATION );
+    return;
+}
+
+if (readOnly) {
+    message( "Can't revert when file is read only...", "W2 Designer", classes::core::windows::MB_ICONEXCLAMATION );
+    return;
+}
+
+backup vars[] = &backup::getVersions( filename );
+
+classes::core::wpopupmenu p;
+
+if (Modified) p.add( "\tLast Saved", filename );
+for (int i=0; i<vars.Count(); i++) {
+    p.Add( vars[i].modDate.toString( "day\tdd/mm/yy hms" ), i.toString() );
+}
+
+string opt = p.Track( 1 );
+if (!opt) return;
+
+wclassview wcv = &advsearch::OpenClassFilePath( vars[opt.val()].filename, "", 1, filename );
+wcv.readOnly = 2;
+wcv.backupDate = vars[ opt.val() ].modDate.toString( "dd/mm/yy hms" );
+wcv.SetCaption();
+wcv.show(1);]]>
+</method>
+<method name="AddError">
+<param name="erTyp" type="int" />
+<param name="erContext" type="string" />
+<param name="erPos" type="int" />
+<param name="erPos2" type="int" />
+<param name="context" type="string" />
+<param name="Error" type="string" />
+<param name="highlight" type="string" />
+<param name="refresh" type="int" />
+<param name="atHead" type="int" />
+<![CDATA[//@cmember AddError
+//@param int | erTyp |
+//@param string | erContext |
+//@param int | erPos |
+//@param int | erPos2 |
+//@param string | context |
+//@param string | Error |
+//@param string | highlight |
+//@param int | refresh | optional
+//@param int | atHead |
+//@version Andrew Griffin | 24-04-02 14:40 |
+//@version Jonathan.Muir | 11-03-10 15:21 |
+//@i
+
+errors er = &null;
+if(atHead!=null&&atHead==1)
+{
+    er = &errors.CreateRow(0);
+}
+else
+{
+    er = &errors.CreateRow(0);
+}
+er.ertyp = ertyp;
+er.erContext = erContext;
+er.erPos = erPos;
+er.erPos2 = erPos2;
+er.context = context;
+er.Error = Error;
+er.highlight = highlight;
+
+if (refresh==null || refresh)
+{
+    showGroup( "errorgrp", 1 );
+    FitRecursive();
+    sys::Wait( 0 );
+}]]>
+</method>
+<method name="SizeErrorPane">
+<param name="erTyp" type="int" />
+<param name="erContext" type="string" />
+<param name="erPos" type="int" />
+<param name="erPos2" type="int" />
+<param name="context" type="string" />
+<param name="Error" type="string" />
+<param name="highlight" type="string" />
+<![CDATA[//@cmember SizeErrorPane
+//@param int | erTyp |
+//@param string | erContext |
+//@param int | erPos |
+//@param int | erPos2 |
+//@param string | context |
+//@param string | Error |
+//@param string | highlight |
+//@version Andrew Griffin | 24-04-02 14:40 |
+//@i
+
+if (!errors.Count()) return;
+
+showGroup( "errorgrp", 1 );
+FitRecursive();
+sys::Wait( 0 );
+
+int h = idErrors.getBestHeight();
+
+if (h<70) h=70;
+if (h>200) h=200;
+
+idErrors.seth( h + 18 );
+
+//FitRecursive(1);
+//sys::Wait( 0 );]]>
+</method>
+<method name="moveErrors">
+<param name="funcname" type="string" />
+<param name="pos" type="int" />
+<param name="diff" type="int" />
+<![CDATA[//@cmember moveErrors
+//@param string | funcname |
+//@param int | pos |
+//@param int | diff |
+//@version Andrew Griffin | 16-11-01 10:22 |
+//@i
+
+for (int i=0; i<errors.count(); i++) {
+  errors et = &errors[i];
+  if (et.erContext.eq( funcname )) {
+    if (et.erPos>=pos) et.erPos += diff;
+    if (et.erPos2>pos) et.erPos2 += diff;
+  }
+}]]>
+</method>
+<method name="resetErrors">
+<param name="cont" type="control" />
+<param name="hide" type="int" />
+<![CDATA[//@cmember resetErrors
+//@param control | cont |
+//@param int | hide |
+//@version Andrew Griffin | 22-04-02 15:58 |
+//@version richard.lee | 28-04-05 13:18 |
+//@i
+errors.reset();
+//FitRecursive();
+
+if (hide==null || hide)
+{
+    showGroup( "errorgrp", 0 );
+}
+FitRecursive();
+sys::Wait( 0 );]]>
+</method>
+<method name="DoJumpToGrid">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember DoJumpToGrid
+//@param label | ctrl |
+//@version Andrew Griffin | 27-05-02 13:51 |
+//@version richard.lee | 28-04-05 14:48 |
+//@version Jonathan.Muir | 26-02-10 13:38 |
+
+//
+// has this class got a grid?
+
+string filename = this.FileName;
+
+xml x = &globalxml::LoadXML( filename );
+
+if (x.count() && !x[0].tag().eq("form"))    // no...
+{
+
+    classes::core::wpopupmenu p;
+    p.add( "This", filename );
+
+    //
+    // Look for the grid in base classes...
+
+    int ok;
+    while (1)
+    {
+        string base = x[0].base;
+        if (!base) break;
+
+        filename = sys::MakeFullName( filename, base ) + ".xml";
+        x = &globalxml::LoadXML( filename );
+        if (x==null || !x.count()) break;
+
+        if (x[0].tag().eq("form")) {
+            p.add( base, filename );
+            ok = 1;
+        }
+    }
+
+    if (ok) {
+        filename = p.Track( 1, ctrl,NULL,NULL,1 );
+        if (!filename) return;
+
+        wClassView wc = &advSearch::OpenClassFilePath( filename, "" );
+        Grid tGrid = &wc.XFile.Classes[0].Grids[0];
+
+        wc.idResults.SelectRow( tGrid );
+        wc.show(1);
+        tGrid.EventHierMouseSelect( wc.idResults );
+        return; // done...
+    }
+}
+
+Grid tGrid = &XFile.Classes[0].Grids[0];
+
+idResults.SelectRow( tGrid );
+tGrid.EventHierMouseSelect( idResults );]]>
+</method>
+<method name="doQuickObjectFind">
+<![CDATA[//@cmember doQuickObjectFind
+//@version Andrew Griffin | 01-02-02 09:19 |
+//@version Ricky LEE | 31-03-06 09:12 |
+//@i
+
+if (XFile==null) return;
+if (XFile.classes.count()==0) return;
+object o = XFile.classes[0];
+if (o==null) return;
+
+string thisClass = XFile.Classes[0].ClassName;
+string thisPath = FileName;
+if (!thisPath) {
+    thispath = classes::cpicks::classname();
+    thisPath = thisPath.left( thisPath.lastindexof("\\")+1 );
+}
+
+xml brX = &browse2::browser::browseBase(
+            "This",
+            "object",
+            thisClass,
+            "",
+            thisPath
+          );
+
+popups::popform pForm;
+pForm.dialog(this);
+
+browse2::browser::browseObj2( brX, pForm,thisPath );
+
+pForm.typed = "";
+pForm.typedR = "";
+pForm.typedFlash = "";
+
+pForm.go( xpos()+64, ypos()+90 );
+
+/*
+int x=0, y=0, f=0;
+bcpos = cend;
+cbStaticTmp = cbStatic;
+
+x = idSource.getCaretX();
+y = idSource.getCaretY()+1;
+
+int vx = idSource.GetViewX(),
+    vy = idSource.GetViewY();
+
+x = (x-vx) * idSource.getCharW();
+y = (y-vy) * idSource.getCharH();
+
+int cp = sys::getCursorPos();
+x += XPos() + 24;
+y += YPos() + 28;
+int xx = x - cp.loword(),
+    yy = y - cp.hiword();
+
+P.go(x,y);]]>
+</method>
+<method name="getListPopup2">
+<param name="par" type="browse::Hmem" />
+<param name="Pchild" type="popups::popForm" />
+<param name="root" type="int" />
+<![CDATA[//@cmember getListPopup2
+//@param browse::Hmem | par |
+//@param popups::popForm | Pchild |
+//@param int | root |
+//@version Andrew Griffin | 12-12-01 11:25 |
+//@i
+
+//if (par.classFilename.indexOf("des\\docs\\",0,1)>=0) return;
+
+popups::popForm P2, P = null;
+
+if (Pchild!=null) P = &Pchild; else {
+    P = &P2;
+    P.dialog(this);
+}
+
+browse::Hsub tSub = null;
+browse::Hmem tMem = null;
+
+if (Pchild==null) {
+    string clsName = par.rType.getToken(1, " ");
+    if (!clsName) clsName = par.rType;
+    P.addClass( "Class " + clsName, root );
+}
+
+for (int i=0; i<par.lmem.count(); i++) {
+  tSub = &par.lmem[i];
+
+  if (tSub.name.beginsWith("Can't browse")) {
+    P.close();
+    return null;
+  }
+
+  P.addTitle( tSub.name ); // Add section title
+
+  for (int n=0; n<tSub.Lmem.count(); n++) {
+    tMem = &tSub.Lmem[n];
+    string ad = tMem.justName;
+    if (tMem.Icon == "..\\hmethod.bmp") {
+        ad+="(";
+        if (ad+")" == tMem.name) ad+=")";
+    }
+    stringArray sa = &wfuncedit::splitParams(tMem.name);
+    for (int si=0; si<sa.Count(); si++)
+        P.addMember( tMem.rtype, sa[si], ad + "¬" + tMem.rType + " " + sa[si] + "¬" + tMem.prePend );
+  }
+}
+
+for (i=0; i<par.lbase.count(); i++) {
+  if (!par.lbase[i].name.beginswith( "Inherent" )) {
+      P.addClass( par.lbase[i].name );
+      getListPopup2( par.lbase[i], P );
+  }
+}
+
+return P;]]>
+</method>
+<method name="listMethodCallback">
+<param name="sel" type="string" />
+<![CDATA[//@cmember listMethodCallback
+//@param string | sel |
+//@version Andrew Griffin | 12-12-01 11:04 |
+//@version Darren Ball | 13-01-06 12:37 |
+//@version Brian.Miles | 01-03-06 17:29 |
+//@i
+
+//message( sel );
+
+string openStr = sel.getToken(0, "¬" ).getToken(0, "(");
+
+browse::clsBrowser br = &browse::clsBrowser::openHidden(0);
+
+//string fname = filename.getToken(0,".");
+string fname = filename.substring(0,filename.lastindexof("."));
+string cname = fname.subString( fname.lastindexof("\\")+1 );
+if (!cname) cname = "NewClass";
+br.OpenVarNew( "object", "this", cname, fname); // SHOULD BE CACHED ANYHOW
+
+br.openUsingString( openStr, 1, 0 );
+
+br.selected.EventHierDoubleClick( br.idHier );
+
+// Add a class history entry]]>
+</method>
+<method name="getOverviewXML" return="xml">
+<![CDATA[//@cmember getOverviewXML
+//@return xml |
+//@version Andrew | 24-01-02 12:29 |
+//@version Andrew Griffin | 01-02-02 11:35 |
+
+if (!overviewXML.tag()) {
+    XFile.GetXML( &overviewXML, this );
+}
+return overviewXML;]]>
+</method>
+<method name="onActivate">
+<![CDATA[//@cmember onActivate
+//@version Andrew Griffin | 18-03-02 13:29 |
+//@version Jonny Moo | 12-02-03 15:03 |
+//@version Ashley.Gibbs | 13-12-13 15:55 |
+//@i
+History::makeHistory( filename, ThreadGuid, SaveDebugHistory);
+
+runwrapped::closeDeadSessions();
+
+//
+// Find Active Editing Window
+
+form ap = &idMulti.GetPane(0);
+if (ap==null) return;
+
+sourceTip::hideTip( ap );]]>
+</method>
+<method name="DoLocalHistory">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember
+//@param label | ctrl |
+//@version Andrew Griffin | 27-05-02 13:47 |
+//@i
+
+classes::core::wpopupmenu P;
+
+int init = 0;
+if (idMulti.GetPane(0).ClassName().indexOf("wFuncEdit",0,1)>=0) init = 1;
+
+if (funcHist.count()<=init)
+    P.add( "<No Local History>", "_" );
+
+for (int i=init; i<funcHist.count(); i++) {
+  P.Add( funcHist[i].code + funcHist[i].desc, funcHist[i].code );
+}
+
+P.AddSeparator();
+P.add( wclsdef::getAuditPopup( this ), "Class Audit" );
+
+//message( ctrl.GetControlAttr( "img" ) );
+//String pck = P.Track(1, ctrl.GetCell(),NULL,NULL,"classes::des::res::toolbar::histmeth.bmp");
+String pck = P.Track(1, ctrl,NULL,NULL, 1);
+
+if (!pck || pck=="_") return;
+
+if (advSearch::openMethodMember( this, pck )==null)
+{
+    classes::cpicks c = &funcHist.FindRow( pck );
+    if (c!=null) c.RemoveFromList();   // if not found then delete from history
+}]]>
+</method>
+<method name="DoClassHistory">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember DoClassHistory
+//@param control | ctrl |
+//@version Andrew Griffin | 27-05-02 14:28 |
+//@i
+
+classes::core::wpopupmenu p = &wclsdef::getAuditPopup( this );
+
+String pck = P.Track(1, ctrl, NULL,NULL, 1);
+advSearch::openMethodMember( this, pck );]]>
+</method>
+<method name="DoOpenRight">
+<![CDATA[//@cmember DoOpenRight
+//@version Andrew Griffin | 13-02-02 12:51 |
+//@i
+
+search::findClass::typeSearch( this );]]>
+</method>
+<method name="pathChosen">
+<param name="cls" type="string" />
+<![CDATA[//@cmember pathChosen
+//@param string | cls |
+//@version Andrew Griffin | 13-02-02 13:05 |
+//@version Jonathan.Muir | 26-02-10 12:12 |
+
+string szClassName = classes::cpicks::classname();
+if(FileName) szClassName = FileName;
+object x = advsearch::OpenClassFile( cls, szClassName, "" );
+if(x!=NULL) x.show(1);]]>
+</method>
+<method name="onErrorDblClicked">
+<![CDATA[//@cmember onErrorDblClicked
+//@version Andrew Griffin | 24-05-02 16:05 |
+//@version Darren Ball | 10-11-05 10:19 |
+//@version jonathan.muir | 18-02-10 15:17 |
+//@version Jonathan.Muir | 26-02-10 13:29 |
+//@i
+
+errors er = &idErrors.CurrentRow();
+
+switch (er.ertyp) {
+  case 1,10,11,20,30:    // Bring up method/member
+
+    if (advsearch::openMethodMember( this, er.erContext )==null) {
+        return 0;
+    }
+    break;
+
+}
+
+switch (er.ertyp) {
+  case 1, 10,30:   // Warning, at char...
+  {
+    wfuncedit wf = &idMulti.FindPane("MethodEdit");
+    if (wf==null) return;
+    if (sys::Version()>=2119)
+        wf.idSource.setKeyword( 0, er.highlight, 0 );
+    wf.idSource.SetSelection( er.erPos, er.erPos2 );
+    break;
+  }
+  case 11:  // debug object
+  {
+
+    XML variablesXML = &GetVariablesXML(CallStackLevel);
+
+
+    XML x = &variablesXML[er.erPos];
+    if (x==null) return;
+    //if (!x.addr) break; // no pointer to follow for this variable...
+
+    classes::core::xml::WDebugXMLViewer::BrowseXML(x,this,"OnDebugSelect");
+
+    /*
+    string addr = x.addr;
+    string name = x.name;
+
+    if (x.tag().eq("list"))
+    {
+        classes::core::wpopupmenu p;
+        int mx = x.rows.val();
+        for (int i=0; i<mx; i++)
+            p.Add( "row " + i, "" + i );
+        string c = p.track(1);
+        if (!c) return;
+        addr = x[c.val()].addr;
+        name = name + "[" + c + "]";
+    }
+
+    if (!addr) return;
+
+    // Get in contact with the debugger...
+
+    form win = &sys::FindWindow( addr );
+    if (win!=null)
+    {
+        win.Show( 1 );
+        win.ToTop();
+        break;
+    }
+
+    debugVDesc.setTo( "local->" + name, x.cls, addr );
+    Sys::HWNDSendIPC( debugHwnd, GetHWND(), addr );
+
+    //showObj::wXMLViewer::browseObjectXML( debugObj[0][er.erPos] );
+    //classes::core::xml::globalxml::BrowseXML( debugObj[0][er.erPos] );
+    */
+
+    break;
+  }
+}]]>
+</method>
+<method name="onErrorSelected">
+<![CDATA[//@cmember onErrorSelected
+//@version Andrew Griffin | 23-04-02 12:08 |
+//@version Darren Ball | 10-11-05 10:19 |
+//@i
+
+errors er = &idErrors.CurrentRow();
+
+switch (er.ertyp) {
+  case 1,10,11,20 ,30:    // Bring up method/member
+
+    if (advsearch::openMethodMember( this, er.erContext )==null) {
+        return 0;
+    }
+    break;
+
+}
+
+switch (er.ertyp) {
+  case 1, 10,30:   // Warning, at char...
+  {
+    wfuncedit wf = &idMulti.FindPane("MethodEdit");
+    if (wf==null) return;
+    if (sys::Version()>=2119)
+        wf.idSource.setKeyword( 0, er.highlight, 0 );
+    break;
+  }
+}]]>
+</method>
+<method name="OnWMCopyData" return="void">
+<param name="cmd" type="object" />
+<param name="val" type="object" />
+<![CDATA[//@version Andrew Griffin | 19-04-02 15:36 |
+if (val==912)
+{
+    //
+    // Debug Object returned from XRunDll.dll Debug Session...
+
+    blob b;
+    b.Write( cmd );
+    xml x = &b.GetXMLObject();
+    x.settag( "object" );
+    x.AddAttr( "name", debugVDesc.code );
+    x.AddAttr( "cls", debugVDesc.desc );
+
+    showObj::wXMLViewer::browseObjectXML( x, debugVDesc.PickType, this );
+//    classes::core::xml::globalxml::BrowseXML( x );
+
+//    message( "Command recieved: " + cmd, debugVDesc.code + "\\" + debugVDesc.desc);
+}]]>
+</method>
+<method name="killDebugSession">
+<param name="idControl" type="label" />
+<![CDATA[//@cmember killDebugSession
+//@param label | idControl |
+//@version Andrew Griffin | 24-04-02 16:52 |
+//@version jonathan.muir | 18-02-10 13:40 |
+//@version Jonathan.Muir | 25-02-10 11:09 |
+
+int mode = idControl.GetControlAttr( "param" ).val();
+
+WFuncEdit Z = &idMulti.FindPane("MethodEdit");
+if (z!=null)
+{
+    ShowGroup( "eAll", 0 );
+    ShowGroup( "play", 1 );
+    FitRecursive();
+    sys::Wait(0);
+
+    Z.idSource.resetBreakpoints();
+
+
+    //Sys::HWNDSendIPC( hWnd, mode, z.idSource.GetCaretPos().tostring() );
+
+    classes::des::browse::clsbrowser browser = &classes::des::browse::clsbrowser::myBrowser;
+    if(browser!=NULL)
+    {
+
+        //sys::debugout("Designer debug mode = "+mode.ToString());
+
+        if(mode==1)
+        {
+            browser.SetDebugCommand("GO",ThreadGuid);
+        }
+        else if(mode==2)
+        {
+            browser.SetDebugCommand("STEP",ThreadGuid);
+        }
+        else if(mode==3)
+        {
+            browser.SetDebugCommand("TRACE",ThreadGuid);
+        }
+        else if(mode==4)
+        {
+            browser.SetDebugCommand("STEPOUT",ThreadGuid);
+        }
+        else if(mode==5)
+        {
+            browser.SetDebugCommand("TOCURSOR,"+ z.idSource.GetCaretPos().tostring(),ThreadGuid);
+        }
+    }
+
+    tmode = 3;
+    setTimer(100);
+}]]>
+</method>
+<method name="DoBrowseRight">
+<param name="ctrl" type="image" />
+<![CDATA[//@cmember DoBrowseRight
+//@param image | ctrl |
+//@version Andrew Griffin | 31-07-02 16:41 |
+//@version richard.lee | 28-04-05 13:18 |
+
+search::classrec::wderivation::showDerived( FileName, this, ctrl );]]>
+</method>
+<method name="DoClearCase">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember DoClearCase
+//@param string | cmd |
+//@version Richard.Talbot | 28-09-04 11:28 |
+//@version Tim.Simpson | 29-09-04 12:14 |
+//@version Jonathan.Muir | 18-11-04 14:40 |
+//@version richard.lee | 28-04-05 14:45 |
+//@version Darren Ball | 08-02-06 09:35 |
+//@i
+
+if (CCEnabled==1) {
+
+    switch (cmd) {
+
+        case "ccexplorer":
+
+            if (clearcase.launchCCExplorer(FileName,This)>0) {
+    //            this.ReadFile(FileName,1);
+                return 1;
+            }
+            break;
+
+        case "ccaddtosrcctrl":
+            if (!OptionalSave("Adding To Source Control")) return;
+            if (CheckSaveWithDebugCommands()) return;
+            if(clearcase.addToSourceControl(FileName,This)>0) {
+                this.ReadFile(FileName,1);
+                return 1;
+            }
+            break;
+
+        case "ccfindchecks":
+
+            if (clearcase.findCheckouts(FileName,This)>0) {
+                return 1;
+            }
+            break;
+
+        case "ccfileprop":
+
+            if(clearcase.getFileproperties(FileName,This)>0) {
+                return 1;
+            }
+            break;
+
+        case "ccupdate":
+
+            if(clearcase.update(FileName,This)>0) {
+                this.ReadFile(FileName,1);
+                return 1;
+            }
+            break;
+
+        case "ccchkin":
+           if (!OptionalSave("Adding To Source Control")) return;
+           if (CheckSaveWithDebugCommands()) return;
+            if(clearcase.checkIn(FileName,This)>0) {
+                this.ReadFile(FileName,1);
+                return 1;
+            }
+            break;
+
+        case "ccchkout":
+
+
+            if(clearcase.checkOut(FileName,This)>0) {
+                this.ReadFile(FileName,1);
+                return 1;
+            }
+            break;
+
+        case "ccundochkout":
+
+            if(clearcase.undoCheckOut(FileName,This)>0) {
+                this.ReadFile(FileName,1);
+                return 1;
+            }
+            break;
+
+        case "ccundohijack":
+
+
+            if(clearcase.undoHijack(FileName,This)>0) {
+                this.ReadFile(FileName,1);
+                return 1;
+            }
+            break;
+
+        case "cchist":
+
+
+            if(clearcase.getHistory(FileName,This)>0) {
+                return 1;
+            }
+            break;
+
+        case "ccvertree":
+
+
+            if (clearcase.getVersionTree(FileName,This)>0) {
+                return 1;
+            }
+            break;
+
+        case "cccompprevver":
+
+
+            if (clearcase.compareWithPrevious(FileName,This)>0) {
+                return 1;
+            }
+            break;
+
+        case "ccpropver":
+
+
+            if (clearcase.getVersionProperties(FileName,This)>0) {
+                return 1;
+            }
+            break;
+
+        case "ccpropelem":
+
+
+            if(clearcase.getElementProperties(FileName,This)>0) {
+                return 1;
+            }
+            break;
+
+        case "cchelp":
+
+            if(clearcase.help()>0){
+                return 1;
+            }
+            break;
+
+        case "ccbuildmenu":
+
+
+            if(clearcase.buildCCMenu(this)>0) {
+                clearcase.CCMessage = "Ready.";
+                clearcase.CCError = "View:";
+                ShowGroup("Clearcase",1);
+                FitRecursive();
+                return 1;
+            }
+            break;
+
+        case "cchijack":
+
+            if(clearcase.hijack(FileName,this)>0) {
+                this.ReadFile(FileName,1);
+                return 1;
+            }
+            break;
+
+        case "ccsetmenu":
+
+            if (clearcase.setCCMenu(FileName,this)>0) {
+
+                return 1;
+            }
+            break;
+    }
+}
+return -1;]]>
+</method>
+<method name="SSMenu">
+<![CDATA[//@cmember SSMenu
+//@version Jonathan.Muir | 18-11-04 14:39 |
+//@version richard.lee | 28-04-05 13:23 |
+//@version andrew.banyard | 08-10-13 15:14 |
+//@i
+
+/*this.AddMenuPopUp("&SourceSafe",7);
+this.AddMenuItem("Session Manager", "SESSIONED");
+this.AddMenuSeparator();
+this.AddMenuItem("Check &Out","SSafe:CO");
+this.AddMenuItem("Get &Latest","SSafe:GL");
+
+this.AddMenuItem("Check &In","SSafe:CI");
+this.AddMenuItem("Check In(&Keep Out)","SSafe:CK");
+
+this.AddMenuItem("&Undo Check Out","SSafe:UD"); */]]>
+</method>
+<method name="CheckSaveWithDebugCommands" return="int">
+<param name="szClass" type="object" />
+<![CDATA[//@cmember CheckSaveWithDebugCommands
+//@param object | szClass |
+//@return int |
+//@version richard.lee | 28-04-05 14:44 |
+//@version Ricky LEE | 20-09-05 09:20 |
+//@version Darren Ball | 10-11-05 10:20 |
+//@version Tim Simpson | 01-07-09 09:03 |
+//@i
+
+// Parse Methods
+//resetErrors();
+
+int iError = 0;
+for (int sc=0; sc<XFile.Classes[0].Sections.count(); sc++)
+{
+  for (int mm=0; mm<XFile.Classes[0].Sections[sc].Functions.count(); mm++)
+  {
+    func fc = &XFile.Classes[0].Sections[sc].Functions[mm];
+    if (fc.script=="") continue;
+    string src = fc.script.padsource();
+
+
+    For(int i =0;i<lstDebugCommands.Count();i++)
+    {
+        int cpos = src.indexof(lstDebugCommands[i].desc,0,1);
+        int cpos2 = src.indexOf("\r\n", cpos)+2;
+        if (cpos2==1) cpos2 = src.length();
+
+        if (!fc.FuncName.eq("CheckSaveWithDebugCommands")
+        &&!fc.FuncName.eq("showshortcuts")
+        &&(cPos>-1))
+        {
+
+            iError = 1;
+            string szDebugCommand = src.substring(cpos,(cpos2==Src.Length() ? cpos2 : cpos2-2));
+            string szDebugCommandHighlight = szDebugCommand.replace("\r\n","");
+            addError( 30, fc.funcname, cpos, cpos2, "Method " + fc.funcname.sql(), "Debug Command: " + szDebugCommand,szDebugCommandHighlight);
+        }
+
+    }
+  }
+}
+if(iError)
+{
+    String q = "This class contains debugging commands\n"
+               "Do you wish to continue?";
+    if (Message(q,"Check For Debug",classes::core::windows::MB_YESNO+classes::core::windows::MB_DEFBUTTON2)
+        ==classes::core::windows::IDNO)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+} else return 0;]]>
+</method>
+<method name="GetErrors">
+<![CDATA[//@cmember GetErrors
+//@version Jonathan.Muir | 23-02-06 11:34 |
+//@i
+
+classes::des::errors ret[];
+for(int i=0;i<errors.count();i++)
+{
+    object x = ret.createrow();
+    x = errors[i];
+    x.filename = filename;
+}
+
+return ret;]]>
+</method>
+<method name="CheckInterfaceMethods">
+<![CDATA[//@cmember CheckInterfaceMethods
+//@version Jonathan.Muir | 09-03-06 16:19 |
+//@i
+
+
+string szInterfaces = XFile.Classes[0].InterfaceClass;
+
+for(int i=0;;i++)
+{
+    string FileName = szInterfaces.GetToken(i);
+    if(!FileName) break;
+
+    // Open interface class
+    object clas = XFile.Classes[0];
+    string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+    WClassView tmp;
+    tmp.open();
+
+    string fname = advSearch::classToPath( FileName, tPath, 0 );
+    if (!tmp.ReadFile( fname, 0, 0,NULL,errors ))
+    {
+        tmp.Close();
+        continue;
+    }
+
+    if (tmp.XFile.Classes.count()==0)
+    {
+        AddError(1,"",0,0,"Error Loading Class","Error load interface "+fname,"");
+        tmp.Close();
+        continue;
+    }
+
+    // Check methods exist in this class (or base classes)
+
+    for(int n=0;n<tmp.XFile.Classes[0].Sections.Count();n++)
+    {
+        //Check each function
+        for(int j=0;j<tmp.XFile.Classes[0].Sections[n].Functions.Count();j++)
+        {
+            if(!CheckForFunction(this,tmp.XFile.Classes[0].Sections[n].Functions[j],n))
+            {
+                AddError(1,"",0,0,"Interface Error","Interface Method "+tmp.XFile.Classes[0].Sections[n].Functions[j].FuncName+" not found in this class or base classes","");
+            }
+
+        }
+    }
+
+    tmp.Close();
+
+
+}]]>
+</method>
+<method name="OnErrorRightClicked">
+<param name="ctrl" type="listbox" />
+<![CDATA[//@cmember OnErrorRightClicked
+//@param listbox | ctrl |
+//@version jonathan.muir | 17-02-10 11:29 |
+//@version Jonathan.Muir | 26-02-10 13:29 |
+//@version andrew.banyard | 17-04-15 14:01 |
+//@i
+
+errors er = &idErrors.CurrentRow();
+
+// Variables
+if(er.ertyp==11)
+{
+
+    PopupMenu p;
+    p.Add("Inspect","I");
+    p.Add("Copy Value To Clipboard","V");
+    p.Add("Copy To Clipboard","C");
+    string c = p.Track();
+    if(c)
+    {
+        XML variablesXML = &GetVariablesXML(CallStackLevel);
+        XML x = &variablesXML[er.erPos];
+
+        switch(c){
+            case "I":
+             onErrorDblClicked();
+            break;
+            case "C":
+             blob b;
+             b.WriteXML(x);
+             sys::CopyToClipboard(b.toString());
+            break;
+            case "V":
+            if(null==x.GetElement(0)){
+              sys::CopyToClipboard("");
+            } else {
+              sys::CopyToClipboard(x.GetElement(0).Content());
+            }
+            break;
+        }
+    }
+}]]>
+</method>
+<method name="GetThreadGuid" return="string">
+<![CDATA[//@cmember GetThreadGuid
+//@return string |
+//@version jonathan.muir | 17-02-10 15:13 |
+//@i
+
+
+return ThreadGuid;]]>
+</method>
+<method name="SetThreadGuid">
+<param name="pThreadGuid" type="string" />
+<![CDATA[//@cmember SetThreadGuid
+//@param string | pThreadGuid |
+//@version jonathan.muir | 17-02-10 16:19 |
+//@i
+
+
+ThreadGuid = pThreadGuid;
+if(ThreadGuid)
+{
+    // Make read only
+    readonly = 1;
+    idSave.setVisible(0);
+    idSaveAs.setvisible(0);
+
+}
+
+SetCaption();]]>
+</method>
+<method name="OnDebugSelect">
+<param name="TheObj" type="classes::core::xml::xmlobj" />
+<![CDATA[//@cmember OnDebugSelect
+//@param classes::core::xml::xmlobj | TheObj |
+//@version jonathan.muir | 18-02-10 16:53 |
+//@version Jonathan.Muir | 22-02-10 14:56 |
+//@i
+
+
+if(TheObj.Name.indexof(" addr=\"")>=0)
+{
+    string s = TheObj.Name.SubString(TheObj.Name.Indexof(" addr=\"")+7);
+
+    s = s.left(s.indexof("\""));
+
+    // Need to go back to the debugger and ask for the details of the object
+
+    string reply = RequestDebugInfo("object",s);
+
+    blob b;
+    b.Write( reply );
+
+    XML x = &b.GetXMLObject();
+    if(x!=NULL)
+    {
+        classes::core::xml::WDebugXMLViewer::BrowseXML(x.GetElement(0),this,"OnDebugSelect");
+    }
+
+}]]>
+</method>
+<method name="RequestDebugInfo" return="string">
+<param name="cmd" type="string" />
+<param name="param" type="string" />
+<![CDATA[//@cmember RequestDebugInfo
+//@param string | cmd |
+//@param string | param |
+//@return string |
+//@version jonathan.muir | 18-02-10 16:04 |
+//@version andrew.banyard | 08-10-13 15:12 |
+//@i
+
+
+classes::des::browse::clsbrowser browser = &classes::des::browse::clsbrowser::myBrowser;
+
+string reply;
+
+if(browser!=NULL)
+{
+    browser.SetDebugCommand("INFO,"+cmd+","+param,ThreadGuid);
+
+    // Wait for a reply
+
+    int tries = 0;
+
+    while(1)
+    {
+        sys::Wait(100);
+        reply = browser.GetDebugReply(ThreadGuid);
+        if(reply) break;
+
+        tries++;
+        if(tries>200)
+        {
+            if(Message("The application is taking a long time to return your debug information.  Click Yes to continue waiting","Wait?",classes::core::windows::MB_YESNO)
+                ==classes::core::windows::IDNO)
+            {
+                break;
+
+            } else {
+              tries = -300;
+            }
+
+        }
+
+    }
+
+}
+
+return reply;]]>
+</method>
+<method name="SetCallStackLevel">
+<param name="level" type="int" />
+<![CDATA[//@cmember SetCallStackLevel
+//@param int | level |
+//@version Jonathan.Muir | 11-03-10 12:15 |
+//@version andrew.banyard | 22-04-15 09:16 |
+//@i
+
+
+//classes::core::xml::globalxml::BrowseXML( x );
+
+
+xml callstackxml = &debugObj[0];
+
+errors.SetRedraw(0);
+for(int i=errors.Count()-1;i>=0;i--)
+{
+    if(errors[i].ertyp==11) errors.DeleteRow(i);
+
+
+}
+
+// Do we need to reload the class file?
+
+if(level!=CallStackLevel)
+{
+    // Load up the editor
+
+}
+
+CallStackLevel = level;
+
+// Set the callstack list
+
+CallStackList.reset();
+
+
+for(i=0;;i++)
+{
+    xml levelxml = &callstackxml.GetElement(0).GetElement(i);
+    if(levelxml!=null&&levelxml.FindElement("ClassName")!=null)
+    {
+        classes::cpicks thisLevel = &CallStackList.CreateRow();
+
+        XML XMLClassName = &levelxml.FindElement("ClassName");
+
+        if(XMLClassName.GetElement(0)!=NULL)
+        {
+            thisLevel.code =  XMLClassName.GetElement(0).Content();
+        }
+        else
+        {
+            thisLevel.code = "Unknown";
+
+        }
+
+        XML XMLFuncName = &levelxml.FindElement("FuncName");
+
+        if(XMLFuncName!=NULL&&XMLFuncName.GetElement(0)!=NULL)
+        {
+            thisLevel.desc = XMLFuncName.GetElement(0).Content();
+        }
+        else
+        {
+            thisLevel.desc = "Unknown";
+        }
+
+
+        XML XMLSourcePos = &levelxml.FindElement("SourcePos");
+
+        if(XMLSourcePos!=NULL&&XMLSourcePos.GetElement(0)!=NULL)
+        {
+            thisLevel.PickType = XMLSourcePos.GetElement(0).Content();
+        }
+
+
+        XML SourceCode = &levelxml.FindElement("SourceCode");
+        if(SourceCode!=NULL&&SourceCode.GetElement(0)!=NULL)
+        {
+            thisLevel.PickType = thisLevel.PickType+","+SourceCode.GetElement(0).Content();
+
+        }
+
+
+
+    }
+    else
+    {
+        break;
+    }
+
+}
+
+xml x = GetVariablesXML(CallStackLevel);
+
+
+
+if(x!=null)
+{
+    wclasserroritem items[];
+
+    for (i=0; i<x.Count(); i++)
+    {
+        string nam = x[i].name;
+        string typ = x[i].Tag();
+        string vval;
+        if (typ.eq("object"))
+            { typ = x[i].cls; vval = "<" + x[i].addr + ">"; }
+        else
+        if (typ.eq("list"))
+            { typ = x[i].cls + "[" + x[i].rows + "]"; vval = "<" + x[i].addr + ">"; }
+        else
+        if (typ.eq("xml"))
+        {
+            vval = "<" + x[i].xmltag + " "
+                        + x[i].xmlattrs +
+                    ">";
+            if (x[i].elements!="0")
+                vval += " ... ";
+            vval += "</" +  x[i].xmltag + ">";
+        }
+        else
+        if (x[i].count()==1)
+            vval = x[i][0].Content();
+        else
+            vval = "<" + typ + ">";
+
+
+        wclasserroritem item =&items.CreateRow();
+        item.Desc = CallStackList[CallStackLevel].desc;
+        item.Text = "Local: " + typ;
+        item.Value = nam + " = " + vval;
+        item.Name =  nam;
+        item.Index = i;
+    }
+
+    items.OrderBy("Name","desc");
+    items.OrderList();
+
+
+    // Move this to the top
+    for(i=0;i<items.Count();i++){
+      if(items[i].Name == "this"){
+        items.MoveRow(i,items.Count()-1);
+      }
+    }
+
+    for(i=0;i<items.Count();i++){
+       // addError( 11, CallStackList[CallStackLevel].desc, i, -1, "Local: " + typ, nam + " = " + vval, "", 0 );
+        addError( 11, items[i].Desc , items[i].Index, -1, items[i].Text, items[i].Value, "", 0 );
+     }
+}
+errors.SetRedraw(1);
+idErrors.CalcWidths();
+SizeErrorPane();]]>
+</method>
+<method name="OnClickCallStack">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember OnClickCallStack
+//@param label | ctrl |
+//@version Jonathan.Muir | 11-03-10 15:22 |
+//@i
+
+
+PopupMenu p;
+
+for(int i=0;i<CallStackList.Count();i++)
+{
+    String desc = CallStackList[i].Code+": "+CallStackList[i].desc;
+    if(i==CallStackLevel)
+    {
+        desc="* "+desc;
+    }
+    p.Add(desc,i.ToString());
+}
+
+string cmd = p.Track();
+
+if(cmd)
+{
+
+    int pos = cmd.val();
+
+    string serror;
+
+
+    for(i=0;i<errors.Count();i++)
+    {
+        if(errors[i].ertyp==1)
+        {
+            serror = errors[i].Error.substring(16);
+            break;
+        }
+    }
+
+    string source;
+
+    int cpos = CallStackList[pos].PickType.gettoken(0).val();
+
+    if(CallStackList[pos].PickType.indexof(",")>=0)
+    {
+        source = CallStackList[pos].PickType.substring(CallStackList[pos].PickType.indexof(",")+1);
+    }
+
+
+    object form = WindowsOpenEx(CallStackList[pos].code+".xml",CallStackList[pos].desc,serror,callstack,threadGuid,pos,cpos,source);
+
+    if(form==null)
+    {
+        Message("Unable to get the source code for method "+CallStackList[pos].desc+" on class "+CallStackList[pos].code);
+    }
+    else if(form.MemoryAddress()!=this.MemoryAddress())
+    {
+        tmode = 3;
+        setTimer(2000);
+    }
+
+}]]>
+</method>
+<method name="GetVariablesXML">
+<param name="level" type="int" />
+<![CDATA[//@cmember GetVariablesXML
+//@param int | level |
+//@version Jonathan.Muir | 16-12-15 09:38 |
+//@i Get the callstack variable at level specified
+
+//sys::debugout("GetVariablesXML");
+
+//classes::core::xml::globalxml::BrowseXML(debugObj);
+
+xml retXML = &null;
+
+if(debugObj[0]!=null)
+{
+    xml callstackxml = &debugObj[0];
+    xml x = &callstackxml.getElement(0);
+    if(x!=null)
+    {
+        x = &x.GetElement(level);
+        if(x!=null)
+        {
+            x = &x.FindElement("variables");
+            if(x!=null)
+            {
+                //sys::debugout("Setting Variables XML");
+                blob debug;
+                debug.WriteXML(x);
+                //sys::debugout(debug.ToString());
+
+                retXML = &x;
+            }
+        }
+    }
+
+}
+
+return retXML;]]>
+</method>
+</members>
+<static>
+<Integer name="AutoParseOnSave" />
+<Integer name="onlyParseMod" />
+<Integer name="keepHistLocal" />
+<Integer name="w2ver" constval="2128" />
+<List name="ServerPaths" cls="classes::CPickS" />
+<List name="lstDebugCommands" cls="classes::cpicks" lsrc="DebugCommands.ini" />
+<Integer name="SortMembers" />
+<method name="main">
+<param name="cmd" type="object" />
+<![CDATA[//@cmember main
+//@param object | cmd |
+//@version Andrew Griffin | 25-07-02 14:39 |
+//@version Jonathan.Muir | 28-06-06 15:18 |
+//@version jonathan.muir | 19-02-10 13:46 |
+//@version Jonathan.Muir | 19-02-10 18:25 |
+//@version andrew.banyard | 08-08-16 14:31 |
+// Detect other open Class Designers
+//
+
+if (sys::Version() < w2ver) {
+    classes::core::message::Open( "W2 Designer requires xrunapp.dll version " + w2ver + " or above", "Dll out of date" );
+    return;
+}
+
+sys::AddClassAlias("popupmenu","classes::core::wpopupmenu");
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        sys::HWNDSendIPC( mHwnd, 7723, "Open:" + cmd );
+        return; // send open request and close this instance
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+// No open designers so proceed
+
+Sys::SetClassSync(0);
+
+String path = Path();
+int i = path.indexof("\\des\\");
+if (i<0) i = path.indexof("/des/");
+path = path.left( i );
+File::SetCurrentDirectory(path);
+
+Browse::ClsBrowser::doInit();   // Launch Class Browser Root App
+
+if(cmd== "" && classes::des::history::clsHist!=NULL && classes::des::history::clsHist.Count()>0)
+{
+    // We have some history so open the last file
+    xml x = &classes::des::history::clsHist[classes::des::history::clsHist.Count()-1];
+    main(x.cls + ".xml");
+}
+else
+{
+    // Run this function again which will cause a rpc open to a new window.
+    main(cmd);
+}]]>
+</method>
+<method name="WindowsOpen">
+<param name="cmd" type="string" />
+<param name="val" type="string" />
+<![CDATA[//@cmember WindowsOpen
+//@param string | cmd |
+//@param string | val |
+//@version Andrew Griffin | 19-06-02 15:51 |
+//@version Jonathan.Muir | 18-11-04 16:55 |
+//@version jonathan.muir | 19-02-10 14:34 |
+//@version Jonathan.Muir | 11-03-10 15:15 |
+
+
+wclassview Q = null;
+
+//Sys::debugout("Designer: In WindowsOpen");
+
+if (val==7723) {
+    if (cmd.left(4)=="Open" || cmd.left(5)=="Debug") {
+
+        string fname;
+        if (cmd.left(4)=="Open") fname = cmd.subString(5);
+                            else fname = cmd.substring(6);
+        string mname, error, callstack, tmp, threadGuid,sourceCode;
+        int cpos = -1;
+
+        if (fname.indexOf(",")>=0)
+        {
+            mname = fname.gettoken(1);
+            tmp = fname.getToken(2);
+            if (tmp) cpos = tmp.val();
+            error = fname.getToken(3);
+            threadGuid = fname.gettoken(4);
+            int ic = fname.indexof(",");    // 1
+            if (ic>=0) {
+                ic = fname.indexof(",",ic+1);    // 2
+                if (ic>=0) {
+                    ic = fname.indexof(",",ic+1);    // 3
+                    if (ic>=0) {
+                        ic = fname.indexof(",",ic+1);    // 4
+                        if (ic>=0) {
+                            ic = fname.indexof(",",ic+1);    // 5
+                            if (ic>=0)
+                            {
+                                callstack = fname.subString( ic+1 );
+
+                            }
+                        }
+                    }
+                }
+            }
+            fname = fname.gettoken(0);
+        }
+
+        object form =  WindowsOpenEx(fname,mname,error,callstack,threadGuid,0,cpos);
+        return form!=null;
+
+    }
+}]]>
+</method>
+<method name="WindowsOpenEx" return="int">
+<param name="fname" type="string" />
+<param name="mname" type="string" />
+<param name="error" type="string" />
+<param name="callstack" type="string" />
+<param name="threadGuid" type="string" />
+<param name="callstacklevel" type="string" />
+<param name="cpos" type="int" />
+<![CDATA[//@cmember WindowsOpenEx
+//@param string | fname |
+//@param string | mname |
+//@param string | error |
+//@param string | callstack |
+//@param string | threadGuid |
+//@param string | callstacklevel |
+//@param int | cpos |
+//@return int |
+//@version Andrew Griffin | 19-06-02 15:51 |
+//@version Jonathan.Muir | 18-11-04 16:55 |
+//@version jonathan.muir | 19-02-10 14:34 |
+//@version Jonathan.Muir | 16-12-15 09:51 |
+wclassview Q = null;
+
+//Sys::debugout("Designer: In WindowsOpen");
+
+if (fname!="") {
+
+    fname = fname.trim();
+    if(fname.beginsWith("\"")) fname = fname.substring(1);
+    if(fname.endswith("\"")) fname = fname.substring(0,fname.length()-1);
+
+    if (fname.indexOf("http://",0,1)>=0)
+    {
+
+        fname = GetFullName(fname);
+    }
+
+    if (fname.indexOf("classes::",0,1)>=0) {
+        fname = sys::MakeFullName( path(), fname );
+    }
+
+    //Sys::debugout("File Name: "+fname);
+
+//            Q = AdvSearch::OpenClassFilePath( fname, mname, 0 ); *********************
+    //sys::debugout("OpenMethodSearch: "+threadGuid+", "+fname+", "+mname);
+    if(!mname&&threadGuid)
+    {
+        mname = "Unknown";
+    }
+
+    Q = AdvSearch::openMethodSearch( fname, mname, threadGuid );
+    if (Q==null) {
+        if(!threadGuid) message("Error: There was a problem opening the class.  FName: "+fname+", MName: "+mname);
+        return null;
+    }
+
+    Q.tmode = 0;    // stop debug toolbar vanishing...
+    Q.ShowGroup( "eAll", 0);
+    Q.cpos = cpos;
+    Q.callstack = callstack;
+
+
+    if (cpos>-1||error)
+    {
+        Q.resetErrors(NULL,0);
+
+        wfuncedit wf = &null;
+
+        wfuncedit wf2 = &Q.idMulti.GetPane( 0 );
+
+        if(wf2!=null && ( !wf2.hasmethod("onsourcechange") ||
+            !wf2.Magic.FuncName.eq( mname )))
+        {
+            // Add the method
+            Q.addMember(Q.idNewMethod);
+            wf = &Q.idMulti.GetPane(0);
+            wf.idFuncName.SetText(mname);
+            wf.changeName();
+        }
+        else
+        {
+            wf = &wf2;
+        }
+
+        if (wf!=null&& wf.hasmethod("onsourcechange") &&
+            wf.Magic.FuncName.eq( mname ))
+        {
+
+
+
+            if ( callstack )
+            {
+
+                blob b;
+                b.Write( callstack );
+                Q.debugObj.Reset();
+                Q.debugObj.AddElement( b.GetXMLObject() );
+
+                Q.SetCallStackLevel(callstacklevel);
+
+                string source = Q.CallStackList[CallStackLevel].PickType;
+                if(source.indexof(",")>=0)
+                {
+                    source = source.substring(source.indexof(",")+1);
+                }
+                else
+                {
+                    source = "";
+                }
+
+                if(source)
+                {
+                   blob bSource;
+                   bSource.Write(source);
+                   source = bSource.decodebase64().toString();
+
+                   if(wf.idSource.GetText()!=source)
+                   {
+                        wf.idSource.SetText(source);
+                   }
+
+                }
+            }
+
+            int epos = wf.debugBreak( cpos );
+            if (error)
+            {
+
+                int tp = error.indexof( "  " );
+                if (tp>=0) error = error.substring( tp+2 );
+                Q.addError( 1, mname, cpos, epos, "Method " + mname.sql(), "Run Time Error: " + Error, "" ,NULL,1);
+                Q.ShowGroup( "resume", 1 );
+            }
+            else
+            {
+                Q.addError( 1, mname, cpos, epos, "Method " + mname.sql(), "Code Trace...", "",NULL,1 );
+                Q.ShowGroup( "step", 1 );
+
+            }
+
+            // Reset the debug command to indicate that we are debugging
+            classes::des::browse::clsbrowser browser = &classes::des::browse::clsbrowser::myBrowser;
+
+            if(browser!=null) browser.SetDebugCommand("",ThreadGuid);
+
+
+            wf.positionCodeView();  // scroll into view incase it's moved out...
+        }
+
+        Q.ShowGroup( "debug", 1 );
+        Q.FitRecursive();
+
+        // Attempt to position it the same as another debug window if exists
+
+        //sys::debugout("Position window");
+
+        for(int i=0;;i++)
+        {
+
+            form f = &sys::GetOpenWindow(i);
+            if(f==null)
+            {
+                break;
+            }
+            else if(f.HasMethod("GetThreadGuid"))
+            {
+
+                //sys::debugout("F: "+F.GetThreadGuid()+", This: "+ThreadGuid);
+                if((f.GetThreadGuid())&&
+                    (f.GetThreadGuid()==ThreadGuid)&&
+                    (f.MemoryAddress()!=Q.MemoryAddress()))
+                {
+
+                    //sys::debugout("Setting pos and size");
+                    Q.SetPos(f.XPos(),f.YPos());
+                    Q.SetSize(f.XSize(),f.YSize());
+                }
+            }
+
+        }
+
+    }
+    else
+    {
+        Q.ShowGroup( "play", 1);
+        Q.FitRecursive();
+    }
+
+} else {
+    WClassView Q2;
+    Q2.Init(1);
+    Q2.doNew();
+    Q = &Q2;
+}
+
+Q.setforeground();
+Q.FitRecursive();
+
+//sys::debugout("DEBUG: "+Q.FileName);
+Q.show(1);
+//sys::debugout("DEBUG SHOW");
+Q.setTopMost(1);
+Q.setTopMost(0);
+Q.setFocus(1);
+
+return Q;]]>
+</method>
+<method name="TransformXMLReturns">
+<param name="X" type="XML" />
+<![CDATA[// X = <CLASS or FORM name="  "> TAG
+//
+
+XML methods, rets, tmp, tmp2;
+
+rets = &X.findElement("return");
+if (rets==null) return;
+
+for (int i=0;; i++) {
+    methods = &X.getElement(i);
+    if (methods==null) break;
+
+    for (int m=0;; m++) {
+        tmp = &methods.getElement(m);
+        if (tmp==null) break;
+
+        if (tmp.tag().eq("method")) {   // Found a method, try and match a return type
+
+            string mName = tmp.getAttr("name");
+
+            for (int r=0;; r++) {
+                tmp2 = &rets.getElement(r);
+                if (tmp2==null) break;
+                if (tmp2.getAttr("name").eq(mName))      // Matching Return Type Def.
+                    tmp.addAttr("return", tmp2.getAttr("cls"));
+            }
+        }
+    }
+}
+
+X.removeElement(rets);]]>
+</method>
+<method name="UnTransformXMLReturns">
+<param name="X" type="XML" />
+<![CDATA[// X = <CLASS or FORM name="  "> TAG
+//
+
+XML methods, rets, tmp, tmp2;
+
+rets = &X.createElement("return");
+
+for (int i=0;; i++) {
+    methods = &X.getElement(i);
+    if (methods==null) break;
+
+    for (int m=0;; m++) {
+        tmp = &methods.getElement(m);
+        if (tmp==null) break;
+
+        if (tmp.tag().eq("method")) {   // Found a method, try and match a return type
+
+            string mRet = tmp.getAttr("return");
+            if (mRet!="") {
+                tmp2 = &rets.createElement("rmeth");
+                tmp2.addAttr("name", tmp.getAttr("name"));
+                tmp2.addAttr("cls", mRet);
+            }
+        }
+    }
+}
+
+if (rets.count()==0) X.removeElement(rets);]]>
+</method>
+<method name="getOpenClass" return="WClassView">
+<param name="filename" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 28-11-01 12:01 |
+//@i
+
+if (filename.endswith("classes\\newclass.xml")) filename = "";
+
+object win;
+for (int i=0;; i++) {
+    win=&sys::GetOpenWindow(i);
+    if (win==null) break;
+    if (win.getmemberdef("FileName")!=null)
+        if (filename.eq(win.FileName)) return &win;
+}
+
+return null;]]>
+</method>
+<method name="GetFullName">
+<param name="fname" type="string" />
+<![CDATA[//@cmember GetFullName
+//@param string | fname |
+//@version Jonathan.Muir | 18-11-04 16:51 |
+//@version Anthony.Woodward | 12-09-14 12:10 |
+//@version Jonathan.Muir | 12-09-14 12:58 |
+//@i
+
+// Get server to client relationships
+
+if(!ServerPaths.Count())
+{
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+
+    File F;
+    f.Open(ini,"r");
+    while(!f.IsEOF())
+    {
+        string sz = f.ReadLine().Upper().trim();
+        if(sz.beginswith("ROOT "))
+        {
+            // Server paths can multiple (seperated by semicolons)
+            string code = sz.GetToken(0,"=").SubString(5).trim();
+            string desc = sz.GetToken(1,"=").trim();
+            int i = 0;
+            while(1)
+            {
+                string serverPath = desc.GetToken(i,";").trim();
+                if(!serverPath)
+                {
+                    break;
+                }
+
+                object x = ServerPaths.CreateRow();
+                x.code = code;
+                x.desc = serverPath;
+
+                i = i + 1;
+            }
+        }
+    }
+}
+
+// If none then add dummy row
+if(!ServerPaths.Count())
+{
+    object x = ServerPaths.CreateRow();
+    x.code = "DUMMY";
+    x.desc = "DUMMY";
+}
+
+string path = path();
+
+for(int i=0;i<ServerPaths.Count();i++)
+{
+    if(fname.upper().trim().beginswith(ServerPaths[i].Desc))
+    {
+        path= ServerPaths[i].code;
+    }
+}
+string fname2 = fname.subString( fname.indexOf("classes/",0,1) );
+fname2 = fname2.replace("/", "::");
+fname2 = sys::MakeFullName( path, fname2 );
+
+return fname2;]]>
+</method>
+<method name="CheckForFunction">
+<param name="CheckClass" type="classes::des::wclassview" />
+<param name="Function" type="classes::des::func" />
+<param name="Section" type="int" />
+<![CDATA[//@cmember CheckForFunction
+//@param classes::des::wclassview | CheckClass |
+//@param classes::des::func | Function |
+//@param int | Section |
+//@version Jonathan.Muir | 09-03-06 16:18 |
+//@i
+
+for(int i=0;i<CheckClass.XFile.Classes[0].Sections[Section].Functions.Count();i++)
+{
+    if(CheckClass.XFile.Classes[0].Sections[Section].Functions[i].FuncName.eq(Function.FuncName))
+    {
+        return 1;
+    }
+
+}
+
+// Check in baseclass
+
+string FileName = CheckClass.XFile.classes[0].BaseClass;
+if(!FileName) return 0;
+
+// Open base class
+object clas = CheckClass.XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+WClassView tmp;
+tmp.open();
+
+string fname = advSearch::classToPath( FileName, tPath, 0 );
+
+classes::des::errors errors[];
+
+if (!tmp.ReadFile( fname, 0, 0,NULL,errors ))
+{
+    tmp.Close();
+    return 0;
+}
+
+if (tmp.XFile.Classes.count()==0)
+{
+    tmp.Close();
+    return 0;
+}
+
+int iRet =  CheckForFunction(tmp,Function,Section);
+tmp.Close();
+return iRet;]]>
+</method>
+</static>
+<grid>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" h="1" align="WH" bk="128,128,128" />
+</row>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" align="WH" bk="212,208,200">
+<grid>
+<row>
+<col w="250" align="WH">
+<grid>
+<row>
+<col h="1" bk="255,255,255" />
+</row>
+<row>
+<col lpad="2" tpad="2" bpad="2" align="X">
+<grid lpad="3" rpad="3">
+<row>
+<col align="CV">
+<Image text="Image" img="res::toolbar::new.bmp" onClick="DoNewWin" help="Create a new class" />
+</col>
+<col align="CV">
+<Image text="Image" img="res::toolbar::open.bmp" onClick="DoOpen" help="Open a class file" onRightClick="DoOpenRight" />
+</col>
+<col align="CV">
+<Image name="idSave" text="Image" img="res::toolbar::save.bmp" onClick="DoSave" onRightClick="DoSaveRight" help="Save the class" />
+</col>
+<col align="CV">
+<Image name="idSaveAs" text="Image" img="res::toolbar::saveas.bmp" onClick="DoSaveAs" onRightClick="DoConHelp" help="Save the class to a new file" hide="Y" />
+</col>
+<col w="9" align="RV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" />
+</col>
+<col>
+<Image text="Image" img="res::toolbar::execute.bmp" onClick="DoRun" onRightClick="DoRunOptions" help="Run the class" groups="eAll,play" />
+</col>
+<col align="W" />
+<col w="12" align="CV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" />
+</col>
+<col>
+<Image text="Image" img="res::toolbar::parseall.bmp" onClick="DoParseAll" onRightClick="DoParseAll" help="Parse Entire Class" />
+</col>
+<col align="CV">
+<Image text="Image" img="res::toolbar::browse.bmp" onClick="DoBrowse" onRightClick="DoBrowseRight" help="Browse Class (Right click for class derivation tree)" />
+</col>
+<col align="CV" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="1" bk="128,128,128" />
+</row>
+<row>
+<col h="1" bk="255,255,255" />
+</row>
+<row>
+<col align="X">
+<grid groups="debug" hide="Y">
+<row>
+<col lpad="5" tpad="2" bpad="2" align="X">
+<grid lpad="3" rpad="3">
+<row>
+<col tpad="1">
+<Image name="idDebugGo" text="Image" img="res::toolbar::dbg_resume.bmp" onClick="killDebugSession" onRightClick="killDebugSession" help="(F5) Resume/conclude execution" groups="eAll,resume,step" hide="Y" param="1" />
+</col>
+<col w="9" align="RV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" groups="eAll,step" hide="Y" />
+</col>
+<col tpad="1">
+<Image name="idDebugStepOver" text="Image" img="res::toolbar::dbg_step.bmp" onClick="killDebugSession" onRightClick="killDebugSession" help="(F10) Step over method" groups="eAll,step" hide="Y" param="2" />
+</col>
+<col w="9" align="RV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" groups="eAll,step" hide="Y" />
+</col>
+<col tpad="1">
+<Image name="idDebugStepInto" text="Image" img="res::toolbar::dbg_trace.bmp" onClick="killDebugSession" onRightClick="killDebugSession" help="(F11) Trace into method" groups="eAll,step" hide="Y" param="3" />
+</col>
+<col w="9" align="RV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" groups="eAll,step" hide="Y" />
+</col>
+<col tpad="1">
+<Image name="idDebugStepOut" text="Image" img="res::toolbar::dbg_out.bmp" onClick="killDebugSession" onRightClick="killDebugSession" help="(Shift F11) Trace out of method" groups="eAll,step" hide="Y" param="4" />
+</col>
+<col tpad="1" />
+<col align="W" />
+<col h="17" align="CV" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="1" align="W" bk="128,128,128" />
+</row>
+<row>
+<col h="1" bk="255,255,255" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="X">
+<grid groups="debug" hide="Y">
+<row>
+<col lpad="5" tpad="2" bpad="2" align="X">
+<Label name="idCallStack" text="CallStack" onClick="OnClickCallStack" />
+</col>
+</row>
+<row>
+<col h="1" align="W" bk="128,128,128" />
+</row>
+<row>
+<col h="1" bk="255,255,255" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="2" tpad="2" bpad="2" align="X">
+<grid lpad="3" rpad="3">
+<row>
+<col align="CV">
+<Image name="idNewMember" text="Image" img="res::toolbar::newobject.bmp" onClick="addMember" help="Create new member variable" />
+</col>
+<col>
+<Image name="idNewMethod" text="Image" img="res::toolbar::newmethod.bmp" onClick="addMember" help="Create new method" />
+</col>
+<col w="12" align="RV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" />
+</col>
+<col w="12" align="WV" />
+<col align="CV">
+<Image text="Image" img="res::toolbar::search.bmp" onClick="SearchReplace" help="Find / Replace (right click for Find in Files)" onRightClick="doFindInFiles" />
+</col>
+<col w="10" h="10" align="CV">
+<Image text="Image" w="10" h="10" img="res::toolbar::befolder.ico" onClick="OpenFolder" help="Open the parent folder" smallIcon="1" />
+</col>
+<col h="10" align="CV">
+<Image text="Image" img="res::toolbar::clip.bmp" onClick="doCopyClassName" help="Copy class path to the clipboard" />
+</col>
+<col h="10" align="CV">
+<Image text="Image" img="res::toolbar::tests.bmp" onClick="DoOpenUnitTests" help="Open the unit tests for this class" />
+</col>
+<col align="CV">
+<Image text="Image" img="res::toolbar::searchbrowse.bmp" onClick="doQuickObjectFind" help="Jump To - member/method by name" onRightClick="doQuickObjectFind" />
+</col>
+<col w="12" align="RV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" />
+</col>
+<col align="CV">
+<Image text="Image" img="res::toolbar::histmeth.bmp" onClick="DoLocalHistory" help="Jump To - Recent Methods" onRightClick="DoClassHistory" />
+</col>
+<col align="CV">
+<Image text="Image" img="res::toolbar::histgrid.bmp" onClick="DoJumpToGrid" help="Jump To - Form Template" onRightClick="DoJumpToGrid" />
+</col>
+<col align="CV">
+<Image text="Image" img="res::toolbar::histclass.bmp" onClick="DoWindowBrowse" onRightClick="DoWindowBrowse 1" help="Jump To - Recent Class Files (Right click for class references)" />
+</col>
+<col align="CV" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="128" align="WH">
+<Hierarchy name="idResults" bind="XFile" multiselect="1" />
+</col>
+</row>
+</grid>
+</col>
+<col w="4" align="XH">
+<SizeBar />
+</col>
+<col align="WH">
+<grid>
+<row>
+<col w="1" bk="128,128,128" />
+<col w="400" align="WH">
+<MultiPane name="idMulti" tb="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" h="6" align="XY" bk="212,208,200">
+<SizeBar text="SizeBar" vert="1" otherway="1" groups="errorGrp" hide="Y" />
+</col>
+</row>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" align="WY">
+<grid groups="errorGrp" hide="Y">
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" align="W">
+<grid>
+<row>
+<col lpad="8" tpad="1" bpad="1" align="WV" bkimg="res::faderight.bmp" imgtile="1">
+<Label text="Syntax Report..." style="b" />
+</col>
+<col lpad="6" rpad="6" bk="212,208,200">
+<Label text="X" size="10" style="b" onclick="resetErrors" help="Close Syntax Report Window" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" h="70" align="WH">
+<ListBox name="idErrors" IsList="Y" list="errors" ondoubleclick="onErrorDblClicked" onselect="onErrorSelected" onrightclick="OnErrorRightClicked">
+<row>
+<col lpad="8" tpad="2" rpad="8" h="8">
+<Label tx="128,0,0" bind="context" />
+</col>
+<col lpad="8" tpad="2" rpad="8" h="8" align="W">
+<Label bind="Error" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="WB" bk="213,218,152" imgtile="7">
+<Component name="idStatusBar" cls="classes::des::wstatusbar" groups="clearcase" hide="Y" />
+</col>
+</row>
+</grid>
+<Menu>
+<Popup text="&amp;File">
+<Item text="&amp;New Class" onClick="DoNewWin" />
+<Item text="&amp;Open Class" onClick="DoOpen" />
+<Separator />
+<Item text="&amp;Save  Ctrl+S" onClick="DoSave" />
+<Item text="Save &amp;As" onClick="DoSaveAs" />
+<Separator />
+<Item text="&amp;Revert" onClick="DoRevert" />
+<Separator />
+<Item text="&amp;Close" onClick="OnClose" />
+<Item text="Close A&amp;ll" name="CLOSEALL" />
+<Item text="E&amp;xit IDE" name="EXIT" />
+</Popup>
+<Popup text="&amp;Edit">
+<Item text="&amp;Goto Line" name="GotoLine" />
+<Item text="&amp;Find / Replace" name="SearchReplace" />
+<Item text="Find &amp;in Files" onClick="doFindInFiles" />
+<Separator />
+<Item text="Find &amp;Projects" name="FindProject" />
+</Popup>
+<Popup text="&amp;View">
+<Item text="Show &amp;Components?" name="MN_LOADCOMPS" />
+<Item text="Show Control &amp;Toolbar?" name="MN_SHOWCTRLTOOLBAR" />
+</Popup>
+<Popup text="&amp;Options">
+<Item text="Open W2 &amp;Console..." name="MN_CONSOLE" />
+<Separator />
+<Item text="Run Classes from &amp;HTTP Server?" name="MN_USEHTTP" />
+<Item text="S&amp;ync Running Classes On Save?" name="MN_SYNC" />
+<Separator />
+<Item text="Auto Method &amp;Tips?" name="MN_AMTIPS" />
+<Item text="Auto Object Member &amp;Listing?" name="MN_AMLIST" />
+<Separator />
+<Item text="&amp;Parse on Save?" name="MN_POSAVE" />
+<Separator />
+<Item text="Configuration &amp;Options..." name="MN_CONFIG" />
+</Popup>
+<Popup text="&amp;Build">
+<Item text="&amp;Run Class..." onClick="DoRun" />
+<Separator />
+<Item text="&amp;Parse All" onClick="doParseAll" />
+<Separator />
+<Item text="Enable Class Indexing?" name="MN_CLASSINDEX" />
+<Separator />
+<Item text="Build Class Index" name="BREFTREE" />
+<Item text="ReBuild Class Index" name="BREFTREEALL" />
+</Popup>
+<Popup text="&amp;Tools">
+<Item text="&amp;Utilities" name="UTIL" />
+<Item text="SQL Extractor" name="SQLExtractor" />
+<Item text="&amp;Parse Classes" name="ParseClasses" />
+<Item text="Circular Reference Helper" name="CircRef" />
+</Popup>
+<Popup text="&amp;Help">
+<Item text="&amp;Short Cuts" onClick="showShortCuts" />
+<Separator />
+<Item text="Version Updates" name="MN_HELP_UPDATES" />
+<Separator />
+<Item text="How To..." name="MN_HELP_HOWTO" />
+<Item text="Des Reference" name="MN_HELP_REF" />
+<Item text="FAQ" name="MN_HELP_FAQ" />
+<Separator />
+<Item text="&amp;W2 Script" name="MN_HELP_SCRIPT" />
+<Item text="&amp;Forms" name="MN_HELP_FORMS" />
+<Separator />
+<Item text="&amp;About W2" name="MN_ABOUT" />
+</Popup>
+</Menu>
+<return>
+<rmeth name="getOverviewXML" cls="xml" />
+<rmeth name="OnWMCopyData" cls="void" />
+<rmeth name="CheckSaveWithDebugCommands" cls="int" />
+<rmeth name="GetThreadGuid" cls="string" />
+<rmeth name="RequestDebugInfo" cls="string" />
+<rmeth name="WindowsOpenEx" cls="int" />
+<rmeth name="getOpenClass" cls="WClassView" />
+</return>
+</form>

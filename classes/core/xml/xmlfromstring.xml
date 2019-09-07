@@ -1,0 +1,118 @@
+<class name="XMLfromString" description="Obsolete - see globalXML" fauthor="$Author: Andrew.g $" fdate="$Date: 4/04/01 12:54 $" frevision="$Revision: 2 $">
+<members>
+<String name="str" />
+<Integer name="pos" />
+<method name="capture" return="XML">
+<param name="tag" type="string" />
+<![CDATA[
+//message( "tag body: " + tag );
+
+XML x;
+
+int sp = tag.indexOf(" ");
+if (sp>=0) {
+    string body = tag.subString(sp+1).trim();   // everything to the right of the tag.
+    tag = tag.left(sp);
+    x.setTag( tag );
+
+    // body = 'xxx="yyy" xxx="yyy"/'
+
+    sp = 0;
+    int sp2 = body.indexOf("/", sp);
+    
+    string aName, aValue;
+    while (1) {
+      int eq = body.indexOf("=", sp);
+      if (eq<0) break;
+
+      aName = body.subString(sp,eq).trim();   // attribute name
+
+      sp = body.indexOf(" ", eq);
+      if (sp==-1) sp = body.length();
+      if (sp2>=0 && sp>sp2) sp=sp2;
+
+      aValue = body.subString(eq+1,sp).trim();
+      if (aValue[0] == '"') aValue = aValue.subString(1,aValue.length()-1);      
+
+      x.addAttr( aName, aValue );
+      //message("Attrib name: " + aName + "\r\n                 val: " + aValue);
+    }
+
+    if (sp2>=sp) return &x;  // terminated with a '/' within the tag.
+
+} else {
+
+    sp = tag.indexOf("/");
+    if (sp>=0) {
+        x.setTag(tag.left(sp).trim());      // case where <tag/> occures.
+        return &x;
+    } else x.setTag(tag);   // no attribute or '/' case.
+}
+
+do {
+
+    int s = str.indexOf("<", pos);
+    if (s==-1) s = str.length();
+    
+    string txt = str.subString(pos, s).trim();
+    
+    if (txt!="") x.setContent( txt );   // content:   <tag> here <tag>
+    
+    s++;
+    int e = str.indexOf(">", s);        // find full tag & attributes <tag attr="me">
+    if (e==-1) return null;
+    
+    pos = e+1;
+    
+    txt = str.subString(s, e).trim();
+    
+    if (txt[0]=='/') {
+        txt = txt.substring(1);
+        if (txt.eq(tag)) return &x;
+
+        message("Mismatched tag: " + tag + " != /" + txt);
+
+        return null;
+    }
+
+    // case of end with /
+    
+    XML el = &capture(txt);
+    if (el==null) return el;
+    
+    x.addElement( el );
+
+} while (tag!="XML!£$");
+
+return x;]]>
+</method>
+</members>
+<static>
+<method name="stringToXML" return="XML">
+<param name="str" type="string" />
+<![CDATA[//@i Obsolete - see globalXML
+//@i
+
+//@i Converts a string version of an XML statement in the form:
+//@i "<r><prop_ref>BEWLYS24</prop_ref><post_desig>24</post_desig></r>"
+//@i
+//@i into an XML object.
+//@i   Member names are stored in member tag names
+//@i   Values are stored in member contents.
+
+XMLfromString xfs;
+
+xfs.str = str;
+xfs.pos = 0;
+
+XML x = &xfs.capture("XML!£$");
+
+if (x!=null && x.count()>0) return x.element(0);
+return null;]]>
+</method>
+</static>
+<return>
+<rmeth name="capture" cls="XML" />
+<rmeth name="stringToXML" cls="XML" />
+</return>
+</class>

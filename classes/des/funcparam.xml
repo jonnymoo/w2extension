@@ -1,0 +1,13 @@
+<class name="FuncParam" description="Function Parameter" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:39 $" frevision="$Revision: 2 $">
+<members>
+<String name="ParamName" />
+<String name="oldName" />
+<String name="ParamType" />
+<String name="writtenTyp" />
+<String name="desc" />
+</members>
+<static />
+<disp>
+<e f="ParamName" />
+</disp>
+</class>

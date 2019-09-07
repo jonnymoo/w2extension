@@ -1,0 +1,9 @@
+<class name="DirEntry" description="Directory Entry">
+<members>
+<Integer name="Attrib" desc="Attributes" null="N" />
+<String name="FileName" null="N" key="Y" />
+<Integer name="FileLength" />
+<Date name="Date" time="Y" />
+</members>
+<static />
+</class>

@@ -1,0 +1,163 @@
+<class name="XSDClassUtil" fauthor="$Author: Jonathan Muir$" fdate="$Date: 9/03/04 10:23$" frevision="$Revision: 1$">
+<members>
+<String name="XSDClassName" null="N" />
+<String name="baseClass" />
+<method name="getServerName">
+<param name="sPath" type="String" />
+<![CDATA[//@cmember getServerName
+//@param String | sPath |
+//@version Ricky LEE | 30-03-06 11:23 |
+//@i
+
+
+String serverName;
+
+int nThirdSlash=0;
+
+if (sPath.beginsWith("http://"))
+{
+    nThirdSlash = sPath.indexOf("/",7);
+    ServerName = sPath.substring(7,nThirdSlash);
+}
+else if (sPath.beginsWith("https://"))
+{
+    nThirdSlash = sPath.indexOf("/",8);
+    ServerName = sPath.substring(8,nThirdSlash);
+}
+else
+{
+    serverName="localhost";
+}
+
+return serverName;]]>
+</method>
+<method name="getLivePath">
+<param name="sPath" type="String" />
+<![CDATA[//@cmember getLivePath
+//@param String | sPath |
+//@version Ricky LEE | 30-03-06 12:37 |
+//@i
+
+String liveName;
+
+String serverName = getServerName(sPath);
+
+int serverInd = sPath.indexOf(serverName);
+
+if (serverInd>0)
+{
+    serverInd+=serverName.length();
+    liveName = sPath.substring(serverInd);
+    liveName = liveName.gettoken(0,"classes");
+}
+
+return liveName;]]>
+</method>
+<method name="getSyncPath">
+<param name="execPath" type="object" />
+<![CDATA[//@cmember getSyncPath
+//@param object | execPath |
+//@version Ricky LEE | 30-03-06 12:35 |
+//@i
+
+
+String cpath = execPath.lower();        // ie "c:\w2\classes\des\WClassView"
+
+int i = cpath.indexof("\\classes\\");
+if (i<0) i = cpath.indexof("/classes/");
+cpath = cpath.left( i + 9 );  // ie "c:\w2\classes\"
+
+int desInd = Path().length()-20;
+
+String iniPath = (Path().substring(0,desInd))+"des.ini";
+
+return sys::GetPrivateProfileString("run","root "+cPath,iniPath);]]>
+</method>
+<method name="serverMethod">
+<param name="Q" type="HttpConnection" />
+<![CDATA[//@cmember serverMethod
+//@param HttpConnection | Q |
+//@version Ricky LEE | 30-03-06 12:30 |
+//@i
+
+Q.Write("<Data>");
+Q.WriteXML("XSDClassName",XSDClassName);
+Q.WriteXML("baseClass", baseClass );        // Fudge for Win 2000.
+Q.Write("</Data>");
+
+int ok = Q.DoPost();
+if (!ok)
+{
+    Message( Q.GetError() );
+    return null;
+}
+
+
+Object Res = Q.GetObjects();
+
+if (Res==null)
+{
+    Object B = Q.GetResultsBlob();
+
+    string sz = sys::GetTempFileName("W2E");
+    string szHtm = sz.left(sz.LastIndexOf("."))+".htm";
+    File F;
+    F.CreateFile(szHtm);
+    F.Open(szHtm,"w");
+    F.WriteBlob(B);
+    F.Close();
+    sys::ShellExecute("",szHtm,"","");
+    F.DeleteFile(sz);
+    if(Message("ERROR CALLING SERVER\r\nSee Error info page behind.\r\n\r\nClick Yes to copy error to clipboard","Error getting XML results",classes::core::windows::MB_YESNO+classes::core::windows::MB_DEFBUTTON2)
+       ==classes::core::windows::IDYES)
+    {
+        sys::copyToClipboard(B.ToString()+"\r\n\r\n"+Q.GetServer()+Q.GetPath());
+    }
+    F.DeleteFile(szHtm);
+    return null;
+}
+
+return Res;]]>
+</method>
+</members>
+<static>
+<method name="fetch">
+<param name="XSDClassName" type="String" />
+<param name="baseClass" type="String" />
+<param name="execPath" type="String" />
+<![CDATA[//@cmember fetch
+//@param String | XSDClassName |
+//@param String | baseClass | For Future Use Not Implemented yet
+//@param String | execPath |
+//@version Ricky LEE | 05-10-06 11:37 |
+//@i
+
+XSDClassUtil x;
+x.XSDClassName = XSDClassName;
+
+String syncPath = x.getSyncPath(execPath);
+
+HTTPConnection newConnection;
+newConnection.SetServer( x.getServerName(syncPath) );
+newConnection.SetPath(x.getLivePath(syncPath) + "scripts/w2isapi.dll/" + "classes::egov::srvGetXSDClassXML");
+newConnection.SetPostData("");
+
+object res = x.ServerMethod(newConnection);
+
+if ( Res == null )
+    return null;
+
+if (Res.Error)
+{
+    Message(Res.Error);
+    return null;
+}
+
+if (Res.Data==NULL) return NULL;
+
+::WClassView::TransformXMLReturns(&res.data);
+
+return res.data;]]>
+</method>
+</static>
+</class>

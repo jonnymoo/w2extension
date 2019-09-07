@@ -1,0 +1,100 @@
+<class name="SrvDirectoryListing" base="classes::core::server::srvbase" fauthor="$Author: Andrew.broad $" fdate="$Date: 3/12/02 15:27 $" frevision="$Revision: 4 $">
+<members>
+<String name="Path" comment="format :&#10;::classes::swale" />
+<String name="Attr" comment="String of the following chars :&#10;RHSVDA" />
+<String name="Wildcard" comment="eg.&#10;*.dat" />
+<Integer name="Recurse" />
+<method name="OnRequest">
+<param name="ECB" type="object" />
+<![CDATA[//@version Jonny Moo | 03-12-02 09:50 |
+// Check the security.
+if ( !CheckSecurity( ECB ) )
+    return 0;
+
+object DirList = GetDirList(Path);
+
+ECB.WriteXML( "DirList", DirList );
+ECB.WriteXML( "Error", "" );]]>
+</method>
+<method name="GetDirList">
+<param name="szPath" type="object" />
+<param name="szSubPath" type="object" />
+<![CDATA[//@cmember GetDirList
+//@param object | szPath |
+//@param object | szSubPath |
+//@version Jonny Moo | 03-12-02 12:50 |
+//@i
+string ThePath = szPath;
+
+if(szSubPath!=NULL&&szSubPath)
+{
+    ThePath = szPath+"::"+szSubPath;
+}
+
+String fullpath = Sys::MakeFullName( Path(), ThePath );
+
+if (!fullpath.endsWith( "\\" )) fullpath += "\\";
+
+
+DirEntry DirList[];
+
+// If recursive loop down directoies
+
+if(Recurse)
+{
+    // Do we need to recurse down directory
+
+    Object DF = Sys::NewFileFinder();
+    int ok = DF.FindFirst( fullpath+"*.*", "" );
+
+    while( ok )
+    {
+
+        if (DF.IsDir && DF.FileName!="." && DF.FileName!="..")
+        {
+            string TheNewSubPath = DF.FileName;
+            if(szSubPath!=NULL&&szSubPath) TheNewSubPath = szSubPath+"::"+TheNewSubPath;
+            object SubDirList = GetDirList(szPath,TheNewSubPath);
+            if(SubDirList==NULL) return NULL;
+            SubDirList.MoveAllTo(DirList);
+        }
+
+        ok = DF.FindNext();
+
+    }
+}
+
+
+if (Wildcard=="")
+    fullpath += "*.*";
+else
+    fullpath += Wildcard;
+
+
+Object FF = Sys::NewFileFinder();
+int ok = FF.FindFirst( fullpath, attr );
+
+while( ok )
+{
+    // Add the file / directory (if not recursive) to the list
+
+    if(!Recurse||!FF.IsDir)
+    {
+        string TheNewSubPath = "";
+        if(szSubPath!=NULL&&szSubPath) TheNewSubPath = szSubPath+"::";
+
+        Object R = &DirList.CreateRow();
+        R.FileName = TheNewSubPath+FF.FileName;
+        R.FileLength = FF.FileLength;
+        R.Attrib = FF.Attrib;
+        R.Date = FF.Date;
+    }
+
+    ok = FF.FindNext();
+}
+
+return DirList;]]>
+</method>
+</members>
+<static />
+</class>

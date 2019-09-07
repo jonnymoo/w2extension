@@ -1,0 +1,157 @@
+<form name="wAbout" caption="W2 Calculation Builder" sizeable="0" toolwindow="1" closeondeactivate="1" esccancel="1" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members>
+<method name="start">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+open();
+
+CenterForm();
+
+]]>
+</method>
+<method name="OnOK">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+Close();]]>
+</method>
+</members>
+<static>
+<method name="OpenWin">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+Object W = Sys::FindWindow( Path() );
+if (W!=null)
+{
+    W.Show(1);
+    W.SetFocus();
+    return W;
+}
+
+wAbout X;
+X.Start();]]>
+</method>
+</static>
+<grid>
+<row>
+<col>
+<Image text="Image" img="classes::resource::standard::comino.bmp" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col>
+<Label text="W2 Calculation Builder" style="b" font="Tahoma" size="14" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col>
+<Label text="Copyright (c) Comino plc 2001" font="Tahoma" size="11" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col>
+<grid>
+<row>
+<col tpad="10">
+<Label text="Vanguard House" font="Tahoma" size="11" />
+</col>
+</row>
+<row>
+<col>
+<Label text="Dewsbury Road" font="Tahoma" size="11" />
+</col>
+</row>
+<row>
+<col>
+<Label text="Leeds" font="Tahoma" size="11" />
+</col>
+</row>
+<row>
+<col>
+<Label font="Tahoma" size="11" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="OK" tx="255,255,255" txsel="FFFF00" style="b" onClick="OnOK" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

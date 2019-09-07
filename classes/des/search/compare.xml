@@ -1,0 +1,149 @@
+<class name="compare" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:41$" frevision="$Revision: 2$">
+<members>
+<String name="scr1" />
+<String name="scr2" />
+<List name="hash1" cls="classes::cpickIv" />
+<List name="hash2" cls="classes::cpickIv" />
+<method name="hashLine" return="int">
+<param name="line" type="string" />
+<param name="len" type="int" />
+<![CDATA[//@cmember hashLine
+//@param string | line |
+//@param int | len |
+//@return int |
+//@version Andrew Griffin | 28-06-02 09:49 |
+
+int hash;
+for (int i=len-1; i>=0; i--)
+    hash += (line[i] * i);
+
+return hash;]]>
+</method>
+<method name="makeHash">
+<param name="scr" type="string" />
+<param name="hash" type="classes::cpickIv[]" />
+<![CDATA[//@cmember makeHash
+//@param string | scr |
+//@param classes::cpickIv[] | hash |
+//@version Andrew Griffin | 28-06-02 10:44 |
+//@i
+
+int i, done, lineNo=1;
+
+while (!done)
+{
+    int i2 = scr.indexof( "\r\n", i );
+    if (i2==-1)
+    {
+        i2 = scr.length()+1;
+        done = 1;
+    }
+    string line = scr.substring( i, i2 );
+    hash.CreateRow().setTo( hashLine( line, i2-i ), lineNo );
+    lineNo++;
+    i=i2+2;
+}]]>
+</method>
+<method name="doCompare">
+<param name="scr1" type="string" />
+<param name="scr2" type="string" />
+<![CDATA[//@cmember doCompare
+//@param string | scr1 |
+//@param string | scr2 |
+//@version Andrew Griffin | 28-06-02 11:04 |
+//@i
+
+this.scr1 = scr1;
+this.scr2 = scr2;
+
+//
+// Create a hash code for each line of script
+
+makeHash( scr1, hash1 );
+makeHash( scr2, hash2 );
+
+//
+// Order hash table by hash code...
+
+hash1.OrderBy( "code" );
+hash1.OrderBy( "val" );
+hash1.OrderList();
+
+hash2.OrderBy( "code" );
+hash2.OrderBy( "val" );
+hash2.OrderList();
+
+//
+// Now compare lists of hashes
+
+int old=0, mxo = hash1.Count(), mxn = hash2.Count();
+
+if (mxo>=0)
+  for (int cur=0; cur<mxn; cur++)
+  {
+    if (hash1[old].code > hash2[cur].code) continue;
+    if (hash1[old].code == hash2[cur].code)
+    {
+        // found a match...
+        hash2[cur].extra = hash1[old].val;
+    } else
+    {
+        // old is smaller so find one that isn't...
+        cur--;
+    }
+    old++;
+    if (old>=mxo) break;
+  }
+
+hash2.ResetOrder();
+hash2.OrderBy( "val" );
+hash2.OrderList();
+
+//classes::debug::showObj( hash1 );
+//classes::debug::showObj( hash2 );]]>
+</method>
+</members>
+<static>
+<method name="compareValues">
+<param name="scr1" type="string" />
+<param name="scr2" type="string" />
+<![CDATA[//@cmember compareValues
+//@param string | scr1 |
+//@param string | scr2 |
+//@version Andrew Griffin | 28-06-02 09:42 |
+//@version Darren.Ball | 18-03-10 11:53 |
+//@i
+
+compare c;
+return c.doCompare( scr1, scr2 );
+
+c.scr1 = scr1;
+c.scr2 = scr2;
+
+// Create a hash code for each line of script
+classes::CPickN nl1[] = makeHash( scr1 );]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 28-06-02 10:46 |
+//@version Darren.Ball | 18-03-10 11:53 |
+//@i
+
+compareValues(
+    "Hi there, how are you today?\r\n"
+    "I do hope you are feeling well.\r\n"
+    "How is you temprement?",
+
+    "How is you temprement?\r\n"
+    "Hi there, how are you today?\r\n"
+    "Have you got any clues?\r\n"
+    "I do hope you are feeling well.\r\n"
+);]]>
+</method>
+</static>
+<return>
+<rmeth name="hashLine" cls="int" />
+</return>
+</class>

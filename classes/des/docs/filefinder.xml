@@ -1,0 +1,52 @@
+<class name="FileFinder" description="W2 Script Reference">
+<members sub="Find">
+<method name="FindFirst">
+<param name="pathFilter" type="String" />
+<param name="param" type="String" />
+<![CDATA[//@cmember int FindFirst( String pathFilter, String param );
+//@param String | pathFilter | i.e. "c:\\w2\\classes\\*.xml"
+//@param String | param | D directory, R readonly, H hidden, S system, A Archive
+//@return int | 1 if a file is found
+//@i Find the first file in a directory that matches <pathFilter>.
+Param can be "D" to include Directories
+//@Exam FileFinder FF = &Sys::NewFileFinder();
+//@Exam 
+//@Exam // Find the first matching file.
+//@Exam int ok = FF.FindFirst( "c:\\w2\\classes\\*.xml", "" );
+//@Exam 
+//@Exam while( ok ) {
+//@Exam   File f;
+//@Exam   f.open( "c:\\w2\\classes\\" + FF.FileName, "r");
+//@Exam   // do something
+//@Exam   f.close();
+//@Exam     
+//@Exam   ok = FF.FindNext();   // Find Next Matching File
+//@Exam }                       // And loop until no more
+//@Exam ]]>
+ />
+</method>
+<method name="FindNext">
+<![CDATA[//@cmember int FindNext(  );
+//@return int | 1 if another file is found
+//@i Find the next file in a directory after the one found using 'FindFirst( filename, attr )'.
+]]>
+ />
+</method>
+</members>
+<members sub="File Details">
+<int name="Attrib" desc="Attributes of the file found." />
+<date name="Date" desc="Date of the file found." />
+<int name="FileLength" desc="Length of the file found." />
+<string name="FileName" desc="Name of the file found." />
+<int name="IsArchived" desc="1 if File found is Archived, othewise 0." />
+<int name="IsDir" desc="1 if File found is a Directory, othewise 0." />
+<int name="IsHidden" desc="1 if File found is Hidden, othewise 0." />
+<int name="IsReadOnly" desc="1 if File found is Read-Only, othewise 0." />
+<int name="IsSystem" desc="1 if File found is a System File, othewise 0." />
+<int name="IsVolID" desc="1 if File found is a Vol ID, othewise 0." />
+</members>
+<return>
+<rmeth name="FindFirst" cls="int" />
+<rmeth name="FindNext" cls="int" />
+</return>
+</class>

@@ -1,0 +1,489 @@
+<form name="CComp" base="CtrlBase" margin="0" fauthor="$Author: Andrew.g$" fdate="$Date: 29/10/01 11:26$" frevision="$Revision: 9$">
+<members>
+<List name="cAttrib" cls="classes::CPickS" />
+<List name="projList" cls="classes::CPickS" />
+<method name="Init">
+<![CDATA[//@version Andrew Griffin | 04-10-01 09:29 |
+
+//SetYesNo( idScrolls );
+super.Init();]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" type="edObject" />
+<![CDATA[//@version Andrew Griffin | 03-10-01 17:36 |
+
+idClassName.setText( Ctrl.GetAttr("cls") );
+idScrolls.setText( Ctrl.GetAttr("scrolls") );
+super.ShowCtrl(Ctrl);
+
+// Get Project Controls
+string ppath = getParent().getParent().getParent().FileName;
+string cnames = ::browse::ClsBrowser::openProject.getFormComps( ppath, Ctrl.name );
+
+ProjList.reset();
+
+if (cnames) {
+    //showgroup( "Proj", 1 );
+    for (int i=0;; i++) {
+        string s = cnames.gettoken( i );
+        if (!s) break;
+        CPickS tmp = &ProjList.CreateRow();
+        tmp.desc = s;
+        s = sys::MakeRelativeName( ppath, s );
+        tmp.desc = s.left( s.lastIndexOf(".") );
+    }
+    idProjList.CalcWidths();
+} //else showGroup( "Proj", 0 );
+
+SizeFormToContent();]]>
+</method>
+<method name="DoClassName">
+<![CDATA[
+String s = idClassName.GetText();
+
+SetAttr( "cls", s );]]>
+</method>
+<method name="DoScrolls">
+<![CDATA[
+String s = idScrolls.GetText();
+
+SetAttr( "scrolls", s );]]>
+</method>
+<method name="doOpenClass">
+<![CDATA[//@version Jonathan.Muir | 26-02-10 13:42 |
+string cls = idClassName.getText();
+
+if (cls=="") return;
+
+object clas = getParent().getParent().getParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+
+object win = ::AdvSearch::OpenClassFile( cls, tPath, "" );
+if(win!=null) win.show(1);]]>
+</method>
+<method name="doOpenClassProj">
+<![CDATA[//@version Jonathan.Muir | 26-02-10 13:42 |
+string cls = ProjList.CurrentRow().desc;
+
+if (cls=="") return;
+
+object clas = getParent().getParent().getParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+
+object win = ::AdvSearch::OpenClassFile( cls, tPath, "" );
+if(win!=null) win.show(1);]]>
+</method>
+<method name="doAdd">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+classes::core::WinputBox::Open(this, "addAttrib", "Enter New Attribute name", "Add Custom Attribute", "");]]>
+</method>
+<method name="addAttrib">
+<param name="str" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+if (str=="") return;
+
+str.toLower();
+
+if (str.indexOf(" ")>=0) {
+    message("Custom Attributes can't contain spaces. Please try again.");
+    doAdd();
+    return;
+}
+
+if (builtInAttrib(str)) {
+    message("This is a reserved attribute name. Please choose a different name.");
+    doAdd();
+    return;
+}
+
+classes::CPickS nr = &cAttrib.findRow( str );
+
+if (nr!=null) {
+    message("This custom attribute already exists, choose a new name");
+    doAdd();
+    return;
+}
+
+nr = &cAttrib.createRow();
+
+nr.code = str;
+nr.desc = "<enter value>";
+
+SizeFormToContent();
+GetParent().SizetoFit();
+
+idCustomAttr.cancelSelect();
+idCustomAttr.setFocus();
+idCustomAttr.setCurrent( cAttrib.count()-1 );
+
+SetAttr( str, nr.desc );]]>
+</method>
+<method name="doDel">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+int i = cAttrib.CurrentIndex();
+if (i==-1) return;
+
+SetAttr( cAttrib[i].code, "" );
+
+cAttrib.deleteRow(i);
+
+SizeFormToContent();
+GetParent().SizetoFit();]]>
+</method>
+<method name="changeCustom">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+classes::CPickS nr = &idCustomAttr.currentRow();
+
+if (nr==null) return;   // should never happen...
+
+SetAttr( nr.code, nr.desc );]]>
+</method>
+<method name="builtInAttribOld" return="int">
+<param name="attrName" type="string" />
+<![CDATA[//@cmember builtInAttrib
+//@param string | builtInAttrib | attribute name to check
+//@return int | 1 = This is a built in attribute, 0 = otherwise
+//@version Andrew Griffin | v1
+//@i Returns true if the passed attribute name is a built in attribute.
+
+switch (attrName.lower()) {
+  case "cls", "scrolls", "disable", "hide", "notab", "name", "groups" : return 1;
+}
+
+return 0;]]>
+</method>
+<method name="getCAttrs">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+string cls = idClassName.getText();
+
+if (cls=="") return;
+
+object clas = getParent().getParent().getParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+
+object o = &sys::newObject( cls, tPath );
+if (o==null) {
+    message("Class does not exist. Please check the file name");
+    return;
+}
+
+classes::CPickS atrBack[];
+for (int i=0; i<cAttrib.count(); i++)
+    atrBack.addRow( cAttrib[i] );
+
+cAttrib.reset();
+
+for (i=0; i<o.memberCount(); i++) {
+  memberDef m = &o.memberDef(i);
+  if (m.GetAttr("cattr")=="Y") {
+
+    classes::CPickS nr = &cAttrib.findRow( m.name().lower() );
+    if (nr!=null) continue;
+    nr = &cAttrib.createRow();
+    nr.code = m.name().lower();
+
+    object o2 = &atrBack.findRow( nr.code );
+    if (o2==null) {
+        nr.desc = m.GetAttr("constval");
+        if (nr.desc=="") nr.desc = "<enter value>";
+    } else {
+        nr.desc = o2.desc;
+        o2.removeFromList();
+    }
+
+    SetAttr( nr.code, nr.desc );
+  }
+}
+
+if (atrBack.count() > 0) {
+
+  string atrStr;
+  for (i=0; i<atrBack.count(); i++)
+    atrStr += (atrStr ? ", " : "") + atrBack[i].code;
+
+  int ans = (message( "Do you want to delete the attributes listed below:\r\n" + atrStr,
+      "Delete unspecified attributes",
+      classes::core::windows::MB_YESNO ) == classes::core::windows::IDYES);
+
+    for (i=0; i<atrBack.count(); i++)
+      if (!ans) cAttrib.addRow( atrBack[i] );
+           else SetAttr( atrBack[i].code, "" );
+
+  }
+
+SizeFormToContent();
+GetParent().SizetoFit();
+
+idCustomAttr.cancelSelect();
+idCustomAttr.setFocus();
+idCustomAttr.setCurrent( cAttrib.count()-1 );]]>
+</method>
+<method name="onChar">
+<param name="Key" type="int" />
+<param name="State" type="int" />
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+if (key==13 && Ctrl==idClassName) {
+
+    getParent().getCAttrs();
+
+    wgridedit frm = &getParent().getParent();
+
+    edGridCell eg = &frm.idGridEdit.CurrentCell();
+
+    XML X;
+    frm.GetXML( X, eg.GetGrid() );
+    frm.LoadGrControl( eg, X, getParent().getParent().getParent().FileName );
+
+    frm.idGridEdit.CalcSizes();
+    frm.GridClicked();
+
+}]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[switch (attrName.lower()) {
+  case  "cls", "scrolls" : return 1;
+}
+
+return 0;]]>
+</method>
+<method name="browseFile">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+string fileTyp = ctrl.GetControlAttr("filetype");
+control bindTo = &GetControl( ctrl.GetControlAttr("bindto") );
+string description = ctrl.GetControlAttr("desc");
+
+string filename = bindTo.getText();
+filename = sys::MakeFullName( getParent().getparent().getParent().FileName, filename );
+
+string filter;
+
+if (filetyp.eq("xml")) {
+    filter.addToken("XML files|*.xml", ";");
+    if (filename) filename += ".xml";
+} else
+if (filetyp.eq("bmp")) {
+    filter.addToken("BMP files|*.bmp", ";");
+} else
+if (filetyp.eq("ico")) {
+    filter.addToken("Icon files|*.ico", ";");
+}
+
+filename = GetOpenFileName( "Choose a " + description, filter, filename );
+
+if (!filename) return 0;
+
+filename = sys::MakeRelativeName( getParent().getparent().getParent().FileName, filename );
+
+if (filetyp.eq("xml")) {
+    int i = filename.indexof(".xml",0,1);
+    if (i>=0) filename = filename.left( i );
+}
+
+bindTo.setText( filename );
+DoClassName();
+onChar( 13, 0, idClassName );]]>
+</method>
+<method name="ShrinkEmpty">
+<![CDATA[//@cmember ShrinkEmpty
+//@version Andrew Griffin | 03-10-01 17:36 |
+//@i
+
+ExpandAll();]]>
+</method>
+<method name="ExpandAll">
+<![CDATA[//@cmember ExpandAll
+//@version Andrew Griffin | 03-10-01 17:33 |
+//@i
+
+doDropOptions( dropDisp, 1 );
+doDropOptions( dropBinding, 1 );
+doDropOptions( dropProject, 1 );]]>
+</method>
+</members>
+<static />
+<grid bk="224,224,192">
+<row>
+<col align="W">
+<grid rpad="2" bpad="1">
+<row>
+<col w="48" align="V">
+<Label text="Name" tx="64,32,16" />
+</col>
+<col align="W">
+<Edit name="idName" w="120" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups" tx="64,32,16" />
+</col>
+<col align="W">
+<Edit name="idGroups" w="120" onChange="DoGroups" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid>
+<row>
+<col align="V">
+<Image name="dropDisp" text="Image" img="upbutt.bmp" Param="gDisplay" onClick="doDropOptions" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Display..." txsel="000000" onClick="doDropOptions" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" bpad="2" align="V">
+<grid groups="gDisplay">
+<row>
+<col rpad="4" align="V">
+<Label text="Tab" tx="64,32,16" />
+</col>
+<col>
+<Edit name="idTabStop" w="32" combo="2" onChange="DoTabStop" border="0" />
+</col>
+<col lpad="4" rpad="4" w="48" align="V">
+<Label text="Enabled" tx="64,32,16" />
+</col>
+<col>
+<Edit name="idEnabled" w="32" combo="2" onChange="DoEnabled" border="0" />
+</col>
+<col lpad="4" rpad="4" align="WV">
+<Label text="Visible" tx="64,32,16" />
+</col>
+<col>
+<Edit name="idVisible" w="32" combo="2" onChange="DoVisible" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gDisplay">
+<row>
+<col w="48" align="V">
+<Label text="scroll bar:" />
+</col>
+<col>
+<Edit name="idScrolls" w="64" onChange="DoScrolls" border="0" combo="2" pick="cYes" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid>
+<row>
+<col align="V">
+<Image name="dropBinding" text="Image" img="upbutt.bmp" Param="gBind" onClick="doDropOptions" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Data Binding..." txsel="000000" onClick="doDropOptions" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gBind">
+<row>
+<col w="48" align="V">
+<Label text="Class:" onClick="doOpenClass" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col align="W">
+<Edit name="idClassName" onChange="DoClassName" border="0" />
+</col>
+<col align="V">
+<Image text="Image" img="p_right.bmp" onClick="browseFile" filetype="xml" bindto="idClassName" desc="Component Class" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid>
+<row>
+<col align="V">
+<Image name="dropProject" text="Image" img="upbutt.bmp" Param="gProject" onClick="doDropOptions" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Project Classes..." txsel="000000" onClick="doDropOptions" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col>
+<ListBox name="idProjList" IsList="Y" groups="gProject" hide="Y" list="projList" fixsize="1" border="0" onClick="doOpenClassProj">
+<row>
+<col rpad="4" w="48" align="V" bk="224,224,192">
+<Label text="Class:" />
+</col>
+<col bk="255,255,255">
+<Label text="&gt;&gt;" bind="desc" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttribOld" cls="int" />
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

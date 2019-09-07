@@ -1,0 +1,1399 @@
+<class name="Sys" description="W2 Script Reference">
+
+<static sub="Application">
+
+<method name="AddSession" cls="void">
+<param name="SessionID" type="int" />
+<param name="UserID" type="string" />
+<![CDATA[//@cmember AddSession( int SessionID, String UserID );
+//@param int| SessionID| 
+//@param string | UserID| 
+//@return void |
+//@i Adds an user session to session cache
+]]>
+ />
+</method>
+
+<method name="LaunchOneClickApplication" cls="void">
+<param name="pathToApplication" type="string" />
+<![CDATA[//@cmember LaunchOneClickApplication( String pathToApplication );
+//@param string | pathToApplication| 
+//@return void |
+//@i Launches a Microsoft OneClick application
+]]>
+ />
+</method>
+
+<method name="AdjustLoginCount" cls="void">
+<param name="iAdjustBy" type="int" />
+<![CDATA[//@cmember AdjustLoginCount( int iAdjustBy );
+//@param int | iAdjustBy| 
+//@i Adjusts the login count up or down, by specified number, for use in Performance Monitor
+]]>
+ />
+</method>
+
+<method name="GetLocalAppdataDir" cls="void">
+<![CDATA[//@cmember GetLocalAppdataDir();
+//@i Returns the path to %Appdata%\Local
+]]>
+ />
+</method>
+
+<method name="GetAppdataDir" cls="void">
+<![CDATA[//@cmember GetAppdataDir();
+//@i Returns the path to %Appdata%\Roaming
+]]>
+ />
+</method>
+<method name="getsha1digestblob" cls="void">
+<param name="Target" type="blob" />
+<![CDATA[//@cmember getsha1digestblob(Blob target);
+//@i Returns the Sha1 of a blob
+]]>
+ />
+</method>
+<method name="getsha1digest" cls="void">
+<param name="Target" type="string" />
+<![CDATA[//@cmember getsha1digest(string target);
+//@i Returns the Sha1 of a string
+]]>
+ />
+</method>
+<method name="GetNonce" cls="string">
+<![CDATA[//@cmember GetNonce();
+//@i Returns a random string
+]]>
+ />
+</method>
+<method name="GetTimeZoneBias" cls="int">
+<![CDATA[//@cmember GetTimeZoneBias();
+//@i Gets the timezone bias in minutes
+]]>
+ />
+</method>
+
+<method name="getscryptdigest" cls="void">
+<param name="Salt" type="string" />
+<param name="Input" type="string" />
+<![CDATA[//@cmember getsha1digest(string salt, string input);
+//@i Hash a string using scrypt
+]]>
+ />
+</method>
+
+
+<method name="Terminate" cls="void">
+<![CDATA[//@cmember Terminate();
+//@i Uncleanly exits, please use exit instead!
+]]>
+ />
+</method>
+
+<method name="CheckSession" cls="int">
+<param name="SessionID" type="int" />
+<param name="UserID" type="string" />
+<![CDATA[//@cmember int CheckSession( int SessionID, string UserID );
+//@param int| SessionID| 
+//@param string | UserID| 
+//@return int| 0 - invalid session; 1- valid session
+//@i Checks if the user session exists in the cache
+]]>
+ />
+</method>
+
+<method name="AddClassAlias" cls="void">
+<param name="Target" type="string" />
+<param name="Destination" type="string" />
+<![CDATA[//@cmember int AddClassAlias( string Target, string Destination );
+//@param string| Target| 
+//@param string | Destination| 
+//@return 
+//@i Alias a class
+]]>
+ />
+</method>
+
+<method name="CommandLine">
+<![CDATA[//@cmember String CommandLine(  );
+//@return String | 
+//@i command line passed to app
+]]>
+ />
+</method>
+<method name="OriginalCommandLine">
+<![CDATA[//@cmember String OriginalCommandLine(  );
+//@return String | 
+//@i the original command line passed to app before stripping off any flags etc
+]]>
+ />
+</method>
+
+
+<method name="DBQueryExpr">
+<param name="src" type="String" />
+<param name="expr" type="String" />
+<param name="opt" type="String" />
+<![CDATA[//@cmember String DBQueryExpr( String src, String expr, String opt );
+//@param String | src | 
+//@param String | expr | 
+//@param String | opt | 
+//@return String | 
+//@i build a sql query fragment
+]]>
+ />
+</method>
+
+<method name="DeleteSessions" cls="void">
+<param name="UserID" type="string" />
+<![CDATA[//@cmember DeleteSessions( String UserID );
+//@param string | UserID| 
+//@return void |
+//@i Deletes all the sessions for the specified user
+]]>
+ />
+</method>
+
+<method name="DumpMemory" cls="void">
+<![CDATA[//@cmember DumpMemory( );
+//@return void |
+//@i Dumps the applications memory to a crash dump.
+]]>
+ />
+</method>
+
+<method name="TriggerCrash" cls="void">
+<![CDATA[//@cmember TriggerCrash( );
+//@return void |
+//@i Crashes the app with a null pointer exception (For testing).
+]]>
+ />
+</method>
+
+<method name="DeleteSessions" cls="void">
+<param name="UserID" type="string" />
+<![CDATA[//@cmember DeleteSessions( String UserID );
+//@param string | UserID| 
+//@return void |
+//@i Deletes all the sessions for the specified user
+]]>
+ />
+</method>
+
+<method name="Exit">
+<param name="retcode" type="int" />
+<![CDATA[//@cmember int Exit( int retcode );
+//@param int | retcode | 
+//@return int | 
+//@i ret 1
+]]>
+ />
+</method>
+
+<method name="SetClassSync">
+<param name="b" type="int" />
+<![CDATA[//@cmember void SetClassSync( int b );
+//@param int | b | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SyncClass">
+<param name="" type="ClassDef" />
+<![CDATA[//@cmember void SyncClass( ClassDef );
+//@param ClassDef |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CompileGrids">
+<param name="b" type="int" />
+<![CDATA[//@cmember void CompileGrids( b );
+//@param b | int  | 
+//@i All classes loaded with a form with compile any code set in labels in a grid with begin with the text =
+//@i Methods will be compiled into methods called __i where i is a sequential integer.  Code will be wrapped round
+//@i a SetAns() method call (i.e. your class must implement a SetAns method).
+//@i The text will be replaced with =__i().  You can call ExecGridMethod to explicity call the method
+//@i See calcs2::BaseCalc for example.
+]]>
+ />
+</method>
+
+<method name="SetClassPath">
+<param name="path" type="string" />
+<![CDATA[//@cmember void SetClassPath( path );
+//@param path | string | path to set class path to
+//@i Do not use this method unless you want to set your class path at the very start of your application
+//@i Needs to be path including classes followed by a trailing slash (e.g. c:\cm\cmv13\w2core\classes\  or http://myApp/cmv13/classes/)
+]]>
+ />
+</method>
+
+<method name="GetClassPath">
+<![CDATA[//@member String getClassPath();
+//@return String | class path including trailing slash
+]]>
+ />
+</method>
+
+<method name="GetNumberOfProcessors">
+<![CDATA[//@member int GetNumberOfProcessors();
+//@return int | attempts to get the number of processors the system has available
+]]>
+ />
+</method>
+
+
+</static>
+
+<static sub="Colors">
+
+<method name="GetColor">
+<param name="defcolor" type="int" />
+<![CDATA[//@cmember int GetColor( int defcolor );
+//@param int | defcolor | 
+//@return int | 
+//@i popup menu
+]]>
+ />
+</method>
+<method name="RGB">
+<param name="r" type="int" />
+<param name="g" type="int" />
+<param name="b" type="int" />
+<![CDATA[//@cmember int RGB( int r, int g, int b );
+//@param int | r | 
+//@param int | g | 
+//@param int | b | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</static>
+
+<static sub="Date and Time">
+
+<method name="Date">
+<![CDATA[//@cmember Date Date(  );
+//@return Date | current system date (no time)
+//@i current date
+]]>
+ />
+</method>
+<method name="Time">
+<![CDATA[//@cmember Date Time(  );
+//@return Date | Current system date & time
+//@i current date + time
+]]>
+ />
+</method>
+</static>
+
+<static sub="Debugging">
+
+<method name="DebugOut">
+<param name="s" type="String" />
+<![CDATA[//@cmember void DebugOut( String s );
+//@param String | s | 
+//@return void | 
+//@i to debug terminal
+]]>
+ />
+</method>
+
+<method name="DebugSessions" cls="void">
+<![CDATA[//@cmember String DebugSessions( );
+//@return String | list of active sessions
+//@i Debug string with user session buckets
+]]>
+ />
+</method>
+
+<method name="FlushClass">
+<param name="name" type="String" />
+<![CDATA[//@cmember void FlushClass( String name );
+//@param String | name | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetClassList">
+<![CDATA[//@cmember String[] GetClassList(  );
+//@return String[] | 
+//@i Gets the list of classes loaded into memory
+]]>
+ />
+</method>
+<method name="RecordObjects">
+<param name="b" type="int" />
+<![CDATA[//@cmember void RecordObjects( int b );
+//@param b | int  |
+//@i Start recording all objects created
+]]>
+ />
+</method>
+<method name="WriteRecordObjects">
+<param name="fileName" type="string" />
+<![CDATA[//@cmember void WriteRecordObjects( string fileName );
+//@i Ouput recorded objects to csv file
+]]>
+ />
+</method>
+
+<method name="WriteObjectReferencesToFile">
+<param name="fileName" type="string" />
+<![CDATA[//@cmember void WriteRecordObjects( string fileName );
+//@i Ouput recorded objects references to csv file
+]]>
+ />
+</method>
+
+<method name="GetLastHERROR">
+<![CDATA[//@cmember String GetLastHerror(  );
+//@return String | Error message
+//@i Gets the last system error e.g. why a file could not be saved
+]]>
+ />
+</method>
+<method name="OpenConsole">
+<![CDATA[//@cmember void OpenConsole(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetDebugMode">
+<param name="enable" type="int" />
+<![CDATA[//@cmember void SetDebugMode( int enable );
+//@param int | enable | 1 to enable, 0 to disable
+//@return void | Enables Ctrl+F12 method tracing debug mode.
+//@i Enables Ctrl+F12 method tracing debug mode.
+(note: If the designer is open, tracing is enabled by default)
+]]>
+ />
+</method>
+
+<method name="SetServerSideDebug">
+<param name="enableUser" type="String" />
+<![CDATA[//@cmember void SetServerSideDebug( String enableUser );
+//@param String| enableUser | User ID to enable server side debugging for. If NULL then disable debugging
+//@return void |
+//@i Enables the output of server-side debugging info for the specified user.
+]]>
+ />
+</method>
+
+
+<method name="SetServerSideSQLDebug">
+<param name="enableUser" type="String" />
+<![CDATA[//@cmember void SetServerSideSQLDebug( String enableUser );
+//@param String | enableUser | User ID to enable server side SQL debugging for. If NULL then disable debugging
+//@return void |
+//@i Enables the output of server-side SQL debugging info for the specified user.
+]]>
+ />
+</method>
+
+<method name="SetTraceMode">
+<param name="enable" type="int" />
+<![CDATA[//@cmember void SetTraceMode( int enable );
+//@param int | enable | 0 - disabled, 1- enabled
+//@return void |
+//@i If enabled, then a trace log will be put into c:\w2Trace.log
+]]>
+ />
+</method>
+
+<method name="SetDebugToFile">
+<![CDATA[//@cmember void SetDebugToFile( String user );
+//@param String| User | Used to build up file name
+//@return void |
+//@i Set debug out to file for this thread of excecution to file (if on server in classes::client::w2debug, if on client c:\temp\w2debug - you must create the directory)
+]]>
+ />
+</method>
+
+</static>
+
+<static sub="Files">
+
+<method name="BrowseForFolder" return="String">
+<param name="Message" type="String" />
+<param name="Path" type="String" />
+<![CDATA[//@cmember String BrowseForFolder( String Message, string Path );
+//@param String | Message | Message to display on browse dialog
+//@param String | Path | Path to start from
+//@return String | Path of the selected folder
+//@version Scott.Goodwin | 06-11-02 12:57 |
+//@i Launches shell Browse for Folder dialog.  Supports network folders.
+//@Exam string strFileName = sys::BrowseForFolder("Please select a folder", "c:\\");]]>
+</method>
+
+<method name="DeleteFile">
+<param name="filename" type="String" />
+<![CDATA[//@cmember void DeleteFile( String filename );
+//@param String | filename | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetTempDir">
+<![CDATA[//@cmember String GetTempDir( ); 
+//@return String | 
+//@i Returns the Windows TEMP directory
+]]>
+ />
+</method>
+
+<method name="GetTempFileName">
+<param name="prefix" type="String" />
+<![CDATA[//@cmember String GetTempFileName( String prefix );
+//@param String | prefix | 
+//@return String | 
+//@i uses the Windows define TEMP directory, prefix is optional
+]]>
+ />
+</method>
+
+<method name="XSLTTransform">
+<param name="XMLSourceFileName" type="String" />
+<param name="StyleSheetFile" type="String" />
+<param name="OutputFileName" type="String" />
+<param1 name="XMLSourceFile" type="Blob" />
+<param1 name="StyleSheetFile" type="String" />
+<param1 name="OutputFile" type="Blob" />
+<![CDATA[//@cmember String XMLTransform( {String XMLSourceFileName, String  StyleSheetFile, String OutputFileName} or {Blob XMLSourceFile, String  StyleSheetFile, Blob OutputFile});
+//@param String | XMLSourceFileName | 
+//@param String | StyleSheetFile | 
+//@param String | OutputFileName | 
+//@param Blob | XMLSourceFile | 
+//@param String | StyleSheetFile | 
+//@param Blob | OutputFile | 
+//@return String | Status Message - "XSLT OK" for success
+//@i Performs XSLT Transformation on a XML source file with the provided Style Sheet
+]]>
+ />
+</method>
+
+</static>
+
+<static sub="HWND Windows">
+<method name="HWNDFind">
+<param name="class" type="string" />
+<param name="text" type="string" />
+<![CDATA[//@cmember int HWNDFind( string class, string text );
+//@param string | class | 
+//@param string | text | 
+//@return int | 
+//@i utility functions for accessing native HWND types
+]]>
+ />
+</method>
+<method name="HWNDFindEx">
+<param name="hWNDparent" type="int" />
+<param name="hWNDchild" type="int" />
+<param name="class" type="string" />
+<param name="text" type="string" />
+<![CDATA[//@cmember int HWNDFindEx( int hWNDparent, int hWNDchild, string class, string text );
+//@param int | hWNDparent | 
+//@param int | hWNDchild | 
+//@param string | class | 
+//@param string | text | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="HWNDGetActive">
+<![CDATA[//@cmember int HWNDGetActive(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="HWNDGetClassName">
+<param name="hwnd" type="int" />
+<![CDATA[//@cmember String HWNDGetClassName( int hwnd );
+//@param int | hwnd | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="HWNDGetForeground">
+<![CDATA[//@cmember int HWNDGetForeground(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="HWNDGetProp">
+<param name="hwnd" type="int" />
+<param name="prop" type="String" />
+<![CDATA[//@cmember int HWNDGetProp( int hwnd, String prop );
+//@param int | hwnd | 
+//@param String | prop | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="HWNDGetText">
+<param name="hwnd" type="int" />
+<![CDATA[//@cmember String HWNDGetText( int hwnd );
+//@param int | hwnd | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="HWNDSendIPC">
+<param name="hwnd" type="int" />
+<param name="value" type="int" />
+<param name="data" type="String" />
+<![CDATA[//@cmember int HWNDSendIPC( int hwnd, int value, String data );
+//@param int | hwnd | 
+//@param int | value | 
+//@param String | data | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SendIPC">
+<param name="WinText" type="string" />
+<param name="Data" type="string" />
+<![CDATA[//@cmember int hwnd SendIPC( string WinText, string Data );
+//@param string | WinText | 
+//@param string | Data | 
+//@return int hwnd | 
+//@i 
+]]>
+ />
+</method>
+</static>
+
+<static sub="Information">
+
+<method name="CheckMSXML">
+<![CDATA[//@cmember int CheckMSXML(  );
+//@return int | 0 - not found, 1- found| 
+//@i Checks if MSXML library exists
+]]>
+ />
+</method>
+
+<method name="IsCapsLockOn">
+<![CDATA[//@cmember int IsCapsLockOn(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetComputerName">
+<![CDATA[//@cmember string GetComputerName(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetCursorPos">
+<![CDATA[//@cmember int GetCursorPos(  );
+//@return int | 
+//@i x in the loword, y in the hiword
+]]>
+ />
+</method>
+
+<method name="GetInfo">
+<param name="param" type="String" />
+<![CDATA[//@cmember String GetInfo( String param );
+//@param String | param | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetIPAddress" cls="String">
+<![CDATA[//@cmember String GetIPAddress( );
+//@return String | the IP address of the local PC
+//@i Gets the IP Address of the PC
+]]>
+ />
+</method>
+
+<method name="GetMD5Digest">
+<param name="source" type="String" />
+<![CDATA[//@cmember String GetMD5Digest( String source );
+//@param String | source | 
+//@return String | 
+//@i MD5 128 bit digest
+]]>
+ />
+</method>
+<method name="GetModulePath">
+<![CDATA[//@cmember String GetModulePath(  );
+//@return String | 
+//@i DLL path, ie "c:\inetpub\scripts\"
+]]>
+ />
+</method>
+<method name="GetNetworkUser">
+<![CDATA[//@cmember String GetNetworkUser(  );
+//@return String | 
+//@i user login
+]]>
+ />
+</method>
+<method name="TickCount">
+<![CDATA[//@cmember int TickCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Version">
+<![CDATA[//@cmember int Version(  );
+//@return int | 
+//@i returns a number such as 2010
+]]>
+ />
+</method>
+<method name="VersionDate">
+<![CDATA[//@cmember String VersionDate(  );
+//@return String | 
+//@i returns a string such as "14-JUL-2000"
+]]>
+ />
+</method>
+</static>
+
+<static sub="INI Files">
+<method name="CacheEnvFile">
+<param name="Filename" type="string" />
+<![CDATA[//@cmember void CacheEnvFile( string Filename );
+//@param string | Filename | Filename of enviroment file (c:\w2\w2env.ini)
+//@return void | Caches the enviroment file (and all dependants)
+//@i Caches an enviroment file & all contained enviroment files (i.e. c:\w2\w2env.ini)
+]]>
+ />
+</method>
+<method name="GetEnv">
+<param name="section" type="String" />
+<param name="entry" type="String" />
+<![CDATA[//@cmember String GetEnv( String section, String entry );
+//@param String | section | Section title to search under
+//@param String | entry | Entry name to retrieve value of...
+//@return String | the value of the enviroment string
+//@i Environment file accessor method
+]]>
+ />
+</method>
+<method name="GetPrivateProfileString">
+<param name="sec" type="string" />
+<param name="key" type="string" />
+<param name="file" type="string" />
+<![CDATA[//@cmember String GetPrivateProfileString( string sec, string key, string file );
+//@param string | sec | The section title to search in
+//@param string | key | The Key to retrieve the value of
+//@param string | file | The filename of the profile
+//@return String | The value assined to the key
+//@i Gets a setting without caching 
+]]>
+ />
+</method>
+<method name="GetPrivateProfileStringEnv">
+<param name="sec" type="string" />
+<param name="key" type="string" />
+<param name="file" type="string" />
+<![CDATA[//@cmember String GetPrivateProfileStringEnv( string sec, string key, string file );
+//@param string | sec | The section title to search in
+//@param string | key | The Key to retrieve the value of
+//@param string | file | The filename of the profile
+//@return String | The value assined to the key retrieved from the cache
+//@i Gets a setting and caches the ini file
+]]>
+ />
+</method>
+<method name="GetProfileString">
+<param name="" type="sec" />
+<param name="" type="ent" />
+<![CDATA[//@cmember String GetProfileString( sec, ent );
+//@param sec |  | 
+//@param ent |  | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="ShowEnvCache">
+<![CDATA[//@cmember void ShowEnvCache(  );
+//@return void | Pops up a message box containing all cached enviroment files
+//@i Pops up a message box containing all cached enviroment files
+]]>
+ />
+</method>
+<method name="WritePrivateProfileString">
+<param name="sec" type="string" />
+<param name="key" type="string" />
+<param name="value" type="string" />
+<param name="file" type="string" />
+<![CDATA[//@cmember int WritePrivateProfileString( string sec, string key, string value, string file );
+//@param string | sec | Section title
+//@param string | key | Key to assign value to
+//@param string | value | Value to be assigned to the key
+//@param string | file | Filename of the profile
+//@return int | 1 if written successfully
+//@i 
+]]>
+ />
+</method>
+</static>
+
+<static sub="Messages">
+
+<method name="GetRedirectedMessage">
+<![CDATA[//@cmember String GetRedirectedMessage( );
+//@return String | The message redirected
+//@i Retreives the messages (as a string) redirected to buffer and clears the buffer
+]]>
+ />
+</method>
+<method name="SetRedirectMessages">
+<param name="direction" type="int" />
+<![CDATA[//@cmember void SetRedirectMessages( int Direction );
+//@param int | direction | 1 = Redirect, 0 = Normal
+//@return void | 
+//@i All message / output will be redirected to a buffer 
+]]>
+ />
+</method>
+</static>
+
+<static sub="Objects">
+
+<method name="LoadClass">
+<param name="ClassName" type="string" />
+<param name="Path]" type="[string" />
+<param1 name="b" type="Blob" />
+<param1 name="aliasClsName" type="string" />
+<![CDATA[//@cmember classdef LoadClass( {string ClassName, [string Path]} or {Blob b, string aliasClsName} );
+//@param string | ClassName | Class to be opened (or blob containing classfile)
+//@param [string | Path] | Path to class (or alias to refer to blob class)
+//@param Blob | b | Class to be opened (or blob containing classfile)
+//@param string | aliasClsName | Path to class (or alias to refer to blob class)
+//@return classdef | non-instatiated classdef of 'classname' (or aliased virtual class)
+//@i 
+]]>
+ />
+</method>
+<method name="NewCompiler">
+<![CDATA[//@cmember Compile NewCompiler(  );
+//@return Compile | 
+//@i 
+]]>
+ />
+</method>
+<method name="NewFileFinder">
+<![CDATA[//@cmember FileFinder NewFileFinder(  );
+//@return FileFinder | 
+//@i 
+]]>
+ />
+</method>
+<method name="NewList">
+<param name="ClassName" type="string" />
+<param name="Path]" type="[string" />
+<![CDATA[//@cmember List NewList( string ClassName, [string Path] );
+//@param string | ClassName | Create a list of this type
+//@param [string | Path] | Path to the class
+//@return List | A new instatiated list of type 'ClassName'
+//@i 
+]]>
+ />
+</method>
+<method name="NewObject">
+<param name="ClassName" type="string" />
+<param name="Path]" type="[string" />
+<![CDATA[//@cmember object NewObject( string ClassName, [string Path] );
+//@param string | ClassName | Create an object of this type
+//@param [string | Path] | Path to the class
+//@return object | A new instatiated object of type 'ClassName'
+//@i 
+]]>
+ />
+</method>
+<method name="NewStringArray">
+<![CDATA[//@cmember String[] NewStringArray(  );
+//@return String[] | 
+//@i 
+]]>
+ />
+</method>
+<method name="Printer">
+<![CDATA[//@cmember Printer Printer(  );
+//@return Printer | 
+//@i 
+]]>
+ />
+</method>
+<method name="TrackObjMenu">
+<param name="Initial" type="Object" />
+<![CDATA[//@cmember Object TrackObjMenu( Object Initial );
+//@param Object | Initial | 
+//@return Object | 
+//@i Initial object must implement FillMenu(xx) method
+]]>
+ />
+</method>
+</static>
+
+<static sub="Paths">
+
+<method name="GetCorrectCasePath">
+<param name="path" type="string" />
+<![CDATA[//@cmember String GetCorrectCasePath( string path);
+//@param string | path | i.e. "c:\\W2\\cLassEs\\"
+//@return String | i.e. returns "c:\\w2\\Classes\\"
+//@i returns the file/folder path in the correct case or an empty string if file/path not found
+]]>
+ />
+</method>
+
+<method name="MakeFullName">
+<param name="path" type="string" />
+<param name="name" type="string" />
+<![CDATA[//@cmember String MakeFullName( string path, string name );
+//@param string | path | i.e. "c:\\w2\\classes\\"
+//@param string | name | i.e. "classes::core::CPickS"
+//@return String | i.e. returns "c:\\w2\\classes\\core\\CPickS"
+//@i returns "c:\w2\classes\test\file.xml"
+//@Exam string p = "c:\\w2\\classes\\";
+//@Exam string r = "classes::core::CPickS";
+//@Exam 
+//@Exam string f = sys::MakeFullName( p, r ) + ".xml";
+//@Exam 
+//@Exam // f == "c:\w2\classes\core\CPickS.xml"]]>
+ />
+</method>
+
+<method name="MakeRelativeName">
+<param name="path" type="string" />
+<param name="file" type="string" />
+<![CDATA[//@cmember String MakeRelativeName( string path, string file );
+//@param string | path | i.e. "c:\\w2\\classes\\"
+//@param string | file | i.e. "c:\\w2\\classes\\core\\CPickS"
+//@return String | i.e. returns "classes::core::CPickS"
+//@i returns "test::file.xml"
+//@Exam string p = "c:\\w2\\classes\\";
+//@Exam string f = "classes::core::CPickS.xml";
+//@Exam 
+//@Exam string r = sys::MakeRelativeName( p, f ) + ".xml";
+//@Exam 
+//@Exam // r == "classes::core::CPickS.xml"]]>
+ />
+</method>
+
+
+<method name="SetThreadObject">
+<param name="pobject" type="object" />
+<![CDATA[//@cmember void SetThreadObject( object pobject );
+//@param object | pObject | The object to set on the thread
+//@i Do not use this unless you know what you are doing - It is used to store session information on the server
+ />
+</method>
+
+</static>
+
+
+<static sub="Tasks">
+
+<method name="GetPID">
+<![CDATA[//@cmember int GetPID(  );
+//@return int | Process ID
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetThreadID">
+<![CDATA[//@cmember int GetThreadID(  );
+//@return int | Thread ID
+//@i 
+]]>
+ />
+</method>
+
+<method name="ExecuteAndWait">
+<param name="cmd" type="string" />
+<param name="hide" type="int" />
+<param name="asyncyeild" type="bool" />
+<![CDATA[//@cmember int ExecuteAndWait ( string cmd);
+//@param [string | cmd | Name of file to execute and the parameters to be passed to application.
+//@param [int | hide | optional flag to set to hide the dos box (defaults to show)
+//@param [int | asyncyeild | Allow w2 to still accept UI input (defaults to false)
+//@return int | >32 if successful
+//@i Executes a file and waits until this has been closed. Returns the exit code of that program.
+]]>
+ />
+</method>
+  
+<method name="ExecuteMockServerThread">
+  <param name="PathInfo" type="string" />
+  <![CDATA[//@cmember error ExecuteMockServerThread ( string PathInfo );
+//@param string | PathInfo | The PathInfo passed to the mockserver.  This is usually a forward slash followed by the class to execute the OnRequest on
+//@param blob | RequestData | The input request data
+//@param object | callback | An objest with a callback method of GetServerVariable(string varname) on it
+//@return blob | The response data from the server method
+//@i Executes a mock server thread for testing purposes
+]]>
+  />
+</method>
+
+<method name="RegisterThreadStartCallback">
+  <param name="class" type="string" />
+  <![CDATA[//@cmember error RegisterThreadStartCallback ( string class );
+//@param [object | ActiveStub | Instance of class on which the function will be called
+//@param [string | function | Name of the function to be called
+//@i Registers a callback which will call a specific W2 function when a server thread starts
+]]>
+  />
+</method>
+
+<method name="RegisterThreadStopCallback">
+  <param name="class" type="string" />
+  <![CDATA[//@cmember error RegisterThreadStopCallback ( string class );
+//@param [object | ActiveStub | Instance of class on which the function will be called
+//@param [string | function | Name of the function to be called
+//@i Registers a callback which will call a specific W2 function when a server thread stops
+]]>
+  />
+</method>
+
+  <method name="ShellExecute">
+<param name="op]" type="[string" />
+<param name="file" type="string" />
+<param name="cmd]" type="[string" />
+<param name="dir]" type="[string" />
+<![CDATA[//@cmember int ShellExecute( [string op], string file, [string cmd], [string dir] );
+//@param [string | op] | "" to execute, or "edit", "explore", "find", "open", "print"
+//@param string | file | Name of file to execute, open, edit or print
+//@param [string | cmd] | Parameters to be passed to application
+//@param [string | dir] | Default Directory
+//@return int | >32 if successful
+//@i Opens, Executes, Edits or Prints a file or document. Returns an int greater than 32 on success.
+]]>
+ />
+</method>
+</static>
+
+<static sub="Utility">
+
+<method name="AddFontResource">
+<param name="fontfile" type="String" />
+<![CDATA[//@cmember void AddFontResource( String fontfile );
+//@param String | fontfile | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="CopyToClipboard">
+<param name="c" type="String" />
+<![CDATA[//@cmember void CopyToClipboard( String c );
+//@param String | c | string to be copied onto the clipboard
+//@return void | 
+//@i Must be called from within an open form class
+]]>
+ />
+</method>
+<method name="EncryptString">
+<param name="source" type="String" />
+<param name="bEncrypt" type="int" />
+<![CDATA[//@cmember String EncryptString( String source, int bEncrypt );
+//@param String | source | 
+//@param int | bEncrypt | 
+//@return String | 
+//@i encryption used in Workflow 1 (16bit)
+]]>
+ />
+</method>
+<method name="GetEnumPrinters">
+<![CDATA[//@cmember String[] GetEnumPrinters(  );
+//@return StringArray | List of installed printers by name
+//@i Returns a list of the installed printers as a string array of printer names
+]]>
+ />
+</method>
+<method name="GetFontFamilies">
+<![CDATA[//@cmember String[] GetFontFamilies(  );
+//@return String[] | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetFromClipboard">
+<![CDATA[//@cmember string GetFromClipboard(  );
+//@return string | The text content of the clipboard or "" if invalid or empty
+//@i Fetches a string from the clipboard (returns an empty string if empty or of an invalid type)
+]]>
+ />
+</method>
+
+<method name="GetRecordClassLoads">
+<![CDATA[//@cmember int GetRecordClassLoads(  );
+//@return int | The option to recod class loads 0 - disabled, 1 - enabled
+//@i Gets the RecordClassLoads option value
+]]>
+ />
+</method>
+
+<method name="PlaySound">
+<param name="SoundData" type="blob" />
+<param name="Sync" type="bool" />
+<param1 name="FileName" type="string" />
+<param1 name="Sync" type="bool" />
+<![CDATA[//@cmember int PlaySound( {blob SoundData, bool Sync} or {string FileName, bool Sync} );
+//@param blob | SoundData | 
+//@param bool | Sync | 
+//@param string | FileName | 
+//@param bool | Sync | 
+//@return int | 
+//@i Synch param is optional, and will default to async.
+]]>
+ />
+</method>
+<method name="Rand">
+<![CDATA[//@cmember int Rand(  );
+//@return int | 
+//@i returns a number from 0 - 32767
+]]>
+ />
+</method>
+<method name="SetRand">
+<param name="randomSeed" type="int" />
+<![CDATA[//@cmember void SetRand( int randomSeed );
+//@param int | randomSeed | seed to initiate the first random number from
+//@return void | set the random seed
+//@i set the random seed
+]]>
+ />
+</method>
+
+<method name="SetRecordClassLoads">
+<param name="Option" type="int" />
+<![CDATA[//@cmember void SetRecordClassLoads( int Option );
+//@param int | Option | The option to recod class loads 0 - disabled, 1 - enabled
+//@return void 
+//@i If enabled, saves loaded classes to %TEMP%\cominoclassfiles.txt
+This is used by server start up to pre load classes.
+]]>
+ />
+</method>
+
+<method name="Wait">
+<param name="ms" type="int" />
+<![CDATA[//@cmember void Wait( int ms );
+//@param int | ms | Miliseconds to pause for
+//@return void | 
+//@i Pauses for ms milliseconds, system gets time to update and refresh screen.
+]]>
+ />
+</method>
+</static>
+
+<static sub="W2 Windows">
+
+<method name="ActiveWindow">
+<![CDATA[//@cmember form ActiveWindow(  );
+//@return form | Returns the window with the focus
+//@i 
+]]>
+ />
+</method>
+<method name="FindPopup">
+<param name="wname" type="String" />
+<![CDATA[//@cmember form FindPopup( String wname );
+//@param String | wname | Name of the popup window to be found
+//@return form | Window popup assigned the name 'wname'
+//@i wname is the name set with F.SetWindowName( wnm )
+]]>
+ />
+</method>
+<method name="FindWindow">
+<param name="wname" type="String" />
+<![CDATA[//@cmember form FindWindow( String wname );
+//@param String | wname | Name of the window to be found
+//@return form | Window assigned the name 'wname'
+//@i wname is the name set with F.SetWindowName( wnm )
+]]>
+ />
+</method>
+<method name="GetOpenWindow">
+<param name="index" type="int" />
+<![CDATA[//@cmember form GetOpenWindow( int index );
+//@param int | index | The index of the window to return (0..GetWindowCount()-1)
+//@return form | the window indexed by 'index'
+//@i get top level forms
+]]>
+ />
+</method>
+<method name="GetWindowCount">
+<![CDATA[//@cmember int GetWindowCount(  );
+//@return int | The number of open windows
+//@i 
+]]>
+ />
+</method>
+</static>
+<static sub="XML/XSD Namespace Cache">
+<method name="GetWSDLBindingOperation">
+<param name="Namespace" type="string" />
+<param name="SOAPAction" type="string" />
+<![CDATA[//@cmember WSDLBindingOperation GetWSDLBindingOperation( string Namespace, string SOAPAction);
+//@param string | Namespace | The Namespace, e.g. "http://www.comino.com/CominoXML"
+//@param string | SAOPAction | The name of the SOAP Action, e.g. "http://www.comino.com/updateAddress"
+//@return WSDLBindingOperation | The Binding Operation that supports the requested SOAP Action
+//@i Searchs through the Namespace cache to find the requested SOAP Action and returns its definition
+]]>
+ />
+</method>
+<method name="GetWSDLFileContent">
+<param name="Namespace" type="string" />
+<param name="SOAPAction" type="string" />
+<![CDATA[//@cmember string GetWSDLFileContent( string Namespace, string SOAPAction);
+//@param string | Namespace | The Namespace, e.g. "http://www.comino.com/CominoXML"
+//@param string | SAOPAction | The name of the WSDL Service, e.g. "AddressService"
+//@return string | The WSDL File containing the SOAP Action
+//@i Searchs through the Namespace cache to find the requested Service and returns the contents of the WSDL file it came from
+]]>
+ />
+</method>
+<method name="GetWSDLFileContentByService">
+<param name="Namespace" type="string" />
+<param name="Service Name" type="string" />
+<![CDATA[//@cmember string GetWSDLFileContentByService( string Namespace, string ServiceName);
+//@param string | Namespace | The Namespace, e.g. "http://www.comino.com/CominoXML"
+//@param string | SAOPAction | The name of the SOAP Action, e.g. "http://www.comino.com/updateAddress"
+//@return string | The WSDL File containing the SOAP Action
+//@i Searchs through the Namespace cache to find the requested SOAP Action and returns the contents of the WSDL file it came from
+]]>
+ />
+</method>
+<method name="GetWSDLBindingOperations">
+<param name="Namespace" type="string" />
+<![CDATA[//@cmember WSDLBindingOperation[] GetWSDLBindingOperations( string Namespace);
+//@param string | Namespace | The Namespace, e.g. "http://www.comino.com/CominoXML"
+//@return WSDLBindingOperation[] | List of all Binding Operations for the specified NameSpace
+//@i Searchs through the Namespace cache and returns a lits of all binding operations for the requested Namespace
+]]>
+ />
+</method>
+<method name="GetWSDLServicess">
+<param name="Namespace" type="string" />
+<![CDATA[//@cmember WSDLService[] GetWSDLServices( string Namespace);
+//@param string | Namespace | The Namespace, e.g. "http://www.comino.com/CominoXML"
+//@return WSDLService[] | List of all services for the specified NameSpace
+//@i Searchs through the Namespace cache and returns a lits of all services for the requested Namespace
+]]>
+ />
+</method>
+<method name="GetXSDElementNames">
+<param name="Namespace" type="string" />
+<param name="XSDFileName" type="string" />
+<![CDATA[//@cmember StringArray GetXSDElementNames( string Namespace, string XSDFileName);
+//@param string | Namespace | The Namespace, e.g. "http://www.comino.com/CominoXML"
+//@param string | XSDFileName| The XSD Filename, e.g. "CominoAddress.xsd"
+//@return StringArray | List fo all element names contained in the specified file
+//@i Searchs through the Namespace cache and returns a list of all elements contained in the XSDFile
+]]>
+ />
+</method>
+<method name="GetXSDElementText">
+<param name="Namespace" type="string" />
+<param name="elementName" type="string" />
+<![CDATA[//@cmember StringArray GetXSDElementText( string Namespace, string elementName);
+//@param string | Namespace | The Namespace, e.g. "http://www.comino.com/CominoXML"
+//@param string | elementName | The name of the XML Element e.g. "CominoAddressStructure"
+//@return string| the definiton of the element
+//@i Searchs through the Namespace cache and returns a string representation of the XML element deinition, e.g. "<xsd:complexType name="AddressStructure">
+		<xsd:sequence>
+			<xsd:element name="AddressLine1"/>
+			<xsd:element name="AddressLine2"/>
+			<xsd:element name="AddressLine3" minOccurs="0"/>
+			<xsd:element name="AddressLine4" minOccurs="0"/>
+			<xsd:element name="AddressLine5" minOccurs="0"/>
+			<xsd:element name="PostCode"/>
+			<xsd:element name="County" type="PickListStructure"/>
+			<xsd:element name="Country" type="PickListStructure"/>
+		</xsd:sequence>
+	</xsd:complexType>"
+]]>
+ />
+</method>
+<method name="GetXSDElementText2">
+<param name="XSDClassName" type="string" />
+<![CDATA[//@cmember StringArray GetXSDElementText( string XSDClassName);
+//@param string | XSDClassName| The name of an XSD Class, e.g. "XSD::www::comino::com::CominoXML::CominoAddressStructure"
+//@return string| the definiton of the element
+//@i Searchs through the Namespace cache and returns a string representation of the XML element. By definition the XSD class name contains a NameSpace and a XML Element deinition, e.g. "<xsd:complexType name="AddressStructure">
+		<xsd:sequence>
+			<xsd:element name="AddressLine1"/>
+			<xsd:element name="AddressLine2"/>
+			<xsd:element name="AddressLine3" minOccurs="0"/>
+			<xsd:element name="AddressLine4" minOccurs="0"/>
+			<xsd:element name="AddressLine5" minOccurs="0"/>
+			<xsd:element name="PostCode"/>
+			<xsd:element name="County" type="PickListStructure"/>
+			<xsd:element name="Country" type="PickListStructure"/>
+		</xsd:sequence>
+	</xsd:complexType>"
+]]>
+ />
+</method>
+<method name="GetXSDFileNames">
+<param name="Namespace" type="string" />
+<![CDATA[//@cmember StringArray GetXSDFileNames( string Namespace);
+//@param string | Namespace | The Namespace, e.g. "http://www.comino.com/CominoXML"
+//@return StringArray | List of all XSD Files for the specified NameSpace
+//@i Searchs through the Namespace cache and returns a lits of all XSD Files for the requested Namespace
+]]>
+ />
+</method>
+<method name="GetXSDFileNamesForElement">
+<param name="elementName" type="string" />
+<![CDATA[//@cmember StringArray GetXSDFileNamesForElement( string elementName);
+//@param string | elementName| The name fo the XML element, e.g. "CominoAddress"
+//@return StringArray | List of all NameSpace and XSD Files for that contain the specified element
+//@i Searchs through the Namespace cache and returns a tokenized list of all Namespace|XSD files that contained the requested element
+]]>
+ />
+</method>
+</static>
+<return>
+<rmeth name="LaunchOneClickApplication" cls="void" />
+<rmeth name="AddSession" cls="void" />
+<rmeth name="GetLocalAppdataDir" cls="void" />
+<rmeth name="GetAppdataDir" cls="void" />
+<rmeth name="Terminate" cls="void" />
+<rmeth name="getscryptdigest" cls="void" />
+<rmeth name="GetNonce" cls="string" />
+<rmeth name="GetTimeZoneBias" cls="int" />
+<rmeth name="getsha1digest" cls="void" />
+<rmeth name="getsha1digestblob" cls="void" />
+<rmeth name="AdjustLoginCount" cls="void" />
+<rmeth name="CheckSession" cls="int" />
+<rmeth name="AddClassAlias" cls="void" />
+<rmeth name="CommandLine" cls="String" />
+<rmeth name="DBQueryExpr" cls="String" />
+<rmeth name="DeleteSessions" cls="void" />
+<rmeth name="Exit" cls="int" />
+<rmeth name="SetClassSync" cls="void" />
+<rmeth name="SyncClass" cls="void" />
+<rmeth name="GetColor" cls="int" />
+<rmeth name="RGB" cls="int" />
+<rmeth name="Date" cls="Date" />
+<rmeth name="Time" cls="Date" />
+<rmeth name="DebugOut" cls="void" />
+<rmeth name="DebugSessions" cls="String" />
+<rmeth name="FlushClass" cls="void" />
+<rmeth name="GetClassList" cls="String[]" />
+<rmeth name="GetLastHERROR" cls="String" />
+<rmeth name="OpenConsole" cls="void" />
+<rmeth name="SetDebugMode" cls="void" />
+<rmeth name="SetServerSideDebug" cls="void" />
+<rmeth name="SetServerSideSQLDebug" cls="void" />
+<rmeth name="SetTraceMode" cls="void" />
+<rmeth name="CacheEnvFile" cls="void" />
+<rmeth name="GetEnv" cls="String" />
+<rmeth name="GetPrivateProfileString" cls="String" />
+<rmeth name="GetPrivateProfileStringEnv" cls="String" />
+<rmeth name="GetProfileString" cls="String" />
+<rmeth name="ShowEnvCache" cls="void" />
+<rmeth name="WritePrivateProfileString" cls="int" />
+<rmeth name="CheckMSXML" cls="int" />
+<rmeth name="IsCapsLockOn" cls="int" />
+<rmeth name="GetComputerName" cls="string" />
+<rmeth name="GetCursorPos" cls="int" />
+<rmeth name="GetInfo" cls="String" />
+<rmeth name="GetIPAddress" cls="String" />
+<rmeth name="GetMD5Digest" cls="String" />
+<rmeth name="GetModulePath" cls="String" />
+<rmeth name="GetNetworkUser" cls="String" />
+<rmeth name="TickCount" cls="int" />
+<rmeth name="Version" cls="int" />
+<rmeth name="VersionDate" cls="String" />
+<rmeth name="ActiveWindow" cls="form" />
+<rmeth name="FindPopup" cls="form" />
+<rmeth name="FindWindow" cls="form" />
+<rmeth name="GetOpenWindow" cls="form" />
+<rmeth name="GetWindowCount" cls="int" />
+<rmeth name="GetCorrectCasePath" cls="String" />
+<rmeth name="MakeFullName" cls="String" />
+<rmeth name="MakeRelativeName" cls="String" />
+<rmeth name="GetPID" cls="int" />
+<rmeth name="GetThreadID" cls="int" />
+<rmeth name="ExecuteAndWait" cls="int" />
+<rmeth name="ExecuteMockServerThread" cls="blob" />
+<rmeth name="ShellExecute" cls="int" />
+<rmeth name="DeleteFile" cls="void" />
+<rmeth name="GetTempDir" cls="String" />
+<rmeth name="GetTempFileName" cls="String" />
+<rmeth name="XSLTTransform" cls="String" />
+<rmeth name="HWNDFind" cls="int" />
+<rmeth name="HWNDFindEx" cls="int" />
+<rmeth name="HWNDGetActive" cls="int" />
+<rmeth name="HWNDGetClassName" cls="String" />
+<rmeth name="HWNDGetForeground" cls="int" />
+<rmeth name="HWNDGetProp" cls="int" />
+<rmeth name="HWNDGetText" cls="String" />
+<rmeth name="HWNDSendIPC" cls="int" />
+<rmeth name="TriggerCrash" cls="void" />
+<rmeth name="MemoryDump" cls="void" />
+<rmeth name="SendIPC" cls="int hwnd" />
+<rmeth name="GetRedirectedMessage" cls="String" />
+<rmeth name="SetRedirectMessages" cls="void" />
+<rmeth name="LoadClass" cls="classdef" />
+<rmeth name="NewCompiler" cls="Compile" />
+<rmeth name="NewFileFinder" cls="FileFinder" />
+<rmeth name="NewList" cls="List" />
+<rmeth name="NewObject" cls="object" />
+<rmeth name="NewStringArray" cls="String[]" />
+<rmeth name="Printer" cls="Printer" />
+<rmeth name="TrackObjMenu" cls="Object" />
+<rmeth name="AddFontResource" cls="void" />
+<rmeth name="CopyToClipboard" cls="void" />
+<rmeth name="EncryptString" cls="String" />
+<rmeth name="GetEnumPrinters" cls="String[]" />
+<rmeth name="GetFontFamilies" cls="String[]" />
+<rmeth name="GetFromClipboard" cls="string" />
+<rmeth name="GetRecordClassLoads" cls="int" />
+<rmeth name="SetRecordClassLoads" cls="void" />
+<rmeth name="PlaySound" cls="int" />
+<rmeth name="Rand" cls="int" />
+<rmeth name="SetRand" cls="void" />
+<rmeth name="Wait" cls="void" />
+<rmeth name="GetWSDLBindingOperation" cls="WSDLBindingOperation" />
+<rmeth name="GetWSDLFileContent" cls="string" />
+<rmeth name="GetWSDLFileContentByService" cls="string" />
+<rmeth name="GetWSDLBindingOperations" cls="WSDLBindingOperation[]" />
+<rmeth name="GetWSDLServices" cls="WSDLService[]" />
+<rmeth name="GetXSDElementNames" cls="StringArray" />
+<rmeth name="GetXSDElementText" cls="string" />
+<rmeth name="GetXSDElementText2" cls="string" />
+<rmeth name="GetXSDFileNames" cls="StringArray" />
+<rmeth name="GetXSDFileNamesForElement" cls="StringArray" />
+<rmeth name="GetClassPath" cls="String" />
+<rmeth name="GetNumberOfProcessors" cls="int" />
+</return>
+</class>

@@ -1,0 +1,405 @@
+<form name="sourcesafe" caption="Add a Check In Note" savepos="SourceSafePos" esccancel="1" fauthor="$Author: Sally.woolrich$" fdate="$Date: 13/06/01 16:46$" frevision="$Revision: 16$">
+<members>
+<Object name="comOb" />
+<String name="filename" />
+<Integer name="func" />
+<List name="objs" cls="fItems" />
+<method name="begin">
+<![CDATA[//@version Andrew Griffin;Andrew.G;Andrew.G | 01-08-01 09:31 | 
+// func == 0 : CheckOut
+//         1 : CheckIn
+
+classes::com::ComObject objVSSDatabase, objVSSRoot = null, objFound = null;
+
+if (objVSSDatabase.connect( "SourceSafe" ) < 0) {
+    message("Failed COM Connection to Source Safe");
+    func=-1; setTimer(100);
+    return;
+}
+
+String ini = Sys::MakeFullName(Path(),"..\\des.ini");
+string SrcSafeIni = Sys::GetPrivateProfileString("SourceSafe","inipath",ini);
+string SSuserName = Sys::GetPrivateProfileString("SourceSafe","username",ini);
+string SSpassword = Sys::GetPrivateProfileString("SourceSafe","password",ini);
+
+if (!SSuserName) objVSSDatabase.Open(SrcSafeIni);
+            else objVSSDatabase.Open(SrcSafeIni, SSuserName, SSpassword);
+            
+objVSSRoot = objVSSDatabase.VSSItem("$/", 0);
+
+setwaitcursor();
+
+locateFile(objVSSRoot, "$/");
+
+if (objs.count()==0) {
+    message("Can't Find the class: " + filename + " in Source Safe.");
+    func=-1; setTimer(100);
+    return;
+}
+
+int i;
+
+switch (func) {
+
+  case 0:   // Check Out
+    for (i=0; i<objs.count(); i++)
+      if (objs[i].comobj.IsCheckedOut() &&
+          objs[i].comobj.Checkouts().item( objs[i].comobj.checkouts().count() ).username().eq(sys::GetNetworkUser())) {
+        i = 9999;
+        break;
+      }
+
+    if (i==9999) {
+        message("You have already checked this class out of SourceSafe", "Check Out Cancelled");
+        func=-1; setTimer(100);
+        return;
+    }
+    break;
+
+  case 1,2,4:   // 1 = Check In; 2 = Check In but Keep Checked Out
+    for (i=0; i<objs.count(); i++)
+      if (!objs[i].comobj.IsCheckedOut() ||
+          !objs[i].comobj.Checkouts().item( objs[i].comobj.checkouts().count() ).username().eq(sys::GetNetworkUser())) {
+        objs.deleteRow(i);
+        i--;
+      }
+
+    if (objs.count()==0) {
+        message("This class has not been checked out of SourceSafe by You", "Check In Failed!");
+        func=-1; setTimer(100);
+        return;
+    }
+    break;
+
+  case 3:   // Get Latest Version
+    break;
+    
+}
+
+if (objs.count()==1) {
+    doOperation( objs[0].comobj );
+    return;
+}
+
+idWait.setVisible( 0 );
+idList.setVisible( 1 );
+SizeFormToContent();
+
+// Wait for user input...]]>
+</method>
+<method name="doObjClicked">
+<![CDATA[doOperation( objs.currentRow().comobj );
+]]>
+</method>
+<method name="doOperation">
+<param name="objFound" type="classes::com::comObject" />
+<![CDATA[// func == 0 : CheckOut
+//         1 : CheckIn
+
+idWait.setVisible( 1 );
+idList.setVisible( 0 );
+SizeFormToContent();
+
+// func: 0=CheckOut; 1=CheckIn; 2=CheckIn/KeepOut; 3=GetLatest
+
+string who;
+
+if (func==3) {  // GetLatest
+    if (!objFound.isDifferent()) {
+        message("There are no changes to the local class\r\nCancelling Get Latest", "SourceSafe", classes::core::windows::MB_ICONEXCLAMATION);
+        func=-1; setTimer(100);
+        return 0;
+    }
+
+    if (objFound.IsCheckedOut()) {
+        who = objFound.Checkouts().item( objFound.checkouts().count() ).username();
+        if (sys::GetNetworkUser().eq(who)) {
+            if (message("You will LOOSE ANY CHANGES you have made to this class!\r\n" +
+                        "Are you sure you want to continue with the Get Latest?",
+                        "SourceSafe Warning",
+                        classes::core::windows::MB_ICONEXCLAMATION | classes::core::windows::MB_YESNO)
+                == classes::core::windows::IDNO) {
+                func=-1; setTimer(100);
+                return 0;
+            }
+        }
+    }
+
+    objFound.get( "", 8 + 192);   // TimeMod + REPSKIP
+    message("Local Class Successfully Updated", "SourceSafe", classes::core::windows::MB_ICONINFORMATION);
+} else
+
+if (objFound.IsCheckedOut()) {  // *** Already Checked Out ***
+
+    who = objFound.Checkouts().item( objFound.checkouts().count() ).username();
+
+    if (func==0) {  // Check Out
+        message("The Class is already Checked Out to " + who, "Check Out Failed!", classes::core::windows::MB_ICONEXCLAMATION);
+        func=-1; setTimer(100);
+        return 0;
+    }
+
+    // Check it's booked out to me!!!
+    if (!sys::GetNetworkUser().eq(who)) {
+        message("You do not have permission to Check this class into SourceSafe.\r\n" + 
+                "The Class is checked out by " + who, "Check In Failed!", classes::core::windows::MB_ICONEXCLAMATION);
+        func=-1; setTimer(100);
+        return;
+    }
+
+    if (!objFound.isDifferent()) {
+        if (func==1 || func==4) {
+            message("There are no changes to the local class\r\nUndoing Check Out", "SourceSafe", classes::core::windows::MB_ICONEXCLAMATION);
+            objFound.undoCheckOut();
+        } else {    // func==2
+            message("There are no changes to the local class\r\nKeeping Checked Out", "SourceSafe", classes::core::windows::MB_ICONEXCLAMATION);
+            func=-1; setTimer(100);
+            return 0;
+        }
+    } else {
+        if (func==4) {
+            if (message("You have made changes to your local class that WILL BE LOST!\r\nContinue with Undo?", "Undo Check Out Warning!", classes::core::windows::MB_YESNO | classes::core::windows::MB_ICONEXCLAMATION) == classes::core::windows::IDNO) {
+                func=-1; setTimer(100);
+                return 0;
+            }
+            message("Check Out Undone", "SourceSafe", classes::core::windows::MB_ICONINFORMATION);
+            objFound.undoCheckOut();
+        } else {
+            Go( objFound );
+            return 1;
+        }
+    }
+    
+} else {                        // *** Not checked out yet ***
+
+    if (func==1 || func==2) {  // Check In
+        message("The Class is not Checked Out", "Check In Failed!", classes::core::windows::MB_ICONEXCLAMATION);
+        func=-1; setTimer(100);
+        return 0;
+    }
+
+    // Check Out
+
+    if (objFound.isDifferent()) {
+        if (message("Your local class is out of date & will be replaced.\r\nContinue with Checkout?", "Check Out Warning!", classes::core::windows::MB_YESNO | classes::core::windows::MB_ICONEXCLAMATION)
+          == classes::core::windows::IDNO) {
+            func=-1; setTimer(100);
+            return 0;
+        }
+    }
+
+    objFound.checkOut( "", "", 8 + 192);   // TimeMod + REPSKIP
+    message("Class Successfully Checked Out", "SourceSafe", classes::core::windows::MB_ICONINFORMATION);
+}
+
+// Put latest copy into memory.
+if (getParent() != null) getParent().ReadFile( filename, 1 );
+
+func=-1; setTimer(100);
+return 1;
+]]>
+</method>
+<method name="Go">
+<param name="com" type="classes::com::comObject" />
+<![CDATA[idWait.setVisible( 0 );
+idNote.setVisible( 1 );
+idButton.setVisible( 1 );
+idNote.setfocus();
+SizeFormToContent();
+idNote.SelectText();
+
+comOb.setMagicPointer( com );
+]]>
+</method>
+<method name="doCheckIn">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+int flags;
+
+if (func==2) flags=131072;  // VSSFLAG_KEEPYES - Keep Checked Out
+
+comOb.checkIn( idNote.getText(), "", flags );
+message("Class Successfully Checked In");
+
+if (getparent() == null) return 1;
+
+getparent().ReadFile( filename, 1 );   // Put latest copy into memory.
+
+func=-1; setTimer(100);
+]]>
+</method>
+<method name="locateFile" return="object">
+<param name="itm" type="classes::com::ComObject" />
+<param name="proj" type="string" />
+<![CDATA[
+classes::com::ComObject lobj = null, obj = null, fnd = null;
+
+lobj = itm.Items( 0 );
+
+for (int i=1; i<=lobj.count(); i++) {
+
+    obj = lobj.item(i);
+    if (obj.type()!=0) {    // File
+        if (filename.eq(obj.LocalSpec())) {
+            fItems tmp = &objs.createRow();
+            tmp.comobj = obj;
+            tmp.project = proj;
+            //return obj;   // Found File!
+        }
+    } else
+        if (filename.left(obj.LocalSpec().length()).eq(obj.LocalSpec())) {
+            fnd = locateFile( obj, proj + obj.name() + "/" );
+            //if (fnd!=null) return fnd;
+        }
+}
+
+return null;
+]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+KillTimer();
+if (func==-1) {
+    close();
+    return;
+}
+
+
+Begin();]]>
+</method>
+</members>
+<static>
+<String name="lastNote" />
+<method name="checkOut" return="int">
+<param name="filename" type="string" />
+<param name="par" type="WClassView" />
+<![CDATA[return doCheck( filename, par, 0);]]>
+</method>
+<method name="checkIn" return="int">
+<param name="filename" type="string" />
+<param name="par" type="WClassView" />
+<![CDATA[return doCheck( filename, par, 1);]]>
+</method>
+<method name="checkInKeepOut" return="int">
+<param name="filename" type="string" />
+<param name="par" type="WClassView" />
+<![CDATA[return doCheck( filename, par, 2);]]>
+</method>
+<method name="getLatest" return="int">
+<param name="filename" type="string" />
+<param name="par" type="WClassView" />
+<![CDATA[return doCheck( filename, par, 3);]]>
+</method>
+<method name="undoCheckOut" return="int">
+<param name="filename" type="string" />
+<param name="par" type="WClassView" />
+<![CDATA[return doCheck( filename, par, 4);]]>
+</method>
+<method name="doCheck">
+<param name="filename" type="string" />
+<param name="par" type="WClassView" />
+<param name="func" type="int" />
+<![CDATA[// func == 0 : CheckOut
+//         1 : CheckIn
+
+classes::des::sourcesafe::sourcesafe SSafe;
+
+if (par!=null) SSafe.Dialog(par); else SSafe.Open();
+SSafe.SizeFormToContent();
+SSafe.filename = filename;
+SSafe.func = func;
+SSafe.setTimer(100);
+]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col w="200" />
+<col />
+</row>
+<row>
+<col />
+<col lpad="4" tpad="4" rpad="4" bpad="12" align="C" bk="0,128,128">
+<Label name="idWait" text="Accessing SourceSafe&#13;&#10;Please Wait..." tx="255,255,255" size="12" style="b" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col h="80" align="WH">
+<Edit name="idNote" multi="1" hide="Y" bind="lastNote" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="8" />
+<col />
+</row>
+<row>
+<col />
+<col h="8" align="WH">
+<ListBox name="idList" IsList="Y" list="objs" hide="Y" fixsize="1">
+<row>
+<col lpad="4" tpad="4" bpad="4" align="W" bk="0,128,128">
+<Label text="Select Required Project:" tx="255,255,255" header="1" style="b" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2" align="W">
+<Label text="Label" bind="project" onClick="doObjClicked" />
+</col>
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="8" />
+<col />
+</row>
+<row>
+<col />
+<col align="WV" imgtile="32">
+<grid>
+<row>
+<col align="W" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label name="idButton" text="Check In" tx="255,255,255" txsel="FFFF00" style="b" onClick="doCheckIn" hide="Y" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="locateFile" cls="object" />
+<rmeth name="checkOut" cls="int" />
+<rmeth name="checkIn" cls="int" />
+<rmeth name="checkInKeepOut" cls="int" />
+<rmeth name="getLatest" cls="int" />
+<rmeth name="undoCheckOut" cls="int" />
+</return>
+</form>

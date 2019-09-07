@@ -1,0 +1,221 @@
+<class name="Double" description="W2 Script Reference" base="MemberDef">
+<members sub="Information">
+<method name="ClassName">
+<![CDATA[//@cmember string ClassName(  );
+//@return string | Returns "Double"
+//@i Always returns "Double"
+]]>
+ />
+</method>
+<method name="isinfinite">
+<![CDATA[//@cmember int isinfinite(  );
+//@return int | 1 if double is infinite
+//@i is infinite - will also return 1 if double is NAN
+]]>
+ />
+</method>
+<method name="isnan">
+<![CDATA[//@cmember int isnan(  );
+//@return int | 1 if double is not a number
+//@i is not a number - will return 0 if double is INFINITE
+]]>
+ />
+</method>
+</members>
+<members sub="Arithmetic">
+<method name="abs">
+<![CDATA[//@cmember Double abs(  );
+//@return Double | absolute value (unsigned)
+//@i absolute value (unsigned)
+]]>
+ />
+</method>
+<method name="acos">
+<![CDATA[//@cmember Double acos(  );
+//@return Double | acos value
+//@i acos value
+]]>
+ />
+</method>
+<method name="adp">
+<![CDATA[//@cmember Double adp(  );
+//@return Double | after decimal point - sign ignored
+//@i after decimal point - sign ignored
+]]>
+ />
+</method>
+<method name="asin">
+<![CDATA[//@cmember Double asin(  );
+//@return Double | asin value
+//@i asin value
+]]>
+ />
+</method>
+<method name="atan">
+<![CDATA[//@cmember Double atan(  );
+//@return Double | atan value
+//@i atan value
+]]>
+ />
+</method>
+<method name="atan2">
+<![CDATA[//@cmember Double atan2(  );
+//@return Double | atan2 value
+//@param double | x | number to pass into atan2 function
+//@i atan2 value d.atan2(0.5);
+]]>
+ />
+</method>
+<method name="ceil">
+<![CDATA[//@cmember Double ceil(  );
+//@return Double | rounded up
+//@i round up
+]]>
+ />
+</method>
+<method name="cos">
+<![CDATA[//@cmember Double cos(  );
+//@return Double | cos value
+//@i cos value
+]]>
+ />
+</method>
+<method name="div">
+<param name="d" type="double" />
+<![CDATA[//@cmember double div( double d );
+//@param double | d | number to divide self by
+//@return double | divide by 'd'
+//@i 
+]]>
+ />
+</method>
+<method name="floor">
+<![CDATA[//@cmember Double floor(  );
+//@return Double | rounded down
+//@i round down
+]]>
+ />
+</method>
+<method name="ln">
+<![CDATA[//@cmember Double ln(  );
+//@return Double | natural log
+//@i natural log
+]]>
+ />
+</method>
+<method name="log10">
+<![CDATA[//@cmember Double log10(  );
+//@return Double | log base 10
+//@i log base 10
+]]>
+ />
+</method>
+<method name="mul">
+<param name="d" type="double" />
+<![CDATA[//@cmember double mul( double d );
+//@param double | d | number to multiply self by
+//@return double | Multiplied by 'd'
+//@i 
+]]>
+ />
+</method>
+<method name="pow">
+<param name="n" type="double" />
+<![CDATA[//@cmember Double pow( double n );
+//@param double | n | 
+//@return Double | 
+//@i r = x.pow(y);
+]]>
+ />
+</method>
+<method name="round">
+<![CDATA[//@cmember Double round(  );
+//@return Double | round to nearest integer - 0.5 rounds up
+//@i round to nearest integer - 0.5 rounds away from zero
+]]>
+ />
+</method>
+<method name="sign">
+<![CDATA[//@cmember int sign(  );
+//@return int | 1 if positive, -1 if negative or 0 otherwise
+//@i returns 1, 0 or -1 depending on sign of the double
+]]>
+ />
+</method>
+<method name="sin">
+<![CDATA[//@cmember Double sin(  );
+//@return Double | sin value
+//@i sin value
+]]>
+/>
+</method>
+<method name="sqrt">
+<![CDATA[//@cmember Double sqrt(  );
+//@return Double | square root (negative numbers return NAN)
+//@i square root - sqrt() on negative numbers returns NAN
+]]>
+ />
+</method>
+<method name="tan">
+<![CDATA[//@cmember Double tan(  );
+//@return Double | tan value
+//@i tan value
+]]>
+ />
+</method>
+</members>
+<members sub="Modification">
+<method name="reset">
+<![CDATA[//@cmember void reset(  );
+//@return void | 
+//@i set the value to SQL NULL
+]]>
+ />
+</method>
+</members>
+<members sub="Conversion">
+<method name="sql">
+<![CDATA[//@cmember String sql(  );
+//@return String | double converted to a string in single quotes
+//@i standard
+]]>
+ />
+</method>
+<method name="tostring">
+<param name="format]" type="[String" />
+<![CDATA[//@cmember String tostring( [String format] );
+//@param [String | format] | Formatting string
+//@return String | double converted to a string
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="ClassName" cls="string" />
+<rmeth name="isinfinite" cls="int" />
+<rmeth name="isnan" cls="int" />
+<rmeth name="abs" cls="Double" />
+<rmeth name="acos" cls="Double" />
+<rmeth name="asin" cls="Double" />
+<rmeth name="atan" cls="Double" />
+<rmeth name="atan2" cls="Double" />
+<rmeth name="adp" cls="Double" />
+<rmeth name="ceil" cls="Double" />
+<rmeth name="cos" cls="Double" />
+<rmeth name="div" cls="double" />
+<rmeth name="floor" cls="Double" />
+<rmeth name="ln" cls="Double" />
+<rmeth name="log10" cls="Double" />
+<rmeth name="mul" cls="double" />
+<rmeth name="pow" cls="Double" />
+<rmeth name="round" cls="Double" />
+<rmeth name="sign" cls="int" />
+<rmeth name="sin" cls="Double" />
+<rmeth name="sqrt" cls="Double" />
+<rmeth name="reset" cls="void" />
+<rmeth name="sql" cls="String" />
+<rmeth name="tan" cls="String" />
+<rmeth name="tostring" cls="String" />
+</return>
+</class>

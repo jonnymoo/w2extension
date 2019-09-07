@@ -1,0 +1,361 @@
+<class name="Date" description="W2 Script Reference" base="MemberDef">
+<members sub="Access">
+<method name="ClassName">
+<![CDATA[//@cmember string ClassName(  );
+//@return string | returns "Date"
+//@i Always returns "Date".
+]]>
+ />
+</method>
+<method name="Day">
+<![CDATA[//@cmember int Day(  );
+//@return int | Returns 1..31 or 0 for empty dates
+//@i day 1 - n, 0 for invalid
+]]>
+ />
+</method>
+<method name="DayOfWeek">
+<![CDATA[//@cmember int DayOfWeek(  );
+//@return int | weekday 0 to 6: Sunday is 0, Monday is 1
+//@i weekday 0 to 6: Sunday is 0, Monday is 1 etc
+]]>
+ />
+</method>
+<method name="Hour">
+<![CDATA[//@cmember int Hour(  );
+//@return int | hour 0 to 23
+//@i hour 0 to 23
+]]>
+ />
+</method>
+<method name="isObject">
+<![CDATA[//@cmember int isObject(  );
+//@return int | Returns 0
+//@i 
+]]>
+ />
+</method>
+<method name="LastDay">
+<![CDATA[//@cmember int LastDay(  );
+//@return int | last day of month for the date value
+//@i last day of month for the date value
+]]>
+ />
+</method>
+<method name="Minute">
+<![CDATA[//@cmember int Minute(  );
+//@return int | minute 0 to 59
+//@i minute 0 to 59
+]]>
+ />
+</method>
+<method name="Month">
+<![CDATA[//@cmember int Month(  );
+//@return int | month 1 - 12, 0 for empty date
+//@i month 1 - 12, 0 for invalid
+]]>
+ />
+</method>
+<method name="Second">
+<![CDATA[//@cmember int Second(  );
+//@return int | second 0 to 59
+//@i second 0 to 59
+]]>
+ />
+</method>
+<method name="Valid">
+<![CDATA[//@cmember int Valid(  );
+//@return int | 1 if date is valid, 0 for invalid
+//@i returns 1 if date is valid, 0 for invalid
+]]>
+ />
+</method>
+<method name="Year">
+<![CDATA[//@cmember int Year(  );
+//@return int | year 0 to 9999
+//@i year 0 to 9999
+]]>
+ />
+</method>
+</members>
+<members sub="Duration">
+<method name="DaysSince">
+<param name="prev_date" type="Date" />
+<![CDATA[//@cmember int DaysSince( Date prev_date );
+//@param Date | prev_date | date to compare with
+//@return int | days since prev_date (time is ignored)
+//@i days since prev_date - time component is ignored
+]]>
+ />
+</method>
+<method name="HoursSince">
+<param name="prev_date" type="Date" />
+<![CDATA[//@cmember int HoursSince( Date prev_date );
+//@param Date | prev_date | date to compare with
+//@return int | hours since prev_date
+//@i hours since prev_date
+]]>
+ />
+</method>
+<method name="MinutesSince">
+<param name="prev_date" type="Date" />
+<![CDATA[//@cmember int MinutesSince( Date prev_date );
+//@param Date | prev_date | date to compare with
+//@return int | minutes since prev_date
+//@i minutes since prev_date
+]]>
+ />
+</method>
+<method name="SecondsSince">
+<param name="prev_date" type="Date" />
+<![CDATA[//@cmember int SecondsSince( Date prev_date );
+//@param Date | prev_date | date to compare with
+//@return int | seconds since prev_date
+//@i seconds since prev_date
+]]>
+ />
+</method>
+</members>
+<members sub="Initialisation">
+<method name="FromString">
+<param name="dateStr]" type="[String" />
+<![CDATA[//@cmember int FromString( [String dateStr] );
+//@param [String | dateStr] | string to be converted to a date
+//@return int | 1 if date is converted successfully
+//@i returns 1 if resulting date is valid. Note that the year must include the century (i.e. 2001 not 01).
+//@Exam date d;
+//@Exam d.fromString( "27/3/2001 1:39pm" );
+//@Exam ]]>
+ />
+</method>
+<method name="Reset">
+<![CDATA[//@cmember void Reset(  );
+//@return void | 
+//@i resets the date to a invalid value (SQL NULL)
+]]>
+ />
+</method>
+<method name="SetCentury">
+<param name="century" type="int" />
+<![CDATA[//@cmember int SetCentury( int century );
+//@param int | century | 20 for 2000, 19 for 1900, etc...
+//@return int | 1 if succeeds to set century
+//@i century must be 20 for 2000, 19 for 1900 etc
+]]>
+ />
+</method>
+<method name="SetDate">
+<param name="year" type="int" />
+<param name="month" type="int" />
+<param name="day" type="int" />
+<![CDATA[//@cmember int SetDate( int year, int month, int day );
+//@param int | year | Year value (i.e. 2001)
+//@param int | month | Month value (i.e 1..12)
+//@param int | day | Day value (i.e 1..31)
+//@return int | 1 if date set successfully
+//@i returns 1 if resulting date is valid
+]]>
+ />
+</method>
+<method name="SetDay">
+<param name="day" type="int" />
+<![CDATA[//@cmember int SetDay( int day );
+//@param int | day | Day value (1..31)
+//@return int | 1 if day set successfully
+//@i 
+]]>
+ />
+</method>
+<method name="SetMonth">
+<param name="month" type="int" />
+<![CDATA[//@cmember int SetMonth( int month );
+//@param int | month | Month value (1..12)
+//@return int | 1 if month set successfully
+//@i will update days to remain valid
+]]>
+ />
+</method>
+<method name="SetTime">
+<param name="hour" type="int" />
+<param name="minute" type="int" />
+<param name="second" type="int" />
+<![CDATA[//@cmember int SetTime( int hour, int minute, int second );
+//@param int | hour | Hour value (0..23)
+//@param int | minute | Minute value (0..59)
+//@param int | second | Second value (0..59)
+//@return int | 1 if time set successfully
+//@i 
+]]>
+ />
+</method>
+<method name="SetYear">
+<param name="year" type="int" />
+<![CDATA[//@cmember int SetYear( int year );
+//@param int | year | Year value (i.e. 2001)
+//@return int | 1 if year set successfully
+//@i 
+]]>
+ />
+</method>
+<method name="trunc">
+<![CDATA[//@cmember date trunc(  );
+//@return date | date with the time part set to 0:00:00
+//@i Sets the time part of the date to 0:00:00
+]]>
+ />
+</method>
+</members>
+<members sub="Conversion">
+<method name="SQL">
+<![CDATA[//@cmember String SQL(  );
+//@return String | date as a ODBC SQL formatted string
+//@i string in ODBC SQL format
+]]>
+ />
+</method>
+<method name="toString">
+<param name="fmt]" type="[String" />
+<![CDATA[//@cmember String toString( [String fmt] );
+//@param [String | fmt] | (i.e. "dy dd/mm/yy hms")
+//@return String | date converted to string format
+//@i Format Date as a String (fmt strings follow)
+
+//@Exam --DAY OF WEEK--|--MONTH--------
+//@Exam day     Monday |month   March
+//@Exam dy      Mon    |Mon     Mar 
+//@Exam                |mon     MAR
+//@Exam --DAY----------|mmmm    March
+//@Exam ddth    01st   |mmm     MAR
+//@Exam dth     1st    |mm      03
+//@Exam dd      01     |m       3  
+//@Exam d       1      |
+//@Exam                |--TIME---------
+//@Exam --YEAR---------|hms     10:15:45
+//@Exam yyyy    2000   |hm      10:15
+//@Exam yy      20     |hmsam   10:15:45 am
+//@Exam                |hmam    10:15 am
+//@Exam 
+//@Exam  
+//@Exam  
+//@Exam  
+//@Exam ]]>
+ />
+</method>
+</members>
+<members sub="System Date &amp; Time">
+<method name="SysDate">
+<![CDATA[//@cmember Date SysDate(  );
+//@return Date | Current System Date (no time stamp)
+//@i set to current date
+]]>
+ />
+</method>
+<method name="SysTime">
+<![CDATA[//@cmember Date SysTime(  );
+//@return Date | Current System Date (with time stamp)
+//@i set to current date and time
+]]>
+ />
+</method>
+<method name="UTCTime">
+<![CDATA[//@cmember Date SysTime(  );
+//@return Date | Current UTC Date-Time (with time stamp)
+//@i set to current date and time
+]]>
+ />
+</method>
+</members>
+<members sub="Addition">
+<method name="AddDays">
+<param name="n" type="int" />
+<![CDATA[//@cmember Date AddDays( int n );
+//@param int | n | Days to be added (can be negative)
+//@return Date | Date with 'n' days added
+//@i adds or subtracts days, updating months and years if necessary
+]]>
+ />
+</method>
+<method name="AddHours">
+<param name="n" type="int" />
+<![CDATA[//@cmember Date AddHours( int n );
+//@param int | n | Hours to be added (can be negative)
+//@return Date | Date with 'n' hours added
+//@i 
+]]>
+ />
+</method>
+<method name="AddMinutes">
+<param name="n" type="int" />
+<![CDATA[//@cmember Date AddMinutes( int n );
+//@param int | n | Minutes to be added (can be negative)
+//@return Date | Date with 'n' minutes added
+//@i 
+]]>
+ />
+</method>
+<method name="AddMonths">
+<param name="n" type="int" />
+<![CDATA[//@cmember Date AddMonths( int n );
+//@param int | n | Months to be added (can be negative)
+//@return Date | Date with 'n' months added
+//@i adds months, adjusting the days value so it remains valid
+]]>
+ />
+</method>
+<method name="AddSeconds">
+<param name="n" type="int" />
+<![CDATA[//@cmember Date AddSeconds( int n );
+//@param int | n | Seconds to be added (can be negative)
+//@return Date | Date with 'n' seconds added
+//@i 
+]]>
+ />
+</method>
+<method name="AddYears">
+<param name="n" type="int" />
+<![CDATA[//@cmember Date AddYears( int n );
+//@param int | n | Years to be added (can be negative)
+//@return Date | Date with 'n' years added
+//@i adds years, adjusting Feb 29th so it remains valid
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="ClassName" cls="string" />
+<rmeth name="Day" cls="int" />
+<rmeth name="DayOfWeek" cls="int" />
+<rmeth name="Hour" cls="int" />
+<rmeth name="isObject" cls="int" />
+<rmeth name="LastDay" cls="int" />
+<rmeth name="Minute" cls="int" />
+<rmeth name="Month" cls="int" />
+<rmeth name="Second" cls="int" />
+<rmeth name="Valid" cls="int" />
+<rmeth name="Year" cls="int" />
+<rmeth name="DaysSince" cls="int" />
+<rmeth name="HoursSince" cls="int" />
+<rmeth name="MinutesSince" cls="int" />
+<rmeth name="SecondsSince" cls="int" />
+<rmeth name="FromString" cls="int" />
+<rmeth name="Reset" cls="void" />
+<rmeth name="SetCentury" cls="int" />
+<rmeth name="SetDate" cls="int" />
+<rmeth name="SetDay" cls="int" />
+<rmeth name="SetMonth" cls="int" />
+<rmeth name="SetTime" cls="int" />
+<rmeth name="SetYear" cls="int" />
+<rmeth name="trunc" cls="date" />
+<rmeth name="SQL" cls="String" />
+<rmeth name="toString" cls="String" />
+<rmeth name="SysDate" cls="Date" />
+<rmeth name="SysTime" cls="Date" />
+<rmeth name="UTCTime" cls="Date" />
+<rmeth name="AddDays" cls="Date" />
+<rmeth name="AddHours" cls="Date" />
+<rmeth name="AddMinutes" cls="Date" />
+<rmeth name="AddMonths" cls="Date" />
+<rmeth name="AddSeconds" cls="Date" />
+<rmeth name="AddYears" cls="Date" />
+</return>
+</class>

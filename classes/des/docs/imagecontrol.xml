@@ -1,0 +1,137 @@
+<class name="ImageControl" description="W2 Script Reference" base="Control">
+<members>
+<method name="AddNote">
+<param name="ImageNote" type="object" />
+<![CDATA[//@Call int AddNote( object ImageNote );
+//@Info 
+]]>
+ />
+</method>
+<method name="GetCurrentNote">
+<![CDATA[//@Call object ImageNote GetCurrentNote(  );
+//@Info 
+]]>
+ />
+</method>
+<method name="GetImage">
+<![CDATA[//@Call object Image GetImage(  );
+//@Info 
+]]>
+ />
+</method>
+<method name="GetMenuNote">
+<![CDATA[//@Call object MenuNote GetMenuNote(  );
+//@Info 
+]]>
+ />
+</method>
+<method name="GetNote">
+<param name="idx" type="int" />
+<![CDATA[//@Call object ImageNote GetNote( int idx );
+//@Info 
+]]>
+ />
+</method>
+<method name="GetNoteCount">
+<![CDATA[//@Call int GetNoteCount(  );
+//@Info 
+]]>
+ />
+</method>
+<method name="Invalidate">
+<![CDATA[//@Call int Invalidate(  );
+//@Info 
+]]>
+ />
+</method>
+<method name="OnPrintObject">
+<param name="DC" type="int" />
+<param name="FitToPage" type="int" />
+<param name="DrawBorder" type="int" />
+<![CDATA[//@Call void OnPrintObject( int DC, int FitToPage, int DrawBorder );
+//@Info This method is not finished.
+]]>
+ />
+</method>
+<method name="RemoveNote">
+<param name="idx" type="int" />
+<param1 name="" type="imgenote" />
+<![CDATA[//@Call int RemoveNote( {int idx} or {imgenote} );
+//@Info 
+]]>
+ />
+</method>
+<method name="Reset">
+<![CDATA[//@Call void Reset(  );
+//@Info 
+]]>
+ />
+</method>
+<method name="Rotate">
+<param name="i" type="int" />
+<![CDATA[//@Call int Rotate( int i );
+//@Info 
+]]>
+ />
+</method>
+<method name="SetCurrentNote">
+<param name="idx" type="int" />
+<param1 name="imgenote" type="object" />
+<![CDATA[//@Call int SetCurrentNote( {int idx} or {object imgenote} );
+//@Info 
+]]>
+ />
+</method>
+<method name="SetImage">
+<param name="b" type="blob" />
+<param1 name="i" type="image" />
+<param2 name="i" type="imagefile" />
+<param3 name="s" type="string" />
+<![CDATA[//@Call int SetImage( {blob b} or {image i} or {imagefile i} or {string s} );
+//@Info 
+]]>
+ />
+</method>
+<method name="SetViewMode">
+<param name="Mode" type="sring" />
+<![CDATA[//@Call int SetViewMode( sring Mode );
+//@Info 
+]]>
+ />
+</method>
+<method name="ZoomOnRect">
+<param name="Left" type="int" />
+<param name="Right" type="int" />
+<param name="Top" type="int" />
+<param name="Bottom" type="int" />
+<![CDATA[//@Call int ZoomOnRect( int Left, int Right, int Top, int Bottom );
+//@Info 
+]]>
+ />
+</method>
+<method name="ZoomOut">
+<![CDATA[//@Call void ZoomOut(  );
+//@Info 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddNote" cls="int" />
+<rmeth name="GetCurrentNote" cls="object ImageNote" />
+<rmeth name="GetImage" cls="object Image" />
+<rmeth name="GetMenuNote" cls="object MenuNote" />
+<rmeth name="GetNote" cls="object ImageNote" />
+<rmeth name="GetNoteCount" cls="int" />
+<rmeth name="Invalidate" cls="int" />
+<rmeth name="OnPrintObject" cls="void" />
+<rmeth name="RemoveNote" cls="int" />
+<rmeth name="Reset" cls="void" />
+<rmeth name="Rotate" cls="int" />
+<rmeth name="SetCurrentNote" cls="int" />
+<rmeth name="SetImage" cls="int" />
+<rmeth name="SetViewMode" cls="int" />
+<rmeth name="ZoomOnRect" cls="int" />
+<rmeth name="ZoomOut" cls="void" />
+</return>
+</class>

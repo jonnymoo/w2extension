@@ -1,0 +1,13 @@
+<class name="errors" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:39$" frevision="$Revision: 2$">
+<members>
+<Integer name="ertyp" />
+<String name="erContext" />
+<Integer name="erPos" />
+<Integer name="erPos2" />
+<String name="context" />
+<String name="Error" />
+<String name="highlight" />
+<String name="filename" />
+</members>
+<static />
+</class>

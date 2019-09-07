@@ -1,0 +1,55 @@
+<class name="CPickS" sqlname="W2CPickS" DataSource="ISE" sqlalias="CPS" fauthor="$Author: David.salter $" fdate="$Date: 19/08/03 11:38 $" frevision="$Revision: 10 $" desc="String Pick List">
+<members>
+<String name="code" size="40" null="N" key="Y" />
+<String name="desc" sql="descx" size="100" />
+<String name="PickType" size="100" null="N" key="Y" comment="This is for the DB table - what picklist is it" />
+<method name="toString">
+<![CDATA[//@cmember toString
+//@return String | Concatenated code and description.
+//@version David Salter | 18-02-02 14:27 | Original Version
+//@i Returns the concatenated string in the format
+//@i "code: desc"
+
+return code+": "+desc;]]>
+</method>
+<method name="setTo" return="cpicks">
+<param name="code" type="string" />
+<param name="desc" type="string" />
+<param name="pickType" type="string" />
+<![CDATA[//@cmember setTo
+//@param string | code |
+//@param string | desc |
+//@param string | pickType | (optional)
+//@return cpicks |
+//@version Andrew Griffin | 12-03-02 10:33 |
+//@version Simon Carroll | 20-03-03 14:55 |
+//@version David.Salter | 19-08-03 11:38 |
+//@i
+
+this.code = code;
+this.desc = desc;
+if (pickType!=null) this.PickType = pickType;
+
+
+return this;]]>
+</method>
+</members>
+<static>
+<method name="GetPickList">
+<param name="picktype" type="object" />
+<param name="LX" type="cpicks" />
+<![CDATA[//@cmember GetPickList
+//@param object | picktype |
+//@param cpicks | LX |
+//@version Simon Carroll | 06-12-01 12:26 |
+//@version Andrew.Broad | 11-06-02 11:47 | Max query upped to 100000
+//@i
+
+string sql = "picktype = "+picktype.sql();
+classes::core::global::listquery( LX, sql, 100000 );]]>
+</method>
+</static>
+<return>
+<rmeth name="setTo" cls="cpicks" />
+</return>
+</class>

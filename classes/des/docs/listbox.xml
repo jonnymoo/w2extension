@@ -1,0 +1,293 @@
+<class name="ListBox" description="W2 Script Reference" base="Control">
+<members sub="Rows">
+<method name="Count">
+<![CDATA[//@cmember int Count(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="CurrentRow">
+<![CDATA[//@cmember object CurrentRow(  );
+//@return object | 
+//@i Returns the current row (type is dependant on list contents)
+]]>
+ />
+</method>
+<method name="DeleteRow">
+<param name="idx" type="int" />
+<![CDATA[//@cmember void DeleteRow( int idx );
+//@param int | idx | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Columns">
+<method name="DeleteColumn">
+<param name="idx" type="int" />
+<![CDATA[//@cmember void DeleteColumn( int idx );
+//@param int | idx | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetColumnCaption">
+<param name="ColNum" type="int" />
+<![CDATA[//@cmember string GetColumnCaption( int ColNum );
+//@param int | ColNum | 
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetColumnCount">
+<![CDATA[//@cmember int GetColumnCount(  );
+//@return int | Returns the number of columns in a list box.
+//@i Returns the number of columns in a list box
+]]>
+ />
+</method>
+<method name="GetCurrentColumn">
+<![CDATA[//@cmember int GetCurrentColumn(  );
+//@return int | Index of the currently active column (or -1)
+//@i returns the Index of the currently active column (or -1)
+]]>
+ />
+</method>
+<method name="showColumn">
+<param name="ColNum" type="int" />
+<param name="visible" type="int" />
+<![CDATA[//@cmember void showColumn( int ColNum, int visible );
+//@param int | ColNum | Index of column to hide or show
+//@param int | visible | 0 to hide, 1 to show
+//@return void | Hides & shows a specific column in a listbox.
+//@i Hides & shows a specific column in a listbox
+]]>
+ />
+</method>
+<method name="isColumnVisible">
+<param name="ColNum" type="int" />
+<![CDATA[//@cmember void isColumnVisible( int ColNum);
+//@param int | ColNum | Index of column to hide or show
+//@return int | 1 visible 0 not visible
+//@i Tells you if a column in a list is set to visible
+]]>
+ />
+</method>
+</members>
+<members sub="List">
+<method name="GetDeletedList">
+<![CDATA[//@cmember object GetDeletedList(  );
+//@return object | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetList">
+<![CDATA[//@cmember List GetList(  );
+//@return List | 
+//@i 
+]]>
+ />
+</method>
+<method name="Reset">
+<![CDATA[//@cmember void Reset(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetList">
+<param name="L" type="List" />
+<![CDATA[//@cmember void SetList( List L );
+//@param List | L | 
+//@return void | 
+//@i pass null to clear list
+]]>
+ />
+</method>
+</members>
+<members sub="Display">
+<method name="CalcWidths">
+<![CDATA[//@cmember void CalcWidths(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CancelSelect">
+<![CDATA[//@cmember void CancelSelect(  );
+//@return void | 
+//@i call during "onPreSelect"
+]]>
+ />
+</method>
+<method name="getBestHeight">
+<![CDATA[//@cmember int getBestHeight(  );
+//@return int | the height of the data in the list box
+//@i 
+]]>
+ />
+</method>
+<method name="getBestWidth">
+<![CDATA[//@cmember int getBestWidth(  );
+//@return int | the width of the data in the list box
+//@i 
+]]>
+ />
+</method>
+<method name="HasFocus">
+<![CDATA[//@cmember int HasFocus(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="MakeGrid">
+<param name="headers" type="int" />
+<![CDATA[//@cmember void MakeGrid( int headers );
+//@param int | headers | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="NoGrid">
+<![CDATA[//@cmember void NoGrid(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="ScrollToEnd">
+<![CDATA[//@cmember void ScrollToEnd(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="ScrollToLine">
+<param name="index" type="int" />
+<![CDATA[//@cmember void ScrollToLine( int index );
+//@param int | index | 
+//@return void | 
+//@i Scrolls the listbox to display row 'index' as the topmost visible row.
+]]>
+ />
+</method>
+<method name="setcurrent">
+<param name="index" type="int" />
+<param1 name="row" type="object" />
+<![CDATA[//@cmember void setcurrent( {int index} or {object row} );
+//@param int | index | Index of item to select or the object itself
+//@param object | row | Index of item to select or the object itself
+//@return void | sets the current row
+//@i 
+]]>
+ />
+</method>
+<method name="SetCurrentColumn">
+<param name="ColIndex" type="int" />
+<![CDATA[//@cmember void SetCurrentColumn( int ColIndex );
+//@param int | ColIndex | Index of the column to gain input focus
+//@return void | sets the input focus to a specific column
+//@i 
+]]>
+ />
+</method>
+<method name="XMLDebugOut">
+<![CDATA[//@cmember void XMLDebugOut(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Cells">
+<method name="ClickCell">
+<param name="skipheader" type="int" />
+<param name="col" type="int" />
+<param name="rightclick" type="int" />
+<![CDATA[//@cmember void Click( int skipheader, int col, int rightclick );
+//@param int | skipheader | 
+//@param int | col | 
+//@param int | rightclick | 
+//@return void | Left click a cell in the list box
+//@i 
+]]>
+ />
+
+<method name="CurrentCellID">
+<![CDATA[//@cmember string CurrentCellID(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="EditCell">
+<param name="RowNum" type="int" />
+<param name="ColNum" type="int" />
+<![CDATA[//@cmember void EditCell( int RowNum, int ColNum );
+//@param int | RowNum | Set to 0 (or corresponding row of first data row)
+//@param int | ColNum | Index of column to make editable (0..n)
+//@return void | Makes a column in the listbox editable.
+//@i 
+]]>
+ />
+</method>
+<method name="SetCellAttr">
+<param name="Cellname" type="string" />
+<param name="Attr" type="string" />
+<param name="Val" type="string" />
+<param1 name="RowNo" type="int" />
+<param1 name="ColNo" type="int" />
+<param1 name="Attr" type="string" />
+<param1 name="Val" type="string" />
+<![CDATA[//@cmember void SetCellAttr( {string Cellname, string Attr, string Val} or {int RowNo, int ColNo, string Attr, string Val} );
+//@param string | Cellname | 
+//@param string | Attr | 
+//@param string | Val | 
+//@param int | RowNo | 
+//@param int | ColNo | 
+//@param string | Attr | 
+//@param string | Val | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Count" cls="int" />
+<rmeth name="CurrentRow" cls="object" />
+<rmeth name="DeleteRow" cls="void" />
+<rmeth name="DeleteColumn" cls="void" />
+<rmeth name="GetColumnCaption" cls="string" />
+<rmeth name="GetColumnCount" cls="int" />
+<rmeth name="GetCurrentColumn" cls="int" />
+<rmeth name="showColumn" cls="void" />
+<rmeth name="isColumnVisible" cls="int" />
+<rmeth name="GetDeletedList" cls="object" />
+<rmeth name="GetList" cls="List" />
+<rmeth name="Reset" cls="void" />
+<rmeth name="SetList" cls="void" />
+<rmeth name="CalcWidths" cls="void" />
+<rmeth name="CancelSelect" cls="void" />
+<rmeth name="getBestHeight" cls="int" />
+<rmeth name="getBestWidth" cls="int" />
+<rmeth name="HasFocus" cls="int" />
+<rmeth name="MakeGrid" cls="void" />
+<rmeth name="NoGrid" cls="void" />
+<rmeth name="ScrollToEnd" cls="void" />
+<rmeth name="ScrollToLine" cls="void" />
+<rmeth name="setcurrent" cls="void" />
+<rmeth name="SetCurrentColumn" cls="void" />
+<rmeth name="XMLDebugOut" cls="void" />
+<rmeth name="CurrentCellID" cls="string" />
+<rmeth name="EditCell" cls="void" />
+<rmeth name="SetCellAttr" cls="void" />
+</return>
+</class>

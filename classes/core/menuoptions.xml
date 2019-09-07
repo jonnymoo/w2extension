@@ -1,0 +1,75 @@
+<class name="menuoptions" fauthor="$Author: Simon.c $" fdate="$Date: 3/06/03 9:47 $" frevision="$Revision: 2 $">
+<members>
+<String name="code" />
+<String name="Description" size="255" />
+<String name="AppCode" size="20" />
+<String name="Class" size="255" />
+<String name="Method" size="255" />
+<String name="Params" size="255" />
+<String name="Icon" size="255" />
+<method name="RunMethod">
+<![CDATA[//@cmember RunMethod
+//@param
+//@return
+//@version Simon Carroll | 29-05-03 09:53 |
+//@i
+
+object O = Sys::LoadClass( Class );
+
+if (O==null)
+{
+    message("ERROR IN WMENU - CLASS "+Class+" UNKNOWN","Error",classes::core::windows::MB_ICONSTOP);
+    return;
+}
+
+if (!method) Method = "OpenWin";      // Method defaults to 'OpenWin'
+
+SetWaitCursor();
+
+if (!Params)
+    O.ExecMethod( Method );
+else
+{
+    if (!Params.beginsWith("#"))       // Params beginning with a # are passed as a numeric type
+        O.ExecMethod( Method, Params );
+    else
+        O.ExecMethod( Method, Params.subString(1).val() );
+}]]>
+</method>
+</members>
+<static>
+<method name="CreateShortcut" return="classes::core::menuoptions">
+<param name="LX" type="object" />
+<param name="code" type="string" />
+<param name="desc" type="string" />
+<param name="cls" type="string" />
+<param name="meth" type="string" />
+<param name="par" type="string" />
+<param name="icon" type="string" />
+<![CDATA[//@cmember CreateShortcut
+//@param object | LX | List to be added to
+//@param string | code | code of the shortcut item
+//@param string | desc | description as it would appear to the user
+//@param string | cls | class containing the method to run
+//@param string | meth | the static method that should be run
+//@param string | par | parameter sent in to the static method.  Only one parameter can be accepted and should be preceeded by '#' if this parameter is an integer
+//@param string | icon | icon that will appear to the user (e.g "classes::resource::standard::theimage.ico")
+//@return classes::core::menuoptions | Row that has been created
+//@version Simon Carroll | 02-06-03 16:32 |
+//@i This creates a row based on the parameters sent in and adds to the list LX
+
+Object C = LX.CreateRow();
+C.code = code;
+C.Description = desc;
+C.Class = cls;
+C.Method = meth;
+C.Params = par;
+C.Icon = icon;
+
+return C;]]>
+</method>
+</static>
+<return>
+<rmeth name="CreateShortcut" cls="classes::core::menuoptions" />
+</return>
+</class>

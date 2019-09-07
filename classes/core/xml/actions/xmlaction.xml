@@ -1,0 +1,75 @@
+<class name="xmlAction" sqlname="W2XMLAction" DataSource="ISE" sqlseq="W2XMLActionSeq" fauthor="$Author: Simon.c $" fdate="$Date: 29/01/03 12:55 $" frevision="$Revision: 1 $">
+<members>
+<Integer name="XMLid" size="10" seq="Y" />
+<String name="Name" size="40" />
+<String name="Reftype" size="40" />
+<String name="Handler" size="256" />
+<method name="ReturnHandler">
+<![CDATA[//@cmember ReturnHandler
+//@version Simon Carroll | 27-01-03 12:01 |
+//@i
+
+Object Hdl = sys::LoadClass( Handler );
+
+if (Hdl == null) return null;
+
+Object HdlInst = Hdl.CreateInstance();
+
+if (HdlInst == null) return null;
+
+return HdlInst;]]>
+</method>
+</members>
+<static>
+<List name="AllMessages" cls="xmlAction" lsrc="GetAllMessagesPick" />
+<method name="GetAllMessagesPick">
+<![CDATA[//@cmember GetAllMessagesPick
+//@version Simon Carroll | 27-01-03 16:06 |
+//@i
+
+classes::core::global::listquery(AllMessages,"",10000);]]>
+</method>
+<method name="GetMessagesForRefType">
+<param name="rtype" type="object" />
+<param name="LX" type="object" />
+<![CDATA[//@cmember GetMessagesForRefType
+//@param object | rtype |
+//@param object | LX |
+//@version Simon Carroll | 27-01-03 15:44 |
+//@i
+
+for (int i = 0; i<AllMessages.count(); i++)
+{
+    if (AllMessages[i].Reftype == rtype)
+        LX.AddRow(AllMessages[i]);
+}]]>
+</method>
+<method name="ExecAction">
+<param name="param" type="string" />
+<param name="Process" type="object" />
+<param name="Form" type="object" />
+<![CDATA[//@cmember ExecAction
+//@param string | param |
+//@param object | Process |
+//@param object | Form |
+//@version Simon Carroll | 28-01-03 14:17 |
+//@i
+
+//Need to get the xml message from the handler class
+wxmlparam P;
+P.parameter = param;
+P.DeconstructParameters();
+
+Object XMLItem = AllMessages.FindRow(P.messageTosend.val());
+if (XMLItem == null)
+{
+    message("Error: unable to find message class\n"+P.MessageTosend);
+    return 0;
+}
+
+Object XMLHdl = XMLItem.returnHandler();
+
+XMLHdl.ExecAction(P.Address, P.MessageParameters, Process, form);]]>
+</method>
+</static>
+</class>

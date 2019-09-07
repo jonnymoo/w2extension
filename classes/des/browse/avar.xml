@@ -1,0 +1,12 @@
+<class name="avar" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members>
+<String name="name" />
+<String name="type" />
+<Integer name="scope" />
+<Integer name="defp" />
+<Integer name="typp" />
+<Integer name="outp" />
+<Integer name="isList" />
+</members>
+<static />
+</class>

@@ -1,0 +1,163 @@
+<class name="toExcel" base="toBase" fauthor="$Author: Simon.c $" fdate="$Date: 3/07/03 9:26 $" frevision="$Revision: 4 $">
+<members>
+<Object name="ddeConnection" cls="DDEConversation" />
+<Integer name="outputRow" />
+<Integer name="maxCols" />
+<method name="setCell">
+<param name="nCol" type="int" />
+<param name="nRow" type="int" />
+<param name="contents" type="string" />
+<param name="bold" type="int" />
+<![CDATA[//@cmember setCell
+//@param int | nCol |
+//@param int | nRow |
+//@param string | contents |
+//@param int | bold |
+//@version Andrew.b | 09-08-01 12:49 |
+//@version Simon Carroll | 21-01-03 14:43 |
+//@i
+
+nRow++;
+nCol++;
+
+string sCell = "R" + nRow + "C" + nCol;
+ddeConnection.Poke(sCell, contents.tostring());
+
+if (bold!=null && bold==1)
+{
+    ddeConnection.Execute("[SELECT(\"" + sCell + ":" + sCell + "\",\"" + sCell + "\")]");
+    ddeConnection.Execute("[STYLE(1,0)]");
+}]]>
+</method>
+<method name="writeList">
+<param name="theList" type="list" />
+<param name="excludeHeaders" type="int" />
+<![CDATA[//@cmember writeList
+//@param list | theList |
+//@param int | excludeHeaders |
+//@version Andrew.b | 09-08-01 12:32 |
+//@version Andrew.Broad | 06-01-03 17:00 | Added ToString() to fix floating point bug (from Sorina Grave)
+//@version Simon Carroll | 02-07-03 16:49 |
+//@i
+
+// Does the list contain data
+if (theList.count()<1)
+    return(1);
+
+object firstRow = theList[0];
+
+if (excludeHeaders==null || excludeHeaders!=1)
+{
+    // Draw Table headings
+    string sRow="";
+    for (int nMember=0;; nMember++)
+    {
+        if (firstRow.getMember(nMember)==null) break;
+            setCell(nMember,outputRow,firstRow.getMember(nMember).name(),1);
+
+        if (nMember>maxCols) maxCols=nMember;
+
+    }
+
+    outputRow++;
+}
+
+
+// Draw table body
+for (int nRow=0; nRow<theList.count(); nRow++)
+{
+    object thisRow = theList[nRow];
+
+    for (int nMember=0;; nMember++)
+    {
+        if (thisRow.getMember(nMember)==null) break;
+        if (thisRow.getMember(nMember).IsList() || thisRow.getMember(nMember).IsObject()) continue;
+        // AJB 6/1/03 fix from Sorina: Added ToString() to fix floating point bug
+        setCell(nMember,outputRow,thisRow.getMember(nMember).ToString());
+    }
+
+    outputRow++;
+
+}]]>
+</method>
+<method name="writeText">
+<param name="text" type="string" />
+<![CDATA[//@cmember writeText
+//@param string | text |
+//@version Andrew.b | 09-08-01 12:27 |
+//@i
+
+setCell(0,outputRow,text);
+outputRow++;]]>
+</method>
+<method name="writeBreak">
+<![CDATA[//@cmember writeBreak
+//@version Andrew.b | 09-08-01 12:27 |
+//@i
+
+outputRow++;]]>
+</method>
+<method name="init">
+<![CDATA[//@cmember init
+//@version Andrew.b | 09-08-01 12:32 |
+//@i
+
+classes::com::ComObject excelApp;
+
+if (excelApp.connectEx("Excel.application")<0)
+{
+    message("Couldn't connect to Excel");
+    return(-1);
+}
+
+excelApp.getProperty("WorkBooks").Add();
+excelApp.setProperty("Visible",1);
+excelApp.disconnect();
+
+ddeConnection.Connect("Excel","Sheet1");]]>
+</method>
+<method name="finish">
+<![CDATA[//@cmember finish
+//@version Andrew.b | 09-08-01 12:35 |
+//@i
+
+string sRange = "\"R1C1:R" + outputRow+1 + "C" + maxCols+1 + "\"";
+ddeConnection.Execute("[SELECT(" + sRange + ",\"R1C1\")]");
+ddeConnection.Execute("[COLUMN.WIDTH(,,,3)]");
+
+ddeConnection.Disconnect();]]>
+</method>
+<method name="writeTitle">
+<param name="title" type="string" />
+<![CDATA[//@cmember writeTitle
+//@param string | title |
+//@version Andrew.b | 09-08-01 12:27 |
+//@i
+
+setCell(0,outputRow,title,1);
+outputRow++;]]>
+</method>
+</members>
+<static>
+<method name="main">
+<![CDATA[//@cmember main
+//@version Andrew.b | 09-08-01 12:34 |
+//@i
+
+
+classes::cpicks testList[];
+
+for (int nRow=0; nRow<10; nRow++)
+{
+    object newRow = testList.createRow();
+    newRow.code = nRow+"";
+    newRow.desc = "I am row " + nRow;
+}
+
+toExcel thisExcel;
+thisExcel.init();
+thisExcel.writeList(testList);
+thisExcel.finish();]]>
+</method>
+</static>
+</class>

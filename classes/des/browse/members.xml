@@ -1,0 +1,26 @@
+<form name="Members" caption="Browse Members" savepos="WBM">
+<members />
+<static />
+<grid>
+<row>
+<col bpad="2">
+<Label text="Members Used" />
+</col>
+<col />
+<col bpad="2">
+<Label text="Method" />
+</col>
+</row>
+<row>
+<col align="H">
+<ListBox w="200" IsList="Y" />
+</col>
+<col align="H">
+<SizeBar text="SizeBar" w="4" />
+</col>
+<col align="WH">
+<ListBox IsList="Y" />
+</col>
+</row>
+</grid>
+</form>

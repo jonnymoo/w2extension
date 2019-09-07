@@ -1,0 +1,9 @@
+<list>
+<item code="ccg" desc="classes::core::global::" />
+<item code="ccw" desc="classes::core::windows" />
+<item code="cc" desc="classes::core::" />
+<item code="ccx" desc="classes::core::xml::globalxml::" />
+<item code="ccd" desc="classes::debug::showObj(" />
+<item code="doc" desc="classes::client::document" />
+<item code="proc" desc="classes::worktray::process" />
+</list>

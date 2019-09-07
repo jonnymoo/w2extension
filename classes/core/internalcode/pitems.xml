@@ -1,0 +1,11 @@
+<class name="pitems" fauthor="$Author: Andrew.g $" fdate="$Date: 13/06/02 9:42 $" frevision="$Revision: 2 $">
+<members>
+<String name="disp" />
+<String name="disp2" />
+<String name="code" />
+<String name="icon" />
+<Integer name="mode" />
+<Object name="subMenu" />
+</members>
+<static />
+</class>

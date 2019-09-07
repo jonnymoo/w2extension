@@ -1,0 +1,11 @@
+<class name="SimpleCalc">
+  <members>
+    <method name="Run">
+      <![CDATA[//@cmember Run
+          classes::cpicks res[];
+          res.CreateRow().setTo("test","W2");
+          return res;]]>
+    </method>
+  </members>
+  <static />
+</class>

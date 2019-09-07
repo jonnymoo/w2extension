@@ -1,0 +1,83 @@
+<class name="Hsub" HierImage="..\hClass.bmp" HierImageField="Icon">
+<members>
+<String name="Icon" />
+<String name="name" />
+<String name="parentFilename" />
+<List name="Lmem" cls="Hmem" />
+<method name="Init">
+<![CDATA[Icon = "..\\hClass.bmp";
+Name = "waiting for query event...";]]>
+</method>
+<method name="setTo">
+<param name="nam" type="string" />
+<param name="X" />
+<param name="aPath" type="string" />
+<param name="parFilename" type="string" />
+<param name="hStr" type="string" />
+<![CDATA[// X is a members or static XML element
+//
+
+name = nam;
+parentFilename = parFilename;
+
+for (int i=0;;i++) {
+    XML sXML = &X.getElement(i);
+    if (sXML==null) break;
+
+    Lmem.createRow().setTo(sXML, aPath, 0, hStr);
+}
+
+setQueried(1);
+
+return i;]]>
+</method>
+<method name="setError">
+<param name="mes" type="string" />
+<![CDATA[
+Name = mes;
+Icon = "hError.bmp";
+setQueried(1);]]>
+</method>
+<method name="setStrucTo">
+<param name="title" type="string" />
+<param name="nam" type="string" />
+<param name="X" />
+<param name="aPath" type="string" />
+<param name="parFilename" type="string" />
+<param name="hStr" type="string" />
+<![CDATA[// X is a Grid or Menu XML element
+//
+
+name = title;
+parentFilename = parFilename;
+
+if (title.eq("menu"))
+    icon = "..\\hMenuB.bmp"; else
+    icon = "..\\hgrid.bmp";
+
+lookinGrid(X, aPath, hStr);
+setQueried(1);
+
+return Lmem.count();]]>
+</method>
+<method name="lookInGrid">
+<param name="X" />
+<param name="aPath" type="string" />
+<param name="hStr" type="string" />
+<![CDATA[for (int i=0;;i++) {
+    XML sXML = &X.getElement(i);
+    if (sXML==null) return;
+
+    string nam = sXML.getAttr("name");
+    if (nam!="") Lmem.createRow().setTo(sXML, aPath, 0, hStr);
+
+    lookInGrid(sXML, aPath, hStr);
+}
+]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="name" />
+</disp>
+</class>

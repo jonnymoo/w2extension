@@ -1,0 +1,124 @@
+<class name="HelpLauncher" fauthor="$Author: Scott.goodwin $" fdate="$Date: 29/09/04 10:24 $" frevision="$Revision: 7 $">
+<members />
+<static>
+<Object name="m_objIE" cls="classes::com::comobject" comment="IE object used to display help" />
+<Integer name="m_nIsConnected" desc="Status indicator" comment="Determines if we are connected to an IE object to display help" />
+<String name="m_IID_WebBrowserEvents2" desc="IID of WebBrowserEvents2 interface " comment="Need this to receive COM events from internet explorer.&#13;&#10;&#13;&#10;DIID_DWebBrowserEvents2 (disp interface to it)" constval="{34A715A0-6587-11D0-924A-0020AFC7AC4D}" />
+<String name="m_strHelpPath" desc="Http path to the help files" />
+<method name="OpenWin">
+<param name="strHelpFile" type="String" />
+<param name="nLaunchWithoutResize" type="integer" />
+<![CDATA[//@cmember OpenWin
+//@param String | strHelpFile | Help file to open
+//@param integer | nLaunchWithoutResize | If set to 1, IE's window dimensions will not be adjusted
+//@version Scott.Goodwin | 07-11-02 14:24 |
+//@version Richard.Dines | 07-11-02 16:04 |
+//@version Scott.Goodwin | 29-01-03 11:31 |
+//@version Richard.Dines | 27-02-03 15:30 |
+//@version Scott.Goodwin | 01-07-03 16:44 |
+//@i
+
+//Validate parameter
+if ( NULL == strHelpFile || strHelpFile.length() < 1 )
+    return;
+
+//Get help location from database
+
+if ( m_strHelpPath.length() == 0 )
+    m_strHelpPath = classes::core::sysconfig::GetConfig("HelpLocation", "");
+
+if ( m_strHelpPath.length() == 0 )
+    return; //Help has not been configured
+
+double dScreenWidth = classes::workers::wmenu::FindMenu().DesktopW();
+if ( 1 != m_nIsConnected )
+{
+    if (m_objIE.Connect( "InternetExplorer.Application.1", m_IID_WebBrowserEvents2) != 0)
+        return;
+    m_objIE.SetNotificationEvent( "COMEvent", this ); //We want events from IE, will call COMEvent()
+    m_objIE.SetProperty("ToolBar", 0);
+
+    //Determine window position from screen resolution
+    if ( NULL == nLaunchWithoutResize || 1 != nLaunchWithoutResize )
+    {
+        if(dScreenWidth <= 799)
+        {
+            m_objIE.SetProperty("Left",385);
+            m_objIE.SetProperty("Top",0);
+        }
+        else if(dScreenWidth <= 1023)
+        {
+            m_objIE.SetProperty("Left",385);
+            m_objIE.SetProperty("Top",0);
+        }
+        else if(dScreenWidth <= 1151)
+        {
+            m_objIE.SetProperty("Left",698);
+            m_objIE.SetProperty("Top",0);
+        }
+        else if(dScreenWidth <= 1279)
+        {
+            m_objIE.SetProperty("Left",793);
+            m_objIE.SetProperty("Top",0);
+        }
+        else
+        {
+            m_objIE.SetProperty("Left",908);
+            m_objIE.SetProperty("Top",0);
+        }
+    }
+    m_nIsConnected = 1; //We are now connected with an IE object
+}
+
+//Determine window size from screen resolution
+if ( NULL == nLaunchWithoutResize || 1 != nLaunchWithoutResize )
+{
+    if(dScreenWidth <= 799)
+    {
+        m_objIE.SetProperty("Width",250);
+        m_objIE.SetProperty("Height",425);
+    }
+    else if(dScreenWidth <= 1023)
+    {
+        m_objIE.SetProperty("Width",267);
+        m_objIE.SetProperty("Height",425);
+    }
+    else if(dScreenWidth <= 1151)
+    {
+        m_objIE.SetProperty("Width",321);
+        m_objIE.SetProperty("Height",711);
+    }
+    else if(dScreenWidth <= 1279)
+    {
+        m_objIE.SetProperty("Width",351);
+        m_objIE.SetProperty("Height",799);
+    }
+    else
+    {
+        m_objIE.SetProperty("Width",362);
+        m_objIE.SetProperty("Height",945);
+    }
+}
+//Construct path of helpfile and navigate to it
+String strLaunchFile = m_strHelpPath + strHelpFile;
+m_objIE.Navigate2(strLaunchFile);
+m_objIE.SetProperty("Visible", 1);]]>
+</method>
+<method name="COMEvent">
+<param name="nEventCode" type="integer" />
+<![CDATA[//@cmember COMEvent
+//@param integer | nEventCode |  Code of event received by com object
+//@version Scott.Goodwin | 08-11-02 11:28 |
+//@version Richard.Dines | 27-02-03 16:38 |
+//@version Scott Goodwin | 27-09-04 12:31 |
+//@i Called when com object receives an event.
+//@i Need to disconnect object and update status if IE is closed
+
+if ( 253 == nEventCode ) //Check for onQuit
+{
+    m_objIE.disconnect();
+    m_nIsConnected = 0;
+}]]>
+</method>
+</static>
+</class>

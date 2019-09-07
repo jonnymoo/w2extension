@@ -1,0 +1,207 @@
+<class name="Stage" description="W2 Script Reference">
+<members sub="Information">
+
+
+<method name="Duplicate">
+<![CDATA[//@cmember Stage Duplicate(  );
+//@return Stage | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetAttr">
+<param name="name" type="String" />
+<![CDATA[//@cmember String GetAttr( String name );
+//@param String | name | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetColor">
+<![CDATA[//@cmember int GetColor(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="GetRouteFrom">
+<param name="idx" type="int" />
+<![CDATA[//@cmember Route GetRouteFrom( int idx );
+//@param int | idx | 
+//@return Route | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetRouteTo">
+<param name="idx" type="int" />
+<![CDATA[//@cmember Route GetRouteTo( int idx );
+//@param int | idx | 
+//@return Route | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetStageOnRoute">
+<param name="name" type="String" />
+<![CDATA[//@cmember Stage GetStageOnRoute( String name );
+//@param String | name | 
+//@return Stage | 
+//@i 
+]]>
+ />
+</method>
+<method name="MapIndex">
+<![CDATA[//@cmember int MapIndex(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Manipulation">
+<method name="Delete">
+<![CDATA[//@cmember void Delete(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetAttr">
+<param name="name" type="String" />
+<param name="val" type="String" />
+<![CDATA[//@cmember void SetAttr( String name, String val );
+//@param String | name | 
+//@param String | val | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetCaption">
+<param name="text" type="String" />
+<![CDATA[//@cmember void SetCaption( String text );
+//@param String | text | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetColor">
+<param name="rgb" type="int" />
+<![CDATA[//@cmember void SetColor( int rgb );
+//@param int | rgb | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetComment">
+<param name="text" type="String" />
+<![CDATA[//@cmember void SetComment( String text );
+//@param String | text | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetDrawType">
+<param name="type" type="int" />
+<![CDATA[//@cmember void SetDrawType( int type );
+//@param int | type | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetIcon">
+<param name="name" type="String" />
+<![CDATA[//@cmember void SetIcon( String name );
+//@param String | name | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetIconFile">
+<param name="filename" type="String" />
+<![CDATA[//@cmember void SetIconFile( String filename );
+//@param String | filename | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetName">
+<param name="text" type="String" />
+<![CDATA[//@cmember void SetName( String text );
+//@param String | text | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetStageID">
+<param name="ID" type="String" />
+<![CDATA[//@cmember void SetStageID( String id);
+//@param String | ID | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="XML">
+<method name="addelement">
+<param name="X" type="XML" />
+<![CDATA[//@cmember void addelement( XML X );
+//@param XML | X | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="getelement">
+<param name="idx" type="int" />
+<![CDATA[//@cmember XML getelement( int idx );
+//@param int | idx | 
+//@return XML | 
+//@i 
+]]>
+ />
+</method>
+<method name="removeelement">
+<param name="X" type="XML" />
+<![CDATA[//@cmember void removeelement( XML X );
+//@param XML | X | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="addelement" cls="void" />
+<rmeth name="Delete" cls="void" />
+<rmeth name="Duplicate" cls="Stage" />
+<rmeth name="GetAttr" cls="String" />
+<rmeth name="GetColor" cls="int" />
+<rmeth name="getelement" cls="XML" />
+<rmeth name="GetRouteFrom" cls="Route" />
+<rmeth name="GetRouteTo" cls="Route" />
+<rmeth name="GetStageOnRoute" cls="Stage" />
+<rmeth name="MapIndex" cls="int" />
+<rmeth name="removeelement" cls="void" />
+<rmeth name="SetAttr" cls="void" />
+<rmeth name="SetCaption" cls="void" />
+<rmeth name="SetColor" cls="void" />
+<rmeth name="SetComment" cls="void" />
+<rmeth name="SetDrawType" cls="void" />
+<rmeth name="SetIcon" cls="void" />
+<rmeth name="SetIconFile" cls="void" />
+<rmeth name="SetName" cls="void" />
+<rmeth name="SetStageID" cls="void" />
+</return>
+</class>

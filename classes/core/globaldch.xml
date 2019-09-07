@@ -1,0 +1,215 @@
+<class name="globalDCH" fauthor="$Author: Andrew.g $" fdate="$Date: 14/06/01 16:51 $" frevision="$Revision: 1 $">
+<members />
+<static>
+<Object name="NetConn" cls="HTTPConnection" />
+<String name="ServerName" />
+<String name="LivePath" />
+<String name="ServerVersion" />
+<method name="GetHTTP" return="HTTPConnection">
+<param name="path" type="string" />
+<![CDATA[//@cmember GetHTTP
+//@param string | path | path of a server method
+//@return HTTPConnection | a new HTTPConnection
+//@version Barry Parkinson | V1.00 | Initial Version
+//@version David Salter | V1.01 11-04-2001 | Added support for HTTPS.
+//@i Initiates an HTTPConnection
+//@i 'path' must be a server method 
+
+if (!ServerName)
+{
+    String s = Path();
+    // get ServerName
+    int i = 0;
+    if (s.beginsWith("http://"))
+    {
+        i = s.indexOf("/",7);
+        ServerName = s.substring(7,i);
+    }
+    else if (s.beginsWith("https://"))
+    {
+        i = s.indexOf("/",8);
+        ServerName = s.substring(8,i);
+        NetConn.UseHTTPS(1);
+    }
+    else
+    {
+        ServerName = "localhost";
+    }
+    // get action path
+    int ci = s.indexOf("/classes/");
+    LivePath = s.substring(i+1,ci+1);
+
+    // version
+    NetConn.SetServer( ServerName );
+    NetConn.SetPath("");
+    NetConn.DoRequest("GET",0,0);
+    ServerVersion = NetConn.GetHeader( "Server" );
+
+    // HACK!
+    // NetConn.SetBaseConnection();
+}
+
+NetConn.SetServer( ServerName );
+// Q.SetServer("planetzod");
+NetConn.SetPath(LivePath + "scripts/w2isapi.dll/" + path );
+NetConn.SetPostData("");
+return NetConn;]]>
+</method>
+<method name="tagObject">
+<param name="Obj" type="object" />
+<param name="procID" type="int" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+Obj.ModUser = classes::workers::CurrentUser::uid;   // Current User
+Obj.ModDate.SysTime();                              // Current Time
+if (procID!=null && procID>0)
+    Obj.ModProc = procID;                           // Current Process Id
+else
+    Obj.ModProc.reset();                            // No process? Is this allowed?
+]]>
+</method>
+<method name="InsertObject" return="int">
+<param name="Obj" type="object" />
+<param name="procID" type="int" />
+<![CDATA[//@cmember InsertObject
+//@param object | Obj | An object to be inserted into the DB
+//@return int | 1 = Success, 0 = fail
+//@i Inserts the object 'Obj' into the DB table.
+
+SetWaitCursor();
+
+// Tag data with up to date user, date & process information
+TagObject( Obj, procID );
+
+// Now save the object to the database
+HTTPConnection Q = GetHTTP("core::SrvInsertObject");
+
+Q.Write("<Data>");
+Q.WriteXML("Obj", Obj);
+Q.Write("</Data>");
+
+int ok = Q.DoPost();
+if (!ok){
+    Message( Q.GetError() );
+    return 0;
+    }
+
+Object Res = Q.GetObjects();
+if (Res==null){
+    Message("Error getting XML results");
+    return 0;
+    }
+
+String err = Res.Error;
+if (err){
+    Message(err);
+    // Res.ErrorCode;
+    return 0;
+    }
+
+Obj = Res.Obj; // assign
+return 1;]]>
+</method>
+<method name="UpdateObject" return="int">
+<param name="Obj" type="object" />
+<param name="procID" type="int" />
+<![CDATA[//@cmember UpdateObject
+//@param object | Obj | An object to update in the database
+//@return int | 1 = Success, 0 = fail
+//@i Finds the row in the DB table that matches
+//@i  Obj's key field,
+//@i Updates all the other fields in the DB row
+//@i  to match Obj's members
+
+SetWaitCursor();
+
+// Tag data with up to date user, date & process information
+TagObject( Obj, procID );
+
+// Now save the object to the database
+HTTPConnection Q = GetHTTP("core::SrvUpdateObject");
+
+Q.Write("<Data>");
+Q.WriteXML("Obj",Obj);
+Q.Write("</Data>");
+
+return StdPost(Q,"Update Object");
+]]>
+</method>
+<method name="DeleteObject" return="int">
+<param name="Obj" type="object" />
+<param name="procID" type="int" />
+<![CDATA[//@cmember DeleteObject
+//@param object | Obj | An object to be delete from a DB table
+//@return int | 1 = Success, 0 = fail
+//@i Finds the object in the DB table matching
+//@i  Obj's key field,
+//@i Deletes the object from the DB table
+
+SetWaitCursor();
+
+// Tag data with up to date user, date & process information
+TagObject( Obj, procID );
+Obj.delFlag = 'Y';
+
+// Now save the object to the database
+HTTPConnection Q = GetHTTP("core::SrvDeleteObject");
+
+Q.Write("<Data>");
+Q.WriteXML("Obj",Obj);
+Q.Write("</Data>");
+
+return StdPost(Q,"Delete Object");
+
+]]>
+</method>
+<method name="StdPost" return="int">
+<param name="Q" type="HTTPConnection" />
+<param name="cap" type="string" />
+<![CDATA[//@cmember StdPost
+//@param HTTPConnection | Q | The HTTPConnection to Post
+//@param string | cap | Caption for error messages
+//@return int | 1 = Success, 0 = Failed
+//@i Posts an HTTPConnection and reports errors to user.
+
+int ok = Q.DoPost();
+if (!ok){
+    Message( Q.GetError() );
+    return 0;
+    }
+
+Object Res = Q.GetObjects();
+if (Res==null){
+    Message("Error getting XML results",cap);
+    return 0;
+    }
+
+String err = Res.Error;
+if (!err) return 1;
+
+int i = err.indexOf( "Record locked by process" ), i2;
+if (i>=0) {
+    i = err.indexOf( ": ", i ) + 2;
+    i2 = err.indexOf( "\n", i ) - 1;
+    Message("Unable to " + cap + "\r\nThis object is locked by process number '" + err.subString( i, i2 ) + "'\r\n",
+            "Object Locked", classes::core::windows::MB_ICONHAND);
+    return 0;
+}
+
+Message(err, cap);
+return 0;
+]]>
+</method>
+</static>
+<return>
+<rmeth name="GetHTTP" cls="HTTPConnection" />
+<rmeth name="InsertObject" cls="int" />
+<rmeth name="UpdateObject" cls="int" />
+<rmeth name="DeleteObject" cls="int" />
+<rmeth name="StdPost" cls="int" />
+</return>
+</class>

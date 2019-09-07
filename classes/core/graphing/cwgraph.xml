@@ -1,0 +1,508 @@
+<form name="cwGraph" base="cwGraphics" margin="0" fauthor="$Author: Andrew.g $" fdate="$Date: 13/09/02 16:40 $" frevision="$Revision: 2 $">
+<members>
+<Integer name="is3d" />
+<Integer name="hasBackFace" />
+<method name="init" return="int">
+<param name="caption" type="string" />
+<param name="backImage" type="string" />
+<param name="squareAspect" type="int" />
+<param name="force" type="int" />
+<param name="is3d" type="int" />
+<param name="hasBackFace" type="int" />
+<![CDATA[//@cmember init
+//@param string | caption |
+//@param string | backImage | background image filename (optional)
+//@param int | squareAspect | 1 = square (optional)
+//@param int | force | set to 1 to force a reload of the background (optional)
+//@param int | is3d |
+//@param int | hasBackFace |
+//@return int | success
+//@version Andrew Griffin | 13-09-02 16:20 |
+
+if (!super.init( backImage, squareAspect, is3d, force )) return 0;
+
+//
+// Set caption
+
+if (caption!=null) add_Text( 0.5, 0.05, caption );
+
+//
+// Reset Legend
+
+idLegend.setVisible( 0 );
+
+for (int i=idLegendGrid.RowCount()-1; i>0; i--)
+    idLegendGrid.DeleteRow( 1 );
+
+if (is3d!=null)         this.is3d = is3d;
+if (hasBackFace!=null)  this.hasBackFace = hasBackFace;
+
+FitRecursive();
+
+return 1;]]>
+</method>
+<method name="addGraph_LineChart">
+<param name="dataList" type="object[]" />
+<param name="xAxisMemb" type="string" />
+<param name="yAxisMemb" type="string" />
+<param name="yAxisIsCurrency" type="int" />
+<param name="alwaysShowYZero" type="int" />
+<![CDATA[//@cmember addGraph_LineChart
+//@param object[] | dataList | List of records to be graphed
+//@param string | xAxisMemb | name of member that holds the X-Axis data
+//@param string | yAxisMemb | name of member that holds the Y-Axis data
+//@param int | yAxisIsCurrency | Y-Axis Type
+//@param int | alwaysShowYZero | Force Y axis to always include the ZERO position
+//@version Andrew Griffin | 13-09-02 14:26 |
+
+int count = dataList.Count();
+if (!count) return;
+
+int xIdx = classes::core::globalObject::getMemberIndex( dataList.class(), xAxisMemb );
+int yIdx = classes::core::globalObject::getMemberIndex( dataList.class(), yAxisMemb );
+
+//
+// Get the maximum ranges of the axis
+
+aRange xRange, yRange;
+xRange.setDataRange( dataList, xIdx );
+yRange.setDataRange( dataList, yIdx, yAxisIsCurrency );
+if (alwaysShowYZero!=null && alwaysShowYZero) yRange.includeZero();
+
+if (hasBackFace)
+{
+    add_Rectangle(  0.13,0.1,  0.9,0.9,
+                    sys::RGB(255,255,255), "", 0.55 );
+}
+
+//
+// ReDefine drawing scaler
+
+push_Scaler(    0.13, 0.1, 0.46,
+                0.9, 0.9, 0.5,
+                xRange.minVal, yRange.minVal, 0,
+                xRange.maxVal, yRange.maxVal, 1
+);
+
+//
+// Draw Graph Axis
+
+drawXAxis( xRange, yRange, dataList );
+drawYAxis( xRange, yRange, dataList );
+
+//
+// Draw Line Graph
+
+apoly pol = NULL;
+
+int sPlyIdx = polyList.Count();
+
+for (int i=0; i<count; i++)
+{
+    double x = xrange.getVal( dataList[i][xIdx] );
+    double y = dataList[i][yIdx];
+
+    if (i>0) pol.addPoint( x, y, 0 );               // finnish off last polygon
+    pol = &add_Polygon( x, y, sys::RGB( 128,128,255), "", 0, 0 );   // and start next
+}
+
+if (is3d)
+{
+    while (sPlyIdx<polyList.Count())
+    {
+        polyList[sPlyIdx].projectFlatTo3D( 1, 0 );
+        sPlyIdx++;
+    }
+}
+
+//
+// All done
+
+pop_Scaler();]]>
+</method>
+<method name="addGraph_BarChart">
+<param name="dataList" type="object[]" />
+<param name="xAxisMemb" type="string" />
+<param name="yAxisMemb" type="string" />
+<param name="yAxisIsCurrency" type="int" />
+<param name="alwaysShowYZero" type="int" />
+<![CDATA[//@cmember addGraph_BarChart
+//@param object[] | dataList | List of records to be graphed
+//@param string | xAxisMemb | name of member that holds the X-Axis data
+//@param string | yAxisMemb | name of member that holds the Y-Axis data
+//@param int | yAxisIsCurrency | Y-Axis Type
+//@param int | alwaysShowYZero | Force Y axis to always include the ZERO position
+//@version Andrew Griffin | 13-09-02 14:45 |
+
+int count = dataList.Count();
+if (!count) return;
+
+int xIdx = classes::core::globalObject::getMemberIndex( dataList.class(), xAxisMemb );
+int yIdx = classes::core::globalObject::getMemberIndex( dataList.class(), yAxisMemb );
+
+//
+// Get the maximum ranges of the axis
+
+aRange xRange, yRange;
+xRange.setDataRange( dataList, xIdx, 2 );
+yRange.setDataRange( dataList, yIdx, yAxisIsCurrency );
+if (alwaysShowYZero!=null && alwaysShowYZero) yRange.includeZero();
+
+if (hasBackFace)
+{
+    add_Rectangle(  0.13,0.1,  0.9,0.9,
+                    sys::RGB(255,255,255), "", 0.55 );
+}
+
+//
+// ReDefine drawing scaler
+
+push_Scaler(    0.13, 0.1, 0.46,
+                0.9, 0.9, 0.5,
+                xRange.minVal, yRange.maxVal, 0,
+                xRange.maxVal, yRange.minVal, 1
+);
+
+//
+// Draw Graph Axis
+
+drawXAxis( xRange, yRange, dataList );
+drawYAxis( xRange, yRange, dataList );
+
+//
+// Draw Bar Chart
+
+apoly pol = NULL;
+
+int sPlyIdx = polyList.Count();
+
+for (int i=0; i<count; i++)
+{
+    double x = xrange.getVal( dataList[i][xIdx] );
+    double y = dataList[i][yIdx];
+
+    add_Rectangle( x+0.1, y, x+0.9, 0, sys::RGB( 128,128,255 ), "", 1 );
+}
+
+if (is3d)
+{
+    int stopHere = polyList.Count();
+    while (sPlyIdx<stopHere)
+    {
+        polyList[sPlyIdx].projectFlatTo3D( -1, 0, sys::RGB( 0,0,255 ) );
+        sPlyIdx++;
+    }
+}
+
+//
+// All done
+
+pop_Scaler();]]>
+</method>
+<method name="addGraph_PieChart">
+<param name="dataList" type="object[]" />
+<param name="valueMemb" type="string" />
+<param name="captionMemb" type="string" />
+<param name="showCaption" type="int" />
+<param name="showLegend" type="int" />
+<param name="pullOutSliceIdx" type="int" />
+<![CDATA[//@cmember addGraph_PieChart
+//@param object[] | dataList | List of records to be graphed
+//@param string | valueMemb | name of member that holds the X-Axis data
+//@param string | captionMemb | name of member that holds the Y-Axis data
+//@param int | showCaption | Y-Axis Type
+//@param int | showLegend | Force Y axis to always include the ZERO position
+//@param int | pullOutSliceIdx |
+//@version Andrew Griffin | 13-09-02 16:39 |
+
+int count = dataList.Count();
+if (!count) return;
+
+int vIdx = classes::core::globalObject::getMemberIndex( dataList.class(), valueMemb );
+int cIdx = (captionMemb==null)
+            ? -1
+            : classes::core::globalObject::getMemberIndex( dataList.class(), captionMemb );
+
+//
+// Get the maximum ranges of the axis
+
+aRange vRange;
+vRange.setDataLimit( dataList, vIdx );
+
+double maxV = vRange.maxVal;
+if (!maxV) return;
+
+if (hasBackFace)
+{
+    add_Rectangle(  0.1,0.1,  0.9,0.9,
+                    sys::RGB(255,255,255), "", 0.55 );
+}
+
+//
+// ReDefine drawing scaler
+
+double border =
+    (pullOutSliceIdx != null)
+    ? 0.17   // pull out a slice, so reduce overall size of pie chart
+    : 0.1;
+
+push_Scaler(    border, border, 0.46,
+                1-border, 1-border, 0.5,
+                -1, -1, 0,
+                1, 1, 1
+);
+
+double nStep = maxV / 360;
+double mulFact = 360 / maxV;
+
+//
+// Draw Pie chart
+
+double cAng = 0;
+int col;
+
+//
+// Draw Griff's Pie (get ya paws off my pie!!!)
+
+double offx, offy;
+
+for (int i=0; i<count; i++)
+{
+    double tmp = dataList[i][ vIdx ];
+    double nAng = cAng + tmp;
+
+    offx = 0;
+    offy = 0;
+
+    if (pullOutSliceIdx!=null && pullOutSliceIdx==i)  // pull out this slice...
+    {
+        double v = (cAng+tmp/2) * mulFact;
+        offx += 0.22*aPoly::sin( v );
+        offy -= 0.22*aPoly::cos( v );
+    }
+
+    add_Sector( offx, offy, 1,
+                cAng*mulFact, nAng*mulFact,
+                ((pullOutSliceIdx!=null && pullOutSliceIdx==i) ? 0.18 : NULL),
+                getColor( i ),
+                (showCaption ? dataList[i][cIdx] : ""),
+                1
+    );
+
+    cAng = nAng;
+}
+
+
+//
+// Draw Legend
+
+if (showLegend!=NULL && !showLegend) return;
+
+for (i=0; i<count; i++)
+    addToLegend(
+        i,
+        getColor( i ),
+        dataList[i][ cIdx ],
+        dataList[i][ vIdx ] / maxV
+    );
+
+idLegend.setVisible( 1 );
+FitRecursive();
+
+//
+// All done
+
+pop_Scaler();]]>
+</method>
+<method name="getColor" return="int">
+<param name="i" type="int" />
+<![CDATA[//@cmember getColor
+//@param int | i |
+//@return int |
+//@version Andrew Griffin | 13-09-02 15:47 |
+
+string col = cols[ i % cols.Count() ].desc;
+
+return sys::RGB( cVal(col[0]), cVal(col[1]), cVal(col[2]) );]]>
+</method>
+<method name="cVal" return="int">
+<param name="v1" type="int" />
+<![CDATA[//@cmember cVal
+//@param int | v1 |
+//@return int |
+//@version Andrew Griffin | 13-09-02 15:47 |
+
+if (v1=='0') return 0;
+if (v1=='1') return 180;
+return 255;]]>
+</method>
+<method name="addToLegend">
+<param name="i" type="int" />
+<param name="col" type="int" />
+<param name="Caption" type="string" />
+<param name="percentVal" type="double" />
+<![CDATA[//@cmember addToLegend
+//@param int | i |
+//@param int | col |
+//@param string | Caption |
+//@param double | percentVal |
+//@version Andrew Griffin | 10-09-02 15:48 |
+
+gridrow gr = &idLegendGrid.DuplicateRow( 0, 1, idLegendGrid.RowCount() );
+
+gr.GetCell(0).setBK( col.toString("08X").subString(2) );
+
+if (percentVal!=null)
+{
+    double percent = percentVal * 1000;
+    percent = percent.round();
+    percent = percent / 10;
+    gr.GetCell(0).Control.setText( "" + percent + "%" );
+}
+
+//gr.GetCell(0).Control.SetAttr( "onClick", "onLegendClick " + i );
+gr.GetCell(0).Control.setVisible( 1 );
+
+gr.GetCell(1).Control.setText( caption );
+//gr.GetCell(1).Control.SetAttr( "onClick", "onLegendClick " + i );
+gr.GetCell(1).Control.setVisible( 1 );]]>
+</method>
+<method name="onLegendClick">
+<param name="ctrl" type="control" />
+<param name="pStr" type="string" />
+<![CDATA[//@cmember onLegendClick
+//@param control | ctrl |
+//@param string | pStr |
+//@version Andrew Griffin | 10-09-02 15:48 |
+
+int i = pStr.val();]]>
+</method>
+<method name="drawXAxis">
+<param name="xrange" type="aRange" />
+<param name="yrange" type="aRange" />
+<param name="dataList" type="object[]" />
+<![CDATA[//@cmember drawXAxis
+//@param aRange | xrange |
+//@param aRange | yrange |
+//@param object[] | dataList |
+//@version Andrew Griffin | 13-09-02 12:36 |
+//@i
+
+add_Line(   xrange.minVal, 0,
+            xrange.maxVal, 0,
+            sys::RGB(0,0,0), "",
+            1 );
+
+String pStr = xrange.typ.GetRefObject().picktype;
+
+// Get standard multiplier to get us back to 0 -> 1 world coordinates
+int stdMul = scale[0].getStandardScalerY( scale[ scale.count()-1 ] );
+
+//
+// Add top and bottom axis numbering
+
+add_Text( xrange.minVal, stdMul*0.03, xrange.getLabel( xrange.minVal ), 1 );
+add_Text( xrange.maxVal, stdMul*0.03, xrange.getLabel( xrange.maxVal ), 1 );]]>
+</method>
+<method name="drawYAxis">
+<param name="xrange" type="aRange" />
+<param name="yrange" type="aRange" />
+<param name="dataList" type="object[]" />
+<![CDATA[//@cmember drawYAxis
+//@param aRange | xrange |
+//@param aRange | yrange |
+//@param object[] | dataList |
+//@version Andrew Griffin | 13-09-02 12:36 |
+//@i
+
+//
+// Draw Horizontal X-Axis Line
+
+add_Line(   0, yrange.minVal,
+            0, yrange.maxVal,
+            sys::RGB(0,0,0), "",
+            1 );
+
+String pStr = yrange.typ.GetRefObject().picktype;
+
+// Get standard multiplier to get us back to 0 -> 1 world coordinates
+int stdMul = scale[0].getStandardScalerX( scale[ scale.count()-1 ] );
+
+//
+// Add top and bottom axis numbering
+
+add_Text( stdMul*-0.07, yrange.minVal, pStr+yrange.minVal, 1 );
+add_Text( stdMul*-0.07, yrange.maxVal, pStr+yrange.maxVal, 1 );
+
+//
+// Work out best division scaling for Y-Axis
+
+double r = yrange.maxVal - yrange.minVal;
+r /= 100;   // around 10 seperators...
+
+int rDiv=1;
+while (rDiv<r) rDiv*=10;
+
+int step=1;
+r*=100;
+if (r/rDiv > 25)
+    if (r/rDiv > 50)
+        step=5;
+    else
+        step=2;
+
+for (int i=yrange.minVal/rDiv; i<yrange.maxVal/rDiv; i++)
+{
+    if (i % step) continue;
+
+    int y = i*rDiv;
+
+    double wid = (i % 10) ? stdMul*0.008 : stdMul*0.02;
+    add_Line( -wid, y, 0, y, sys::RGB(0,0,0), "", 1 );
+
+    if (i % 10==0 && i)
+    {
+        add_Text( stdMul*-0.07, y, pStr+(i*rDiv), 1 );
+        add_Line( xrange.minVal, y, xrange.maxVal, y, sys::RGB( 200,200,200 ), "", 1 );
+    }
+}]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col w="96" h="64" align="WH">
+<ImageViewer name="idImage" text="ImageViewer" />
+</col>
+<col lpad="10" tpad="10" rpad="10" bpad="10" align="V">
+<grid name="idLegend" hide="Y">
+<row>
+<col lpad="1" tpad="1" rpad="1" bpad="1" align="WH" bk="0,0,0">
+<grid>
+<row>
+<col lpad="4" tpad="4" rpad="4" bpad="4" align="WH" bk="255,255,255">
+<grid name="idLegendGrid" tpad="1" bpad="1">
+<row>
+<col lpad="4" rpad="4" align="C" bk="255,0,0">
+<Label tx="255,255,255" tlc="0,0,0" brc="0,0,0" font="Tahoma" hide="Y" style="b" />
+</col>
+<col lpad="4">
+<Label text="Label" font="Tahoma" hide="Y" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="init" cls="int" />
+<rmeth name="getColor" cls="int" />
+<rmeth name="cVal" cls="int" />
+</return>
+</form>

@@ -1,0 +1,158 @@
+<class name="smpParse" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
+<members>
+<String name="src" />
+<Integer name="pos" />
+<String name="retType" />
+<method name="init">
+<param name="source" type="string" />
+<param name="start" type="int" />
+<![CDATA[src = source;
+pos = start;
+retType = "";]]>
+</method>
+<method name="backToBeginOfStat">
+<![CDATA[//@version Andrew Griffin | 19-07-01 12:25 | 
+int ch, brk=0, dignore = 0, comma = 0;
+pos--;
+
+while (pos>0) {
+    ch = src.charAt(pos);
+
+    if (ch=='\r') {     // New line above, check for comments
+        backToSafe();   // skip comments
+        pos--;
+        continue;
+    }
+
+    if (dataOk(ch)) dignore = 1;
+    if (dignore==0 && dataExcept(ch)) { pos=99999; return; }
+
+    if (ch==',') comma = 1; // can't pass through a comma is set inside '()'
+
+    if (brk==0 && (ch==';' || ch==':' || ch=='}' || ch==123 || ch=='(')) {
+        if (ch==':' && pos>1) {
+            if (src.charAt(pos-1)==':') { pos-=2; continue; }
+        }
+        if (ch=='(' && comma) { pos=99999; return; }
+        break;
+    }
+
+//    message(ch.charString());
+
+    if (ch==')' || ch==']') brk++;
+    if (ch=='(' || ch=='[') {
+        brk--;
+        if (brk<0) { pos=99999; return; }
+    }
+
+    pos--;
+}
+
+//message("Backed up to pos " + pos + "\r\nText Follows:\r\n" + src.subString(pos, pos+40));
+
+if (pos>0) pos++;
+while (badChar(src.charAt(pos))) {
+    if (src.charAt(pos)=='/') {
+        pos++;
+        if (src.charAt(pos)=='/')   // skip forward comments
+            while (pos<src.length() && src.charAt(pos)!='\n')
+                pos++;
+    } else
+        pos++;
+}
+
+int pos2 = pos;
+while (pos2<src.length() && !badChar(src.charAt(pos2))) pos2++;
+
+//message( "s: " + pos + "   e: " + pos2);
+
+retType = src.subString(pos, pos2);]]>
+</method>
+<method name="backToSafe">
+<![CDATA[//@cmember backToSafe
+//@version Andrew Griffin | 19-07-01 12:25 | 
+
+// back to start of line recording last '//' passed.
+
+int recP = src.lastIndexOf("\n", pos)+1;
+recP = src.IndexOf("//", recP);
+
+if (recP>=0 && recP<pos) {
+//    message("Comment line backup from " + pos + " to " + recP-1);
+    pos = recP;
+}
+]]>
+</method>
+<method name="inComment">
+<![CDATA[int i=pos;
+
+while (i>0 && src.charAt(i)!='\r' && src.charAt(i)!='\n') {
+    if (src.charAt(i) == 47) {
+        i--;
+        if (src.charAt(i) == 47) {
+            return 1;
+        }
+    } else i--;
+}
+
+return 0;   // not in comment.]]>
+</method>
+<method name="inString">
+<![CDATA[int i=pos, strC=0;
+
+while (i>0 && src.charAt(i)!='\r' && src.charAt(i)!='\n') {
+    if (src.charAt(i) == '"') strC++;
+    i--;
+}
+
+return (strC % 2);   // in string.]]>
+</method>
+</members>
+<static>
+<method name="badChar">
+<param name="char" type="int" />
+<![CDATA[//@cmember badChar
+//@param int | char | 
+//@version Andrew Griffin | 19-07-01 12:06 | 
+
+return (char<'0' || (char>':' && char<'A'));
+
+// spaces, commas, arithmatic, control chars, semi-colon, parenthasis
+// NOT square or squiggle parenthasis though... now collon too, ]]>
+</method>
+<method name="varNamOk" return="int">
+<param name="char" type="int" />
+<![CDATA[//@cmember varNamOk
+//@param int | char | An char to be investigated
+//@return int | 1 if 'char' is a valid variable character
+//@version Andrew Griffin | 25-07-01 12:34 | 
+
+return (char>='0' && char<='9' ||
+        char>='A' && char<='Z' ||
+        char>='a' && char<='z' ||
+        char=='_');
+]]>
+</method>
+<method name="badCharBrak">
+<param name="char" type="int" />
+<![CDATA[return (char<'0' || (char>'9' && char<'A') || char=='[');]]>
+</method>
+<method name="dataOk">
+<param name="char" type="int" />
+<![CDATA[return (char==',' || (char>47 && char<58) || (char>64 && char<123 && char!=91));]]>
+</method>
+<method name="dataExcept">
+<param name="char" type="int" />
+<![CDATA[return ((char>32 && char<47) || (char>58 && char<65));
+
+// arithmatic or non variable name chars]]>
+</method>
+<method name="CommaSpace">
+<param name="char" type="int" />
+<![CDATA[return (char==' ' || char==',');]]>
+</method>
+</static>
+<return>
+<rmeth name="varNamOk" cls="int" />
+</return>
+</class>

@@ -1,0 +1,111 @@
+<form name="WItemEdit" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:42 $" frevision="$Revision: 2 $">
+<members>
+<method name="Init">
+<![CDATA[]]>
+</method>
+<method name="Setup">
+<param name="CD" type="XMLObj" />
+<![CDATA[idFocus.setFocus();
+
+while (idGrid.rowCount()>1) {
+    idGrid.deleteRow(1);
+}
+
+// Find Parent MemberDef
+MemberDef Pcls = &CD.OwnerList().OwnerRow();
+
+idMenuName.setText("List Item Edit:   " + Pcls.MemberClass);
+
+// Loop through members
+for (int atr=0; atr<CD.Attrs.count(); atr++)
+    addField( CD.Attrs[atr].Attr, &CD.Attrs[atr] );
+
+FitContentToForm();
+
+if (idGrid.rowCount()>1) {
+    idGrid.getCell(1,1).control.setFocus();
+    idGrid.getCell(1,1).control.selectText();
+}]]>
+</method>
+<method name="addField">
+<param name="name" type="string" />
+<param name="obj" type="XMLattr" />
+<![CDATA[//@version Andrew Griffin | 09-08-02 10:04 |
+object R = idGrid.AddRow();
+
+gridcell lbl = &R.GetCell(0);
+gridcell edt = &R.GetCell(1);
+
+lbl.setControl("label");
+lbl.control.setText(name);
+lbl.control.SetAttr( "onClick", "onLabelClick" );
+
+edt.setControl("edit");
+edt.control.instanceControl();
+edt.control.setw(256);
+edt.control.setAttr("onChange","setmod");
+edt.control.bindTo(&obj.value);
+edt.control.selectText(0,0);]]>
+</method>
+<method name="SetMod">
+<![CDATA[
+GetParent().SetMod();]]>
+</method>
+<method name="myError">
+<param name="Err" type="string" />
+<![CDATA[// Display an Error message
+
+object R = idGrid.AddRow();
+
+object lbl = R.GetCell(1);
+
+lbl.setControl("label");
+lbl.control.setText(Err);
+
+return 0;]]>
+</method>
+<method name="onLabelClick">
+<param name="lbl" type="label" />
+<![CDATA[//@cmember onLabelClick
+//@param label | lbl |
+//@version Andrew Griffin | 09-08-02 10:04 |
+
+gridcell c = &lbl.GetRow().GetCell( 1 );
+edit ed = &c.Control;
+
+string s = classes::core::wInputBoxMulti::GetInput(
+                this,
+                "Enter field value",
+                "Designer Data Entry",
+                ed.getText()
+);
+
+if (!s) return;
+
+ed.setText( s );]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col lpad="6" tpad="4" rpad="6" bpad="6" align="W" bkimg="title.bmp" imgtile="8">
+<Label name="idMenuName" text="List Item Edit" tx="255,255,255" shadc="0,0,0" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="12" />
+</col>
+</row>
+<row>
+<col lpad="24" tpad="16" bpad="4">
+<grid name="idGrid" tpad="2" rpad="2">
+<row>
+<col tpad="4" rpad="8" bpad="4" w="92" align="R" />
+<col tpad="4" bpad="4" w="256" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col w="10" h="10">
+<Edit name="idFOCUS" border="0" notab="Y" />
+</col>
+</row>
+</grid>
+</form>

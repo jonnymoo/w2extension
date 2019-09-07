@@ -1,0 +1,876 @@
+<class name="Func" description="Function" HierImage="hmethod.bmp" HierImageField="icon" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:39$" frevision="$Revision: 2$">
+<members>
+<String name="FuncName" />
+<String name="ParamInfo" />
+<String name="Mod" />
+<String name="Script" />
+<String name="ScriptOld" />
+<List name="Parameters" cls="FuncParam" hier="N" />
+<String name="retType" />
+<Integer name="Caret" />
+<String name="icon" />
+<Integer name="isTestSetupMethod" />
+<Integer name="isTestTearDownMethod" />
+<Integer name="isTestMethod" />
+<Integer name="isIntegrationTest" />
+<String name="IgnoreReason" />
+<Integer name="repeat" />
+<Integer name="IgnoreMessages" />
+<String name="RunDirectory" />
+<Integer name="OriginalFileIndex" />
+<Integer name="CheckHasAsserts" />
+<method name="SetTo">
+<param name="X" type="xml" />
+<param name="index" type="int" />
+<![CDATA[//@cmember SetTo
+//@param xml | X |
+//@param int | index |
+//@version Andrew Griffin | 28-06-02 10:56 |
+//@version Nick Gomm | 26-06-08 15:15 |
+//@version andrew.banyard | 08-10-13 12:39 |
+//@version Jonathan.Muir | 10-12-13 15:27 |
+//@version andrew.banyard | 16-03-16 09:58 |
+
+OriginalFileIndex = index;
+SetQueried(1);
+FuncName = X.GetAttr("name");
+retType = X.GetAttr("return");
+
+isTestSetupMethod = X.GetAttr("isTestSetupMethod").Val();
+isTestTearDownMethod = X.GetAttr("isTestTearDownMethod").Val();
+isTestMethod = X.GetAttr("isTestMethod").Val();
+IgnoreReason = X.GetAttr("IgnoreReason");
+IgnoreMessages  = X.GetAttr("IgnoreMessages").Val();
+RunDirectory = X.GetAttr("RunDirectory");
+CheckHasAsserts = X.GetAttr("CheckHasAsserts").Val();
+isIntegrationTest = X.GetAttr("IntegrationTest").Val();
+
+for(int e=0;;e++)
+{
+    Object EX = &X.Element(e);
+    if (EX==null) break;
+    if (EX.Tag()=="param")
+    {
+        int pps = Parameters.NewRow();
+        Parameters[pps].ParamName = EX.GetAttr("name");
+        string typ = EX.GetAttr("type");
+        Parameters[pps].ParamType = typ ? typ : "object";
+    }
+    else if (EX.Tag()=="CDATA")
+    {
+        Script = EX.Content();
+        ScriptOld = Script;
+    }
+}
+
+ParamInfo = "(";
+for(int n=0;n<Parameters.Count();n++)
+{
+    if (n) ParamInfo += ", ";
+    else   ParamInfo += " ";
+    ParamInfo += Parameters[n].ParamType;
+    ParamInfo += " ";
+    ParamInfo += Parameters[n].ParamName;
+}
+ParamInfo += " )";
+
+setIcon();]]>
+</method>
+<method name="GetXML">
+<param name="X" type="xml" />
+<![CDATA[//@cmember GetXML
+//@param xml | X |
+//@version Andrew Griffin | 27-09-01 16:35 |
+//@version Jonathan.Muir | 09-03-06 11:36 |
+//@version Nick Gomm | 26-06-08 15:15 |
+//@version andrew.banyard | 08-10-13 12:44 |
+//@version Jonathan.Muir | 10-12-13 15:28 |
+//@version andrew.banyard | 16-03-16 09:58 |
+
+X.SetTag("method");
+X.AddAttr("name",FuncName);
+if (retType!="") X.AddAttr("return", retType);
+if (isTestSetupMethod) X.AddAttr("isTestSetupMethod","1");
+if (isTestTearDownMethod) X.AddAttr("isTestTearDownMethod","1");
+if (isTestMethod) X.AddAttr("isTestMethod","1");
+if (IgnoreReason) X.AddAttr("IgnoreReason",IgnoreReason);
+if (IgnoreMessages) X.AddAttr("IgnoreMessages","1");
+if (RunDirectory) X.AddAttr("RunDirectory",RunDirectory);
+if (CheckHasAsserts)  X.AddAttr("CheckHasAsserts","1");
+if (isIntegrationTest) X.AddAttr("IntegrationTest","1");
+
+for(int n=0;n<Parameters.Count();n++)
+    {
+    XML PX;
+    X.AddElement(PX);
+    PX.SetTag("param");
+    PX.AddAttr("name",Parameters[n].ParamName);
+    if (Parameters[n].ParamType)
+        PX.AddAttr("type",Parameters[n].ParamType);
+    }
+XML EX;
+X.AddElement(EX);
+
+EX.SetTag("CDATA");
+
+// Strip out right hand spaces...
+
+string nscr, addsc;
+int p, last, max = script.length();
+
+while (p<max) {
+    int p2 = Script.indexof( "\r\n", p );
+    if (p2==-1) p2=script.length();
+    string sline = Script.substring( p, p2 );
+
+    for (int lp=sline.length()-1; lp>=0; lp--)
+      if (sline[lp]!=' ') break;
+
+    lp++;
+    if (lp) {
+        nscr += addsc + sline.left( lp );
+        addsc = "\r\n";
+    }
+    else
+        addsc += "\r\n";
+
+
+    p = p2+2;
+}
+
+Script = nscr;
+
+EX.SetContent(nscr);]]>
+</method>
+<method name="Init">
+<![CDATA[//@version Andrew Griffin | 03-10-01 16:10 |
+
+FuncName="NewMethod";
+ParamInfo="( )";
+Script= "//@cmember \r\n" +
+        "//@param\r\n" +
+        "//@return\r\n" +
+        "//@version\r\n" +
+        "//@i";
+Caret=11;
+SetQueried(1);
+
+setIcon();]]>
+</method>
+<method name="EventHierDrop">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:01 |
+Object HFrom = Hier.DropSource();
+if (HFrom==null) { Message("HFrom error!!!"); return; }
+
+Object R = HFrom.CurrentRow(); // current row in source hierarchy
+
+if (R.ClassName()==ClassName())
+{ // same class
+
+  if (HFrom==Hier){
+
+    Object L = OwnerList();
+    int from = L.FindIndex( R );
+    int to   = L.FindIndex( this );
+    L.MoveRow(from,to);
+    // L.SetCurrent(to);
+    Hier.SelectRow( R );
+  }
+  else {
+    // Message("Drop Across!!");
+    classes::core::wpopupmenu P;
+    P.Add("Copy Method: '" + R.FuncName + "' ?");
+    String s = P.Track();
+    if (s=="") return;
+    Object L = OwnerList();
+    int to   = L.FindIndex( this );
+    int idx = L.AddRow( R );
+    L[idx].SetQueried(1);
+    L.SetCurrent(idx);
+    L[idx].EventHierMouseSelect( Hier ); // as if we clicked on it
+    L.MoveRow(idx,to);
+  }
+}]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 01-07-02 15:47 |
+//@version Jonathan.Muir | 10-10-13 10:51 |
+
+classes::core::wpopupmenu P;
+
+P.Add("Cut Selected Method(s)","CUTM",classes::core::icons::clipboard_cut);
+P.Add("Copy Selected Method(s)","CPYM",classes::core::icons::clipboard_copy);
+
+string ctyp = clipboard::getTyp();
+if (ctyp.beginswith("MClip")) {
+    ctyp = ctyp.subString( 5 );
+    if (ctyp=="V") ctyp = "Member Variable(s)"; else
+    if (ctyp=="F") ctyp = "Member Functions(s)"; else
+    if (ctyp=="VF") ctyp = "Member Var(s) && Func(s)";
+    P.Add("Paste " + ctyp,"PSTM",classes::core::icons::clipboard_paste);
+} else P.Add(".Paste Method(s)", "", classes::core::icons::clipboard_paste);
+
+P.AddSeparator();
+
+P.Add("Duplicate Method","DPM");
+
+P.AddSeparator();
+
+P.Add("Delete Selected Method(s)","DM",classes::core::icons::clipboard_delete);
+
+P.AddSeparator();
+
+P.Add("Edit Parameters","EP");
+P.add("Show My Changes", "SMOD");
+
+P.addSeparator();
+
+classes::core::wpopupmenu p2;
+{
+    P2.Add("Find in this class", "SEARCH", "classes::des::designer.ico" );
+    P2.AddSeparator();
+    P2.Add("Find in this folder", "SEARCHFILES", classes::core::icons::filing_directory );
+    P2.Add("Find in all files", "SEARCHALLFILES", classes::core::icons::filing_computer );
+}
+P.Add( p2, "Search for member", "classes::resource::standard::callfinder.ico" );
+
+P.AddSeparator();
+
+string jmp;
+if (IsStatic()) {
+    P.Add("Move Method to Non-Static","MS",classes::core::icons::process_handRight); jmp="members";
+} else {
+    P.Add("Move Method to Static","MS",classes::core::icons::process_handRight); jmp="static";
+}
+
+
+String s = P.Track(1);
+
+if (s=="CUTM")      // Cut to clipboard
+{
+    OwnerList().OwnerRow().copySelected();
+    s = "DM";       // now delete...
+}
+
+if (s=="CPYM") {    // Copy to clipboard
+    OwnerList().OwnerRow().copySelected();
+}
+
+if (s=="PSTM") {    // Paste from clipboard
+    OwnerList().OwnerRow().pasteMembers( Hier, NULL, ownerList().FindIndex( this )+1 );
+}
+
+if (s=="EP") {  // Edit Parameters
+    WFuncParams Q;
+    Q.DoIt(this, Hier.GetParent().idMulti.GetPane(0) );
+}
+
+if (s=="SMOD") {    // Show changes
+    Object Z = Hier.GetParent().idMulti.FindPane("MethodEdit");
+    if (Z==null) return;
+    Z.showChanges( this );
+}
+
+if (s=="SEARCH") {  // Find References
+    Object Z = Hier.GetParent().idMulti.FindPane("MethodEdit");
+    if (Z==null) return;
+    Z.idSearch.setText( FuncName + "(" );
+    Z.doBIGSearch( null );
+}
+
+if (s=="SEARCHFILES") {  // Find References in Files
+    search::wSearchinFiles::init( Hier.GetParent().filename, 1, funcName+"(" );
+}
+
+if (s=="SEARCHALLFILES") {  // Find References in Files
+    search::wSearchinFiles::init( "", 1, funcName+"(" );
+}
+
+if (s=="MS") {  // Move to Static / Non-Static
+    Object Z = Hier.GetParent().idMulti.FindPane("MethodEdit");
+    if (Z!=null) {
+        Z.idSource.BindTo( null );
+        Z.idFuncName.BindTo( null );
+    }
+    list o = &ownerlist().ownerRow().ownerList();
+    o = &o.findRow(jmp).functions.createRow();
+    XML x; getXML( x ); o.setTo( x );
+
+    removeFromList();
+
+    o.setQueried(1);
+    Hier.getParent().idResults.SelectRow(o);
+    o.EventHierMouseSelect(Hier.getParent().idResults);  // select itself
+    Hier.GetParent().SetMod(null,1);
+}
+
+if (s=="DPM") { // Duplicate Method
+    Object Z = Hier.GetParent().idMulti.FindPane("MethodEdit");
+    if (Z!=null) {
+        Z.idSource.BindTo( null );
+        Z.idFuncName.BindTo( null );
+    }
+    int i=ownerList().findIndex(this);
+    object o = ownerlist().createRow(i+1);
+    XML x; getXML( x ); o.setTo( x );
+
+    o.setqueried(1);
+    Hier.GetParent().SetMod();
+    Hier.GetParent().idResults.SelectRow(o);
+    o.EventHierMouseSelect(Hier);
+}
+
+if (s=="DM")    // Delete Method
+{
+    Object Z = Hier.GetParent().idMulti.FindPane("MethodEdit");
+    if (Z!=null) {
+        Z.idSource.BindTo( null );
+        Z.idFuncName.BindTo( null );
+    }
+
+    classsection o = &ownerlist();
+    int idx = o.findIndex( this );
+    func nf = null;
+
+    for (int ci=o.count()-1; ci>=0; ci--)
+      if (o[ci].isselected())
+        o[ci].RemoveFromList(); // remove selected...
+
+    if (idx<o.count()) nf = &o[idx]; else
+        if (idx>0 && idx<o.count()) nf = &o[idx-1]; else
+            nf = &o.ownerRow();
+
+    Hier.getParent().idResults.SelectRow(nf);
+    nf.EventHierMouseSelect(Hier.getParent().idResults);  // select itself
+    Hier.GetParent().SetMod(null,1);
+}]]>
+</method>
+<method name="EventHierMouseSelect" return="wfuncedit">
+<param name="Hier" type="object" />
+<![CDATA[//@cmember EventHierMouseSelect
+//@param object | Hier |
+//@return wfuncedit |
+
+return Hier.GetParent().EditMethod(this);]]>
+</method>
+<method name="addParameter" return="funcParam">
+<param name="name" type="string" />
+<param name="type" type="string" />
+<![CDATA[//@cmember addParameter
+//@param string | name |
+//@param string | type |
+//@return funcParam |
+//@version Andrew Griffin | 30-01-02 13:16 |
+//@i
+
+funcParam fp = &parameters.createRow();
+
+fp.ParamName = name;
+fp.ParamType = type;
+
+return fp;]]>
+</method>
+<method name="paramsUpdated">
+<param name="wFuncEd" type="wfuncedit" />
+<param name="refresh" type="int" />
+<![CDATA[//@cmember paramsUpdated
+//@param wfuncedit | wFuncEd |
+//@param int | refresh |
+//@version Andrew Griffin | 18-03-02 13:33 |
+//@i
+
+if (wFuncEd.getParent().readOnly) return;
+// Don't alter for read only files...
+
+if (refresh!=null && refresh) {
+    for (int i=0; i<parameters.count(); i++)
+        Parameters[i].oldName = Parameters[i].ParamName;
+}
+
+int cpos=0, lpos, sppos = -1, vx, vy;
+string typ, nam, dsc;
+
+int oldcar = caret;
+int oldLen = script.length();
+
+SourceEditor sed = null;
+if (wFuncEd!=null) {
+    sed = &wFuncEd.idSource;
+    vx = sed.GetViewX();
+    vy = sed.GetViewY();
+    oldcar = sed.GetCaretPos();
+}
+
+while (1) {
+
+  cpos = script.indexOf("//@param",lpos,1);
+  if (cpos==-1) break;
+  if (cpos>0 && script.charat(cpos-1)!='\n') {
+    lpos = cpos+8;
+    continue;
+  }
+
+  if (sppos==-1) sppos = cpos;
+
+  string tbPar = script.subString(cpos + 8);
+  tbPar = tbPar.getToken(0, "\r\n");
+
+  lpos = script.indexof("\r\n", cpos)+2;
+  if (lpos==1) lpos=script.length();
+
+  if (sed!=null) {
+      sed.SetSelection( cpos, lpos );
+      sed.InsertText( "" );
+  } else
+      script = script.left( cpos ) + script.subString( lpos );
+
+  typ = tbPar.getToken(0, "|").trim();
+  nam = tbPar.getToken(1, "|").trim();
+  dsc = tbPar.getToken(2, "|").trim();
+
+  funcParam fP = &Parameters.FindRow( nam, 1 );
+  if (fp!=null) {
+    if (!fp.ParamType) fp.ParamType = typ;
+    fp.writtenTyp = fp.ParamType;
+    fp.desc = dsc;
+    fP.oldName = ")";   // mark as done
+  } else {
+      fP = &Parameters.FindRow( typ, 1 );
+      if (fp!=null && fP.oldName!=")") {
+        if (!fp.ParamType) fp.ParamType = nam;
+        fp.writtenTyp = fp.ParamType;
+        fp.desc = dsc;
+        fP.oldName = ")";   // mark as done
+      }
+  }
+
+  lpos = cpos;
+}
+
+nam = "";
+
+for (int i=0; i<parameters.count(); i++) {
+
+    typ = parameters[i].ParamType;
+    if (!typ) typ = "object";
+
+    nam += "//@param " + typ + " | " +
+           parameters[i].ParamName + " | " +
+           parameters[i].desc + "\r\n";
+
+}
+
+if (sppos==-1) {
+    sppos = script.indexOf("//@cmember",0,1);
+    if (sppos>=0) {
+        sppos = script.indexof("\r\n", sppos)+2;
+        if (sppos==1) sppos=script.length();
+    } else {
+        string cmem = "//@cmember " + FuncName + "\r\n";
+        sppos = cmem.length();
+        if (sed!=null) {
+            sed.SetSelection( 0,0 );
+            sed.InsertText( cmem );
+        } else
+            script = cmem + script;
+    }
+}
+
+// now modify return type
+
+typ = ""; dsc = "";
+cpos = script.indexOf("//@return",0,1);
+if (cpos>=0) {
+
+    string tbPar = script.subString(cpos + 9);
+    tbPar = tbPar.getToken(0, "\r\n");
+
+    lpos = script.indexof("\r\n", cpos)+2;
+    if (lpos==1) lpos=script.length();
+
+    if (sed!=null) {
+        sed.SetSelection( cpos, lpos );
+        sed.InsertText( "" );
+    } else
+        script = script.left( cpos ) + script.subString( lpos );
+
+    typ = tbPar.getToken(0, "|").trim();
+    dsc = tbPar.getToken(1, "|").trim();
+
+}
+
+if (retType) typ = retType;
+
+if (typ || dsc) {
+    nam += "//@return " + typ + " | " + dsc + "\r\n";
+}
+
+if (sed!=null) {
+    sed.SetSelection( sppos, sppos );
+    sed.InsertText( nam );
+} else
+    script = script.left( sppos ) + nam + script.subString( sppos );
+
+
+// all modified, now update screen if open
+
+if (sed==null) return;
+
+int c = oldcar + (script.length() - oldLen);
+sed.SetSelection( c, c );
+sed.SetView( vx, vy );]]>
+</method>
+<method name="updateVersion">
+<param name="wclsv" type="wclassview" />
+<![CDATA[//@cmember updateVersion
+//@param wclassview | wclsv | Designer Base Form
+//@version Andrew Griffin | 30-01-02 13:16 |
+//@i
+
+// Find last version tag
+
+wfuncEdit wf = null;
+
+if (mod && autoVersion) {
+    if (wclsv!=null) {
+      wf = &wclsv.idMulti.FindPane("MethodEdit");
+      if (wf!=null && wf.Magic != this)
+        wf = null;
+      else
+        caret = wf.idSource.GetCaretPos();
+    }
+
+    string nam, ver, dsc;
+
+    int cpos = script.lastIndexOf("\r\n//@version",script.length(),1)+2, lpos;
+    if (cpos==1) {
+        if (script.beginsWith("//@version")) cpos=0; else cpos=-1;
+    }
+    if (cpos>=0) {  // got last version info
+
+      lpos = script.indexof("\r\n", cpos);
+      if (lpos==-1) lpos=script.length();
+
+      string tbPar = script.subString(cpos + 10, lpos);
+
+      nam = tbPar.getToken(0, "|").trim();
+      ver = tbPar.getToken(1, "|").trim();
+      dsc = tbPar.getToken(2, "|").trim();
+
+      if (nam==me || !nam) {
+        if (caret>lpos+2) caret -= (lpos+2-cpos); else  // update text caret
+        if (caret>cpos) caret = cpos;
+        script = script.left( cpos ) + script.subString( lpos+2 );
+      } else {
+        cpos = lpos+2;
+        dsc = "";
+      }
+    } else {
+
+        cpos = script.lastIndexOf("//@param",script.length(),1);
+        if (cpos>=0) {
+            cpos = script.indexOf("\r\n", cpos)+2;
+            if (cpos==1) cpos = script.length();
+        } else {
+            cpos = script.IndexOf("//@cmember",0,1);
+            if (cpos>=0) {
+                cpos = script.indexOf("\r\n", cpos)+2;
+                if (cpos==-1) cpos = script.length();
+            } else cpos = 0;
+        }
+    }
+
+    ver = sys::Time().tostring( "dd-mm-yy hm" );
+
+    string nstr = "//@version " + me + " | " + ver + " | " + dsc + "\r\n";
+    if (caret>cpos) caret += nstr.length();
+    script = script.left( cpos ) + nstr + script.subString( cpos );
+
+    if (wf!=null) {
+        int vx = wf.idSource.GetViewX(),
+            vy = wf.idSource.GetViewY();
+
+        wf.idSource.SetText( script );
+        wf.idSource.SetSelection( caret,caret );
+
+        wf.idSource.SetView( vx, vy );
+
+    }
+}]]>
+</method>
+<method name="setIcon">
+<![CDATA[//@cmember setIcon
+//@param
+//@return
+//@version Andrew Griffin | 07-05-02 15:01 |
+//@version jonathan.muir | 23-12-08 13:54 |
+//@i
+
+switch (funcName.lower()) {
+
+  case "start", "onclose", "onmenu", "onactivate", "ondeactivate",
+       "onchar", "ondefaultkey", "ontimer", "eventhiermouseselect",
+       "eventhierdoubleclick", "eventhierrightclick", "eventhierquery",
+       "eventhierdrop", "ontaskbarclick", "ontaskbarrightclick",
+       "ontaskbardoubleclick", "ontaskbarinfoclick", "ondropfiles", "main", "onchardown",
+       "OnWMCopyData", "onClosed", "onChildClosed" :
+
+        icon = "hmethodE.bmp";
+        break;
+
+  default:
+        icon = "hmethod.bmp";
+        break;
+
+}]]>
+</method>
+<method name="ParseTest">
+<param name="fform" type="wFuncEdit" />
+<param name="dispOk" type="int" />
+<param name="keepHist" type="int" />
+<param name="wclass" type="wclassview" />
+<param name="popFrm" type="popups::popdummy" />
+<![CDATA[//@cmember ParseTest
+//@param wFuncEdit | fform |
+//@param int | dispOk |
+//@param int | keepHist |
+//@param wclassview | wclass |
+//@param popups::popdummy | popFrm |
+//@version Andrew Griffin | 08-05-02 11:14 |
+//@version Ricky LEE | 31-03-06 09:12 |
+//@version Ricky LEE | 31-03-06 09:12 |
+
+string script = (dispOk==null || dispOk) ? fform.idSource.getText() : this.Script;
+
+string pScript;
+int padded = 0;
+
+wclassview wc = &(wclass == null) ? fform.getParent() : wclass;
+
+ClassSection Sect = &OwnerList().OwnerRow();
+ClassDef Cls = &Sect.OwnerList().OwnerRow();
+
+Compiler Comp = &Sys::NewCompiler();
+
+// path
+Comp.SetPath( Cls.ClassPath );
+
+// params
+Object L = Parameters;
+for(int n=0;n<L.Count();n++){
+    Comp.AddParam( L[n].ParamName, L[n].ParamType );
+}
+
+// do it
+
+sys::SetRedirectMessages(1);
+int err = Comp.Compile( Script );
+sys::SetRedirectMessages(0);
+
+// results
+String r;
+
+r += "Error Code: " + err + "\n";
+if (err) {
+
+    r += "Error Text: " + Comp.GetErrorText() + "\n";
+    r += "Error Line: " + Comp.GetErrorLine() + "\n";
+    if (dispOk==null || dispOk)
+        fform.gotoLine( Comp.GetErrorLine() );
+
+    int cpos=0, ln = Comp.GetErrorLine();
+    while (ln>0) {
+        cpos = script.indexOf("\r\n", cpos)+2;
+        if (cpos==1) break;
+        ln--;
+    }
+
+    int cpos2 = script.indexOf("\r\n", cpos)+2;
+    if (cpos2==1) cpos2 = script.length();
+
+    if (keepHist==null || keepHist==1)
+        wc.addError( 1, funcname, cpos, cpos2, "Method " + funcname.sql(), "Error: " + Comp.GetErrorText(), "" );
+}
+
+// OPEN A BROWSE OF THE CLASS...
+
+popups::popDummy pForm = null;
+if (popFrm!=null) pForm = &popFrm;
+             else pForm = popups::popDummy::CreateInstance();
+
+if (pForm.count==0) {
+    string thisClass = wc.XFile.Classes[0].ClassName;
+    string thisPath = wc.FileName;
+    if (!thisPath) {
+        thispath = classes::cpicks::classname();
+        thisPath = thisPath.left( thisPath.lastindexof("\\")+1 );
+    }
+
+    xml brX = &browse2::browser::browseBase(
+                "This",
+                "object",
+                thisClass,
+                "",
+                thisPath
+              );
+
+    browse2::browser::browseObj2( brX, pForm );
+}
+
+
+// members
+for(n=0;;n++){
+    String q = Comp.GetMemberUsed(n); if (!q) break;
+    if (n==0) r += "\n== Members Used ==\n";
+
+    classes::cpicks f = &pForm.stringS.FindRow( q.lower() );
+    if (f!=null) {
+        r += "[" + f.desc + "]\t" + q + "\n";
+        continue;
+    }
+    r += "?????\t" + q + " ... UNKNOWN \n";
+
+    if (!err) {
+        // Find member variable in script
+        if (!padded)
+        {
+            if (sys::Version() >= 2108) pScript = script.padSource();    // strip out comments & strings
+            else pScript = script;
+            padded = 1;
+        }
+
+        int pos=0;
+        while (1) {
+            pos = pScript.indexOf( q, pos, 1 );
+            if (pos==-1) break;
+            int pos2=pos+q.length();
+            if (
+                (pos==0 || Search::wSearch::chkWholeWordChar( pScript[pos-1] )) &&
+                (pos2==script.length() || Search::wSearch::chkWholeWordChar( pScript[pos2] ))
+               ) break;
+            pos++;
+        }
+        if (keepHist==null || keepHist==1) {
+            if ((dispOk==null || dispOk) && pos>=0) fform.idSource.SetSelection(pos,pos+q.length());
+            wc.addError( 10, funcname, pos, pos+q.length(), "Method " + funcname.sql(), "Warning: Unknown variable " + q.sql(), q );
+        }
+    }
+}
+
+// methods
+for(n=0;;n++){
+    String q = Comp.GetMethodCalled(n); if (!q) break;
+    if (n==0) r += "\n== Methods Called ==\n";
+    string fname = q.lower();
+    if (fname.beginsWith( "~" )) fname = fname.substring(1);    // remove base class thingie...
+    classes::cpicks f = &pForm.stringS.FindRow( fname );
+    if (q.eq("message") || f!=null) {
+        r += q + "\n";
+        continue;
+    }
+
+    r += q + " ... UNKNOWN \n";
+
+    if (!padded)
+    {
+        if (sys::Version() >= 2108) pScript = script.padSource();    // strip out comments & strings
+        else pScript = script;
+        padded = 1;
+    }
+
+    int pos=0;
+    while (1) {
+        pos = pScript.indexOf( q+"(", pos, 1 );
+        if (pos==-1) break;
+        int pos2=pos+q.length();
+        if (
+            (pos==0 || Search::wSearch::chkWholeWordChar( pScript[pos-1] ))
+           ) break;
+        pos++;
+    }
+    if (keepHist==null || keepHist==1) {
+        wc.addError( 10, funcname, pos, pos+q.length(), "Method " + funcname.sql(), "Warning: Unknown function " + q.sql(), q );
+        if (!err && (dispOk==null || dispOk)) fform.idSource.SetSelection(pos,pos+q.length());
+    }
+}
+
+for(n=0;;n++){
+    String q = Comp.GetClassUsed(n); if (!q) break;
+    if (n==0) r += "\n== Classes Used ==\n";
+    r += q + "\n";
+}
+
+//
+if (dispOk==null || dispOk) {
+//    fform.getParent().idresults.SelectRow( this );
+    Message(r);
+}
+
+// return error line
+if (err) return -1;
+return Comp.GetErrorLine();]]>
+</method>
+<method name="AddScriptHeader">
+<param name="szHeader" type="object" />
+<![CDATA[//@cmember AddScriptHeader
+//@param object | szHeader |
+//@version Jonathan.Muir | 09-03-06 16:48 |
+//@i
+
+string nscr="";
+int p = 0;
+int max = script.length();
+int bHeader = 1;
+while (p<max) {
+    int p2 = Script.indexof( "\r\n", p );
+    if (p2==-1) p2=script.length();
+    else p2 = p2 + 2;
+    string sline = Script.substring( p, p2 );
+
+    if(bHeader&&!sline.beginswith("//"))
+    {
+        bHeader=0;
+        nscr += szHeader + "\r\n";
+    }
+
+
+
+    nscr += sline;
+
+
+
+
+    p = p2;
+}
+
+if(bHeader)
+{
+    nscr+="\r\n"+szHeader;
+}
+
+Script = nscr;]]>
+</method>
+<method name="IsStatic">
+<![CDATA[//@cmember IsStatic
+//@version Jonathan.Muir | 10-10-13 10:50 |
+//@i
+
+return ownerlist().ownerRow().SectionType!="members";]]>
+</method>
+</members>
+<static>
+<Integer name="autoVersion" constval="1" />
+<String name="me" constval="1" />
+</static>
+<disp>
+<e f="FuncName" sfx="( " />
+<e f="Parameters" sfx=" ) " btw=", " list="Y" sfxa="Y" />
+<e f="Mod" />
+</disp>
+<return>
+<rmeth name="EventHierMouseSelect" cls="wfuncedit" />
+<rmeth name="addParameter" cls="funcParam" />
+</return>
+</class>

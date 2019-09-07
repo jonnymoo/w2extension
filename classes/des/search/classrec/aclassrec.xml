@@ -1,0 +1,820 @@
+<class name="aClassRec" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
+<members>
+<Integer name="classId" null="N" key="Y" seq="Y" />
+<String name="className" />
+<String name="lowerName" />
+<Date name="modDate" />
+<Integer name="baseClass" />
+<List name="membList" cls="intObj" />
+<List name="scriptList" cls="intObj" />
+<Integer name="updateFlag" comment="0 : Deleted&#13;&#10;1 : No Change&#13;&#10;2 : Updated" />
+<method name="parseClass" return="int">
+<![CDATA[//@cmember parseClass
+//@return int | 1 = success
+//@version Andrew Griffin | 21-06-02 11:11 |
+
+sys::DebugOut( "Scanning class: " + className + " (" + classid + ")" );
+
+//
+// Load class file
+
+file f;
+f.Open( sys::MakeFullName( path(), className+".xml" ), "r" );
+blob b = &f.ReadBlob();
+f.close();
+if (b==null) return 0;
+
+
+//
+// Convert to xml
+
+xml x = &b.GetXMLObject();
+if (x==null || !x.Count()) return 0;
+
+x = &x[0];
+
+if (!x.Tag().eq( "class" ) && !x.Tag().eq( "form" )) return 0;
+
+
+//
+// Get simple information from class
+
+if (x.base)
+{
+    baseClass = quickFind(
+        classes::core::globalString::MakeFullClassRef2( x.base, className ).lower()
+    );
+    if (baseClass>=0) baseClass = classList[ baseClass ].classId;
+    else baseClass = 0;
+}
+
+
+//
+// Parse xml sections...
+
+int methCount = 0;
+
+for (int si=0; si<x.Count(); si++)
+{
+    xml xs = &x[si];
+    switch (xs.Tag().lower())
+    {
+        case "members", "static" :
+        {
+            // Loop through members & methods
+            for (int i=0; i<xs.Count(); i++)
+            {
+                if (xs[i].cls)  // object or list of type 'cls'
+                {
+                    int fnd = quickFind(
+                                classes::core::globalString::MakeFullClassRef2( xs[i].cls, className ).lower()
+                              );
+                    if (fnd>=0)
+                    {
+                        intObj::addrow( membList, classList[fnd].classId, 0 );  // Variable
+/*
+                        sys::DebugOut( "  + Member: " +
+                            quickFindIdx(
+                                membList[ membList.Count()-1 ].classId
+                            ).className
+                        );
+*/
+                    }
+/*                    else
+                    {
+                        sys::DebugOut( "  - Member: " + classes::core::globalString::MakeFullClassRef2( xs[i].cls, className ) + " NOT FOUND!!!" );
+                    }
+*/
+                }
+                else
+                if (xs[i].tag() == "method")
+                {
+                    for (int j=xs[i].Count()-1; j>=0; j--)
+                    {
+                        xml px = &xs[i][j];
+                        if (px.tag() == "param")    // parameter
+                        {
+                            string ptype = px.type;
+                            if (ptype)  // object or list of type 'cls'
+                            {
+                                if (ptype.endsWith( "[]" )) ptype = ptype.left( ptype.length()-2 );
+
+                                int fnd = quickFind(
+                                            classes::core::globalString::MakeFullClassRef2( ptype, className ).lower()
+                                          );
+                                if (fnd>=0)
+                                {
+                                    intObj::addRow( scriptList, classList[fnd].classId, methCount );
+                                }
+                            }
+                        }
+                        else
+                        if (px.tag() == "CDATA")    // method script
+                        {
+                            parseScript( px.Content(), methCount, xs[i].name );
+                        }
+                    }
+                    methCount++;
+                }
+            }
+            break;
+        }
+
+        case "grid" :
+        {
+            parseGrid( xs );
+            break;
+        }
+
+        /*
+        case "return" :
+        {
+            for (int i=0; i<xs.Count(); i++)
+            {
+            break;
+        }*/
+    }
+}
+
+
+//
+// Completed successfully
+
+return 1;]]>
+</method>
+<method name="parseGrid">
+<param name="x" type="xml" />
+<![CDATA[//@cmember parseGrid
+//@param xml | x |
+//@version Andrew Griffin | 21-06-02 11:11 |
+//@i recursively parse xml class form for components
+
+if (x.cls)
+{
+    int fnd = quickFind(
+                classes::core::globalString::MakeFullClassRef2( x.cls, className ).lower()
+              );
+    if (fnd>=0)
+    {
+        intObj::addRow( membList, classList[fnd].classId, 1 );
+    }
+}
+
+for (int i=x.Count()-1; i>=0; i--)
+    parseGrid( x[i] );]]>
+</method>
+<method name="parseScript">
+<param name="script" type="string" />
+<param name="scriptId" type="int" />
+<param name="methodName" type="string" />
+<![CDATA[//@cmember parseScript
+//@param string | script |
+//@param int | scriptId |
+//@param string | methodName |
+//@version Andrew Griffin | 31-07-02 13:21 |
+//@i Parse W2 code for class references...
+
+//script = script.padSource();
+
+compile comp = &sys::NewCompiler();
+
+comp.SetPath( sys::MakeFullName( path(), className ) );
+comp.Compile( script );
+
+for (int i=0;;i++)
+{
+    string cls = comp.GetClassUsed( i );
+    if (!cls) break;
+
+    int fnd = quickFind(
+                classes::core::globalString::MakeFullClassRef( cls ).lower()
+              );
+    if (fnd>=0)
+    {
+        intObj::addRow( scriptList, classList[fnd].classId, scriptId );
+//        sys::DebugOut( " *** Class in Script: " + classes::core::globalString::MakeFullClassRef( cls ) );
+    }
+    else
+        if (cls.indexof( "\\" )>=0)
+        {
+            sys::DebugOut( classname + " (" + methodName + ")" );
+            sys::DebugOut( "* Unknown Class:   " + classes::core::globalString::MakeFullClassRef( cls ) );
+        }
+}]]>
+</method>
+<method name="getXML" return="xml">
+<![CDATA[//@cmember getXML
+//@return xml |
+//@version Andrew Griffin | 21-06-02 14:49 |
+
+xml x;
+x.SetTag( "aClassRec" );
+x.AddAttr( "id",    classId );
+x.AddAttr( "name",  className );
+x.AddAttr( "mod",   modDate.toString() );
+x.AddAttr( "base",  baseClass );
+
+xml mx = &x.CreateElement( "mList" );
+int c = membList.Count();
+for (int i=0; i<c; i++)
+    mx.CreateElement(
+        membList[i].classId.tostring()
+    ).AddAttr( "typ", membList[i].type );
+
+mx = &x.CreateElement( "sList" );
+c = scriptList.Count();
+for (i=0; i<c; i++)
+    mx.CreateElement(
+        scriptList[i].classId.tostring()
+    ).AddAttr( "typ", scriptList[i].type );
+
+return x;]]>
+</method>
+<method name="setFromXML">
+<param name="x" type="xml" />
+<![CDATA[//@cmember setFromXML
+//@param xml | x |
+//@return xml |
+//@version Andrew Griffin | 21-06-02 14:57 |
+
+classId =   x.GetAttr( "id" ).val();
+className = x.GetAttr( "name" );
+lowerName = className.lower();
+modDate.FromString( x.GetAttr( "mod" ) );
+baseClass = x.GetAttr( "base" ).val();
+
+xml mx = &x.FindElement( "mList" );
+int c = mx.Count();
+for (int i=0; i<c; i++)
+    membList.CreateRow().setTo(
+        mx[i].Tag().val(),
+        mx[i].typ.val()
+    );
+
+mx = &x.FindElement( "sList" );
+c = mx.Count();
+for (i=0; i<c; i++)
+    scriptList.CreateRow().setTo(
+        mx[i].Tag().val(),
+        mx[i].typ.val()
+    );]]>
+</method>
+</members>
+<static>
+<Integer name="cid" />
+<List name="classList" cls="aClassRec" />
+<List name="classIdList" cls="intObj" />
+<Integer name="stop" />
+<Object name="show" cls="aClassRec" />
+<Integer name="modList" />
+<Integer name="enableIndexing" />
+<method name="doSearch">
+<param name="pathS" type="string" />
+<![CDATA[//@cmember startSearch
+//@param
+//@return
+//@version Andrew Griffin | 31-07-02 13:21 | Search trial
+//
+
+//show.idClass.setText( pathS );
+//sys::Wait(0);
+
+int i = pathS.lastIndexOf( "\\" );
+if (i==-1) return;
+
+string pathP = pathS.left( i+1 );
+
+FileFinder FF = &sys::NewFileFinder();
+
+int ok = FF.FindFirst( pathS+"*.xml" , "" );
+
+while (ok && !stop)
+{
+    if (!FF.IsDir)
+    {
+        string fname = pathP + FF.FileName;
+        string relName = classes::core::globalString::MakeFullClassRef( fname );
+
+        //
+        // See if class is already in class list...
+
+        int fIdx = quickFind( relName.lower() );
+        aclassrec fnd = NULL;
+
+        if (fIdx>=0)
+        // FOUND
+        {
+            fnd = &classList[fIdx];
+            // Is the class record up-to-date?
+            if (FF.Date == fnd.modDate)
+            {
+                fnd.updateFlag = 1; // No change
+                ok = FF.FindNext();
+                continue;
+            }
+
+            fnd.baseClass = 0;
+            fnd.membList.reset();
+            fnd.scriptList.reset();
+        }
+        else
+        // NOT FOUND
+        // Create a new class record
+        {
+            fnd = &classList.CreateRow( -fIdx-1 );  // insert into correct sorted position
+            cid++;
+            fnd.classId = cid;
+            fnd.className = relName;
+            fnd.lowerName = relName.lower();
+        }
+
+        fnd.modDate = FF.Date;      // latest mod date
+        fnd.updateFlag = 2;         // updated
+    }
+    ok = FF.FindNext();
+}
+
+
+ok = FF.FindFirst( pathS+"*.*" , "D" );    // look in sub folders too
+
+while (ok && !stop) {
+
+    if (FF.IsDir && FF.FileName[0]!='.') {
+        doSearch( pathP + FF.FileName + "\\" );
+    }
+
+    ok = FF.FindNext();
+}]]>
+</method>
+<method name="quickFind" return="int">
+<param name="className" type="string" />
+<![CDATA[//@cmember quickFind
+//@param string | className |
+//@return int |
+//@version Andrew Griffin | 31-07-02 13:44 |
+//@i
+
+int l = 0;
+int r = classList.Count(), p;
+aClassRec t = null;
+
+while (l<r)
+{
+    p = (l+r)/2;
+    t = &classList[p];
+
+    if (t.lowerName == className) return p;      // Found
+
+    if (t.lowerName > className)
+        r = p;
+    else
+        l = p+1;
+}
+
+return -1-l;    // Not Found]]>
+</method>
+<method name="quickFindIdx" return="aClassRec">
+<param name="idx" type="int" />
+<![CDATA[//@cmember quickFindIdx
+//@param int | idx |
+//@return aClassRec |
+//@version Andrew Griffin | 21-06-02 11:19 |
+//@i
+
+int l = 0;
+int r = classIdList.Count(), p;
+intObj t = null;
+
+while (l<r)
+{
+    p = (l+r)/2;  // try this...
+    t = &classIdList[p];
+
+    if (t.classId == idx) return classList[ t.type ];     // Found
+
+    if (t.classId > idx)
+        r = p;
+    else
+        l = p+1;
+}
+
+return null;]]>
+</method>
+<method name="quickFindIdx2" return="int">
+<param name="idx" type="int" />
+<![CDATA[//@cmember quickFindIdx2
+//@param int | idx |
+//@return int |
+//@version Andrew Griffin | 31-07-02 13:44 |
+//@i
+
+int l = 0;
+int r = classIdList.Count(), p;
+intObj t = null;
+
+while (l<r)
+{
+    p = (l+r)/2;  // try this...
+    t = &classIdList[p];
+
+    if (t.classId == idx) return p;     // Found
+
+    if (t.classId > idx)
+        r = p;
+    else
+        l = p+1;
+}
+
+return -1-p;    // Not found]]>
+</method>
+<method name="enumerateClasses">
+<param name="rebuild" type="int" />
+<![CDATA[//@cmember enumerateClasses
+//@param int | rebuild |
+//@version Andrew Griffin | 01-08-02 10:10 |
+
+if (rebuild==null || !rebuild)
+{
+    if (!classList.Count())
+        loadClassList();
+}
+else
+    classList.reset();
+
+
+//
+// Rocket through class paths finding all xml class files
+
+sys::DebugOut( "Beginning Class Enumeration..." );
+
+doSearch( sys::MakeFullName( path(), "classes" ) + "\\" );
+
+sys::DebugOut( "Found " + classList.Count() + " classes" );
+
+
+//
+// Remove deleted classes from list
+
+for (int i=classList.Count()-1; i>=0; i--)
+    switch (classList[i].updateFlag)
+    {
+        case 0: // deleted
+        {
+            classList[i].removeFromList();
+            modList = 1;
+            break;
+        }
+        case 2: // updated...
+        {
+            modList = 1;
+            break;
+        }
+    }
+
+
+//
+// Build class ID Lookup List
+
+classIdList.reset();
+for (i=classList.Count()-1; i>=0; i--)
+    classIdList.CreateRow().setTo( classList[i].classId, i );
+
+classIdList.ResetOrder();
+classIdList.OrderBy( "classId", "ASC" );
+classIdList.OrderList();
+
+
+//
+// Process classes based on flag
+
+//for (i=100; i>=0; i--)
+for (i=classList.Count()-1; i>=0; i--)
+{
+    if (classList[i].updateFlag==2)
+        if (!classList[i].parseClass())
+        {
+            sys::DebugOut( "Failed: " + classList[i].className );
+//            classList[i].RemoveFromList();
+        }
+    classList[i].updateFlag = 0;
+}
+
+//
+// Complete
+
+if (modList) SaveClassList();
+
+sys::DebugOut( "Class Enumeration complete" );]]>
+</method>
+<method name="enumerateClass">
+<param name="fname" type="string" />
+<param name="related" type="int" />
+<![CDATA[//@cmember enumerateClass
+//@param string | fname |
+//@param int | related |
+//@version Andrew Griffin | 31-07-02 14:32 |
+
+if (!classList.Count())
+    loadClassList();
+
+FileFinder FF = &sys::NewFileFinder();
+if (!FF.FindFirst( fname , "" )) return;
+
+//
+// Look at specific class
+
+string relName = classes::core::globalString::MakeFullClassRef( fname );
+
+sys::DebugOut( "Class Indexer: Indexing " + relName.sql() );
+
+//
+// See if class is already in class list...
+
+int fIdx = quickFind( relName.lower() ), i;
+aclassrec fnd = NULL;
+
+if (fIdx>=0)
+// FOUND
+{
+    fnd = &classList[fIdx];
+    // Is the class record up-to-date?
+    if (FF.Date == fnd.modDate)
+        return; // No change
+
+    fnd.baseClass = 0;
+    fnd.membList.reset();
+    fnd.scriptList.reset();
+}
+else
+// NOT FOUND
+// Create a new class record
+{
+    int nIdx = -fIdx-1;
+    fnd = &classList.CreateRow( nIdx );  // insert into correct sorted position
+    cid++;
+    fnd.classId = cid;
+    fnd.className = relName;
+    fnd.lowerName = relName.lower();
+
+    // update indexes in class Id Lookup list
+
+    for (i=classIdList.Count()-1; i>=0; i--)
+        if (classIdList[i].type>=nIdx)
+            classIdList[i].type++;
+
+    // add in our new index lookup
+
+    int nIdIdx = -1-quickFindIdx2( cid );
+
+    intobj nId = &classIdList.CreateRow( nIdIdx );
+    nId.classId = cid;
+    nId.type = nIdx;
+}
+
+fnd.modDate = FF.Date;      // latest mod date
+
+modList = 1;                // class list has been updated
+
+//
+// Parse the class
+
+fnd.parseClass();
+
+//
+// Check parse of all related classes...?
+
+if (related!=null && related==0) return;
+
+// Base class
+enumerateClassById( fnd.baseClass, related );
+
+// Member classes
+for (i=0; i<fnd.membList.Count(); i++)
+    enumerateClassById( fnd.membList[i].classId, related );
+
+// Script classes
+for (i=0; i<fnd.scriptList.Count(); i++)
+    enumerateClassById( fnd.scriptList[i].classId, related );]]>
+</method>
+<method name="enumerateClassById">
+<param name="cId" type="int" />
+<param name="related" type="int" />
+<![CDATA[//@cmember enumerateClassById
+//@param int | cId |
+//@param int | related |
+//@version Andrew Griffin | 31-07-02 13:54 |
+
+aclassrec crec = &quickFindIdx( cId );
+if (crec==null) return;
+
+string fname = sys::MakeFullName( path(), crec.className+".xml" );
+
+return enumerateClass( fname, related );]]>
+</method>
+<method name="tellMeAboutDerived">
+<param name="fnd" type="int" />
+<param name="bx" type="xml" />
+<![CDATA[//@cmember tellMeAboutDerived
+//@param int | fnd |
+//@param xml | bx |
+//@version Andrew Griffin | 21-06-02 13:53 |
+
+int mxc = classList.Count();
+
+string msg;
+
+for (int f=0; f<mxc; f++)
+    if (classList[f].baseClass == fnd)
+    {
+        tellMeAboutDerived(
+            classList[f].classId,
+            bx.CreateElement( classList[f].className )
+        );
+    }]]>
+</method>
+<method name="tellMeAbout" return="xml">
+<param name="classname" type="string" />
+<![CDATA[//@cmember tellMeAbout
+//@param string | classname |
+//@return xml |
+//@version Andrew Griffin | 06-08-02 11:17 |
+
+if (!classList.Count())
+    loadClassList();
+
+
+int mxc = classList.Count();
+xml x;
+
+int fnd = quickFind( classname.lower() );
+if (fnd<0)
+{
+    //message( "Class not found: " + classname );
+    return NULL;
+}
+
+aClassRec cRec = &classList[fnd];
+fnd = cRec.classId;
+
+x.SetTag( "CLASS" );
+xml bx = &x.CreateElement( "Inheritance Tree" );
+
+string ts;
+
+//
+// Base classes...
+
+aClassRec me = &cRec;
+while (me!=null)
+{
+    ts = me.className + (ts ? ", "+ts : "");
+    if (!me.baseClass) break;
+    me = &quickFindIdx( me.baseClass );
+}
+
+for (int i=0;;i++)
+{
+    string tok = ts.gettoken( i );
+    if (!tok) break;
+    bx = &bx.CreateElement( tok );
+}
+
+//
+// Derived classes...
+
+tellMeAboutDerived( fnd, bx );
+
+
+//
+// * Internal References
+
+bx = &x.CreateElement( "Internal References" );
+
+//
+// Variable Members
+
+xml cx = &bx.CreateElement( "Variable Members" );
+
+for (int f=0; f<cRec.membList.Count(); f++)
+    if (cRec.membList[f].type == 0)
+        cx.CreateElement( quickFindIdx( cRec.membList[f].classId ).className );
+
+cx = &bx.CreateElement( "Components" );
+
+for (f=0; f<cRec.membList.Count(); f++)
+    if (cRec.membList[f].type == 1)
+        cx.CreateElement( quickFindIdx( cRec.membList[f].classId ).className );
+
+cx = &bx.CreateElement( "Method Script References" );
+
+for (f=0; f<cRec.scriptList.Count(); f++)
+    cx.CreateElement( quickFindIdx( cRec.scriptList[f].classId ).className );
+
+
+//
+// * External References
+
+bx = &x.CreateElement( "External References" );
+
+//
+// All of the above...
+
+xml memX = &bx.CreateElement( "Variable Members" );
+xml comX = &bx.CreateElement( "Components" );
+xml scrX = &bx.CreateElement( "Method Script References" );
+
+for (int j=0; j<mxc; j++)
+{
+    aclassrec c = &classList[j];
+    // Members / Components
+    intobj k = &c.membList.FindRow( fnd );
+    if (k!=null)
+        if (k.type) comX.CreateElement( c.className );
+               else memX.CreateElement( c.className ).AddAttr( "code", "M" );
+
+    k = &c.scriptList.FindRow( fnd );
+    if (k!=null) scrX.CreateElement( c.className ).AddAttr( "code", "S" + k.type );
+}
+
+return x;]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 21-06-02 13:43 |
+
+wdemoapp dapp;
+return dapp.start();
+
+enumerateClasses();
+
+tellMeAbout( "classes::worktray::process" );]]>
+</method>
+<method name="saveClassList">
+<![CDATA[//@cmember saveClassList
+//@param
+//@return
+//@version Andrew Griffin | 31-07-02 14:29 |
+
+if (!modList) return;
+
+xml x;
+x.SetTag( "ClassList" );
+
+int mxc = classList.Count();
+
+for (int i=0; i<mxc; i++)
+    x.AddElement( classList[i].getXml() );
+
+if (!classes::core::xml::globalxml::SaveXML( x, "classes::des::classList.ini", path() ))
+    message( "Failed to save class list..." );
+else
+    modList = 0;]]>
+</method>
+<method name="loadClassList">
+<![CDATA[//@cmember loadClassList
+//@return xml |
+//@version Andrew Griffin | 31-07-02 14:33 |
+
+xml x = &classes::core::xml::globalxml::LoadXML( "classes::des::classList.ini", path() );
+if (x.tag()=="error") {    // Check for errors
+     message("XML Load Error: " + x.getAttr("desc"));
+     return;
+} else x = &x[0];          // Get actual loaded XML
+
+classList.reset();
+
+int mxc = x.Count();
+
+for (int i=0; i<mxc; i++)
+{
+    aclassrec n = &classList.CreateRow();
+    n.setFromXml( x[i] );
+    if (n.classId >= cid) cid = n.classId+1;
+}
+
+
+//
+// Build class ID Lookup List
+
+classIdList.reset();
+for (i=classList.Count()-1; i>=0; i--)
+    classIdList.CreateRow().setTo( classList[i].classId, i );
+
+classIdList.ResetOrder();
+classIdList.OrderBy( "classId", "ASC" );
+classIdList.OrderList();
+
+modList = 0;]]>
+</method>
+</static>
+<return>
+<rmeth name="parseClass" cls="int" />
+<rmeth name="getXML" cls="xml" />
+<rmeth name="quickFind" cls="int" />
+<rmeth name="quickFindIdx" cls="aClassRec" />
+<rmeth name="quickFindIdx2" cls="int" />
+<rmeth name="tellMeAbout" cls="xml" />
+</return>
+</class>

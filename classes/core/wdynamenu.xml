@@ -1,0 +1,124 @@
+<class name="wdynamenu" base="InternalCode::baseWPopup" browseBase="0" margin="0" sizeable="2" toolwindow="1" hidden="1" topmost="1" nocaption="1" esccancel="1" fauthor="$Author: Simon.c $" fdate="$Date: 15/08/02 9:47 $" frevision="$Revision: 2 $">
+<members>
+<method name="add">
+<param name="dispText" type="string" />
+<param name="code" type="string" />
+<param name="icon" type="string" />
+<![CDATA[//@cmember add
+//@param string | dispText | Menu item text
+//@param string | code | Optional code to be returned
+//@param string | icon | optional icon filename
+//@version Andrew Griffin | 22-07-02 11:37 |
+
+super.add( dispText, code, icon );]]>
+</method>
+<method name="addPopup">
+<param name="dispText" type="string" />
+<param name="callbackObj" type="object" />
+<param name="prefix" type="string" />
+<param name="refObj" type="object" />
+<param name="icon" type="string" />
+<![CDATA[//@cmember addPopup
+//@param string | dispText | Sub-dynamenu heading
+//@param object | callbackObj | Object to callback 'FillMenu( dynamenu d )' on
+//@param string | prefix | String prefix for returned codes
+//@param object | refObj | An object to reference with the new sub-dynamenu
+//@param string | icon | optional Icon filename
+//@version Andrew Griffin | 22-07-02 11:43 |
+
+super.addPopup( dispText, callbackObj, prefix, refObj, icon );]]>
+</method>
+<method name="addSeparator">
+<![CDATA[//@cmember addSeparator
+//@version Andrew Griffin | 23-05-02 15:22 |
+
+super.addSeparator();]]>
+</method>
+<method name="Prefix" return="string">
+<![CDATA[//@cmember Prefix
+//@return string |
+//@version Andrew Griffin | 22-07-02 14:27 |
+
+return super.prefix();]]>
+</method>
+<method name="ReferenceObject" return="object">
+<![CDATA[//@cmember ReferenceObject
+//@return object |
+//@version Andrew Griffin | 22-07-02 14:27 |
+
+return super.ReferenceObject();]]>
+</method>
+<method name="selection" return="string">
+<![CDATA[//@cmember selection
+//@return string |
+//@version Andrew Griffin | 22-07-02 14:27 |
+
+return super.selection();]]>
+</method>
+<method name="parent" return="object">
+<![CDATA[//@cmember parent
+//@return object |
+//@version Andrew Griffin | 22-07-02 13:32 |
+
+return super.parent();]]>
+</method>
+<method name="parentMenu" return="object">
+<![CDATA[//@cmember parentMenu
+//@return object |
+//@version Andrew Griffin | 22-07-02 14:25 |
+
+return super.parentMenu();]]>
+</method>
+<method name="object" return="object">
+<![CDATA[//@cmember object
+//@return object |
+//@version Andrew Griffin | 22-07-02 14:25 |
+
+return super.object();]]>
+</method>
+</members>
+<static>
+<method name="TrackObjMenu" return="string">
+<param name="callbackObj" type="object" />
+<param name="refObj" type="object" />
+<param name="prefix" type="string" />
+<![CDATA[//@cmember TrackObjMenu
+//@param object | callbackObj | Object to callback 'FillMenu( dynamenu d )' on
+//@param object | refObj | Optional object to reference with the new sub-dynamenu
+//@param string | prefix | Optional string prefix for returned codes
+//@return string | The code returned when user selected an option (or empty string)
+//@version Andrew Griffin | 22-07-02 13:51 |
+//@version Simon Carroll | 15-08-02 09:45 |
+
+//
+// Create DynaMenu Object
+
+wDynaMenu d;
+
+d.dynamenu = 1;
+d.callbackObj.setmagicpointer( &callbackObj );
+if (refObj!=null) d.refObj.setmagicpointer( &refObj );
+if (prefix!=null) d.prefixstr = prefix;
+
+//
+// Call 'FillMenu' on callbackObj
+
+callbackObj.fillMenu( d );
+d.populated = 1;
+
+//
+// Now initiate a track on the new menu
+
+return d.track( 1 );]]>
+</method>
+</static>
+<return>
+<rmeth name="Prefix" cls="string" />
+<rmeth name="ReferenceObject" cls="object" />
+<rmeth name="selection" cls="string" />
+<rmeth name="parent" cls="object" />
+<rmeth name="parentMenu" cls="object" />
+<rmeth name="object" cls="object" />
+<rmeth name="TrackObjMenu" cls="string" />
+</return>
+</class>

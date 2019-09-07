@@ -1,0 +1,223 @@
+<class name="obElm" HierImageField="Icon" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:42 $" frevision="$Revision: 2 $">
+<members>
+<String name="typ" />
+<String name="padding" />
+<String name="Name" />
+<String name="val" />
+<String name="Icon" />
+<List name="elements" cls="obElm" />
+<Object name="obj" />
+<method name="setTo">
+<param name="ob" type="object" />
+<param name="obMd" type="memberDef" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+if (obMd!=null) {
+    icon = GetIcon( obMd.ClassName() );
+
+    typ = obMd.ClassName();
+    int i = typ.lastIndexOf("::");
+    if (i>=0) typ = typ.subString( i+2 );
+    else {
+        i = typ.lastIndexOf("/");
+        if (i>=0) typ = typ.subString( i+1 );
+    }
+
+    typ = formatRType( typ );
+    name = obMd.Name();
+
+    if (!obMd.islist() && !obMd.IsObject()) {
+        val = "       (\"" + ob + "\")";
+
+        SetQueried(1);
+        SetContentIndicator(0);
+        return;
+    }
+
+    // a list
+
+    if (obMd.islist()) {
+
+        icon = "::hList.bmp";
+        typ += "[]";
+        name = " (" + ob.count() + " rows)";
+        for (i=0; i<ob.count(); i++) {
+            obElm nE = &elements.CreateRow();
+            nE.ListSetTo( i, ob[i] );
+        }
+
+        setQueried(1);
+        return;
+    }
+}
+
+// an object then...
+
+if (!ob.isObject()) return;
+if (!typ) {
+    typ = formatRType( "object" );
+    val = "       <unassigned>";
+    setQueried(1);
+    return;
+}
+
+if (ob.classname().indexOf("classes",0,1)==-1) {
+    val = "       <built-in>";
+    obj.setmagicpointer( ob );
+    setQueried(1);
+    return;
+}
+
+for (int i=0;; i++) {
+    MemberDef md = &ob.class().MemberDef(i);
+    if (md==null) break;
+
+    obElm nE = &elements.CreateRow();
+    nE.setTo( ob.GetMember( i ), md );
+}
+
+i--;
+
+setQueried(1);
+
+//setQueried(1);]]>
+</method>
+<method name="listSetTo">
+<param name="idx" type="int" />
+<param name="ob" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+icon = "::hobject.bmp";
+name = "[" + idx + "]";
+
+if (ob.membercount()>0) {
+    MemberDef md = &ob.MemberDef(0);
+
+    val = "    key (\"" + ob.GetMember( 0 ) + "\")";
+}
+
+// an object
+
+for (int i=0;; i++) {
+    MemberDef md = &ob.class().MemberDef(i);
+    if (md==null) break;
+
+    obElm nE = &elements.CreateRow();
+    nE.setTo( ob.GetMember( i ), md );
+}
+
+i--;
+
+setQueried(1);]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+/*
+Hier.getParent().idInfo.setText(
+  justName + ":   index no. " + ownerlist().findIndex(this) +
+  " / " + (ownerList().count()-1)
+);
+
+string t, idxStr;
+xmlObj c = &this;
+
+while (1) {
+    list l = &c.ownerList();
+    if (l==null) break;
+    t = c.justName + idxStr + t;
+    idxStr = "(" + l.findIndex(c) + ") -> ";
+    c = &l.ownerRow();
+}
+
+Hier.getParent().idTree.setText( t );
+
+Hier.getParent().fitRecursive();]]>
+</method>
+<method name="formatRType" return="string">
+<param name="rType" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+switch (rType.Lower()) {
+  case "int", "integer" :
+                  rType = "int"; padding = "                "; break;
+  case "string" : rType = "string"; padding = "           "; break;
+  case "object" : rType = "object"; padding = "          "; break;
+  case "bool" :   rType = "bool"; padding = "             "; break;
+  case "void" :   rType = "void"; padding = "             "; break;
+  case "double" : rType = "double"; padding = "         "; break;
+  case "date" :   rType = "date"; padding = "             "; break;
+  case "list" :   rType = "list"; padding = "               "; break;
+  case "date" :   rType = "date"; padding = "             "; break;
+  case "class" :  rType = "class"; padding = "           "; break;
+  default:
+    padding = " ";
+    for (int r=10-rType.length(); r>0; r--)
+        padding += "  ";
+}
+
+return rType;]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 24-05-02 16:10 |
+//@i
+
+classes::core::wpopupmenu p;
+
+if (typ.eq("xml")) p.Add( "View XML", "XML" );
+
+string s = p.Track(1);
+
+if (s=="XML") {
+    classes::core::xml::globalxml::BrowseXML( obj );
+}]]>
+</method>
+</members>
+<static>
+<method name="GetIcon" return="string">
+<param name="typ" type="string" />
+<![CDATA[
+switch (typ.lower()) {
+  case "integer", "int" : return "::h123.bmp";
+  case "string" :   return "::habc.bmp";
+  case "float" :    return "::hfloat.bmp";
+  case "date" :     return "::hfloat.bmp";
+  case "double" :   return "::hfloat.bmp";
+  case "list" :     return "::hlist.bmp";
+}
+
+return "::hobject.bmp";]]>
+</method>
+</static>
+<disp>
+<e f="typ" />
+<e f="padding" />
+<e f="Name" />
+<e f="val" />
+</disp>
+<return>
+<rmeth name="formatRType" cls="string" />
+<rmeth name="GetIcon" cls="string" />
+</return>
+</class>

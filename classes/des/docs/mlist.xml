@@ -1,0 +1,503 @@
+<class name="MList">
+<members>
+<method name="AddRow">
+<param name="row" type="Object" />
+<![CDATA[// int AddRow( Object row );
+//
+// Comments : copies row, returns position
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="CheckUnique">
+<param name="fieldname" type="String" />
+<param name="index" type="int" />
+<![CDATA[// int CheckUnique( String fieldname, int index );
+//
+// Comments : returns index of row with non-unique field, or -1
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="class">
+<![CDATA[// MClassDef class(  );
+//
+// Comments : class definition of items in list
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="ClassName">
+<![CDATA[// string ClassName(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="ClearSelections">
+<![CDATA[// void ClearSelections(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="Count">
+<![CDATA[// int Count(  );
+//
+// Comments : count of all items in the list
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="CreateRow">
+<param name="index" type="int" />
+<![CDATA[// Object CreateRow( int index );
+//
+// Comments : creates a row (index is optional)
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="CreateRowBin">
+<param name="SearchValue" type="variable" />
+<![CDATA[// Object CreateRow( variable SearchValue );
+//@i Comments : creates a row ordered by the default search field
+//@i using the searchvalue as the antisipated value.
+//@i Note this doesn't enter searchvalue into the field, you need to do this manually
+
+// Example : 
+
+]]> />
+</method>
+
+<method name="CurrentIndex">
+<![CDATA[// int CurrentIndex(  );
+//
+// Comments : -1 if no selection
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="CurrentRow">
+<![CDATA[// Object CurrentRow(  );
+//
+// Comments : null if no selection
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="DeleteRow">
+<param name="idx" type="int" />
+<![CDATA[// void DeleteRow( int idx );
+//
+// Comments : specific
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="DeleteSelections">
+<![CDATA[// int DeleteSelections(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="FindIndex">
+<param name="X" type="Object" />
+<![CDATA[// int FindIndex( Object X );
+//
+// Comments : index of item or -1
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="FindRow">
+<param name="q" type="variable" />
+<param name="member_index" type="int" />
+<![CDATA[// Object FindRow( variable q, int member_index );
+//
+// Comments : returns matching object or null
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="FindRowBin">
+<param name="q" type="variable" />
+<![CDATA[// Object FindRow( variable q );
+//@i Comments : returns matching object or null
+//@i Note:  The list must have been created using CreateRowBin or this will default to FindRow
+//@i        This will look in the default search field for the value q
+
+// Example :
+
+
+
+]]> />
+</method>
+<method name="GetListLastModDate">
+<![CDATA[// string GetListLastModDate(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="GetOrderField">
+<param name="" type="col_index" />
+<![CDATA[// String GetOrderField( col_index );
+//
+// Comments : gets the field specified with OrderBy()
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="GetOrderFlags">
+<param name="" type="col_index" />
+<![CDATA[// int GetOrderFlags( col_index );
+//
+// Comments : gets the flags specified with OrderBy()
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="islist">
+<![CDATA[// bool islist(  );
+//
+// Comments : True
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="isObject">
+<![CDATA[// bool isObject(  );
+//
+// Comments : False
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="MoveAllTo">
+<param name="dest" type="List" />
+<![CDATA[// void MoveAllTo( List dest );
+//
+// Comments : move all rows to a different list
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="MoveRow">
+<param name="iFrom" type="int" />
+<param name="iTo" type="int" />
+<![CDATA[// void MoveRow( int iFrom, int iTo );
+//
+// Comments : change a row position in list
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="MoveSelectionsTo">
+<param name="dest" type="List" />
+<![CDATA[// int MoveSelectionsTo( List dest );
+//
+// Comments : move rows to a different list
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="NewRow">
+<![CDATA[// int NewRow(  );
+//
+// Comments : returns: position or -1
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="OrderBy">
+<param name="field" type="String" />
+<param name="opt" type="String" />
+<![CDATA[// void OrderBy( String field, String opt );
+//
+// Comments : stores order for use by OrderList()
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="OrderList">
+<![CDATA[// void OrderList(  );
+//
+// Comments : implement the ordering
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="OwnerRow">
+<![CDATA[// Object OwnerRow(  );
+//
+// Comments : may be null - the object which owns this list
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="ReadFromFile">
+<param name="FileName" type="string" />
+<param name="Path" type="string" />
+<param name="Cache" type="int" />
+<![CDATA[// bool ReadFromFile( string FileName, string Path, int Cache );
+//
+// Comments : The Path and Cache are optional
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="reset">
+<![CDATA[// void reset(  );
+//
+// Comments : delete all rows
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="ResetOrder">
+<![CDATA[// void ResetOrder(  );
+//
+// Comments : reset order used by OrderList()
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="SelectMatchingRows">
+<param name="" type="string" />
+<param name="" type="string" />
+<![CDATA[// int SelectMatchingRows( string, string );
+//
+// Comments : 
+//
+
+// Example :
+
+
+int cc = LX.SelectMatchingRows( "Group_ID", "GSCAN" )
+
+]]> />
+</method>
+<method name="SelectRow">
+<param name="idx" type="int" />
+<![CDATA[// void SelectRow( int idx );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="SetCurrent">
+<param name="idx" type="int" />
+<![CDATA[// void SetCurrent( int idx );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="SetRedraw">
+<param name="b" type="int" />
+<![CDATA[// void SetRedraw( int b );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+</members>
+<return>
+<rmeth name="AddRow" cls="int" />
+<rmeth name="CheckUnique" cls="int" />
+<rmeth name="class" cls="MClassDef" />
+<rmeth name="ClassName" cls="string" />
+<rmeth name="ClearSelections" cls="void" />
+<rmeth name="Count" cls="int" />
+<rmeth name="CreateRow" cls="Object" />
+<rmeth name="CurrentIndex" cls="int" />
+<rmeth name="CurrentRow" cls="Object" />
+<rmeth name="DeleteRow" cls="void" />
+<rmeth name="DeleteSelections" cls="int" />
+<rmeth name="FindIndex" cls="int" />
+<rmeth name="FindRow" cls="Object" />
+<rmeth name="GetListLastModDate" cls="string" />
+<rmeth name="GetOrderField" cls="String" />
+<rmeth name="GetOrderFlags" cls="int" />
+<rmeth name="islist" cls="bool" />
+<rmeth name="isObject" cls="bool" />
+<rmeth name="MoveAllTo" cls="void" />
+<rmeth name="MoveRow" cls="void" />
+<rmeth name="MoveSelectionsTo" cls="int" />
+<rmeth name="NewRow" cls="int" />
+<rmeth name="OrderBy" cls="void" />
+<rmeth name="OrderList" cls="void" />
+<rmeth name="OwnerRow" cls="Object" />
+<rmeth name="ReadFromFile" cls="bool" />
+<rmeth name="reset" cls="void" />
+<rmeth name="ResetOrder" cls="void" />
+<rmeth name="SelectMatchingRows" cls="int" />
+<rmeth name="SelectRow" cls="void" />
+<rmeth name="SetCurrent" cls="void" />
+<rmeth name="SetRedraw" cls="void" />
+</return>
+</class>

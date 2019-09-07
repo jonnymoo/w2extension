@@ -1,0 +1,206 @@
+<class name="ImageNoteObj" description="W2 Script Reference">
+<members>
+<method name="GetBottomBound">
+<![CDATA[//@cmember int GetBottomBound(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCaption">
+<![CDATA[//@cmember string GetCaption(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetColor">
+<![CDATA[//@cmember int GetColor(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetDate">
+<![CDATA[//@cmember date GetDate(  );
+//@return date | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetLeftBound">
+<![CDATA[//@cmember int GetLeftBound(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetPoints">
+<![CDATA[//@cmember string GetPoints(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetReadOnly">
+<![CDATA[//@cmember int GetReadOnly(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetRightBound">
+<![CDATA[//@cmember int GetRightBound(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetText">
+<![CDATA[//@cmember string GetText(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetTopBound">
+<![CDATA[//@cmember int GetTopBound(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetType">
+<![CDATA[//@cmember int GetType(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetUser">
+<![CDATA[//@cmember string GetUser(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetBounds">
+<param name="Left" type="int" />
+<param name="Top" type="int" />
+<param name="Right" type="int" />
+<param name="Bottom" type="int" />
+<![CDATA[//@cmember int SetBounds( int Left, int Top, int Right, int Bottom );
+//@param int | Left | 
+//@param int | Top | 
+//@param int | Right | 
+//@param int | Bottom | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetCaption">
+<param name="Caption" type="string" />
+<![CDATA[//@cmember void SetCaption( string Caption );
+//@param string | Caption | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetColor">
+<param name="RGB" type="int" />
+<![CDATA[//@cmember void SetColor( int RGB );
+//@param int | RGB | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetDate">
+<param name="d" type="date" />
+<![CDATA[//@cmember void SetDate( date d );
+//@param date | d | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetPoints">
+<param name="Cur" type="string" />
+<![CDATA[//@cmember int SetPoints( string Cur );
+//@param string | Cur | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetReadOnly">
+<param name="b" type="int" />
+<![CDATA[//@cmember void SetReadOnly( int b );
+//@param int | b | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetText">
+<param name="Text" type="string" />
+<![CDATA[//@cmember void SetText( string Text );
+//@param string | Text | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetType">
+<param name="Type" type="string" />
+<![CDATA[//@cmember int SetType( string Type );
+//@param string | Type | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetUser">
+<param name="User" type="string" />
+<![CDATA[//@cmember void SetUser( string User );
+//@param string | User | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="ToString">
+<![CDATA[//@cmember string ToString(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="GetBottomBound" cls="int" />
+<rmeth name="GetCaption" cls="string" />
+<rmeth name="GetColor" cls="int" />
+<rmeth name="GetDate" cls="date" />
+<rmeth name="GetLeftBound" cls="int" />
+<rmeth name="GetPoints" cls="string" />
+<rmeth name="GetReadOnly" cls="int" />
+<rmeth name="GetRightBound" cls="int" />
+<rmeth name="GetText" cls="string" />
+<rmeth name="GetTopBound" cls="int" />
+<rmeth name="GetType" cls="int" />
+<rmeth name="GetUser" cls="string" />
+<rmeth name="SetBounds" cls="int" />
+<rmeth name="SetCaption" cls="void" />
+<rmeth name="SetColor" cls="void" />
+<rmeth name="SetDate" cls="void" />
+<rmeth name="SetPoints" cls="int" />
+<rmeth name="SetReadOnly" cls="void" />
+<rmeth name="SetText" cls="void" />
+<rmeth name="SetType" cls="int" />
+<rmeth name="SetUser" cls="void" />
+<rmeth name="ToString" cls="string" />
+</return>
+</class>

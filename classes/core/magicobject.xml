@@ -1,0 +1,169 @@
+<class name="magicobject" fauthor="$Author: Jonathan Muir $" fdate="$Date: 6/09/04 17:01 $" frevision="$Revision: 3 $">
+<members>
+<Object name="TheBlob" cls="blob" />
+<Integer name="bCompress" />
+<Integer name="ExpandSize" />
+<String name="ClassName" />
+<method name="GetObject">
+<![CDATA[//@cmember GetObject
+//@version Jonathan.mu | 19-10-01 14:51 |
+//@version Jonathan.Muir | 13-12-01 09:59 |
+//@version Andy.Hatch | 26-07-02 10:01 |
+//@version Darren.Ball | 23-10-02 15:22 |
+//@version Jonny Moo | 05-11-02 15:04 |
+//@version Jonathan.Muir | 06-09-04 16:13 |
+//@i Returns the magic object stored in TheMember
+
+
+if(bCompress)
+{
+    return ProcessBlob(TheBlob.Decompress(ExpandSize),ClassName);
+}
+else
+{
+    return ProcessBlob(TheBlob,ClassName);
+}]]>
+</method>
+<method name="SetObject">
+<param name="TheObject" type="object" />
+<param name="Compress" type="object" />
+<param name="szClassName" type="object" />
+<![CDATA[//@cmember SetObject
+//@param object | TheObject | Make sure this is typed (has a class)
+//@param object | Compress | (Optional) 1 to compress, 0 Not (Optional)
+//@param object | szClassName |
+//@version Jonathan.mu | 19-10-01 16:02 |
+//@version Jonny Moo | 05-11-02 15:05 |
+//@version Jonathan.Muir | 06-09-04 16:01 |
+//@i
+
+TheBlob.reset();
+if(Compress!=NULL&&Compress)
+{
+    bCompress = 1;
+    blob b;
+    b.WriteXML("MagicObject",TheObject);
+    ExpandSize = b.Length();
+    TheBlob.WriteBlob(b.Compress());
+}
+else
+{
+    bCompress = 0;
+    TheBlob.WriteXML("MagicObject", TheObject);
+}
+
+if(szClassName!=NULL)
+{
+    ClassName = szClassName;
+}]]>
+</method>
+<method name="SetObjectFromBlob">
+<param name="pBlob" type="object" />
+<![CDATA[//@cmember SetObjectFromBlob
+//@param object | pBlob | Blob to set object from
+//@version Jonathan.mu | 19-10-01 16:02 |
+//@version Andy.Hatch | 26-07-02 10:02 |
+//@version Jonathan.Muir | 06-09-04 11:08 |
+//@i
+
+TheBlob.reset();
+TheBlob.WriteBlob(pBlob);]]>
+</method>
+<method name="CopyFrom">
+<param name="m" type="object" />
+<![CDATA[//@cmember CopyFrom
+//@param object | m | Magic Object To Copy From
+//@version Jonathan.Muir | 21-01-02 16:37 |
+//@version Andy.Hatch | 25-07-02 10:10 |
+//@i
+
+TheBlob.Reset();
+TheBlob.WriteBlob(m.TheBlob);]]>
+</method>
+<method name="GetBlob">
+<![CDATA[//@cmember GetBlob
+//@version Jonathan.Muir | 21-01-02 16:32 |
+//@i
+
+Return TheBlob;]]>
+</method>
+<method name="IsEmpty">
+<![CDATA[//@cmember IsEmpty
+//@version sorina.grave | 09-04-02 12:22 |
+//@version Richard.Lee | 07-08-02 16:13 |
+//@i
+
+return (GetObject()==NULL);]]>
+</method>
+<method name="WriteToECB">
+<param name="ECB" type="object" />
+<param name="Name" type="object" />
+<![CDATA[//@cmember WriteToECB
+//@param object | ECB |
+//@param object | Name |
+//@version Jonathan.Muir | 06-09-04 16:07 |
+//@i
+
+ECB.Write("<Object name=\""+Name+"\" cls=\"classes::core::magicObject>"
+          "<TheBlob>");
+ECB.WriteXMLCDataBlob(TheBlob);
+ECB.Write("</TheBlob>"
+          "<bCompress>"+bCompress.ToString()+"</bCompress>"
+          "<ExpandSize>"+ExpandSize.ToString()+"</ExpandSize>"
+          "<ClassName>"+ClassName+"</ClassName>"
+          "</Object>");]]>
+</method>
+</members>
+<static>
+<method name="ProcessBlob">
+<param name="TheBlob" type="object" />
+<param name="ClassName" type="string" />
+<![CDATA[//@cmember ProcessBlob
+//@param object | TheBlob |
+//@param string | ClassName |
+//@version Jonathan.Muir | 06-09-04 16:15 |
+//@i
+
+string szClassName;
+
+if(ClassName)
+{
+    object DummyClass = sys::LoadClass(ClassName);
+    if(DummyClass!=NULL)
+    {
+        szClassName = DummyClass.ClassName();
+    }
+}
+
+
+if(!szClassName)
+{
+    object XMLObject = TheBlob.GetXMLObject();
+    if(XMLObject==NULL) return NULL;
+    object TheElement = XMLObject.GetElement(0);
+    if(TheElement==NULL) return NULL;
+    string cls = TheElement.GetAttr("cls");
+
+    object DummyClass = sys::NewObject(cls);
+    if(DummyClass==NULL)
+    {
+        if(TheElement.Tag().eq("xml"))
+        {
+            return TheElement.GetElement(0);
+        }
+        else
+        {
+            return NULL;
+        }
+
+    }
+    szClassName = DummyClass.ClassName();
+}
+
+object x = TheBlob.GetObjects(szClassName);
+object y = x.MagicObject;
+
+return y;]]>
+</method>
+</static>
+</class>

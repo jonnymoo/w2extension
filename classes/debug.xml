@@ -1,0 +1,274 @@
+<class name="Debug" fauthor="$Author: Jonathan Muir$" fdate="$Date: 19/04/04 9:43$" frevision="$Revision: 9$">
+<members />
+<static>
+<Integer name="iMaxRows" />
+<method name="ShowObjectsAA">
+<![CDATA[
+PopupMenu P;
+
+for(int n=0;;n++){
+    Object W = Sys::GetOpenWindow(n);
+    if (W==null) break;
+    P.Add( W.GetText() );
+    }
+
+P.Track();]]>
+</method>
+<method name="ShowObjects">
+<![CDATA[//@version Simon Carroll | 02-08-02 11:18 |
+
+Object M = &core::wdynamenu::TrackObjMenu( this );
+
+if (M==null) return;
+
+if (M.ReferenceObject()!=null)
+    // M.ReferenceObject().Show();
+    classes::ZOrder::WShow::ShowObject( M.ReferenceObject() );
+else
+    Message( M.Selection() );]]>
+</method>
+<method name="FillMenu">
+<param name="P" type="object" />
+<param name="MaxRows" type="object" />
+<![CDATA[//@cmember FillMenu
+//@param object | P |
+//@param object | MaxRows |
+//@version Simon Carroll | 30-11-01 17:00 |
+//@version Jonathan.Muir | 21-10-03 09:32 |
+
+if(iMaxRows==0) iMaxRows = 40;
+if(MaxRows!=NULL) iMaxRows = MaxRows;
+
+Object Ref = P.ReferenceObject();
+String Pre = P.Prefix();
+
+if (Ref==null){
+    // top level...
+    for(int n=0;;n++){
+        Object W = Sys::GetOpenWindow(n);
+        if (W==null) break;
+        AddWinPop(P,W);
+        }
+    }
+else if ((Ref.IsObject()||Ref.IsList()||Ref.IsWindow())&&(Pre=="win" || Pre=="obj" || Pre=="")){
+
+    // this!
+    String cx = Ref.ClassName();
+    int icx = cx.indexof("/classes/");
+    if (icx>=0){
+        cx = cx.right( cx.length() - (icx + 8) );
+        }
+    P.Add("this\t" + cx);
+
+    // get members
+    for(int n=0;n<Ref.MemberCount();n++){
+        Object M = &Ref.GetMember(n);
+        if (M==null) continue;
+        if (n==0) P.AddSeparator();
+
+        String cls = M.ClassName();
+        String q = M.Name();
+
+        if (M.IsObject()) q += " *";
+
+        if (M.IsList()){
+            q += " [" + M.Count() + "]";
+            }
+
+        if (cls=="String"){
+            String z = M;
+            if (z.length()>50) z = z.left(50) + "...";
+            q += "\t" + z;
+            }
+        else if (cls=="Date"){
+            String xx = "" + M;
+            if (xx=="") xx = "null date";
+            q += "\t" + xx;
+            }
+        else if (cls=="Integer"){
+            String xx = M.toString();
+            if (xx.eq("NULL")) xx = "null int";
+            q += "\t" + xx;
+            }
+        else if (cls=="Double"){
+            String xx = M.toString();
+            if (xx.eq("NULL")) xx = "null float";
+            q += "\t" + xx;
+            }
+        else{
+            int i = cls.indexof("/classes/");
+            if (i>=0){
+                cls = cls.right( cls.length() - (i + 8) );
+                }
+            q += "\t" + cls;
+            }
+
+        if (M.IsObject()){
+            if (Ref.GetMember(n)==null)
+                P.Add( q + "(null)" );
+            else
+                P.AddPopup( q, this, "obj", M );
+            }
+        else if (M.IsList())
+            P.AddPopup( q, this, "list", M );
+        else
+            P.Add( q );
+        }
+    // popups
+    if (Ref.IsWindow()){
+        for(n=0;;n++){
+            Object PW = Ref.GetPopup(n); if (PW==null) break;
+            if (n==0) P.AddSeparator();
+            AddWinPop(P,PW);
+            }
+        // is it a browser??
+        if (Ref.HasMethod("ViewPane")){
+            Object MP = Ref.GetControl("idMulti");
+            if (MP!=null){
+                for(n=0;;n++){
+                    Object PW = MP.GetPane(n); if (PW==null) break;
+                    if (n==0) P.AddSeparator();
+                    AddWinPop(P,PW);
+                    }
+                }
+            }
+        }
+    }
+else if (Pre=="list"){
+    int cc = Ref.Count();
+    if (cc>iMaxRows) cc = iMaxRows;
+    if (cc==0) P.Add("<empty>");
+    for(int n=0;n<cc;n++){
+        Object RX = &Ref[n];
+        String q = "["+n+"]";
+        if (n==Ref.CurrentIndex()) q += " ***";
+        P.AddPopup( q, this, "obj", RX );
+        }
+    }
+else{
+    P.Add( "Prefix: " + Pre );
+    }]]>
+</method>
+<method name="AddWinPop">
+<param name="P" type="object" />
+<param name="W" type="object" />
+<![CDATA[
+String q = W.GetText();
+if (q.length()>32) q = q.left(32) + "...";
+if (!W.IsVisible()) q += " (hidden)";
+P.AddPopup( q, this, "win", W );]]>
+</method>
+<method name="ShowObj">
+<param name="X" type="object" />
+<param name="MaxRows" type="object" />
+<![CDATA[//@cmember ShowObj
+//@param object | X |
+//@param object | MaxRows |
+//@version Simon Carroll | 05-08-02 14:21 |
+//@version Jonathan.Muir | 24-03-04 11:51 |
+
+if(MaxRows!=NULL) iMaxRows = MaxRows;
+
+Object M;
+If (X==null)
+{
+    message("Object is null");
+    return;
+}
+if (X.IsList())
+    M = &core::wdynamenu::TrackObjMenu( this, X, "list");
+   //M = sys::TrackObjMenu( this, X, "list" );
+else
+    M = core::wdynamenu::TrackObjMenu( this, X );
+
+if (M==null) return;
+
+if (M.ReferenceObject()!=null)
+    // M.ReferenceObject().Show();
+    classes::ZOrder::WShow::ShowObject( M.ReferenceObject() );
+else
+    Message( M.Selection() );]]>
+</method>
+<method name="WriteScalarToFile">
+<param name="pScalar" type="object" />
+<param name="pFilename" type="object" />
+<![CDATA[//@cmember WriteScalarToFile
+//@param object | pScalar |
+//@param object | pFilename | (Optional) C:\\temp\\payrun.txt is used when not set
+//@version Matt Plaxton | 08-07-04 10:25 |
+//@version Matt.Plaxton | 05-10-05 11:59 |
+//@i
+
+String szFilename = (pFilename == NULL) ? "C:\\temp\\debug.txt" : pFilename;
+
+file f;
+
+//  Try to open and append to existing file.
+//
+if (!f.Open(szFilename, "w"))
+{
+    //  File doesn't exist so create.
+    //
+    if (!f.CreateFile(szFileName)) return;
+}
+else
+{
+    f.SeekToEnd();
+}
+
+f.write("" + pScalar);
+f.write("\n\n");
+f.close();]]>
+</method>
+<method name="WriteObjectToFile">
+<param name="pObject" type="object" />
+<param name="pFilename" type="object" />
+<param name="pObjectName" type="object" />
+<![CDATA[//@cmember WriteObjectToFile
+//@param object | pObject |
+//@param object | pFilename |
+//@param object | pObjectName | (Optional)
+//@version Matt.Plaxton | 05-10-05 11:56 |
+//@i
+
+if (pObject == NULL) return;
+
+String szFilename = (pFilename == NULL) ? "C:\\temp\\debug.txt" : pFilename;
+String szObjectName = (pObjectName == NULL) ? "Debug" : pObjectName;
+
+Blob b;
+
+b.WriteXML(szObjectName, pObject);
+
+String xmlString = b.ToString();
+
+//  Replace any XML control chars to normal symbols.
+//
+xmlString = xmlString.replace("&#13;", "\n");
+xmlString = xmlString.replace("&#10;", "\r");
+
+//  Replace single quotes with double quotes or insert will fail
+//
+xmlString = xmlString.replace("'", "''");
+
+file f;
+
+//  Try to open and append to existing file.
+//
+if (!f.Open(szFilename, "w"))
+{
+    //  File doesn't exist so create.
+    //
+    if (!f.CreateFile(szFileName)) return;
+}
+else
+{
+    f.SeekToEnd();
+}
+
+f.write(xmlString);
+f.write("\n\n");
+f.close();]]>
+</method>
+</static>
+</class>

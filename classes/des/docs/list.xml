@@ -1,0 +1,478 @@
+<class name="List" description="W2 Script Reference">
+<members sub="Creating Rows">
+<method name="AddRow">
+<param name="row" type="Object" />
+<![CDATA[//@cmember int AddRow( Object row );
+//@param Object | row | 
+//@return int | 
+//@i Appends a copy of  the object 'row' to the list and returns its index.
+]]>
+ />
+</method>
+<method name="CreateRow">
+<param name="index]" type="[int" />
+<![CDATA[//@cmember Object CreateRow( [int index] );
+//@param [int | index] | 
+//@return Object | 
+//@i Creates a new row & returns it.  (index is optional, if withheld, the row will be appended to the end of the list)
+//@Exam // Append a new object to the list.
+//@Exam object newObj = &LX.createRow();
+//@Exam 
+//@Exam // Insert a new object as index 3.
+//@Exam object newObj = &LX.createRow( 3 );
+//@Exam ]]>
+ />
+</method>
+<method name="NewRow">
+<![CDATA[//@cmember int NewRow(  );
+//@return int | 
+//@i Appends a new row to the end of the list and returns the new rows index.
+]]>
+ />
+</method>
+<method name="CreateRowBin">
+<param name="SearchValue" type="variable" />
+<![CDATA[// Object CreateRow( variable SearchValue );
+//@i Comments : creates a row ordered by the default search field
+//@i using the searchvalue as the antisipated value.
+//@i Note this doesn't enter searchvalue into the field, you need to do this manually
+
+// Example : 
+
+]]> />
+</method>
+
+<method name="ReadFromFile">
+<param name="FileName" type="string" />
+<param name="Path" type="string" />
+<param name="Cache]" type="[int" />
+<![CDATA[//@cmember int ReadFromFile( string FileName, string Path, [int Cache] );
+//@param string | FileName | 
+//@param string | Path | 
+//@param [int | Cache] | 
+//@return int | 
+//@i The Path and Cache are optional
+]]>
+ />
+</method>
+<method name="ReadFromBlob">
+<param name="blobList" type="blob" />
+<![CDATA[//@cmember int ReadFromBlob( blob blobList );
+//@param blob | blobList| the list blob
+//@return int | 1 - success, 0 - failure
+//@i Reads a list from a blob
+]]>
+ />
+</method>
+</members>
+<members sub="Deleting Rows">
+<method name="DeleteRow">
+<param name="idx" type="int" />
+<![CDATA[//@cmember void DeleteRow( int idx );
+//@param int | idx | 
+//@return void | 
+//@i Deletes the item (row) specified by the index 'idx' from the list.
+]]>
+ />
+</method>
+<method name="GetRow">
+<param name="idx" type="int" />
+<![CDATA[//@cmember void GetRow( int idx );
+//@param int | idx | 
+//@return Object | 
+//@i Returns the object at the specified index.
+]]>
+ />
+</method>
+<method name="DeleteSelections">
+<![CDATA[//@cmember int DeleteSelections(  );
+//@return int | 
+//@i Deletes the selected items (rows) from the list.  This is only valid for lists bound to a control.
+]]>
+ />
+</method>
+<method name="reset">
+<![CDATA[//@cmember void reset(  );
+//@return void | 
+//@i Delete all rows from the list.
+]]>
+ />
+</method>
+</members>
+
+<members sub="Display">
+<method name="ClearSelections">
+<![CDATA[//@cmember void ClearSelections(  );
+//@return void | 
+//@i Deselects any selected rows in the list.  This only applies to lists that are bound to a control.
+]]>
+ />
+</method>
+<method name="SetCurrent">
+<param name="idx" type="int" />
+<![CDATA[//@cmember void SetCurrent( int idx );
+//@param int | idx | 
+//@return void | Sets row 'idx' as current row and deselects all other rows
+//@i Selects the row indicated by the index 'idx' and de-selects all other rows.
+]]>
+ />
+</method>
+<method name="SetRedraw">
+<param name="b" type="int" />
+<![CDATA[//@cmember void SetRedraw( int b );
+//@param int | b | 
+//@return void | 
+//@i When set to '0', the list will not be refreshed automatically when it is modified by your code until you call this method again with a '1'.
+//@Exam // Don't redraw the control while I add 100 rows.
+//@Exam LX.setRedraw(0);
+//@Exam for (int i=0; i<10; i++)
+//@Exam     LX.addRow();
+//@Exam LX.setRedraw(1);
+//@Exam ]]>
+ />
+</method>
+</members>
+<members sub="Finding Rows">
+<method name="CheckUnique">
+<param name="fieldname" type="String" />
+<param name="index" type="int" />
+<![CDATA[//@cmember int CheckUnique( String fieldname, int index );
+//@param String | fieldname | 
+//@param int | index | 
+//@return int | 
+//@i returns index of row with non-unique field, or -1
+]]>
+ />
+</method>
+<method name="FindIndex">
+<param name="X" type="Object" />
+<![CDATA[//@cmember int FindIndex( Object X );
+//@param Object | X | 
+//@return int | 
+//@i Locates the object X in the list and returns it's index number or -1 if it is not in the list.
+]]>
+ />
+</method>
+<method name="FindRow">
+<param name="q" type="variable" />
+<param name="member_index]" type="[int" />
+<![CDATA[//@cmember Object FindRow( variable q, [int member_index] );
+//@param variable | q | instance of variable to search for
+//@param [int | member_index] | index of member to search in (defualts to 0)
+//@return Object | object found or null if not found
+//@i Finds a row by searching one column (generally a key field).  Returns the matching object or null.
+//@Exam // The 3rd member of LX is a string
+//@Exam object o = &LX.findRow( "Fred", 2 );
+//@Exam // The first (default) member is an integer 'id'
+//@Exam object o = &LX.findRow( 63 );
+//@Exam ]]>
+ />
+</method>
+<method name="FindRowBin">
+<param name="q" type="variable" />
+<![CDATA[// Object FindRow( variable q );
+//@i Comments : returns matching object or null
+//@i Note:  The list must have been created using CreateRowBin or this will default to FindRow
+//@i        This will look in the default search field for the value q
+
+// Example :
+
+
+
+]]> />
+</method>
+
+<method name="FindRowByFieldName">
+<param name="value" type="variable" />
+<param name="field" type="String" />
+<![CDATA[//@cmember Object FindRowByFieldName( variable value ,string field );
+//@param variable | value | the value to search for
+//@param string | field | the name of member to search in
+//@return Object | object found or null if not found
+//@i Finds a row by searching the specified column (generally a key field).  Returns the (first) matching object or null.
+//@Exam // The 3rd member of LX is "Forenames" of type string
+//@Exam object o = &LX.findRowByFieldName( "Fred", "Forenames" );
+//@Exam // o will contain the first record matching the criteria or null if nothing found
+//@Exam ]]>
+ />
+</method>
+
+<method name="FindRowIndex">
+<param name="q" type="variable" />
+<param name="member_index]" type="[int" />
+<![CDATA[//@cmember int FindRowIndex( variable q, [int member_index] );
+//@param variable | q | instance of variable to search for
+//@param [int | member_index] | index of member to search in (defualts to 0)
+//@return int | index of row found or -1 if not found
+//@i Finds a row by searching one column (generally a key field).  Returns the index of the row or -1 if not found
+//@Exam // The 3rd member of LX is a string
+//@Exam int i = &LX.findRowIndex( "Fred", 2 );
+//@Exam // The first (default) member is an integer 'id'
+//@Exam int i = &LX.findRowIndex( 63 );
+//@Exam ]]>
+ />
+</method>
+</members>
+<members sub="Information">
+<method name="class">
+<![CDATA[//@cmember ClassDef class(  );
+//@return ClassDef | 
+//@i Returns the Class Definition of items in list
+]]>
+ />
+</method>
+<method name="ClassName">
+<![CDATA[//@cmember string ClassName(  );
+//@return string | 
+//@i Returns the class name of items in the list.
+]]>
+ />
+</method>
+<method name="Count">
+<![CDATA[//@cmember int Count(  );
+//@return int | 
+//@i Returns the number of all items in the list
+]]>
+ />
+</method>
+<method name="GetInitialising">
+<![CDATA[//@cmember int GetInitialising(  );
+//@return int| 1- the list is in the process of initialising, 0 - list has initialised 
+//@i 
+]]>
+ />
+</method>
+<method name="GetListLastModDate">
+<![CDATA[//@cmember string GetListLastModDate(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetSequence">
+<![CDATA[//@cmember int GetSequence(  );
+//@return int| list sequence
+//@i 
+]]>
+ />
+</method>
+<method name="IncrementSequence">
+<![CDATA[//@cmember int IncrementSequence(  );
+//@return int| the new incremented sequence
+//@i increments a list sequence and returns the new value of the sequence
+]]>
+ />
+</method>
+<method name="islist">
+<![CDATA[//@cmember int islist(  );
+//@return int | 
+//@i True
+]]>
+ />
+</method>
+<method name="isObject">
+<![CDATA[//@cmember int isObject(  );
+//@return int | 
+//@i False
+]]>
+ />
+</method>
+<method name="OwnerRow">
+<![CDATA[//@cmember Object OwnerRow(  );
+//@return Object | 
+//@i Returns the object that owns this list or null if it is not owned.  (i.e. the class that the list was instantiated within)
+]]>
+ />
+</method>
+<method name="ResetNoNotify">
+<![CDATA[//@cmember void ResetNoNotify();
+//@return void| 
+//@i This is used to reset a list without it trying to populate it self again
+]]>
+ />
+</method>
+
+<method name="SetInitialising">
+<param name="isInitialising" type="int" />
+<![CDATA[//@cmember void SetInitialising(int isInitialising );
+//@param int | isInitialising | 
+//@return void | 
+//@i Sets the initialising flag
+]]>
+ />
+</method>
+<method name="SetSequence">
+<param name="iSeq" type="int" />
+<![CDATA[//@cmember void SetSequence(int iSeq);
+//@param int | iSeq | 
+//@return void | 
+//@i Sets the sequence
+]]>
+ />
+</method>
+</members>
+<members sub="Moving Rows">
+<method name="MoveAllTo">
+<param name="dest" type="List" />
+<![CDATA[//@cmember void MoveAllTo( List dest );
+//@param List | dest | 
+//@return void | 
+//@i move all rows to a different list
+]]>
+ />
+</method>
+<method name="MoveRow">
+<param name="iFrom" type="int" />
+<param name="iTo" type="int" />
+<![CDATA[//@cmember void MoveRow( int iFrom, int iTo );
+//@param int | iFrom | 
+//@param int | iTo | 
+//@return void | 
+//@i change a row position in list
+]]>
+ />
+</method>
+<method name="MoveSelectionsTo">
+<param name="dest" type="List" />
+<![CDATA[//@cmember int MoveSelectionsTo( List dest );
+//@param List | dest | 
+//@return int | 
+//@i move rows to a different list
+]]>
+ />
+</method>
+</members>
+
+<members sub="Ordering">
+<method name="GetOrderField">
+<param name="" type="col_index" />
+<![CDATA[//@cmember String GetOrderField( col_index );
+//@param col_index |  | 
+//@return String | 
+//@i Returns the field specified with OrderBy()
+]]>
+ />
+</method>
+<method name="GetOrderFlags">
+<param name="" type="col_index" />
+<![CDATA[//@cmember int GetOrderFlags( col_index );
+//@param col_index |  | 
+//@return int | 
+//@i Returns the flags specified with OrderBy()
+]]>
+ />
+</method>
+<method name="OrderBy">
+<param name="field" type="String" />
+<param name="opt" type="String" />
+<![CDATA[//@cmember void OrderBy( String field, String opt );
+//@param String | field | 
+//@param String | opt | 
+//@return void | 
+//@i Stores the order for use by OrderList()
+//@Exam LX.ResetOrder();
+//@Exam LX.OrderBy("Age", "desc");
+//@Exam LX.OrderBy("Name", "asc");
+//@Exam LX.OrderList();
+//@Exam ]]>
+ />
+</method>
+<method name="OrderList">
+<![CDATA[//@cmember void OrderList(  );
+//@return void | 
+//@i Implement the ordering set by orderBy().  (see orderBy)
+]]>
+ />
+</method>
+<method name="ResetOrder">
+<![CDATA[//@cmember void ResetOrder(  );
+//@return void | 
+//@i Reset the order used by OrderList().
+]]>
+ />
+</method>
+</members>
+<members sub="Select Rows">
+<method name="SelectMatchingRows">
+<param name="Member" type="string" />
+<param name="Value" type="string" />
+<![CDATA[//@cmember int SelectMatchingRows( string Member, string Value );
+//@param string | Member | 
+//@param string | Value | 
+//@return int | 
+//@i Selects multiple rows based on a Member equalling a specific Value.
+//@Exam int cc = LX.SelectMatchingRows( "Group_ID", "GSCAN" )]]>
+ />
+</method>
+<method name="SelectRow">
+<param name="idx" type="int" />
+<param name="onOff]" type="[int" />
+<![CDATA[//@cmember void SelectRow( int idx, [int onOff] );
+//@param int | idx | index of row to be selected
+//@param [int | onOff] | 1 = Select Row, 0 = Unselect Row
+//@return void | Selects the row in the list indicated by the index 'idx'.
+//@i Selects the row in the list indicated by the index 'idx'.
+]]>
+ />
+</method>
+</members>
+<members sub="Current Row">
+<method name="CurrentIndex">
+<![CDATA[//@cmember int CurrentIndex(  );
+//@return int | 
+//@i Returns the index of the currently selected row or -1 if none is selected.
+]]>
+ />
+</method>
+<method name="CurrentRow">
+<![CDATA[//@cmember object CurrentRow(  );
+//@return object | 
+//@i Returns the selected row of the list or null if there is no selection.
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="DeleteRow" cls="void" />
+<rmeth name="DeleteSelections" cls="int" />
+<rmeth name="reset" cls="void" />
+<rmeth name="GetOrderField" cls="String" />
+<rmeth name="GetOrderFlags" cls="int" />
+<rmeth name="OrderBy" cls="void" />
+<rmeth name="OrderList" cls="void" />
+<rmeth name="ResetOrder" cls="void" />
+<rmeth name="ClearSelections" cls="void" />
+<rmeth name="SetCurrent" cls="void" />
+<rmeth name="SetRedraw" cls="void" />
+<rmeth name="CheckUnique" cls="int" />
+<rmeth name="FindIndex" cls="int" />
+<rmeth name="FindRow" cls="Object" />
+<rmeth name="FindRowByFieldName" cls="object" />
+<rmeth name="FindRowIndex" cls="int" />
+<rmeth name="MoveAllTo" cls="void" />
+<rmeth name="MoveRow" cls="void" />
+<rmeth name="MoveSelectionsTo" cls="int" />
+<rmeth name="AddRow" cls="int" />
+<rmeth name="CreateRow" cls="Object" />
+<rmeth name="NewRow" cls="int" />
+<rmeth name="ReadFromFile" cls="int" />
+<rmeth name="ReadFromBlob" cls="int" />
+<rmeth name="class" cls="ClassDef" />
+<rmeth name="ClassName" cls="string" />
+<rmeth name="Count" cls="int" />
+<rmeth name="GetListLastModDate" cls="string" />
+<rmeth name="GetSequence" cls="int" />
+<rmeth name="GetInitialising" cls="int" />
+<rmeth name="SetInitialising" cls="void" />
+<rmeth name="islist" cls="int" />
+<rmeth name="isObject" cls="int" />
+<rmeth name="incrementSequence" cls="int" />
+<rmeth name="setSequence" cls="void" />
+<rmeth name="ResetNoNotify" cls="void" />
+<rmeth name="OwnerRow" cls="Object" />
+<rmeth name="SelectMatchingRows" cls="int" />
+<rmeth name="SelectRow" cls="void" />
+<rmeth name="CurrentIndex" cls="int" />
+<rmeth name="CurrentRow" cls="object" />
+</return>
+</class>

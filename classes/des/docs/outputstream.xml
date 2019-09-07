@@ -1,0 +1,152 @@
+<class name="OutputStream" description="W2 Script Reference">
+<members>
+<method name="GetEscape">
+<param name="" type="string" />
+<param name="" type="string" />
+<![CDATA[//@cmember string GetEscape( string, string );
+//@param string |  | 
+//@param string |  | 
+//@return string | 
+//@i 
+//@Exam String esc = Stream.GetEscape(text,"]]>");]]>
+ />
+</method>
+</members>
+<members sub="Raw Output">
+<method name="Write">
+<param name="" type="var" />
+<param name="" type="var" />
+<param name="" type="var" />
+<param name="" type="..." />
+<![CDATA[//@cmember int Write( var, var, var, ... );
+//@param var |  | 
+//@param var |  | 
+//@param var |  | 
+//@param ... |  | 
+//@return int | 
+//@i Write variables directly to output as strings
+]]>
+ />
+</method>
+<method name="WriteBlob">
+<param name="B" type="Blob" />
+<![CDATA[//@cmember int WriteBlob( Blob B );
+//@param Blob | B | 
+//@return int | 
+//@i write raw BINARY data to stream
+]]>
+ />
+</method>
+<method name="WriteByte">
+<param name="b" type="int" />
+<![CDATA[//@cmember int WriteByte( int b );
+//@param int | b | 
+//@return int | 
+//@i write a single byte (0-255) to the stream
+]]>
+ />
+</method>
+<method name="WriteCRLF">
+<![CDATA[//@cmember int WriteCRLF(  );
+//@return int | 
+//@i write "\r\n" to output
+]]>
+ />
+</method>
+<method name="WriteHTML">
+<param name="" type="string" />
+<![CDATA[//@cmember int WriteHTML( string );
+//@param string |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="WriteHTMLText">
+<param name="text" type="String" />
+<![CDATA[//@cmember int WriteHTMLText( String text );
+//@param String | text | 
+//@return int | 
+//@i writes a string with HTML escapes, ie "a>b" becomes "a&gt;b"
+]]>
+ />
+</method>
+<method name="WriteInteger">
+<param name="" type="int" />
+<![CDATA[//@cmember int WriteInteger( int );
+//@param int |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="WriteShort">
+<param name="" type="int" />
+<![CDATA[//@cmember int WriteShort( int );
+//@param int |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="XML Output">
+<method name="WriteXML">
+<param name="name" type="String" />
+<param name="obj" type="Object" />
+<param1 name="X" type="XMLObject" />
+<![CDATA[//@cmember int WriteXML( {String name, Object obj} and {XMLObject X} );
+//@param String | name | 
+//@param Object | obj | 
+//@param XMLObject | X | 
+//@return int | 
+//@i {SERIALIZE objects or variables} and {write an XMLobject}
+]]>
+ />
+</method>
+<method name="WriteXMLAttr">
+<param name="" type="string" />
+<param name="" type="string" />
+<![CDATA[//@cmember int WriteXMLAttr( string, string );
+//@param string |  | 
+//@param string |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="WriteXMLCDATA">
+<param name="text" type="String" />
+<![CDATA[//@cmember int WriteXMLCDATA( String text );
+//@param String | text | 
+//@return int | 
+//@i writes a <![CDATA[ ... ]]> section
+]]>
+ />
+</method>
+<method name="WriteXMLText">
+<param name="text" type="String" />
+<![CDATA[//@cmember int WriteXMLText( String text );
+//@param String | text | 
+//@return int | 
+//@i writes a string with XML escapes, ie "a>b" becomes "a&gt;b"
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Write" cls="int" />
+<rmeth name="WriteBlob" cls="int" />
+<rmeth name="WriteByte" cls="int" />
+<rmeth name="WriteCRLF" cls="int" />
+<rmeth name="WriteHTML" cls="int" />
+<rmeth name="WriteHTMLText" cls="int" />
+<rmeth name="WriteInteger" cls="int" />
+<rmeth name="WriteShort" cls="int" />
+<rmeth name="WriteXML" cls="int" />
+<rmeth name="WriteXMLAttr" cls="int" />
+<rmeth name="WriteXMLCDATA" cls="int" />
+<rmeth name="WriteXMLText" cls="int" />
+<rmeth name="GetEscape" cls="string" />
+</return>
+</class>

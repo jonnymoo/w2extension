@@ -1,0 +1,816 @@
+<class name="AdvSearch" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:36$" frevision="$Revision: 2$">
+<members>
+<Integer name="dataPos" />
+<Integer name="typePos" />
+<Integer name="listTyp" />
+<String name="typeS" />
+<method name="findLocalVar">
+<param name="src" type="string" />
+<param name="find" type="string" />
+<![CDATA[//@version Andrew Griffin | 04-02-02 12:30 |
+int cp=0, f, f2;
+typeS = "";
+
+while (1) {
+
+    // Get next instance of search string
+    f = src.indexOf(find, cp, 1);
+
+    if (f==-1) {
+        //message("BOF");
+        return;           // not found.
+    }
+
+    f2 = f+find.length();
+    if (f2>src.length()) {
+        //message("EOF");
+        return; // eof
+    }
+
+    if (f>0 && smpParse::commaSpace(src[f-1])) {
+        if (smpParse::badCharBrak(src[f2])) {
+            //message("Possibly found at " + f + "\r\nText Follows:\r\n" + src.subString(f, f+40));
+
+            listTyp = (src[f2]=='[');
+
+            smpParse myParse;
+            myParse.init(src, f);
+
+            if (!myParse.inComment() && !myParse.inString()) {
+                myParse.backToBeginOfStat();
+                if (myParse.pos<f) {
+
+                    if (checkKeyword(myParse.retType)) return;
+
+                    //message("Found of type : " + myParse.retType);
+                    typePos = myParse.pos;
+                    dataPos = f;
+                    typeS = myParse.retType;
+                    return;
+                } else return;
+            }
+        }
+    }
+    cp = f+1;
+}]]>
+</method>
+</members>
+<static>
+<String name="searchName" />
+<String name="rootPath" />
+<String name="preRootPath" />
+<method name="classExist">
+<param name="path" type="string" />
+<param name="openIt" type="int" />
+<![CDATA[file tmpF;
+
+if (tmpF.Open( path, "r" )) {
+    tmpF.close();
+
+    if (openIt) { // Open class in a new window
+        WClassView Q;
+        Q.Init();
+        Q.readFile(Path);
+        return Q;
+    }
+
+    return 1;   // If not opening then must at least respond with an ok signal.
+
+}
+
+return null;   // doesn't exist]]>
+</method>
+<method name="classExistCache">
+<param name="path" type="string" />
+<![CDATA[//@cmember classExistCache
+//@param string | path |
+//@version Andrew Griffin | 24-08-01 16:09 |
+
+xml x = &globalXML::LoadXML( path );
+return x.tag()!="error";]]>
+</method>
+<method name="OpenClassFile" return="wClassView">
+<param name="cls" type="string" />
+<param name="path" type="string" />
+<param name="mmName" type="string" />
+<param name="noHist" type="object" />
+<param name="ThreadGuid" type="string" />
+<param name="bquiet" type="object" />
+<![CDATA[//@cmember OpenClassFile
+//@param string | cls |
+//@param string | path |
+//@param string | mmName |
+//@param object | noHist |
+//@param string | ThreadGuid |
+//@param object | bquiet |
+//@return wClassView |
+//@version Andrew Griffin | 19-06-02 15:51 |
+//@version jonathan.muir | 18-02-10 13:25 |
+//@version Jonathan.Muir | 26-02-10 16:00 |
+// Locates and opens the class file 'cls' in a new window
+//
+
+//Sys::debugout("In OpenClassFilePath");
+
+return OpenClassFilePath( classToPath( cls, path, 0 ), mmName, noHist,NULL,ThreadGuid,bquiet);]]>
+</method>
+<method name="OpenClassFilePath" return="wClassView">
+<param name="tpath" type="string" />
+<param name="mmName" type="string" />
+<param name="noHist" type="object" />
+<param name="rename" type="string" />
+<param name="pThreadGuid" type="string" />
+<param name="bQuiet" type="int" />
+<![CDATA[//@cmember OpenClassFilePath
+//@param string | tpath |
+//@param string | mmName |
+//@param object | noHist |
+//@param string | rename |
+//@param string | pThreadGuid |
+//@param int | bQuiet |
+//@return wClassView |
+//@version Andrew Griffin | 23-04-02 12:00 |
+//@version jonathan.muir | 18-02-10 13:25 |
+//@version Jonathan.Muir | 11-03-10 12:45 |
+// Locates and opens the class file at 'tpath' in a new window
+//
+
+//Sys::debugout("In OpenClassFilePath: "+tPath+", "+mmName);
+
+string ThreadGuid = "";
+if(pThreadGuid!=null) ThreadGuid = pThreadGuid;
+
+int docs = (tPath.indexOf("des\\docs\\",0,1)>=0);
+
+if (docs) {
+    message("This is a class help file and can not be opened for viewing in the W2 Designer.");
+    return null;
+}
+
+// Check to see if the specified file is already open in a 'des' window.
+wClassView win = null, blankWin = null;
+
+for (int i=0;; i++) {
+    win=&sys::GetOpenWindow(i);
+    if (win==null) break;
+
+    if (win.getmemberdef("FileName")!=null)
+    {
+        if (tPath.eq(win.FileName))
+        {
+            if(win.hasMethod("GetThreadGuid"))
+            {
+                if(win.GetThreadGuid()==ThreadGuid)
+                {
+
+                    win.setforeground();
+                    win.show(1);
+                    win.SetTopMost(1);
+                    win.SetTopMost(0);
+                    win.SetFocus();
+                    if(ThreadGuid)
+                    {
+                        object win2 = &openMethodMember(win,mmName,1,ThreadGuid);
+                        if(win2!=null) return win2;
+                        else return win;
+                    }
+                    else
+                    {
+                        return &openMethodMember( win, mmName,bquiet );
+                    }
+                }
+            }
+        }
+    }
+}
+
+// id not already open then try to open it.
+
+
+file tmpF;
+
+if (!tmpF.open(tPath, "r"))
+{
+    if (noHist!=null && noHist==1) return null;
+
+    // If opening in debug mode - Create a dummy class
+    if(ThreadGuid!="")
+    {
+        WClassView Q;
+        Q.Init();
+        Q.DoNew();
+
+        string fn = tPath;
+
+        int en = fn.lastIndexOf(".");
+        int sn = fn.lastIndexOf("\\");
+
+        String cnm = fn.substring(sn+1,en);
+        Object CD = &Q.XFile.Classes[0];
+        if (!CD.ClassName.eq(cnm)){
+            CD.ClassName = cnm;
+            }
+
+        CD.ClassPath = fn;
+        Q.SetThreadGuid(ThreadGuid);
+        Q.FileName = tPath;
+        Q.SetCaption();
+        return Q;
+
+    }
+    else if ((bquiet!=null&&bquiet==1))
+    {
+        return null;
+    }
+    else
+    {
+
+        if (Message( "Do you want to create a new class file?\r\n"
+                     "File to create : " + tPath,
+                     "Class not found!",
+                     4 )==6) {
+
+            // If the class file does not exist, then create it.
+
+            WClassView Q;
+            Q.Init();
+            Q.DoNew();
+
+            string fn = tPath;
+
+            int en = fn.lastIndexOf(".");
+            int sn = fn.lastIndexOf("\\");
+
+            String cnm = fn.substring(sn+1,en);
+            Object CD = &Q.XFile.Classes[0];
+            if (!CD.ClassName.eq(cnm)){
+                CD.ClassName = cnm;
+                }
+
+            CD.ClassPath = fn;
+            Q.SaveTheFile(fn);
+            return &Q;
+        }
+    }
+    return null;
+}
+
+tmpF.close();
+
+// Open class in a new window
+WClassView Q = null;
+
+if (win!=null) {
+    Q = &win;
+    Q.modified = 0;
+} else
+
+
+if ( blankWin!=null)
+{
+    Q = &blankWin;
+    //Q.Show(1);
+    Q.ToTop();
+    Q.SetFocus();
+}
+else
+{
+    Q = &WClassView::CreateInstance();
+    Q.Init(1);
+}
+
+Q.readFile(tPath, null,null, rename);
+Q.SetThreadGuid(ThreadGuid);
+
+if(ThreadGuid)
+{
+    object win2 = &openMethodMember(Q,mmName,1,ThreadGuid);
+    if(win2!=null) return win2;
+    else return Q;
+}
+else
+{
+    return &openMethodMember( Q, mmName,bquiet );
+}
+
+//return &Q;]]>
+</method>
+<method name="openMethodMember">
+<param name="Q" type="WClassView" />
+<param name="mmName" type="string" />
+<param name="bquiet" type="int" />
+<param name="ThreadGuid" type="string" />
+<![CDATA[//@cmember openMethodMember
+//@param WClassView | Q |
+//@param string | mmName |
+//@param int | bquiet |
+//@param string | ThreadGuid |
+//@version Andrew Griffin | 23-04-02 12:05 |
+//@version Jonathan.Muir | 16-03-19 09:08 |
+// Selects a Method or Member to edit in a des window
+//
+// Q = the Des class to open in
+// mmName = Method or Member Name to open
+
+if (mmName!="") {
+    object o = &findMethod( Q, mmName, null );
+    if (o!=null) showMethod( Q, o );
+    else {
+        o = &findMember( Q, mmName, null);
+        if (o!=null) showMember( Q, o );
+        else {
+            o = &findCmpInForm( Q, mmName );
+            if (o!=null) showCmpInForm( Q, o );
+            else {
+                string baseClass = Q.XFile.Classes[0].BaseClass;
+
+                if (baseClass) {
+                    if(ThreadGuid!="") {
+                        Q.Close();
+                    }
+                    return OpenClassFile( baseClass, Q.FileName, mmName,NULL,ThreadGuid,bquiet );
+                }
+
+                if(bquiet==null||bquiet==0) message("Method or Member " + mmName + " could not be found in class");
+                return NULL;
+            }
+
+        }
+    }
+}
+
+
+classes::des::browse::clsbrowser browser = &classes::des::browse::clsbrowser::mybrowser;
+
+//sys::debugout("bQuiet: "+bQuiet);
+if((browser!=null)&&(!Q.ThreadGuid)&&(bQuiet==null||bQuiet==0))
+{
+    browser.AddMethodHistory(Q.FileName,mmName);
+}
+
+
+
+return Q;]]>
+</method>
+<method name="openMethodSearch">
+<param name="classname" type="string" />
+<param name="methodName" type="string" />
+<param name="threadGuid" type="string" />
+<![CDATA[//@cmember openMethodSearch
+//@param string | classname |
+//@param string | methodName |
+//@param string | threadGuid |
+//@version Andrew Griffin | 24-06-02 09:35 |
+//@version jonathan.muir | 17-02-10 15:19 |
+//@version Jonathan.Muir | 10-03-10 16:38 |
+
+string thisPath = classes::cpicks::classname();
+thisPath = thisPath.left( thisPath.lastindexof("\\")+1 );
+
+string classnameR = sys::MakeRelativeName( thispath, classname );
+classnameR = classnameR.left( classnameR.lastindexof( "." ) );
+
+/*
+xml brX = &browse2::browser::browseBase(
+            "This",
+            "object",
+            classname,
+            "",
+            thisPath
+          );
+*/
+xml brX = &browse2::browser::browseBase(
+            "This",
+            "object",
+            classnameR,
+            methodName,
+            thisPath
+          );
+
+if (brX!=null && brX.execPath && brX.execPath.indexOf(".xml",0,1)>=0)
+{
+    return openClassFilePath( brX.execPath, methodName, 0,NULL,threadGuid );
+}
+else
+{
+    return openClassFilePath( classname, methodName, 0, NULL, threadGuid );
+}
+
+return null;
+/*
+popups::popDummy pForm;
+browse2::browser::browseObj2( brX, pForm );
+
+classes::cpicks fnd = &pForm.stringS.FindRow( methodName.lower() );
+if (fnd!=null)
+    return openClassFile( fnd.PickType, thisPath, methodName, 0 );
+
+return NULL;]]>
+</method>
+<method name="classToPath">
+<param name="cls" type="string" />
+<param name="path" type="string" />
+<param name="ext" type="int" />
+<![CDATA[//@cmember classToPath
+//@param string | cls |
+//@param string | path |
+//@param int | ext |
+//@version Andrew Griffin | 15-02-02 10:49 |
+//@version jonathan.muir | 23-12-08 13:33 |
+
+// Takes a 'Class reference' and 'base path' and returns an updates path
+//
+// cls   = "::lev1::lev2::class"
+// path  = "c:\w2\classes\lev0\"
+// returns "c:\w2\classes\lev0\lev1\lev2\class.xml"
+
+if (cls.eq("int")) cls="integer";
+
+string sExt, pathAd="";
+if (ext==0) sExt=".xml"; else sExt="";
+
+string newPath = sys::MakeFullName( path, cls+sExt );
+
+// does it exist?
+
+xml x = &globalXML::LoadXML( newPath );
+
+if (x.tag()!="error")
+{
+    // Do we have a library attribute
+    string lib;
+
+    if(x.GetElement(0)!=null)
+    {
+        lib = x.GetElement(0).GetAttr("Library");
+    }
+
+    if(lib)
+    {
+        // Do we have a library help attribute - if so we'll look in classes::des::docs for it
+        string libHelp = x.GetElement(0).GetAttr("LibraryHelp");
+
+        if(libHelp)
+        {
+            cls = libHelp;
+            sExt = ".xml";
+        }
+        else
+        {
+            cls = cls.substring(cls.lastindexof("::")+2);
+            sExt = ".xml";
+        }
+
+    }
+    else
+    {
+        return newPath;   // Found file
+    }
+}
+
+string newPath2 = sys::MakeFullName( classname(), "classes::des::docs::" + cls+sExt );
+
+x = &globalXML::LoadXML( newPath2 );
+if (x.tag()!="error") return newPath2;   // Found file
+
+return newPath; // oh well, return this one anyway...
+
+
+//*******************************************************
+/*
+
+int i=0, ii, goneback=0;
+
+if (cls.left(9).eq("classes::")) {
+    goneback=1;
+    path = rootPath; //path.left( path.indexof("classes", 0,1) + 7 ) + "\\";
+    i = 9;
+} else
+
+while (cls.substring(i,i+2).eq("::")) {
+    goneback=1;
+    path = path.left(path.lastindexof("\\",path.length()-2)+1);
+    i+=2;
+}
+
+while (1) {
+    ii=cls.indexOf("::", i);
+    if (ii==-1) break;
+    pathAd+=cls.substring(i,ii)+"\\";
+    i=ii+2;
+}
+
+pathAd+=cls.substring(i, cls.length()) + sExt;
+
+// may be offset from current directory or classes directory
+if (classExist(path+pathAd, 0)==null && !goneback) {
+    string newSt = path.left( path.indexof("\\classes\\",0,1) + 9 ) + pathAd;
+    if (classExist(newSt, 0)!=null) return newSt;
+
+    newSt = path.left( path.indexof("\\classes\\",0,1) + 9 ) + "des\\docs\\" + pathAd;
+    if (classExist(newSt, 0)!=null) return newSt;
+}
+
+return path + pathAd;]]>
+</method>
+<method name="findCmpInForm" return="EdGridCell">
+<param name="frm" type="object" />
+<param name="name" type="string" />
+<![CDATA[// Finds a component with name 'name' in the classes form template
+//
+// frm = the base window of type WClassView
+
+
+// Get base window class for DES app
+WClassView ob = &frm;
+
+// Open the FORM editor
+XML gridData = &ob.xfile.classes[0].Grids[0].GridData;
+
+// Custom < ob.EditGrid( gridData );>
+Object oZ = ob.idMulti.FindPane("GridEdit");
+if (oZ==null)
+{
+    grid::WGridEdit X;
+    ob.idMulti.AddPane(X);
+    X.SetWindowName("GridEdit");
+    X.Init();
+    oZ = &X;
+    oZ.SetGridXML(gridData, ob.FileName);
+
+//    Object ED = &oZ.GetPopup( "ControlEditor");
+//    if (ED!=null)
+//        if (ED.isVisible()) ED.Show(0);
+}
+
+//ob.idMulti.ShowPane(oZ,"max");
+//ob.idResults.selectRow(&ob.xfile.classes[0].Grids[0]);
+
+// Search for 'name' in the grid
+grid::WGridEdit Z = &ob.idMulti.FindPane("GridEdit");
+GridEditor gEdit = &Z.idGridEdit;
+
+Object X = gEdit.theGrid;
+if (X==null) {
+//    message("No Form Template");
+    return null;
+}
+
+searchName = name;
+
+return &FindInGrid( X );  // type EdGridCell]]>
+</method>
+<method name="findInGrid" return="edGridCell">
+<param name="g" type="edGrid" />
+<![CDATA[//@version Andrew Griffin | 04-02-02 12:30 |
+// Looks recursivly inside an EdGrid for a component of name 'searchName'
+//
+
+EdGridCell  tc=null;
+EdGrid      sg=null;
+EdObject    o=null;
+
+for (int y=0; y<g.rows(); y++)
+  for (int x=0; x<g.columns(); x++) {
+
+    tc = &g.getcell(y, x);
+    o = &tc.getobject();
+
+    if (o!=null) {
+        if (o.GetAttr( "iscomp2" ).eq("Y")) return null;    // don't look inside components
+        // if Component found then return it.
+        if (o.name.eq(searchName)) return tc;
+    }
+
+    sg = &tc.getGrid();
+    if (sg!=null) {
+        tc = &findInGrid( sg );
+        if (tc!=null) return tc;
+    }
+  }
+
+return null;]]>
+</method>
+<method name="ShowCmpInForm">
+<param name="frm" type="object" />
+<param name="edGCell" type="EdGridCell" />
+<![CDATA[//@version Andrew Griffin | 05-02-02 15:04 |
+// Display the Template Form and locate a control on it.
+//
+
+WClassView ob = &frm;
+
+grid::WGridEdit oZ = &ob.idMulti.FindPane("GridEdit");
+ob.idMulti.ShowPane(oZ,"max");
+ob.idResults.selectRow(&ob.xfile.classes[0].Grids[0]);
+
+if (sys::Version()>2081) {
+    oZ.idGridEdit.select( edGCell );
+    oZ.GridClicked();
+} else {
+    message("Form Control selection not implemented before W2 v2082", "W2 Designer", classes::core::windows::MB_ICONASTERISK);
+}]]>
+</method>
+<method name="findMethod">
+<param name="frm" type="object" />
+<param name="str" type="string" />
+<param name="obj" type="object" />
+<param name="params" type="string" />
+<![CDATA[//@cmember findMethod
+//@param object | frm |
+//@param string | str |
+//@param object | obj |
+//@param string | params | optional control type
+//@version Andrew Griffin | 07-05-02 14:18 |
+// Locates and displays a method given its textual name
+//
+
+if (str=="") {
+    if (obj!=null) message("First enter a method name in the box to the right");
+    return null;
+}
+
+// Get base window class for DES app
+WClassView ob = &frm;
+
+ClassSection cs[] = &ob.xfile.classes[0].Sections;
+Func f[] = null, found = null;
+int i, i2;
+
+for (i=0; i<cs.count(); i++) {
+    f = &cs[i].functions;
+
+    for (i2=0; i2<f.count(); i2++)
+        if (f[i2].funcName.eq(str)) {
+            found = &f[i2];
+            i=cs.count();
+            break;
+        }
+}
+
+if (found==null) {
+    if (obj==null) return null;
+
+    if (Message( "Add Method to Current Class?\r\n"
+                 "Method name : " + str,
+                 "Method not found in class definition!",
+                 4 )==6) {
+
+        // create the new method
+        Func NF = &cs[0].Functions.CreateRow();
+        NF.Init();
+
+        if (str.eq("OnMenu")) {
+            NF.script="String s = MenuID();\r\n"
+                "switch (s) {\r\n  case \"\" :\r\n}\r\n";
+        }
+
+        if (params!=null && params)
+        {
+            for (i=0;;)
+            {
+                string nam = params.gettoken( i );
+                if (!nam) break;
+                NF.addParameter( nam, params.gettoken( i+1 ) );
+                i+=2;
+            }
+        }
+
+        ob.idResults.SelectRow(NF);
+        wfuncedit wF = &NF.EventHierMouseSelect(ob.idResults);  // select itself
+        NF.funcName = str;                      // name method
+        NF.paramsUpdated( wF, 1 ); // update parameter values
+        wF.changeName();
+        ob.idResults.GetParent().SetMod();
+    }
+
+    return null;    // not found
+}
+
+// Found!!
+if (obj!=null) showMethod(frm, found);
+
+return found;]]>
+</method>
+<method name="showMethod">
+<param name="frm" type="object" />
+<param name="found" type="func" />
+<![CDATA[//@version Jonathan.Muir | 26-02-10 15:54 |
+// Brings a method to the foreground
+//
+
+frm.idResults.selectRow(found);
+frm.editMethod(found,NULL,1);]]>
+</method>
+<method name="findMember" return="memberDef">
+<param name="frm" type="object" />
+<param name="str" type="string" />
+<param name="obj" type="object" />
+<![CDATA[//@version Andrew Griffin | 04-02-02 12:29 |
+// Locates and displays a member given its textual name
+//
+
+if (str=="") {
+    if (obj!=null) message("First enter a member name in the box to the right");
+    return null;
+}
+
+// Get base window class for DES app
+WClassView ob = &frm;
+
+ClassSections cs[] = &ob.xfile.classes[0].Sections;
+MemberDef f[] = null, found = null;
+int i, i2;
+
+for (i=0; i<cs.count(); i++) {
+    f = &cs[i].MemberDefs;
+
+    for (i2=0; i2<f.count(); i2++)
+        if (f[i2].MemberName.eq(str)) {
+            found = &f[i2];
+            i=cs.count();
+            break;
+        }
+}
+
+if (found==null) {
+    if (obj==null) return null;
+
+    if (Message( "Add Member to Current Class?\r\n"
+                 "Member name : " + str,
+                 "Member not found in class definition!",
+                 4 )==6) {
+
+        // create the new method
+        Object NF = &cs[0].MemberDefs.CreateRow();
+        NF.Init();
+        ob.idResults.SelectRow(NF);
+        NF.EventHierMouseSelect(ob.idResults);  // select itself
+        NF.MemberName = str;                    // name member
+        ob.idResults.GetParent().SetMod();
+    }
+
+    return null;    // not found
+}
+
+// Found!!
+if (obj!=null) showMember(frm, found);
+
+return found;]]>
+</method>
+<method name="showMember">
+<param name="frm" type="object" />
+<param name="found" type="memberDef" />
+<![CDATA[// Brings a member to the foreground
+//
+
+frm.idResults.selectRow(found);
+frm.editMember(found);]]>
+</method>
+<method name="checkKeyword">
+<param name="keyword" type="string" />
+<![CDATA[//@version Andrew Griffin | 19-09-01 11:59 |
+// returns true is the passed string is a keyword
+//
+
+switch (keyword.lower()) {
+    case "if", "for", "return", "while", "switch",
+         "case", "to", "next", "null", "else",
+         "break", "continue" :
+        return 1;
+}
+return 0;]]>
+</method>
+<method name="checkBuiltIn">
+<param name="name" type="string" />
+<![CDATA[//@version Andrew | 25-01-02 12:02 |
+// returns true is the passed string is a Builtin
+//
+
+switch (name.lower()) {
+  case  "blob", "date", "double", "int", "integer", "string", "object", "list",
+        "dbconnection", "dbquery", "file", "filefinder", "sys", "xml", "popupmenu"
+  : return 1;
+}
+return 0;]]>
+</method>
+<method name="intiRootPath">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+rootpath = path();
+rootpath = rootpath.left( rootpath.indexof("classes\\des", 0,1) + 8 );
+preRootpath = rootpath.left( rootPath.length() - 8 );]]>
+</method>
+</static>
+<return>
+<rmeth name="OpenClassFile" cls="wClassView" />
+<rmeth name="OpenClassFilePath" cls="wClassView" />
+<rmeth name="findCmpInForm" cls="EdGridCell" />
+<rmeth name="findInGrid" cls="edGridCell" />
+<rmeth name="findMember" cls="memberDef" />
+</return>
+</class>

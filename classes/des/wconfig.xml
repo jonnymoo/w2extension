@@ -1,0 +1,1051 @@
+<form name="WConfig" caption="W2 Class Designer Configuration" savepos="desWConfig" icon="designer.ico" margin="0" minsize="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:42$" frevision="$Revision: 2$">
+<members>
+<String name="RunPath" />
+<String name="HelpPath" />
+<String name="UserName" />
+<String name="SSafeini" />
+<String name="SSusername" />
+<String name="SSpassword" />
+<String name="SSOverride" />
+<Integer name="xmlCache" />
+<Integer name="taskbarFix" />
+<Integer name="noBackups" />
+<Integer name="enableBackups" />
+<String name="BackupPath" />
+<String name="SessionDB" />
+<List name="shortcuts" cls="classes::cpicks" lsrc="shortcuts.ini" />
+<List name="lstDebugCommands" cls="classes::cpicks" lsrc="DebugCommands.ini" />
+<List name="releasePaths" cls="sourceSafe::aRelPath" />
+<List name="ssProjects" cls="sourceSafe::aRelPath" lsrc="ssProjects.ini" />
+<Integer name="mod" />
+<String name="lstGroup" />
+<String name="RelPath" />
+<String name="SyncPath" />
+<Integer name="ClearCase" pick="SourceControlPL" />
+<Integer name="DebugPort" />
+<Integer name="DockedEditBox" />
+<Integer name="SaveDebugHistory" />
+<Integer name="SortMembers" />
+<method name="Start">
+<![CDATA[//@version Andrew Griffin | 06-08-02 14:12 |
+//@version Jonny Moo | 15-01-03 16:14 |
+//@version Jonathan.Muir | 18-11-04 13:13 |
+//@version Darren Ball | 10-11-05 09:45 |
+//@version Jonathan.Muir | 26-02-10 13:03 |
+//@version Ashley.Gibbs | 13-12-13 16:00 |
+//@version andrew.banyard | 17-04-15 16:50 |
+
+lstGroup = "basic";
+
+String ini = Sys::MakeFullName(Path(),"des.ini");
+
+RunPath = Sys::GetPrivateProfileString("run","root",ini);
+SyncPath = sys::GetPrivateProfileString("run","root "+RelPath,ini);
+HelpPath = Sys::GetPrivateProfileString("help","root",ini);
+DebugPort = Sys::GetPrivateProfileString("debug","port",ini).val();
+DockedEditBox = Sys::GetPrivateProfileString("ide", "dockedCtrlEdit", ini).val();
+
+if(Sys::GetPrivateProfileString("ide","saveDebugHistory",ini) == null || Sys::GetPrivateProfileString("ide","saveDebugHistory",ini) == "")
+{
+    SaveDebugHistory = 1;
+}
+else
+{
+    SaveDebugHistory = Sys::GetPrivateProfileString("ide","saveDebugHistory",ini).val();
+}
+
+// Set sort members
+string savedSortMembers = Sys::GetPrivateProfileString("ide", "sortmembers",  ini);
+SortMembers = (savedSortMembers==null || savedSortMembers=="" || savedSortMembers.val());
+
+UserName = func::me;
+
+ClearCase = sys::GetPrivateProfileString("ClearCase","enabled",ini).val();
+if(!ClearCase)
+{
+    SSafeini = Sys::GetPrivateProfileString("SourceSafe","inipath",ini);
+    SSusername = Sys::GetPrivateProfileString("SourceSafe","username",ini);
+    SSpassword = Sys::GetPrivateProfileString("SourceSafe","password",ini);
+    SSOverride = sys::GetPrivateProfileString("SourceSafe","OverrideClass",ini);
+}
+xmlCache = globalXML::cache;
+taskBarFix = Sys::GetPrivateProfileString("ide","taskbarApp",ini).val();
+
+noBackups = backup::backupLevels;
+enableBackups = backup::backupEnabled;
+BackupPath = backup::backupDir;
+
+SessionDB = Sys::GetPrivateProfileString("SourceSafe","sessionsDB",ini);
+
+xml x = &globalxml::LoadXML( "shortcuts.ini", path(), -1 );
+if (x.tag()!="error") {
+    x = &x[0];
+    for (int i=0; i<x.count(); i++) {
+      classes::cpicks t = &shortcuts.CreateRow();
+      t.code = x[i].GetAttr( "code" );
+      t.desc = x[i].GetAttr( "desc" );
+    }
+}
+
+x.reset();
+x = &globalxml::LoadXML( "DebugCommands.ini", path(), -1 );
+if (x.tag()!="error") {
+    x = &x[0];
+    for (int i=0; i<x.count(); i++) {
+      classes::cpicks t = &lstDebugCommands.CreateRow();
+      t.desc = x[i].GetAttr( "desc" );
+    }
+}
+
+classes::core::global::copyList( sourceSafe::sourceSafe::releasePaths, releasePaths );
+classes::core::global::copyList( sourceSafe::sourceSafe::SSProjects, ssProjects );
+
+open();
+
+idAutoCorrect.setList( shortcuts );
+idAutoCorrect.CalcWidths();
+idDebugCommands.setList( lstDebugCommands );
+idDebugCommands.CalcWidths();
+
+idreleasePaths.setList( releasePaths );
+idreleasePaths.CalcWidths();
+idSSProjects.setList( ssProjects );
+idSSProjects.CalcWidths();
+
+idRunOtherTxt.SetText(idRunOtherTxt.GetText()+RelPath);
+
+if(RelPath.Trim())
+{
+    idRunOthertxt.SetVisible(1);
+    idServSync.SetVisible(1);
+    idServSynctxt.SetVisible(1);
+}
+else
+{
+    idRunOthertxt.SetVisible(0);
+    idServSync.SetVisible(0);
+    idServSynctxt.SetVisible(0);
+}
+
+SizeFormToContent();
+SizeFormToContent();
+SizeFormToContent();]]>
+</method>
+<method name="DoSave" return="int">
+<![CDATA[//@cmember DoSave
+//@return int |
+//@version Andrew Griffin | 06-08-02 14:43 |
+//@version Jonny Moo | 15-01-03 16:14 |
+//@version Jonathan.Muir | 18-11-04 12:52 |
+//@version Darren Ball | 10-01-06 15:19 |
+//@version Jonathan.Muir | 26-02-10 13:03 |
+//@version Ashley.Gibbs | 13-12-13 15:43 |
+//@version andrew.banyard | 17-04-15 16:54 |
+
+if (enableBackups) {
+    if (noBackups<2) noBackups = 4;
+    if (!BackupPath.endsWith( "\\" )) BackupPath += "\\";
+    if (backuppath=="\\") {
+        BackupPath = "";
+        idBackupPath.SetFocus();
+        message("Enter a valid back up path...");
+        return 0;
+    }
+}
+
+String ini = Sys::MakeFullName(Path(),"des.ini");
+
+if (!Sys::WritePrivateProfileString("run","root",RunPath,ini))
+{
+    message( "Failed to write to des.ini", "Check read only flag", classes::core::windows::MB_ICONASTERISK );
+    return 0;
+}
+
+
+if(RelPath.Trim())
+{
+    sys::WritePrivateProfileString("run","root "+RelPath,syncPath,ini);
+}
+
+Sys::WritePrivateProfileString("help","root",HelpPath,ini);
+Sys::writePrivateProfileString("debug","port",debugport.ToString(),ini);
+Sys::WritePrivateProfileString("ide", "dockedCtrlEdit", DockedEditBox.ToString(), ini);
+
+Sys::WritePrivateProfileString("ide", "sortmembers", SortMembers.tostring(), ini);
+classes::des::wclassview::SortMembers =  SortMembers;
+
+Sys::WritePrivateProfileString("ide", "saveDebugHistory", SaveDebugHistory.tostring(), ini);
+Sys::WritePrivateProfileString("ide","username_" + sys::GetNetworkUser(), username,ini);
+func::me = username;
+
+
+// Clear Case or Source Safe?
+if(ClearCase)
+{
+    // Clear Case
+    Sys::WritePrivateProfileString("ClearCase","enabled","1",ini);
+
+    Sys::WritePrivateProfileString("SourceSafe","inipath", "", ini);
+    Sys::WritePrivateProfileString("SourceSafe","username", "", ini);
+    Sys::WritePrivateProfileString("SourceSafe","password", "", ini);
+    Sys::WritePrivateProfileString("SourceSafe","overrideclass", "", ini);
+
+
+}
+else
+{
+    // Source Safe
+    Sys::WritePrivateProfileString("ClearCase","enabled","0",ini);
+
+
+    Sys::WritePrivateProfileString("SourceSafe","inipath", SSafeini, ini);
+    Sys::WritePrivateProfileString("SourceSafe","username", SSusername, ini);
+    Sys::WritePrivateProfileString("SourceSafe","password", SSpassword, ini);
+    Sys::WritePrivateProfileString("SourceSafe","overrideclass", SSOverride, ini);
+
+}
+
+Sys::WritePrivateProfileString("ide","xmlCacheLimit", xmlCache.toString(), ini);
+globalXML::cache = xmlCache;
+
+Sys::WritePrivateProfileString("ide","taskbarApp", taskBarFix.toString(), ini);
+
+backup::backupLevels = noBackups;
+Sys::WritePrivateProfileString("backup","Levels", noBackups.toString(), ini);
+backup::backupEnabled = enableBackups;
+Sys::WritePrivateProfileString("backup","Enabled", enableBackups.toString(), ini);
+backup::backupDir = BackupPath;
+Sys::WritePrivateProfileString("backup","Path", BackupPath.toString(), ini);
+
+classes::des::sessions::aSession::sessionDB = SessionDB;
+classes::des::sessions::aSession::useSessions = SessionDB != "";
+Sys::WritePrivateProfileString("SourceSafe","sessionsDB", SessionDB, ini);
+
+// Save shortcut list...
+
+xml x;
+x.setTag( "list" );
+
+for (int i=0; i<shortcuts.count(); i++)
+if (shortcuts[i].code)
+{
+  xml nx = &x.CreateElement("item");
+  nx.AddAttr( "code", shortcuts[i].code );
+  nx.AddAttr( "desc", shortcuts[i].desc );
+}
+
+if (!globalxml::SaveXML( x, "shortcuts.ini", path() )) {
+    message( "Failed to save shortcuts.ini", "Check read only flag", classes::core::windows::MB_ICONASTERISK );
+    return 0;
+}
+
+classes::core::global::copyList( shortcuts, wfuncedit::shortcuts );
+
+
+// Save shortcut list...
+
+x.reset();
+x.setTag( "list" );
+
+for (i=0; i<lstDebugCommands.count(); i++)
+if (lstDebugCommands[i].desc)
+{
+  xml nx = &x.CreateElement("item");
+  nx.AddAttr( "code", "" );
+  nx.AddAttr( "desc", lstDebugCommands[i].desc );
+}
+
+if (!globalxml::SaveXML( x, "DebugCommands.ini", path() )) {
+    message( "Failed to save DebugCommands.ini", "Check read only flag", classes::core::windows::MB_ICONASTERISK );
+    return 0;
+}
+
+classes::core::global::copyList( lstDebugCommands, wClassView::lstDebugCommands );
+
+
+
+for (i=releasePaths.Count()-1; i>=0; i--)
+  if (!releasePaths[i].desc) releasePaths[i].RemoveFromList();
+
+classes::core::global::copyList( releasePaths, sourceSafe::sourceSafe::releasePaths );
+sourceSafe::sourceSafe::saveReleasePaths();
+
+for (i=ssProjects.Count()-1; i>=0; i--)
+  if (!ssProjects[i].desc) ssProjects[i].RemoveFromList();
+  else
+    ssProjects[i].desc.tolower();
+
+classes::core::global::copyList( ssProjects, sourceSafe::sourceSafe::ssProjects );
+sourceSafe::sourceSafe::saveSSProjects();
+
+classes::des::browse::clsbrowser browser = &classes::des::browse::clsbrowser::myBrowser;
+
+if(browser.GetHWND()!=0)
+{
+    sys::HWNDSendIPC( browser.GetHWND(), 7723, "SetupListener:"+debugport.tostring() );
+}
+
+
+mod = 0;
+setText("W2 Class Designer Configuration");
+
+close();
+
+return 1;]]>
+</method>
+<method name="AddRow">
+<param name="con" type="label" />
+<![CDATA[//@cmember AddRow
+//@param label | con |
+//@version Andrew Griffin | 22-02-02 13:34 |
+
+listbox lb = &GetControl( con.GetControlAttr( "PARAM" ) );
+list l = &lb.GetList();
+
+int pos = l.CurrentIndex();
+Object F = l.CreateRow( pos+1 ).setTo( "", " " );
+l.SetCurrent(pos+1);
+
+lb.CalcWidths();
+FitRecursive();
+
+F.desc = "";
+
+onMod();]]>
+</method>
+<method name="DelRow">
+<param name="con" type="label" />
+<![CDATA[//@cmember DelRow
+//@param label | con |
+//@version Andrew Griffin | 22-02-02 13:34 |
+
+listbox lb = &GetControl( con.GetControlAttr( "PARAM" ) );
+list l = &lb.GetList();
+
+int idx = l.CurrentIndex();
+if (idx<0) return;
+
+lb.DeleteRow(idx);
+if (idx>=l.Count()) idx--;
+l.SetCurrent(idx);
+lb.CalcWidths();
+FitRecursive();
+
+onMod();]]>
+</method>
+<method name="onMod">
+<![CDATA[//@cmember onMod
+//@version Andrew Griffin | 27-07-01 10:28 |
+//@i
+
+if (mod) return;
+
+mod = 1;
+
+setText( getText() + "*" );]]>
+</method>
+<method name="onClose">
+<![CDATA[//@cmember onClose
+//@version Andrew Griffin | 12-12-01 11:35 |
+//@i
+
+// See:  Close();
+
+if (mod) {
+
+    int r = message( "The config settings have been modified\r\nSave Changes?",
+                     "Congig Settings",
+                     classes::core::windows::MB_ICONEXCLAMATION |
+                     classes::core::windows::MB_YESNOCANCEL
+                   );
+
+    if (r==classes::core::windows::IDCANCEL) return;
+    if (r==classes::core::windows::IDYES) {
+        doSave();   // closes window anyhow...
+        return;
+    }
+}
+
+close();]]>
+</method>
+<method name="doTabClick">
+<param name="theTab" type="label" />
+<![CDATA[//@cmember doTabClick
+//@param label | theTab |
+//@version Andrew Griffin | 07-08-02 10:13 |
+//@version Jonathan.Muir | 18-11-04 13:23 |
+//@i
+
+// deSelect all tabs
+gridRow tabRow = &idTabs.getRow( 0 );
+
+GridCell cCell = &theTab.GetCell();
+
+for (int i=1; i<6; i++) {
+    GridCell cel = &tabRow.GetCell( i );
+    if (cel == null) break;
+
+    if (cel==cCell)
+    {
+        cel.setbkimg("classes::des::res::tabFront.bmp");
+        cel.Control.SetTxColor(0);
+        cel.Control.SetHighlightColor(0);
+    }
+    else
+    {
+        cel.setbkimg("classes::des::res::tabBack.bmp");
+        cel.Control.SetTxColor(0x524938);
+        cel.Control.SetHighlightColor( 0xFFFFFF );
+    }
+}
+
+showGroup( lstGroup, 0 );
+lstGroup = theTab.GetControlAttr( "param" );
+showGroup( lstGroup, 1 );
+
+fitrecursive();
+SizeFormToContent();
+sizeadjust();
+sizeadjust();]]>
+</method>
+<method name="doCreateTable">
+<![CDATA[//@cmember doCreateTable
+//@version Andrew Griffin | 22-02-02 14:19 |
+//@i
+
+if (!classes::core::globalForm::areYouSure( "Do you really want to issue the SQL to create a session table\r\nin the specified database?", "Are you Sure!!!" )
+   ) return;
+
+dbconnection db = &classes::core::srvglobal::GetDB( SessionDB );
+if (db==null || !db.Valid()) {
+    message( "Error connecting to database" );
+    return;
+}
+string name = db.DBMSName().lower();
+string sep;
+
+int dbtyp = name.beginsWith( "oracle" );
+if (dbtyp) sep = ";\r\n"; else sep = "GO\r\n";
+
+string sql = browse::SQLutils::getCreateTable( sessions::asession::ClassName()+".xml" , dbtyp, 0, 0 );
+
+if (!doSQL( DB, sql, sep ))
+{
+    DB.Rollback();
+    message( "Error creating sessions table\r\nError: " + DB.GetError() + "\r\n" + DB.LastSQL() );
+    return;
+}
+
+sql = browse::SQLutils::getCreateTable( sessions::asSafeTrans::ClassName()+".xml" , name.beginsWith( "oracle" ), 0, 0 );
+
+if (!doSQL( DB, sql, sep ))
+{
+    DB.Rollback();
+    message( "Error creating aSsafeTrans table\r\nError: " + DB.GetError() + "\r\n" + DB.LastSQL() );
+    return;
+}
+
+DB.commit();
+
+message( "Created tables: 'desSession', 'desSSTrans'" );]]>
+</method>
+<method name="doSQL">
+<param name="DB" type="dbConnection" />
+<param name="sql" type="string" />
+<param name="sep" type="string" />
+<![CDATA[//@cmember doSQL
+//@param dbConnection | DB |
+//@param string | sql |
+//@param string | sep |
+//@version Andrew Griffin | 22-02-02 14:15 |
+//@i
+
+int p=0;
+while (p<sql.length())
+{
+
+    int p2 = sql.indexof( sep, p, 1 );
+    if (p2==-1) p2 = sql.length();
+
+    string dsql = sql.substring( p, p2 );
+
+    int ps=dsql.indexof("TABLESPACE", 0,1);
+    if (ps==-1) ps = dsql.indexof("storage", 0,1);
+    if (ps>=0) dsql = dsql.left( ps );
+
+    dsql = dsql.trim();
+
+    if (dsql)
+        if (!DB.SQLExec( dsql )) return 0;
+
+    p = p2 + sep.length();
+}
+
+return 1;]]>
+</method>
+<method name="enableClick">
+<param name="ctrl" type="listbox" />
+<![CDATA[//@cmember enableClick
+//@param listbox | ctrl |
+//@version Andrew Griffin | 06-08-02 13:56 |
+//@i
+
+sourcesafe::arelpath row = &ctrl.GetList().CurrentRow();
+row.code = !row.code ? "X" : "";
+
+onMod();]]>
+</method>
+</members>
+<static>
+<List name="SourceControlPL" cls="classes::CpickN">
+<item code="1" desc="Clear Case" PickType="" />
+<item code="0" desc="Source Safe" PickType="" />
+</List>
+<method name="OpenWin" return="WConfig">
+<param name="ClassViewer" type="object" />
+<![CDATA[//@cmember OpenWin
+//@param object | ClassViewer |
+//@return WConfig |
+//@version Andrew Griffin | 07-08-02 10:12 |
+//@version Jonathan.Muir | 12-09-03 12:25 |
+
+Object W = Sys::FindWindow("WCFG");
+if (W!=null){ W.SetFocus(); return W; }
+
+WConfig Q;
+Q.SetWindowName("WCFG");
+
+String cpath = ClassViewer.filename.lower();        // ie "c:\w2\classes\des\WClassView"
+
+int i = cpath.indexof("\\classes\\");
+if (i<0) i = cpath.indexof("/classes/");
+cpath = cpath.left( i + 9 );  // ie "c:\w2\classes\"
+
+
+Q.RelPath = cpath;
+Q.Start();
+
+return Q;]]>
+</method>
+</static>
+<grid bk="224,224,192">
+<row>
+<col rpad="32" bpad="8" w="460" align="W" bk="212,208,200" imgtile="8">
+<grid>
+<row>
+<col>
+<Image text="Image" img="designer.ico" />
+</col>
+<col lpad="12" tpad="4" rpad="12" bpad="1" align="V" bk="224,192,128" imgtile="8">
+<Label text="W2 Designer Configuration" shadc="255,255,255" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="12" />
+</col>
+<col align="W" bkimg="res::faderight.bmp" imgtile="1" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col bpad="20" align="W" imgtile="8">
+<grid name="idTabs">
+<row>
+<col w="12" align="WV" bkimg="res::tabblank.bmp" imgtile="1" />
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabfront.bmp" imgtile="32">
+<Label text="Basic" txsel="000000" onClick="doTabClick" param="basic" />
+</col>
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabback.bmp" imgtile="32">
+<Label name="idTabSessions" text="Sessions" tx="82,73,56" txsel="FFFFFF" onClick="doTabClick" param="sessions" />
+</col>
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabback.bmp" imgtile="32">
+<Label text="Auto Correct" tx="82,73,56" txsel="FFFFFF" onClick="doTabClick" param="autocorrect" />
+</col>
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabback.bmp" imgtile="32">
+<Label text="Debug Commands" tx="82,73,56" txsel="FFFFFF" onClick="doTabClick" param="DebugCommand" />
+</col>
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabback.bmp" imgtile="32">
+<Label text="Backup" tx="82,73,56" txsel="FFFFFF" onClick="doTabClick" param="backups" />
+</col>
+<col lpad="8" tpad="6" rpad="8" bpad="6" align="WV" bkimg="res::tabblank.bmp" imgtile="1" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="16" rpad="16" h="300" align="WH">
+<grid groups="basic">
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter your name below as you wish it to appear in method version tagging." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="Users Full Name:" />
+</col>
+<col bpad="4" align="W">
+<Edit w="240" bind="userName" onChange="onMod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter your servers classes path below (ie. http://localhost/classes/).&#13;&#10;When you run a class over as http connection this is where it will be run from." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="Server Run Path:" />
+</col>
+<col bpad="4" align="W">
+<Edit w="240" bind="RunPath" onChange="onMod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label name="idRunOthertxt" text="Enter server class path (i.e. http://localhost/cmdev/classes/) where you want to &#13;&#10;check for keeping classes in sync if different from above.&#13;&#10;This is for classes under the directory:&#13;&#10;Seperate with ; for multiple sync paths" tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label name="idServSynctxt" text="Server Sync Path:" />
+</col>
+<col bpad="4" align="W">
+<Edit name="idServSync" w="240" bind="SyncPath" onChange="onMod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="To speed up class browsing, specify the number of xml files that can be cached into&#13;&#10;memory by the designer." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="Max XML Cached files:" />
+</col>
+<col bpad="4">
+<Edit w="64" bind="xmlCache" numeric="1" MinVal="0" MaxVal="999" onChange="onMod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter a web site that hosts the w2 help files (ie. http://ise_mail/w2/)." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col bpad="4" align="V">
+<Label text="Help Server:" />
+</col>
+<col bpad="4" align="W">
+<Edit w="240" bind="HelpPath" onChange="onMod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter a port number to listen on for w2 debugging" tx="0,128,128" />
+</col>
+</row>
+<row>
+<col bpad="4" align="V">
+<Label text="Debugger Port:" />
+</col>
+<col bpad="4" align="W">
+<Edit w="240" bind="DebugPort" onChange="onMod" numeric="1" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Whether the edit box should be docked or floating (requires IDE restart)" tx="0,128,128" />
+</col>
+</row>
+<row>
+<col bpad="4" align="V">
+<Label text="Docked edit box:" />
+</col>
+<col bpad="4" align="V">
+<CheckBox bind="SortMembers" v0="0" v1="1" onclick="onmod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Sort class functions by name?" tx="0,128,128" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<grid>
+<row>
+<col bpad="4" align="V">
+<Label text="Perform sorting         : " />
+</col>
+<col bpad="4" align="V">
+<CheckBox bind="SortMembers" v0="0" v1="1" onclick="onmod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Save debug class history?" tx="0,128,128" />
+</col>
+</row>
+<row>
+<col bpad="4" align="V">
+<Label text="Save Debug History:" />
+</col>
+<col bpad="4" align="V">
+<CheckBox bind="SaveDebugHistory" v0="0" v1="1" onclick="onmod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="16" rpad="16" h="300" align="WH">
+<grid groups="sourcesafe" hide="Y">
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Choose Source Safe or Clear Case" tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="Source Control:" />
+</col>
+<col bpad="4" align="W">
+<Edit w="240" bind="ClearCase" onChange="onMod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="For SourceSafe integraton, Enter the filename &amp; path of your SourceSafe ini file below&#13;&#10;(ie. K:\Source Safe\Core\VSSDB\srcsafe.ini)." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="Source Safe ini:" />
+</col>
+<col bpad="4" align="W">
+<Edit w="240" bind="SSafeini" onChange="onMod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter your SourceSafe Login Name below." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" align="V">
+<Label text="SSafe user name:" />
+</col>
+<col>
+<Edit w="160" bind="SSusername" onChange="onMod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter your SourceSafe Login Password below." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="SSafe password:" />
+</col>
+<col bpad="4">
+<Edit w="160" bind="SSpassword" onChange="onMod" cipword="1" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter your SourceSafe Override Class." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="SS Override Class:" />
+</col>
+<col bpad="4">
+<Edit w="160" bind="SSOverride" onChange="onMod" ucase="1" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter the names of any projects you use in SourceSafe below. (i.e. &apos;w2 core&apos;)" tx="0,128,128" />
+</col>
+</row>
+<row>
+<col tpad="4" bpad="4">
+<grid>
+<row>
+<col tpad="4" bpad="4">
+<Label text="Used Projects:" />
+</col>
+</row>
+<row>
+<col align="C">
+<Image text="Image" img="grid::add_ctrl.bmp" onClick="AddRow" param="idSSProjects" />
+</col>
+</row>
+<row>
+<col tpad="2" align="C">
+<Image text="Image" img="grid::bin.bmp" onClick="DelRow" param="idSSProjects" />
+</col>
+</row>
+</grid>
+</col>
+<col tpad="4" rpad="4" bpad="4" align="WH">
+<ListBox name="idSSProjects" IsList="Y" list="ssProjects">
+<row>
+<col lpad="4" tpad="1" rpad="4" bpad="3" align="C" bk="230,255,255">
+<Label text="Enable?" style="b" header="1" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="3" bk="230,255,255">
+<Label text="Project" w="180" style="b" header="1" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2" w="64" align="CV">
+<Label text="Label" bind="code" onclick="enableClick" />
+</col>
+<col lpad="4" tpad="2" rpad="4" bpad="2" w="128" align="W">
+<Edit bind="desc" onChange="onMod" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="16" rpad="16" h="300" align="WH">
+<grid groups="sessions" hide="Y">
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="To enable W2 Designer Sessions, you need to have a database setup with a table&#13;&#10;named &apos;desSession&apos;.  Place a connection string to the database into your local &apos;Config.ini&apos;&#13;&#10;file.  Enter the name of the database connection string below (ie. DESSES)." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="Session Database:" />
+</col>
+<col>
+<grid>
+<row>
+<col rpad="16" bpad="4">
+<Edit w="96" bind="SessionDB" onChange="onMod" />
+</col>
+<col align="V">
+<Label text="Click here to create session table" onclick="doCreateTable" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter a list of paths below that you wish to have classes you checked into SourceSafe&#13;&#10;duplicated into.  (NB. include the word &apos;classes&apos; path in the path and terminate with a &apos;\&apos;)." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col tpad="4" bpad="4">
+<grid>
+<row>
+<col tpad="4" bpad="4">
+<Label text="Release Paths:" />
+</col>
+</row>
+<row>
+<col align="C">
+<Image text="Image" img="grid::add_ctrl.bmp" onClick="AddRow" param="idreleasePaths" />
+</col>
+</row>
+<row>
+<col tpad="2" align="C">
+<Image text="Image" img="grid::bin.bmp" onClick="DelRow" param="idreleasePaths" />
+</col>
+</row>
+</grid>
+</col>
+<col tpad="4" rpad="4" bpad="4" align="WH">
+<ListBox name="idreleasePaths" IsList="Y" list="releasePaths">
+<row>
+<col lpad="4" tpad="1" rpad="4" bpad="3" align="C" bk="230,255,255">
+<Label text="Enable?" style="b" header="1" />
+</col>
+<col lpad="4" tpad="1" rpad="4" bpad="3" bk="230,255,255">
+<Label text="Release Path" w="180" style="b" header="1" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2" w="64" align="CV">
+<Label text="Label" bind="code" onclick="enableClick" />
+</col>
+<col lpad="4" tpad="2" rpad="4" bpad="2" w="128" align="W">
+<Edit bind="desc" onChange="onMod" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="16" rpad="16" h="300" align="WH">
+<grid groups="autocorrect" hide="Y">
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Any token entered into the designers script editor ending in a # will be replaced with&#13;&#10;an alternative string as specified below.  (NB. do not proceed Tokens with #&apos;s)." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col tpad="4" bpad="4">
+<grid>
+<row>
+<col tpad="4" bpad="4">
+<Label text="Auto Correct:" />
+</col>
+</row>
+<row>
+<col align="C">
+<Image text="Image" img="grid::add_ctrl.bmp" onClick="AddRow" param="idAutoCorrect" />
+</col>
+</row>
+<row>
+<col tpad="2" align="C">
+<Image text="Image" img="grid::bin.bmp" onClick="DelRow" param="idAutoCorrect" />
+</col>
+</row>
+</grid>
+</col>
+<col tpad="4" rpad="4" bpad="4" align="WH">
+<ListBox name="idAutoCorrect" IsList="Y" list="shortcuts">
+<row>
+<col lpad="4" tpad="1" bpad="3" w="80" bk="230,255,255">
+<Label text="Token" header="1" style="b" />
+</col>
+<col lpad="4" tpad="1" bpad="3" bk="230,255,255">
+<Label text="Replace With" w="180" style="b" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="2" bpad="2" w="80" align="X">
+<Edit bind="code" onChange="onMod" />
+</col>
+<col lpad="4" tpad="2" rpad="4" bpad="2" w="128" align="W">
+<Edit bind="desc" onChange="onMod" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="16" rpad="16" h="300" align="WH">
+<grid groups="DebugCommand" hide="Y">
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Any entry will be regarded as a debug command. On trying to check the class into&#13;&#10;Clearcase any occurance of a debug command will be highlighted." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col tpad="4" bpad="4">
+<grid>
+<row>
+<col tpad="4" bpad="4">
+<Label text="Debug Commands:" />
+</col>
+</row>
+<row>
+<col align="C">
+<Image text="Image" img="grid::add_ctrl.bmp" onClick="AddRow" param="idDebugCommands" />
+</col>
+</row>
+<row>
+<col tpad="2" align="C">
+<Image text="Image" img="grid::bin.bmp" onClick="DelRow" param="idDebugCommands" />
+</col>
+</row>
+</grid>
+</col>
+<col tpad="4" rpad="4" bpad="4" align="WH">
+<ListBox name="idDebugCommands" IsList="Y" list="lstDebugCommands">
+<row>
+<col lpad="4" tpad="1" bpad="3" bk="230,255,255">
+<Label text="Command" w="180" style="b" header="1" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2" w="128" align="W">
+<Edit bind="desc" onChange="onMod" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="16" rpad="16" h="300" align="WH">
+<grid groups="backups" hide="Y">
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Tick the box below to enable backups of classes as they are saved." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="Enable Backups:" />
+</col>
+<col align="V">
+<CheckBox bind="enableBackups" v0="0" v1="1" onclick="onmod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter the number of backups of each class to be kept  (A good number is 3 to 5)." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="Number of Backups:" />
+</col>
+<col>
+<Edit w="64" bind="noBackups" numeric="1" MinVal="0" MaxVal="999" onChange="onMod" />
+</col>
+</row>
+<row>
+<col colspan="2" tpad="8" rpad="4" bpad="2" align="V">
+<Label text="Enter the root path for classes to be backed up to  (ie. c:\w2\backups\)." tx="0,128,128" />
+</col>
+</row>
+<row>
+<col rpad="4" bpad="4" align="V">
+<Label text="Backup Path:" />
+</col>
+<col bpad="4" align="W">
+<Edit name="idBackupPath" w="240" bind="BackupPath" onChange="onMod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col tpad="16" rpad="16" bpad="16" align="R">
+<grid>
+<row>
+<col lpad="2" tpad="2" rpad="2" bpad="2" align="R">
+<Label text="Save Changes" style="b" onClick="DoSave" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="DoSave" cls="int" />
+<rmeth name="OpenWin" cls="WConfig" />
+</return>
+</form>

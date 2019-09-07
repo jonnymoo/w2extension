@@ -1,0 +1,92 @@
+<class name="globalString" fauthor="$Author: Simon.c $" fdate="$Date: 11/02/03 11:39 $" frevision="$Revision: 5 $">
+<members />
+<static>
+<String name="offsetPath" />
+<method name="MakeFullClassRef" return="string">
+<param name="path" type="string" />
+<![CDATA[//@cmember MakeFullClassRef
+//@param string | path | i.e. "c:\\w2\\classes\\cpicks.xml"
+//@return string | i.e. "classes::cpicks"
+//@version Andrew Griffin | 20-06-02 11:48 |
+//@i
+
+if (!offsetpath)
+{
+    offsetPath = classname();
+    offsetPath = offsetPath.left( offsetPath.lastIndexOf( "classes", offsetPath.length(), 1 ) );
+}
+
+return stripExtension( sys::MakeRelativeName( offsetPath, path ) );]]>
+</method>
+<method name="MakeFullClassRef2" return="string">
+<param name="classRef" type="string" />
+<param name="basePathRef" type="string" />
+<![CDATA[//@cmember MakeFullClassRef2
+//@param string | classRef | xml::globalxml
+//@param string | basePathRef | classes::core
+//@return string | "classes::core::xml::globalxml"
+//@version Andrew Griffin | 20-06-02 11:48 |
+
+basePathRef = sys::MakeFullName( path(), basePathRef );
+classRef = sys::MakeFullName( basePathRef, classRef );
+
+return MakeFullClassRef( classRef );]]>
+</method>
+<method name="stripExtension" return="string">
+<param name="path" type="string" />
+<![CDATA[//@cmember stripExtension
+//@param string | path | i.e. "c:\\w2\\classes\\cpicks.xml" or "classes::cpicks.xml"
+//@return string | i.e. "c:\\w2\\classes\\cpicks" or "classes::cpicks"
+//@i Strips a path string of its extension
+//@version Andrew Griffin | 20-06-02 09:45 |
+
+int i = path.length()-4;
+i = path.indexOf( ".", i );
+
+if (i==-1) return path;
+
+return path.left( i );]]>
+</method>
+<method name="pickStringSQL" return="string">
+<param name="pickStr" type="string" />
+<![CDATA[//@cmember pickStringSQL
+//@param string | pickStr | A comma seperated string (ie. "one,two,three")
+//@return string | A comma seperated SQL string (ie. "'one','two','three'")
+//@version Andrew Griffin | 12-08-02 13:01 |
+//@i
+
+string out;
+
+for (int i=0;; i++)
+{
+    string tok = pickStr.gettoken( i );
+    if (!tok) break;
+    out.addtoken( tok.sql() );
+}
+
+return out;]]>
+</method>
+<method name="TokenCount">
+<param name="strToken" type="string" />
+<param name="seperator" type="string" />
+<![CDATA[//@cmember TokenCount
+//@param string | strToken |
+//@param string | seperator |
+//@version Simon Carroll | 10-02-03 11:39 |
+//@i
+
+for (int i = 0;; i++)
+{
+    if (!strToken.gettoken(i,(seperator != null ? seperator : ","))) break;
+}
+
+return (i);]]>
+</method>
+</static>
+<return>
+<rmeth name="MakeFullClassRef" cls="string" />
+<rmeth name="MakeFullClassRef2" cls="string" />
+<rmeth name="stripExtension" cls="string" />
+<rmeth name="pickStringSQL" cls="string" />
+</return>
+</class>

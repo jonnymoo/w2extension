@@ -1,0 +1,286 @@
+<class name="globalList" bk="classes::core::globallist::DCHstampMods( list LX, string modType, date modDate )" fauthor="$Author: Scott.goodwin $" fdate="$Date: 11/10/04 9:13 $" frevision="$Revision: 14 $">
+<members>
+<Object name="theList" />
+<Integer name="sortCol" />
+<method name="assignList">
+<param name="theList" type="list" />
+<param name="sortedOnCol" type="int" />
+<![CDATA[//@cmember assignList
+//@param list | theList |
+//@param int | sortedOnCol |
+//@version Andrew Griffin | 07-09-01 10:17 |
+//@i
+
+this.theList.setMagicPointer( &theList );
+
+sortCol = (sortedOnCol!=null) ? sortedOnCol : -1;]]>
+</method>
+<method name="quickFind" return="object">
+<param name="fnd" type="object" />
+<param name="col" type="int" />
+<param name="retType" type="int" />
+<![CDATA[//@cmember quickFind
+//@param object | fnd | numeric or string value to find
+//@param int | col | column number to search in or '-1 or null' to use last
+//@param int | retType | 0 for an object, 1 for an integer index
+//@return object | object or index
+//@version Andrew Griffin | 07-09-01 10:24 |
+
+int c = (col != null && col != -1) ? col : sortCol;
+
+if (c != sortCol || c==-1) {
+    if (c==-1) c=0;
+    theList.OrderBy( theList.class().MemberDef( c ).Name() );
+    theList.OrderList();
+}
+
+int l = 0;
+int r = theList.Count(), p;
+object t;
+
+while (l<r) {
+    p = (l+r)/2;
+    t = &theList[p];
+
+    if (t.GetMember( c ) == fnd) {
+        p--;
+        for (; p>=l; p--)
+          if (theList[p].GetMember( c ) != fnd) break;
+        p++;
+        if (retType==null || retType==0) return theList[p];
+        return p;
+    }
+
+    if (t.GetMember( c ) > fnd)
+        r = p;
+    else
+        l = p+1;
+}
+
+if (retType==null || retType==0) return null;
+return -1-l;]]>
+</method>
+</members>
+<static>
+<method name="FindRowEq" return="object">
+<param name="lst" type="list" />
+<param name="findStr" type="string" />
+<param name="vidx" type="int" />
+<![CDATA[//@cmember FindRowEq
+//@param list | lst | The list to search through
+//@param string | findStr | The string member to locate
+//@param int | vidx | optional index of the member to look at (defaults to 0)
+//@return object | The first object that matches
+//@version Andrew Griffin | 24-08-01 10:14 | v1.0
+//@i Finds a member of a list by searching through string members (incase sensative)
+
+int idx;
+if (vidx==null) idx=0; else idx=vidx;
+
+for (int i=0; i<lst.count(); i++) {
+    if (lst[i].GetMember(idx).eq( findStr ))
+        return lst[i];
+}
+
+return null;]]>
+</method>
+<method name="FindRowNameEq" return="object">
+<param name="lst" type="list" />
+<param name="findStr" type="string" />
+<param name="mName" type="string" />
+<![CDATA[//@cmember FindRowNameEq
+//@param list | lst | The list to search through
+//@param string | findStr | The string member to locate
+//@param string | mName | name of the member to search in
+//@return object | The first object that matches
+//@version Andrew Griffin | 24-08-01 10:14 | v1.0
+//@i Finds a member of a list by searching through string members (incase sensative)
+
+int idx = classes::core::globalObject::getMemberIndex( lst, mName );
+if (idx==-1) return null;
+
+return FindRowEq( lst, findStr, idx );]]>
+</method>
+<method name="FindRowName" return="object">
+<param name="lst" type="list" />
+<param name="findVar" type="string" />
+<param name="mName" type="string" />
+<![CDATA[//@cmember FindRowName
+//@param list | lst | The list to search through
+//@param string | findVar | The member variable value to locate
+//@param string | mName | name of the member to search in
+//@return object | The first object that matches
+//@version Andrew Griffin | 24-08-01 10:14 | v1.0
+//@i Finds a member of a list by searching through members variables
+
+int idx = classes::core::globalObject::getMemberIndex( lst, mName );
+if (idx==-1) return null;
+
+return lst.FindRow( findVar, idx );]]>
+</method>
+<method name="getKeySQLWhere" return="string">
+<param name="lst" type="list" />
+<![CDATA[//@cmember getKeySQLWhere
+//@param list | lst | Object to retrieve SQL where based on key fields
+//@return string | The SQL where clause to select the passed in object
+//@version Andrew Griffin | 27-09-01 11:15 |
+
+if (!lst.isList()) return "";
+object obj = lst.class();
+
+int mx = obj.MemberCount();
+int found;
+
+string sql;
+
+for (int i=0; i<mx; i++)
+  if (obj.MemberDef(i).GetAttr( "Key" ) == "Y")
+  {
+    if (sql) return "";
+    else
+    {
+        sql = obj.MemberDef(i).SQLName();
+        found = i;
+    }
+  }
+
+string mems;
+for (i=0; i<lst.count(); i++)
+  mems.addToken( lst[i].getMember( found ).sql(), "," );
+
+if (!mems) return "";
+
+return sql + " in (" + mems + ")";]]>
+</method>
+<method name="DCHstampMods" return="int">
+<param name="LX" type="list" />
+<param name="modType" type="string" />
+<param name="modDate" type="date" />
+<![CDATA[//@cmember DCHstampMods
+//@param list | LX | List to be stamped with modTime, user & date
+//@param string | modType | "I", "U", or "D"
+//@param date | modDate | Optional date to assign to obj.modDate
+//@return int | True if the object was successfully tagged
+//@version Andrew Griffin | 27-09-01 12:25 |
+//@version Simon Carroll | 31-01-02 11:46 |
+//@i
+
+int useDCH = LX.class().GetAttr( "sqlhasdch" )!="";
+
+int ProcAppt = 0;
+
+if (!UseDCH) //Check to see if process or appointment in order to see whether they need to be updated
+{
+    if (LX.Count()>0)
+    {
+        If (LX[0].HasMethod("UseModDate"))
+        {
+            ProcAppt = LX[0].UseModDate();
+            useDCH = 1;
+        }
+    }
+}
+
+date cdate = ( modDate!=null ? modDate : global::GetTimeFromServer() );
+object itm;
+
+if (useDCH)
+{
+    for (int i=LX.count()-1; i>=0; i--)
+    {
+        itm = &LX[i];
+
+        if( itm.HasMethod("DBChange"))
+            itm.DBChange(modtype);
+
+        if( !ProcAppt )
+            itm.modType = modType;
+
+        itm.modDate = cdate;
+        itm.modUser = classes::core::global::UserID;
+    }
+    return 1;
+}
+
+return 0;]]>
+</method>
+<method name="countselected">
+<param name="LX" type="list" />
+<![CDATA[//@cmember countselected
+//@param list | LX |
+//@version Simon Carroll | 28-03-03 12:04 |
+//@i
+
+int counter = 0;
+
+for (int i = 0; i<LX.Count(); i++)
+{
+    if (LX[i].isselected())
+        counter++;
+}
+
+return counter;]]>
+</method>
+<method name="FindBinSearchRecurse">
+<param name="lst" type="List" />
+<param name="nMemberIndex" type="int" />
+<param name="oTarget" type="object" />
+<param name="nBeginPos" type="int" />
+<param name="nEndPos" type="int" />
+<![CDATA[//@cmember FindBinSearchRecurse
+//@param List | lst | List to search (NOTE: Assumed to be ordered lo to hi)
+//@param int | nMemberIndex | Index of member we are searching on
+//@param object | oTarget | Value we are looking for
+//@param int | nBeginPos |
+//@param int | nEndPos |
+//@version Scott Goodwin | 10-10-04 20:56 |
+//@i Recursively determine offset into list of matching item.
+//@i Returns -1 if not found.
+//@i To be called by FindBinSearch()
+//@i
+
+if (nEndPos < nBeginPos)  //Item not found
+    return -1;
+
+int nPos;
+if (nEndPos == nBeginPos)
+    nPos = nEndPos;
+else
+    nPos = nBeginPos + (nEndPos - nBeginPos)/2;    //Find middle element
+
+object oCurrentVal = &lst[nPos].getmember(nMemberIndex); //Value of middle element
+
+if (oCurrentVal == oTarget)      //Found it!
+    return nPos;
+else if (oCurrentVal < oTarget)  //Search top half of list
+    return FindBinSearchRecurse(lst, nMemberIndex, oTarget, nPos + 1, nEndPos);
+else                             //Search bottom half of list
+    return FindBinSearchRecurse(lst, nMemberIndex,oTarget, nBeginPos, nPos -1);]]>
+</method>
+<method name="FindBinSearch">
+<param name="lst" type="list" />
+<param name="nMemberIndex" type="int" />
+<param name="oTarget" type="object" />
+<![CDATA[//@cmember FindBinSearch
+//@param list | lst | List to search (NOTE: Assumed to be ordered list (lo to hi) of objets)
+//@param int | nMemberIndex | Index of member we are searching on
+//@param object | oTarget | Value we are looking for
+//@version Scott Goodwin | 10-10-04 21:01 |
+//@i Returns offset into list of matching item.
+//@i Returns -1 if not found.
+
+if (lst == null || lst.count() < 1 || nMemberIndex < 0  || nMemberIndex > lst[0].membercount() )
+    return -1;
+
+return FindBinSearchRecurse(lst, nMemberIndex, oTarget, 0, lst.count() -1);]]>
+</method>
+</static>
+<return>
+<rmeth name="quickFind" cls="object" />
+<rmeth name="FindRowEq" cls="object" />
+<rmeth name="FindRowNameEq" cls="object" />
+<rmeth name="FindRowName" cls="object" />
+<rmeth name="getKeySQLWhere" cls="string" />
+<rmeth name="DCHstampMods" cls="int" />
+</return>
+</class>

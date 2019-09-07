@@ -1,0 +1,90 @@
+<form name="taskbarIcon" icon="des.ico" hidden="1" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members>
+<method name="go">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+open();
+SetProp("DesIcon", 7727);
+
+// Taskbar
+SetTaskBarIcon("des2.ico", "W2 Class Designer");
+]]>
+</method>
+<method name="OnTaskBarClick" return="void">
+<![CDATA[
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        sys::HWNDSendIPC( mHwnd, i, "taskbarClicked" );
+        return;
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+close();
+]]>
+</method>
+<method name="OnWMCopyData" return="void">
+<param name="cmd" />
+<param name="val" />
+<![CDATA[//@version Andrew Griffin | 25-07-01 16:40 | 
+//@i This is called when another designer is spawned by windows so that we can
+//@i intercept them and relay them back through a single XRunApp Instance.
+
+if (val==7727) {
+    if (cmd == "closeIDE") close();
+    if (cmd == "closeCrashed") close();
+}
+
+]]>
+</method>
+<method name="OnTaskBarRightClick">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+OnTaskBarClick();]]>
+</method>
+<method name="OnTaskBarDoubleClick">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+OnTaskBarClick();]]>
+</method>
+</members>
+<static>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+taskbarIcon me;
+me.go();]]>
+</method>
+</static>
+<grid>
+<row>
+<col>
+<Label text="Never Show" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="OnTaskBarClick" cls="void" />
+<rmeth name="OnWMCopyData" cls="void" />
+</return>
+</form>

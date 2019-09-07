@@ -1,0 +1,2711 @@
+<form name="sourcesafe" caption="Source Safe" savepos="SourceSafePos" hidden="1" esccancel="1" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 1 $">
+<members>
+<Object name="comOb" />
+<String name="filename" />
+<String name="SSuserName" />
+<Integer name="func" />
+<List name="objs" cls="fItems" />
+<List name="folders" cls="fItems" />
+<Integer name="skipDialog" />
+<Object name="CRF" cls="classes::UPM2::BaseClasses::CRF" />
+<Integer name="iRetVal" />
+<Integer name="GetVersionNo" />
+<String name="SSFileName" />
+<String name="DirTo" />
+<Integer name="ProjectID" />
+<Object name="TheProject" cls="classes::UPM2::BaseClasses::Project" />
+<Integer name="ForDesigner" />
+<String name="UPM2FileName" />
+<Object name="pReturn" />
+<Object name="objVSSDatabase" cls="classes::com::ComObject" />
+<Object name="ExtraParam1" />
+<Integer name="iBeginReturn" />
+<Integer name="iBeginFinished" />
+<String name="szExtraParam1" />
+<Object name="SSParams" cls="classes::DES::CRFSystem::helperclasses::SourceSafeParams" />
+<method name="begin">
+<![CDATA[//@cmember begin
+//@version Andrew Griffin | 25-02-02 09:26 |
+//@version Jonny Moo | 15-01-03 09:51 |
+//@version chris.moran | 15-01-03 10:28 |
+//@version Jonny Moo | 21-01-03 13:51 |
+//@version Chris.Moran | 22-01-03 13:08 |
+//@version Jonny Moo | 06-02-03 15:22 |
+//@version Chris.Moran | 10-02-03 16:32 |
+//@version Jonny Moo | 28-03-03 16:49 |
+//@version Darren.Ball | 31-03-03 16:01 |
+//@version Jonny Moo | 04-07-03 10:10 |
+//@version Andy.Hatch | 17-07-03 11:00 |
+//@version Jonathan.Muir | 07-08-03 16:44 |
+// func == 0 : CheckOut
+//         1 : CheckIn
+//         2 :
+//         3 :
+//         4 : Undo CheckOut
+//         5 : GetFileVersion
+//         6 : Get File Version Number
+//         7 : Get Checkout status
+//         8 : Add File
+//         9 :
+//         10: Get a working directory from project
+
+
+
+// Connect to source safe com
+
+object objVSSRoot = null, objFound = null;
+
+if (objVSSDatabase.connect( "SourceSafe" ) < 0) {
+    message("Failed COM Connection to Source Safe");
+    iRetVal = -1;
+    return -1;
+}
+
+int i;
+
+// Get userid to find out sourse safe settings
+
+string szUser = classes::Core::Global::GetUserID();
+
+//string SrcSafeIni = classes::UPM2::global::Environment::GetUserInfo("SSINIPATH",szUser);
+SSUserName = classes::UPM2::global::Environment::GetUserInfo("SSUSERNAME",szUser);
+string SSPassWord = classes::UPM2::global::Environment::GetUserInfo("SSPASSWORD",szUser);
+
+// ProjectID supplied ?
+
+if(ProjectID>0)
+{
+    TheProject.ProjectID = ProjectID;
+}
+else
+{
+    // CRF Supplied ?
+
+    if(Func!=3&&CRF.CRFID<=0)
+    {
+        // No Get a CRF
+        Object CRFList = GetCRFList();
+        if(func==0||func==8)
+        {
+            object x = CRFList.CreateRow(0);
+            x.Code = -1;
+            x.Desc = "Create New CRF";
+        }
+
+        string szCRF = classes::UPM2::Functions::AskQuestion("Choose UPM2 CRF for source safe:",NULL,this,NULL,NULL,CRFList);
+
+        if(szCRF.Val()==0)
+        {
+            return -1;
+        }
+        else if(szCRF.Val()==-1)
+        {
+             CRF.CRFID = CreateNewCRF(szUser);
+             if(CRF.CRFID==0) return -1;
+             if(CRF.RefreshObject()==0)
+             {
+                return -1;
+             }
+        }
+        else
+        {
+            CRF.CRFID = szCRF.Val();
+            if(CRF.RefreshObject()==0)
+            {
+                return -1;
+            }
+        }
+
+    }
+    else if(Func==3)
+    {
+        // Want a Project
+        string szProject = classes::UPM2::Functions::AskQuestion("Pick which project you want the latest from?",NULL,this,NULL,NULL,classes::UPM2::Global::PickLists::ProjectFG);
+        if(szProject.Val()==0) return -1;
+        CRF.ProjectID = szProject.Val();
+    }
+
+    TheProject.ProjectID=  CRF.ProjectID;
+
+}
+
+if(TheProject.RefreshObject()==0)
+{
+    return -1;
+}
+
+
+if (!SSuserName)
+{
+    message("Please set up your source safe settings in upm2 maintenance\\user defaults");
+    iRetVal = -1;
+    return -1;
+}
+else
+{
+     objVSSDatabase.Open(TheProject.TheSoftware.SSIniPath, SSuserName, SSpassword);
+}
+
+
+objVSSRoot = DecipherObject(objVSSDatabase.VSSItem(TheProject.TheSoftware.SSProjPath, 0));
+// IF YOU HAVE CRASHED HERE YOUR SOURCE SAFE SETTING ARE INCORRECT (UPMPROJECT)
+
+string szWorkingDirectory = objVSSRoot.LocalSpec().Upper();
+
+// Return working directory?
+if(Func==10)
+{
+    classes::CPickS TheDir;
+    TheDir.Code = szWorkingDirectory;
+    pReturn.SetMagicPointer(TheDir);
+    return -2;
+
+}
+
+if(!szWorkingDirectory)
+{
+    message("Please set the working directory (in source safe) for this project ("+TheProject.TheSoftware.SSProjPath+")");
+    iRetVal = -1;
+    return -1;
+}
+
+szWorkingDirectory+="\\";
+
+// Convert FileName to a UPM2FileName
+
+UPM2FileName = FileName.Upper();
+
+if(UPM2FileName&&!UPM2FileName.BeginsWith(szWorkingDirectory)&&Func!=5)
+{
+    message("File ("+FileName+") needs to be located in the working path for this source safe project.\r\n"
+            "Source Safe Project = "+TheProject.TheSoftware.SSProjPath+"\r\n"
+            "Working Directory = "+szWorkingDirectory);
+    iRetVal = -1;
+    return -1;
+}
+
+UPM2FileName = UPM2FileName.SubString(szWorkingDirectory.Length());
+UPM2FileName = UPM2FileName.Replace("/","::");
+UPM2FileName = UPM2FileName.Replace("\\","::");
+
+
+setwaitcursor();
+
+
+// Get File Version?
+/*
+*/
+if(Func==5) return DoGetFileVersion(objVSSDatabase);
+
+// Get File Version No?
+
+if(Func==6) return DoGetFileVersionNo(objVSSRoot);
+
+if(Func==7) return DoGetStatus(objVSSRoot);
+
+if(Func==8) return AddFile();
+
+if(Func==9)
+{
+    idProgress.SetVisible(1);
+    SizeFormToContent();
+    Show(1);
+    date d;
+    d.FromString(szExtraParam1);
+    if(d.Valid())
+    {
+        return DoGetVersionStructure(objVSSRoot.items(0),d);
+    }
+    else
+    {
+        return DoGetVersionStructure(objVSSRoot.items(0),szExtraParam1);
+    }
+}
+
+if(Func==11)
+{
+    idProgress.SetVisible(1);
+    SizeFormToContent();
+    Show(1);
+    return DoGetVersionFromDir(objVSSRoot.items(0),szExtraParam1);
+}
+
+// If we are here we should have a CRF
+
+idCRFDesc.SetText(classes::UPM2::Global::StringFunctions::WordWrap(CRF.CRFID.ToString()+": "+CRF.ShortDesc+"( "+CRF.ProjectID.DispText()+") "+UPM2filename,40));
+
+
+locateFile(objVSSRoot, "$/", "");
+
+if (func!=1 && func!=2 && objs.count()==0) {
+    message("Can't Find the class: " + filename + " in Source Safe.");
+    iRetVal = -1;
+    return -1;
+}
+
+switch (func) {
+
+  case 0:   // Check Out
+    for (i=0; i<objs.count(); i++)
+      if (objs[i].comobj.IsCheckedOut() &&
+          objs[i].comobj.Checkouts().item( objs[i].comobj.checkouts().count() ).username().eq(SSuserName)) {
+        i = 9999;
+        break;
+      }
+
+    if (i==9999) {
+        message("You have already checked this class out of SourceSafe", "Check Out Cancelled");
+        iRetVal = -1;
+        return -1;
+    }
+    break;
+
+  case 1,2,4:   // 1 = Check In; 2 = Check In but Keep Checked Out
+    int lstc = objs.count();
+
+    for (i=0; i<objs.count(); i++)
+      if (!objs[i].comobj.IsCheckedOut() ||
+          !objs[i].comobj.Checkouts().item( objs[i].comobj.checkouts().count() ).username().eq(SSuserName)) {
+        objs.deleteRow(i);
+        i--;
+      }
+
+    if (objs.count()==0 && lstc>0) {
+        message("This class has not been checked out of SourceSafe by You", "Check In Failed!");
+        iRetVal = -1;
+        return -1;
+    }
+
+    if (objs.count()==0) {
+        doAddClass();
+        Show(1);
+        return 1;
+    }
+    break;
+
+  case 3:   // Get Latest Version
+    break;
+
+}
+
+if (objs.count()==1) {
+    return doOperation( objs[0].comobj );
+}
+
+idWait.setVisible( 0 );
+idList.setVisible( 1 );
+idCancel.setVisible( 1 );
+SizeFormToContent();
+Show(1);
+return 1;
+// Wait for user input...]]>
+</method>
+<method name="doObjClicked">
+<![CDATA[//@version Jonny Moo | 13-01-03 12:00 |
+//@version Chris.Moran | 10-02-03 16:38 |
+
+func = doOperation( objs.currentRow().comobj );]]>
+</method>
+<method name="doOperation">
+<param name="objFound" type="classes::com::comObject" />
+<![CDATA[//@cmember doOperation
+//@param classes::com::comObject | objFound |
+//@version Andrew Griffin | 29-04-02 09:54 |
+//@version Jonny Moo | 04-07-03 09:29 |
+// func == 0 : CheckOut
+//         1 : CheckIn
+object TheCRFFile;
+idWait.setVisible( 1 );
+idList.setVisible( 0 );
+SizeFormToContent();
+
+// func: 0=CheckOut; 1=CheckIn; 2=CheckIn/KeepOut; 3=GetLatest
+
+int ssMode, refresh=1;
+string who;
+
+if (func==3) {  // GetLatest
+    if (!objFound.isDifferent()) {
+        message("There are no changes to the local class\r\nCancelling Get Latest", "SourceSafe", classes::core::windows::MB_ICONEXCLAMATION);
+        return -1;
+    }
+
+    if (objFound.IsCheckedOut()) {
+        who = objFound.Checkouts().item( objFound.checkouts().count() ).username();
+        if (SSuserName.eq(who)) {
+            ssMode = 0;
+            if (message("You will LOOSE ANY CHANGES you have made to this class!\r\n" +
+                        "Are you sure you want to continue with the Get Latest?",
+                        "SourceSafe Warning",
+                        classes::core::windows::MB_ICONEXCLAMATION | classes::core::windows::MB_YESNO)
+                == classes::core::windows::IDNO) {
+                return -1;
+            }
+        }
+    }
+
+    objFound.get( "", 8 + 192);   // TimeMod + REPSKIP
+    message("Local Class Successfully Updated", "SourceSafe", classes::core::windows::MB_ICONINFORMATION);
+} else
+
+if (objFound.IsCheckedOut()) {  // *** Already Checked Out ***
+
+    who = objFound.Checkouts().item( objFound.checkouts().count() ).username();
+
+    if (func==0) {  // Check Out
+        message("The Class is already Checked Out to " + who, "Check Out Failed!", classes::core::windows::MB_ICONEXCLAMATION);
+        return -1;
+    }
+
+    // Check it's booked out to me!!!
+    if (!SSuserName.eq(who)) {
+        message("You do not have permission to Check this class into SourceSafe.\r\n" +
+                "The Class is checked out by " + who, "Check In Failed!", classes::core::windows::MB_ICONEXCLAMATION);
+        return -1;
+    }
+
+    if (!objFound.isDifferent()) {
+        if (func==1 || func==4) {
+            ssMode = 3;
+            if(!skipdialog) message("There are no changes to the local class\r\nUndoing Check Out", "SourceSafe", classes::core::windows::MB_ICONEXCLAMATION);
+
+            // If in designer - Get the CRFChangedFile
+
+            if(ForDesigner)
+            {
+                TheCRFFile = classes::UPM2::BaseClasses::CRFChangedFiles::GetObject("CRFID = "+CRF.CRFID.SQL()+" and FileName = "+UPM2FileName.SQL());
+                if(TheCRFFile==NULL) return -1;
+                if(TheCRFFile.IsEmpty())
+                {
+                    message("You do not have this file checked out to this CRF");
+                    return -1;
+                }
+                else if(TheCRFFile.UpdateInProgress==1)
+                {
+                    message("There has been a previous error updating this file in source safe.\r\nYou will need to data clean this row");
+                    return -1;
+                }
+
+                TheCRFFile.UpdateInProgress = 1;
+                TheCRFFile.SetDCHInfo(CRF);
+                if(TheCRFFile.UpdateObject()==0) return -1;
+            }
+
+            // UNDO CHECKOUT
+            objFound.undoCheckOut();
+
+            if(ObjFound.IsCheckedOut()!=0)
+            {
+                message("Error undoing check out");
+                if(ForDesigner)
+                {
+                    TheCRFFile.UpdateInProgress = 0;
+                    TheCRFFile.SetDCHInfo(CRF);
+                    TheCRFFile.UpdateObject();
+                }
+                return -1;
+            }
+
+            if(ForDesigner)
+            {
+                TheCRFFile.CheckOutStatusFG = "I";
+                TheCRFFile.UpdateInProgress = 0;
+                TheCRFFile.SetDCHInfo(CRF);
+                if(TheCRFFile.UpdateObject()==0) return -1;
+            }
+
+            iRetVal = objFound.VersionNumber();
+
+        } else {    // func==2
+            message("There are no changes to the local class\r\nKeeping Checked Out", "SourceSafe", classes::core::windows::MB_ICONEXCLAMATION);
+            return -1;
+        }
+    }
+    else
+    {
+        if (func==4) {
+            ssMode = 3;
+            if (message("You have made changes to your local class that WILL BE LOST!\r\nContinue with Undo?", "Undo Check Out Warning!", classes::core::windows::MB_YESNO | classes::core::windows::MB_ICONEXCLAMATION) == classes::core::windows::IDNO) {
+                return -1;
+            }
+            message("Check Out Undone", "SourceSafe", classes::core::windows::MB_ICONINFORMATION);
+
+            // If in designer - Get the CRFChangedFile
+
+            if(ForDesigner)
+            {
+                TheCRFFile = classes::UPM2::BaseClasses::CRFChangedFiles::GetObject("CRFID = "+CRF.CRFID.SQL()+" and FileName = "+UPM2FileName.SQL());
+                if(TheCRFFile==NULL) return -1;
+                if(TheCRFFile.IsEmpty())
+                {
+                    message("You do not have this file checked out to this CRF");
+                    return -1;
+                }
+                else if(TheCRFFile.UpdateInProgress==1)
+                {
+                    message("There has been a previous error updating this file in source safe.\r\nYou will need to data clean this row");
+                    return -1;
+                }
+
+                TheCRFFile.UpdateInProgress = 1;
+                TheCRFFile.SetDCHInfo(CRF);
+                if(TheCRFFile.UpdateObject()==0) return -1;
+            }
+
+            // UNDO CHECK OUT
+            objFound.undoCheckOut();
+
+            if(ObjFound.IsCheckedOut()!=0)
+            {
+                message("Error undoing check out");
+                if(ForDesigner)
+                {
+                    TheCRFFile.UpdateInProgress = 0;
+                    TheCRFFile.SetDCHInfo(CRF);
+                    TheCRFFile.UpdateObject();
+                }
+
+                return -1;
+            }
+
+            if(ForDesigner)
+            {
+                TheCRFFile.CheckOutStatusFG = "I";
+                TheCRFFile.UpdateInProgress = 0;
+                TheCRFFile.SetDCHInfo(CRF);
+                if(TheCRFFile.UpdateObject()==0) return -1;
+            }
+
+            iRetVal = ObjFound.VersionNumber();
+
+        }
+        else
+        {
+            return Go( objFound );
+        }
+    }
+
+}
+else
+{                        // *** Not checked out yet ***
+
+    if (func==1 || func==2) {  // Check In
+        message("The Class is not Checked Out", "Check In Failed!", classes::core::windows::MB_ICONEXCLAMATION);
+        return -1;
+    }
+
+    // Check Out
+
+    ssMode = 1;
+    if (objFound.isDifferent()) {
+        if (message("Your local class is out of date & will be replaced.\r\nContinue with Checkout?", "Check Out Warning!", classes::core::windows::MB_YESNO | classes::core::windows::MB_ICONEXCLAMATION)
+          == classes::core::windows::IDNO) {
+            func=-1;
+            return -1;
+        }
+    } else refresh = 0; // if no different then don't re-load class...
+
+
+
+    //CHECK OUT
+
+    if(ForDesigner)
+    {
+        TheCRFFile = classes::UPM2::BaseClasses::CRFChangedFiles::GetObject("CRFID = "+CRF.CRFID.SQL()+" and FileName = "+UPM2FileName.SQL());
+        if(TheCRFFile==NULL) return -1;
+        if(!TheCRFFile.IsEmpty())
+        {
+            if(TheCRFFile.UpdateInProgress==1)
+            {
+                message("There has been a previous error updating this file in source safe.\r\nYou will need to data clean this row");
+                return -1;
+            }
+
+            TheCRFFile.UpdateInProgress = 1;
+            TheCRFFile.SetDCHInfo(CRF);
+            if(TheCRFFile.UpdateObject()==0) return -1;
+        }
+    }
+
+
+    objFound.checkOut( "", "", 8);   // TimeMod + (REPSKIP  - I have taken repskip off - it doesn't replace writeable files if set)
+    //
+
+    if(ObjFound.IsCheckedOut()!=2)
+    {
+        message("Check out failed");
+        if(ForDesigner)
+        {
+            TheCRFFile.UpdateInProgress = 0;
+            TheCRFFile.SetDCHInfo(CRF);
+            TheCRFFile.UpdateObject();
+        }
+
+        return -1;
+    }
+
+    if(ObjFound.IsDifferent()!=0)
+    {
+        message("Check out OK but file is different on you local copy.\r\nPlease check through source safe that you are working on the correct version");
+    }
+
+    iRetVal = ObjFound.VersionNumber();
+
+    if(ForDesigner)
+    {
+        if(TheCRFFile.IsEmpty())
+        {
+
+            // Insert
+            TheCRFFile.CRFChangedFilesID = 0;
+            TheCRFFile.CRFID = CRF.CRFID;
+            TheCRFFile.Filename = UPM2FileName;
+            TheCRFFile.CheckOutStatusFG = "O";
+            TheCRFFile.ProjectID = CRF.ProjectID;
+            TheCRFFile.FileVersion = iRetVal;
+            TheCRFFile.FullFileName = FileName;
+            TheCRFFile.UpdateInProgress = 0;
+            TheCRFFile.SetDCHInfo(CRF);
+            if(TheCRFFile.InsertObject()==0)
+            {
+                func = -1;
+                iRetVal = -1;
+                return -1;
+            }
+
+        }
+        else
+        {
+            // update
+            TheCRFFile.CheckOutStatusFG = "O";
+            TheCRFFile.UpdateInProgress = 0;
+            TheCRFFile.FileVersion = iRetVal;
+            TheCRFFile.SetDCHInfo(CRF);
+            if(TheCRFFile.UpdateObject()==0) return -1;
+
+        }
+
+    }
+
+    //
+    //message("Class Successfully Checked Out", "SourceSafe", classes::core::windows::MB_ICONINFORMATION);
+}
+
+// Delete local backups of file
+if (classes::des::backup::backupEnabled) classes::des::backup::removeBackups( filename );
+
+// Let designer know
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        sys::HWNDSendIPC( mHwnd, 7723, "SourceSafe:" + CRF.CRFId.ToString()+","+ssMode.ToString()+","+FileName+","+Refresh );
+        break; // send open request and close this instance
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+
+// Put latest copy into memory.
+if (getParent() != null&&getParent().HasMethod("SourceSafeCallBack"))
+{
+    getParent().SourceSafeCallback( CRF.CRFID, ssMode, filename, refresh );
+}
+
+return -2;]]>
+</method>
+<method name="Go">
+<param name="com" type="classes::com::comObject" />
+<![CDATA[//@version Andrew Griffin | 25-02-02 09:42 |
+//@version Jonny Moo | 06-02-03 13:48 |
+//@version Jonathan.Muir | 12-08-03 11:16 |
+
+comOb.setMagicPointer( com );
+if (skipDialog) func = doCheckIn();
+
+idWait.setVisible( 0 );
+showgroup( "notes", 1 );
+idButton.setVisible( 1 );
+idCancel.setVisible( 1 );
+
+
+SizeFormToContent();
+idNote.SelectText();
+Show(1);
+return 1;]]>
+</method>
+<method name="doCheckIn">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 25-02-02 09:26 |
+//@version Jonny Moo | 28-02-03 15:28 |
+//@i
+
+if (CRF.CRFID<=0)
+{
+    message( "CRF Number invalid",
+             "SourceSafe Validation",
+             classes::core::windows::MB_ICONASTERISK
+    );
+    return 1;
+}
+
+int flags;
+
+if (func==2) flags=131072;  // VSSFLAG_KEEPYES - Keep Checked Out
+
+string note = "<CRFId: " + CRF.CRFId + ">\r\n" +
+           "<CRFShortDesc: " + CRF.ShortDesc + ">\r\n" +
+           "<CRFProject: "+CRF.ProjectID.DispText()+">\r\n";
+
+iRetVal = ComOb.VersionNumber();
+if(iRetVal<=0)
+{
+    message("Error accessing source safe");
+    func = -1;
+    iRetVal = -1;
+    return -1;
+}
+
+object TheCRFFile;
+
+if(ForDesigner)
+{
+    TheCRFFile = classes::UPM2::BaseClasses::CRFChangedFiles::GetObject("CRFID = "+CRF.CRFID.SQL()+" and FileName = "+UPM2FileName.SQL());
+    if(TheCRFFile==NULL)
+    {
+        func = -1;
+        iRetVal = -1;
+        return -1;
+    }
+    if(TheCRFFile.IsEmpty())
+    {
+        message("You do not have this file checked out to this CRF");
+        func = -1;
+        iRetVal = -1;
+        return -1;
+    }
+    if(TheCRFFile.UpdateInProgress==1)
+    {
+        message("There has been a previous error updating this file in source safe.\r\nYou will need to data clean this row");
+        func = -1;
+        iRetVal = -1;
+        return -1;
+    }
+
+    TheCRFFile.UpdateInProgress = 1;
+    TheCRFFile.SetDCHInfo(CRF);
+    if(TheCRFFile.UpdateObject()==0)
+    {
+        func = -1;
+        iRetVal = -1;
+        return -1;
+    }
+}
+
+comOb.checkIn( note + idNote.getText(), "", flags );
+
+if(ComOb.IsCheckedOut()!=0)
+{
+    message("Error checking file into source safe");
+
+    if(ForDesigner)
+    {
+        TheCRFFile.UpdateInProgress = 0;
+        TheCRFFile.SetDCHInfo(CRF);
+        TheCRFFile.UpdateObject();
+    }
+    func = -1;
+    iRetVal = -1;
+    return -1;
+}
+
+iRetVal++;
+
+if(ForDesigner)
+{
+    TheCRFFile.CheckOutStatusFG = "I";
+    TheCRFFile.UpdateInProgress = 0;
+    TheCRFFile.FileVersion = iRetVal;
+    TheCRFFile.SetDCHInfo(CRF);
+    if(TheCRFFile.UpdateObject()==0)
+    {
+        func = -1;
+        iRetVal = -1;
+        return -1;
+    }
+}
+
+
+//message("Class Successfully Checked In");
+
+if (getparent() == null) return 1;
+
+// Delete local backups of file
+if (classes::des::backup::backupEnabled) classes::des::backup::removeBackups( filename );
+
+// Let designer know
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        sys::HWNDSendIPC( mHwnd, 7723, "SourceSafe:" + CRF.CRFId.ToString()+",2,"+FileName );
+        break; // send open request and close this instance
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+// Put latest copy into memory.
+if (getParent() != null&&getParent().HasMethod("SourceSafeCallBack"))
+    getParent().SourceSafeCallback( CRF.CRFId, 2, filename );
+
+//getparent().ReadFile( filename, 1 );   // Put latest copy into memory.
+
+func = -2;
+return -2;]]>
+</method>
+<method name="GetCRFList">
+<![CDATA[//@cmember GetCRFList
+//@version Andrew Griffin | 20-02-02 10:15 |
+//@version Jonny Moo | 06-02-03 11:10 |
+//@i
+
+classes::CPickN CRFList[];
+
+string szUser = classes::Core::Global::GetUserID();
+
+object pList = classes::UPM2::BaseClasses::CRF::GetActiveCRFs(szUser);
+
+
+if(pList==NULL) return NULL;
+
+for (int i=0; i<pList.Count(); i++)
+{
+    object tmp = CRFList.CreateRow();
+    tmp.code = pList[i].CRFID;
+    tmp.desc = pList[i].CRFID.ToString()+": "+pList[i].ShortDesc+" ("+pList[i].ProjectID.DispText()+")";
+}
+
+CRFList.OrderBy("Code");
+CRFList.OrderList();
+
+return CRFList;]]>
+</method>
+<method name="doAddClass">
+<![CDATA[//@cmember doAddClass
+//@param
+//@return
+//@version Andrew Griffin | 25-02-02 09:42 |
+//@version Jonny Moo | 14-01-03 15:14 |
+//@version Jonathan.Muir | 12-08-03 11:17 |
+//@i
+
+// Find most likely folder first...
+
+
+folders.OrderBy( "score", "DESC" );
+folders.OrderList();
+
+idWait.setVisible( 0 );
+idFolderList.setVisible( 1 );
+if(Folders.Count()>0)
+{
+    Folders.SetCurrent(0);
+}
+
+if(skipdialog&&Folders.Count()==1)
+{
+    func =DoFolderClicked();
+    return 1;
+}
+idCancel.setVisible( 1 );
+idButtonAdd.setVisible( 1 );
+showGroup( "Notes", 1 );
+
+SizeFormToContent();
+
+
+// Wait for user input...]]>
+</method>
+<method name="doFolderClicked">
+<![CDATA[//@cmember doFolderClicked
+//@version Andrew Griffin | 25-02-02 09:26 |
+//@version Jonny Moo | 16-01-03 09:40 |
+//@version Chris.Moran | 10-02-03 16:39 |
+//@version Jonny Moo | 13-03-03 16:11 |
+Grid.SetEnabled(0);
+
+if (CRF.CRFID<=0)
+{
+    message( "Invalid CRF",
+             "SourceSafe Validation",
+             classes::core::windows::MB_ICONASTERISK
+    );
+    Grid.SetEnabled(1);
+    return 1;
+}
+
+//
+// Add new to source safe into 'obj'
+
+fitems obj = &folders.currentRow();
+
+if (obj==null)
+{
+    message( "First Select a valid project folder...",
+             "SourceSafe Validation",
+             classes::core::windows::MB_ICONASTERISK
+    );
+    return -1;
+}
+
+
+//
+// First create any new projects(folders) that are required
+
+// obj.locSpec == "c:\w2\classes"
+// filename    == "c:\w2\classes\des\muppet.xml"
+// need to add des
+
+obj = &addFolders( obj );
+
+if(obj==NULL)
+{
+    message("Error adding folder");
+    return -1;
+}
+//
+// Project(folders) are created... now add class itself
+
+string  note = "<CRFId: " + CRF.CRFId + ">\r\n" +
+           "<CRFShortDesc: " + CRF.ShortDesc + ">\r\n"
+           "<CRFProject: "+CRF.ProjectID.DispText()+">\r\n";
+
+int flags;
+if (func==2) flags=131072;  // VSSFLAG_KEEPYES - Keep Checked Out
+
+object TheCRFFile;
+
+if(ForDesigner)
+{
+    TheCRFFile = classes::UPM2::BaseClasses::CRFChangedFiles::GetObject("CRFID = "+CRF.CRFID.SQL()+" and FileName = "+UPM2FileName.SQL());
+    if(TheCRFFile==NULL)
+    {
+        func = -1;
+        iRetVal = -1;
+        return -1;
+    }
+    if(!TheCRFFile.IsEmpty())
+    {
+        if(TheCRFFile.UpdateInProgress==1)
+        {
+            message("There has been a previous error updating this file in source safe.\r\nYou will need to data clean this row");
+            func = -1;
+            iRetVal = -1;
+            return -1;
+        }
+        TheCRFFile.UpdateInProgress = 1;
+        TheCRFFile.SetDCHInfo(CRF);
+        if(TheCRFFile.UpdateObject()==0)
+        {
+            func = -1;
+            iRetVal = -1;
+            return -1;
+        }
+    }
+}
+
+
+
+obj.comobj.add( filename, note + idNote.getText(), flags );
+
+// Check added ok
+
+locateFile(obj.comobj,"$/","");
+
+if (objs.count()==0)
+{
+    // Not found
+
+    message("Add Failed");
+    if(ForDesigner)
+    {
+        TheCRFFile.UpdateInProgress = 0;
+        TheCRFFile.SetDCHInfo(CRF);
+        TheCRFFile.UpdateObject();
+    }
+
+    return -1;
+}
+
+if(objs.Count()>1)
+{
+    message("The file "+FileName+" exists more than once in this project.\r\nYou have your working directories in source safe set up incorrectly");
+
+    if(ForDesigner)
+    {
+        TheCRFFile.UpdateInProgress = 0;
+        TheCRFFile.SetDCHInfo(CRF);
+        TheCRFFile.UpdateObject();
+    }
+
+    func = -1;
+    return -1;
+}
+
+
+if(ForDesigner)
+{
+
+    if(TheCRFFile.IsEmpty())
+    {
+        // Insert
+        TheCRFFile.CRFChangedFilesID = 0;
+        TheCRFFile.CRFID = CRF.CRFID;
+        TheCRFFile.Filename = UPM2FileName;
+        TheCRFFile.CheckOutStatusFG = "I";
+        TheCRFFile.ProjectID = CRF.ProjectID;
+        TheCRFFile.FileVersion = 1;
+        TheCRFFile.FullFileName = FileName;
+        TheCRFFile.UpdateInProgress = 0;
+        TheCRFFile.SetDCHInfo(CRF);
+        if(TheCRFFile.InsertObject()==0)
+        {
+            func = -1;
+            iRetVal = -1;
+            return -1;
+        }
+
+    }
+    else
+    {
+        // Update
+
+        TheCRFFile.CheckOutStatusFG = "I";
+        TheCRFFile.UpdateInProgress = 0;
+        TheCRFFile.FileVersion = 1;
+        TheCRFFile.SetDCHInfo(CRF);
+        if(TheCRFFile.UpdateObject()==0)
+        {
+            func = -1;
+            iRetVal = -1;
+            return -1;
+        }
+    }
+}
+
+// Delete local backups of file
+if (classes::des::backup::backupEnabled) classes::des::backup::removeBackups( filename );
+
+// Let designer know
+
+int mhWnd = sys::HWNDFind( "WFL32WNDCLASS", "" );
+
+while (mhWnd!=0) {
+    int i = Sys::HWNDGetProp(mhWnd, "ClsDes");
+    if (i==7723) {
+        sys::HWNDSendIPC( mHwnd, 7723, "SourceSafe:" + CRF.CRFId.ToString()+",2,"+FileName );
+        break; // send open request and close this instance
+    }
+    mhWnd = sys::HWNDFindEx( null, mhWnd, "WFL32WNDCLASS", "" );
+}
+
+
+// Put latest copy into memory.
+if (getParent() != null&&getParent().HasMethod("SourceSafeCallBack"))
+    getParent().SourceSafeCallback( CRF.CRFId, 2, filename );
+
+//getparent().ReadFile( filename, 1 );   // Put latest copy into memory.
+
+func = -2;
+iRetVal = 1;
+return -2;]]>
+</method>
+<method name="addFolders" return="fitems">
+<param name="obj" type="fitems" />
+<![CDATA[//@cmember addFolders
+//@param fitems | obj |
+//@return fitems |
+//@version Andrew Griffin | 22-02-02 10:12 |
+
+// obj.locSpec == "c:\w2\classes"
+// filename    == "c:\w2\classes\des\muppet.xml"
+
+string toGo = filename.subString( obj.locSpec.length()+1 );
+int i = toGo.indexOf( "\\" );
+if (i==-1) return obj;
+
+toGo = toGo.left( i );  // toGo == "des"
+
+// create project 'des' in obj.comobj
+
+fitems ni;
+ni.comobj = obj.comobj.NewSubproject( toGo, "Created by W2 Designer" );
+ni.locSpec = obj.locSpec + "\\" + toGo;
+
+return addFolders( ni );]]>
+</method>
+<method name="DoGetFileVersion" return="int">
+<param name="objVSSDatabase" type="object" />
+<![CDATA[//@cmember DoGetFileVersion
+//@param object | objVSSDatabase |
+//@return int |
+//@version Jonny Moo | 05-03-03 15:09 |
+//@version Darren.Ball | 31-03-03 16:01 |
+//@version Jonny Moo | 15-04-03 12:33 |
+//@i
+
+//Get desired file
+
+string vssFile = SSFileName;
+vssFile = vssFile.Replace("::","/");
+vssFile = vssFile.Replace("\\","/");
+
+classes::com::ComObject objItem, objOldVersion=null;
+//objitem = objVSSDatabase.VSSItem(TheProject.SSProjPath+vssFile,0);
+
+objitem = DecipherObject(objVSSDatabase.VSSItem(TheProject.TheSoftware.SSProjPath+"/"+vssFile));
+
+if(objItem == NULL)
+{
+    message("Couldn't get source safe file : "+TheProject.TheSoftware.SSProjPath+"/"+vssFile);
+    return -1;
+}
+
+
+
+//Obtain version 2 of file and save to desired folder
+
+objOldVersion = objItem.Version(GetVersionNo);
+
+if(objOldVersion == NULL)
+{
+    message("Couldn't get source safe file : "+TheProject.TheSoftware.SSProjPath+"/"+vssFile+ "Version "+GetVersionNo.ToString());
+    return -1;
+}
+
+
+if(!FileName)
+{
+    // Use to directory
+    vssFile = vssFile.Replace("/","\\");
+
+    string szDir = DirTo;
+    if(szDir.CharAt(szDir.Length()-1)=='\\') szDir = szDir.Left(szDir.Length()-1);
+
+    // Create directories
+
+    string tmpDir = "";
+    for(int i=0;i<classes::UPM2::global::StringFunctions::CountToken(vssfile,"\\")-2;i++)
+    {
+        string sz = vssFile.GetToken(i,"\\");
+        if(!sz) break;
+        file f;
+        tmpDir = tmpDir + "\\"+sz;
+        f.CreateDir(szDir+tmpDir);
+    }
+
+
+    int iOK = DecipherGet(objOldVersion.Get(szDir+"\\"+vssFile));
+
+    if(!iOK)
+    {
+        message("Error getting file ("+szDir+"\\"+vssFile+")");
+        return -1;
+    }
+
+}
+else
+{
+    // Temporary file name given
+    int iOK = DecipherGet(objOldVersion.Get(fileName));
+
+    if(!iOK)
+    {
+        message("Error getting file ("+filename+")");
+        return -1;
+    }
+
+}
+
+iRetVal = 1;
+return -2;]]>
+</method>
+<method name="DoGetFileVersionNo" return="int">
+<param name="objVSSRoot" type="object" />
+<![CDATA[//@cmember DoGetFileVersionNo
+//@param object | objVSSRoot |
+//@return int | 0 Not Found or the version No.
+//@version Jonny Moo | 15-01-03 10:15 |
+//@i
+
+locateFile(objVSSRoot, "$/", "");
+
+if (objs.count()==0)
+{
+    // Not found
+    iRetVal = 0;
+    return -2;
+}
+
+if(objs.Count()>1)
+{
+    message("The file "+FileName+" exists more than once in this project.\r\nYou have your working directories in source safe set up incorrectly");
+    iRetVal = -1;
+    return -1;
+}
+
+iRetVal = objs[0].ComObj.VersionNumber();
+
+return -2;]]>
+</method>
+<method name="DoGetStatus" return="int">
+<param name="objVSSRoot" type="object" />
+<![CDATA[//@cmember DoGetStatus
+//@param object | objVSSRoot |
+//@return int | 0 Not Found or the version No.
+//@version Jonny Moo | 16-01-03 10:48 |
+//@i
+
+locateFile(objVSSRoot, "$/", "");
+
+if (objs.count()==0)
+{
+    // Not found
+    iRetVal = 0;
+    return -2;
+}
+
+if(objs.Count()>1)
+{
+    message("The file "+FileName+" exists more than once in this project.\r\nYou have your working directories in source safe set up incorrectly");
+    iRetVal = -1;
+    return -1;
+}
+
+iRetVal = 1;
+
+if(objs[0].ComObj.IsCheckedOut()) iRetVal = 2;
+
+return -2;]]>
+</method>
+<method name="AddFile">
+<![CDATA[//@cmember AddFile
+//@version Jonny Moo | 17-01-03 16:18 |
+//@i
+
+classes::UPM2::BaseClasses::CRFChangedFiles NewFile;
+NewFile.CRFID = CRF.CRFID;
+NewFile.FileName = UPM2FileName;
+NewFile.CheckOutStatusFG = "A";
+NewFile.ProjectID = CRF.ProjectID;
+NewFile.FileVersion = 0;
+NewFile.FullFileName = FileName;
+NewFile.UpdateInProgress = 0;
+
+NewFile.SetDCHInfo(CRF);
+
+int i = NewFile.InsertObject();
+if(i==0)
+{
+    iRetVal = 0;
+    return -1;
+}
+else
+{
+    iRetVal = 1;
+    return -2;
+}]]>
+</method>
+<method name="DoGetVersionStructure">
+<param name="objVSSRoot" type="object" />
+<param name="ExtraParam1" type="object" />
+<param name="pRoot" type="object" />
+<param name="pVersions" type="object" />
+<![CDATA[//@cmember DoGetVersionStructure
+//@param object | objVSSRoot |
+//@param object | ExtraParam1 |
+//@param object | pRoot | (For Recursion)
+//@param object | pVersions | (For Recursion)
+//@version Jonny Moo | 21-02-03 13:13 |
+//@version Jonathan.Muir | 07-08-03 16:40 |
+//@i
+
+object Versions;
+if(pVersions!=NULL)
+{
+    Versions = &pVersions;
+}
+else
+{
+    classes::CPickN tmpVersions[];
+    Versions = &tmpVersions;
+}
+
+//string szRoot = "CLASSES::";
+
+string szRoot = "";
+if(pRoot!=NULL) szRoot = pRoot+"::";
+
+for (int i=1; i<=objVSSRoot.count(); i++) {
+
+    object obj = objVSSRoot.item(i);
+
+    //FILE
+    if (obj.type()!=0)
+    {
+        // Get Version Number
+
+        object TheVersion = obj.Version(ExtraParam1.ToString());
+        int iVer = TheVersion.VersionNumber();
+
+        if(iVer>=1&&iVer<1000000)
+        {
+            object x = Versions.CreateRow();
+            x.Code = iVer;
+            x.Desc = szRoot+obj.Name();
+            x.Desc = x.Desc.Upper();
+        }
+    }
+    else
+    //PROJECT
+    {
+        idProgress.SetText(szRoot+obj.Name());
+        UpdateWindow();
+        sys::Wait(0);
+        DoGetVersionStructure(obj.items(0),ExtraParam1,szRoot+obj.Name(),Versions);
+    }
+}
+
+//if(szRoot!="CLASSES::") return Versions;
+if(szRoot!="") return Versions;
+
+
+pReturn.SetMagicPointer(Versions);
+
+return -2;]]>
+</method>
+<method name="DoGetVersionFromDir">
+<param name="objVSSRoot" type="object" />
+<param name="dir" type="object" />
+<![CDATA[//@cmember DoGetVersionFromDir
+//@param object | objVSSRoot |
+//@param object | dir |
+//@version Jonny Moo | 06-03-03 13:31 |
+//@version Andy.Hatch | 17-07-03 11:03 |
+//@i
+
+// Get directory listing
+
+object DirListing = GetDirList(dir,NULL,"*.*",objVSSRoot,0);
+
+pReturn.SetMagicPointer(DirListing);
+
+return -2;]]>
+</method>
+<method name="locateFile" return="object">
+<param name="itm" type="classes::com::ComObject" />
+<param name="proj" type="string" />
+<param name="locSpec" type="string" />
+<![CDATA[//@cmember locateFile
+//@param classes::com::ComObject | itm |
+//@param string | proj |
+//@param string | locSpec |
+//@return object |
+//@version Andrew Griffin | 22-02-02 09:41 |
+//@version Jonny Moo | 20-06-03 14:10 |
+
+classes::com::ComObject lobj = null, obj = null, fnd = null;
+
+lobj = itm.Items( 0 );
+int tSub;
+
+for (int i=1; i<=lobj.count(); i++) {
+
+    obj = lobj.item(i);
+    if (obj.type()!=0) {    // File
+        if (filename.eq(obj.LocalSpec())) {
+            fItems tmp = &objs.createRow();
+            tmp.comobj = obj;
+            tmp.project = proj;
+            //return obj;   // Found File!
+        }
+    } else {
+
+        string nlspec = obj.LocalSpec();
+        string nlspec2 = nlspec+"\\";
+        if (filename.left(nlspec2.length()).eq(nlspec2)) {
+            fnd = locateFile( obj, proj + obj.name() + "/", nlspec );
+            tSub++;
+            //if (fnd!=null) return fnd;
+        }
+    }
+}
+
+if (itm.localSpec() && !tSub)
+{
+    fItems tmp = &folders.createRow();
+    tmp.comobj = itm;
+    tmp.project = proj;
+    tmp.locSpec = locSpec;
+    tmp.score = locSpec.length();
+}
+
+return null;]]>
+</method>
+<method name="GetDirList">
+<param name="szPath" type="object" />
+<param name="szSubPath" type="object" />
+<param name="WildCard" type="object" />
+<param name="objVSSRoot" type="object" />
+<param name="bTakeCleanCut" type="object" />
+<![CDATA[//@cmember GetDirList
+//@param object | szPath |
+//@param object | szSubPath |
+//@param object | WildCard |
+//@param object | objVSSRoot |
+//@param object | bTakeCleanCut |
+//@version Jonny Moo | 18-02-03 10:24 |
+//@version Chris.Moran | 28-02-03 10:07 |
+//@version Jonny Moo | 06-03-03 13:30 |
+//@version Andy.Hatch | 17-07-03 11:03 |
+//@i
+
+string FullPath = szPath;
+
+int TakeCleanCut = 0;
+if(bTakeCleanCut!=NULL) TakeCleanCut = bTakeCleanCut;
+
+if (!fullpath.endsWith( "\\" )) fullpath += "\\";
+
+if(szSubPath!=NULL&&szSubPath)
+{
+    FullPath = FullPath+szSubPath;
+}
+
+if (!fullpath.endsWith( "\\" )) fullpath += "\\";
+
+idProgress.SetText(FullPath);
+UpdateWindow();
+sys::Wait(0);
+
+DirEntry DirList[];
+
+// If loop down directoies
+
+// Do we need to recurse down directory
+
+Object DF = Sys::NewFileFinder();
+int ok = DF.FindFirst( fullpath+"*.*", "" );
+
+while( ok )
+{
+
+    if (DF.IsDir && DF.FileName!="." && DF.FileName!="..")
+    {
+        string TheNewSubPath = DF.FileName;
+
+        object NewRoot = GetVSSItem(objVSSRoot,DF.FileName);
+
+        DirEntry R;
+        R.FileName = FullPath+TheNewSubPath;
+        R.FileLength = 0;
+        R.Type = "DIR";
+        R.Date = DF.Date;
+        R.VersionNo = 0;
+
+        if(NewRoot==NULL)
+        {
+            R.szStatus = "DIRECTORY NOT FOUND";
+        }
+        else
+        {
+
+            if(szSubPath!=NULL&&szSubPath) TheNewSubPath = szSubPath+"\\"+TheNewSubPath;
+            object SubDirList = GetDirList(szPath,TheNewSubPath,WildCard,NewRoot.Items(0),bTakeCleanCut);
+            if(SubDirList==NULL) return NULL;
+            SubDirList.MoveAllTo(DirList);
+        }
+
+        if(!TakeCleanCut)
+        {
+            object x = DirList.CreateRow();
+            x = R;
+        }
+
+
+    }
+
+    ok = DF.FindNext();
+
+}
+
+string szFullPath = FullPath;
+
+if (Wildcard=="")
+    fullpath += "*.*";
+else
+    fullpath += Wildcard;
+
+
+Object FF = Sys::NewFileFinder();
+ok = FF.FindFirst( fullpath, "" );
+
+
+
+while( ok )
+{
+    // Add the file / directory (if not recursive) to the list
+
+    if(!FF.IsDir)
+    {
+        string TheNewSubPath = "";
+        if(szSubPath!=NULL&&szSubPath) TheNewSubPath = szSubPath+"\\";
+
+        DirEntry R;
+
+        R.FileName = szFullPath+FF.FileName;
+        R.FileLength = FF.FileLength;
+        R.Attrib = FF.Attrib;
+        R.Date = FF.Date;
+        R.Type = "FILE";
+
+
+        object TheFile = GetVSSItem(objVSSRoot,FF.FileName);
+
+        if(TheFile==NULL)
+        {
+            R.szStatus = "FILE NOT FOUND";
+            R.VersionNo = 0;
+        }
+        else
+        {
+            int bDontLoop = 0;
+            int CurrentVer = TheFile.VersionNumber();
+
+            if(bTakeCleanCut)
+            {
+                // Assume latest versions of calculations and upm2
+                if(szFullPath.FindToken("UPM2","\\")<0||
+                   szFullPath.FindToken("CALCULATIONS","\\")>=0)
+                {
+                    bDontLoop = 1;
+                    R.VersionNo = CurrentVer;
+                }
+            }
+            while(CurrentVer>0 && !bDontLoop)
+            {
+
+                idProgress.SetText(szFullPath+FF.FileName+":"+CurrentVer.ToString());
+                UpdateWindow();
+                sys::Wait(0);
+                object objOldVersion = TheFile.Version(CurrentVer);
+
+                objOldVersion.Get("C:\\temp\\vsscompare.tmp");
+
+                file f;
+                f.OpenFile("C:\\temp\\vsscompare.tmp");
+                blob b1 = f.ReadBlob();
+                file f2;
+                f2.OpenFile(szFullPath+FF.FileName);
+                blob b2 = f2.ReadBlob();
+                f.Close();
+                f2.Close();
+
+                string ext = FF.FileName.SubString(FF.FileName.LastIndexOf(".")+1);
+
+                if(CompareBlobs(b1,b2,ext)==1)
+                {
+                    break;
+                }
+
+                CurrentVer--;
+            }
+
+            if(CurrentVer==0) R.szStatus = "VERSION NOT FOUND";
+            R.VersionNo = CurrentVer;
+        }
+        if(!bTakeCleanCut||
+           (bTakeCleanCut&&(R.szStatus!="FILE NOT FOUND"
+                           )
+           )
+          )
+        {
+            object x = DirList.CreateRow();
+            x = R;
+        }
+    }
+
+
+    ok = FF.FindNext();
+}
+
+return DirList;]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember onTimer
+//@version Jonny Moo | 28-02-03 13:44 |
+//@i
+
+// See:  SetTimer( time_in_milliseconds );
+//       KillTimer();
+
+KillTimer();
+
+iBeginReturn = Begin();
+iBeginFinished = 1;]]>
+</method>
+<method name="CreateNewCRF">
+<param name="szUserID" type="object" />
+<![CDATA[//@cmember CreateNewCRF
+//@param object | szUserID |
+//@version Jonny Moo | 12-06-03 11:00 |
+//@i
+
+classes::UPM2::BaseClasses::CRF C;
+
+string szProject = classes::UPM2::Functions::AskQuestion("Pick project you want to create CRF In",NULL,this,NULL,NULL,classes::UPM2::Global::PickLists::ProjectFG);
+if(szProject.Val()==0) return 0;
+CRF.ProjectID = szProject.Val();
+
+classes::UPM2::BaseClasses::Project p;
+p.Projectid = CRF.ProjectID;
+if(p.RefreshObject()==0)
+{
+    return 0;
+}
+
+string szCallType = classes::UPM2::Functions::AskQuestion("Choose Call Type",NULL,this,NULL,NULL,classes::UPM2::Global::PickLists::CRFTypeFG);
+if(!szCallType) return 0;
+CRF.CRFTypeFG = szCallType;
+
+string szArea = classes::UPM2::Functions::AskQuestion("Choose Functional Area",NULL,this,NULL,NULL,classes::UPM2::Global::PickLists::DoGetPickList("AreaFG",p.ClientID ));
+if(szArea.Val()==0) return 0;
+CRF.AreaID = szArea.Val();
+
+
+string szDesc = classes::UPM2::Functions::AskQuestion("Enter Short Description",NULL,this,NULL,NULL);
+if(!szDesc) return 0;
+CRF.ShortDesc = szDesc;
+
+return StartCRFProcess(CRF,szUserID,this);]]>
+</method>
+<method name="DecipherObject">
+<param name="oObject" type="object" />
+<![CDATA[//@cmember DecipherObject
+//@param object | oObject |
+//@version Darren.Ball | 31-03-03 16:00 |
+//@i
+if (oObject.ClassName().EQ("INTEGER"))
+{
+    Message("A source safe error has occurred.\n\rComObject has returned with error : " + oObject.ToString(),"Error",classes::core::windows::MB_ICONEXCLAMATION);
+    Return NULL;
+}
+
+Return oObject;]]>
+</method>
+<method name="DecipherGet">
+<param name="oObject" type="object" />
+<![CDATA[//@cmember DecipherGet
+//@param object | oObject |
+//@version Darren.Ball | 31-03-03 16:00 |
+//@version Jonny Moo | 15-04-03 12:32 |
+//@i
+if (oObject.ClassName().EQ("INTEGER"))
+{
+    Message("A source safe error has occurred.\n\rComObject has returned with error : " + oObject.ToString(),"Error",classes::core::windows::MB_ICONEXCLAMATION);
+    Return 0;
+}
+
+Return 1;]]>
+</method>
+<method name="DoSourceSafeThread">
+<![CDATA[//@cmember DoSourceSafeThread
+//@version Jonny Moo | 13-06-03 16:58 |
+//@version Jonathan.Muir | 14-08-03 11:31 |
+//@i
+
+string Mode = SSParams.Mode;
+object Form = SSParams.Form;
+Form.EnableForm(0);
+int iOK = -1;
+
+// Get HWND ID for wCRF
+
+int ID = DoGetAppHandle(Form);
+
+if(ID<=0)
+{
+    Form.EnableForm(1);
+    return 0;
+}
+
+//
+
+switch(mode.upper())
+{
+    case "GL":
+    case "CO":
+    case "CI":
+    case "CK":
+    case "UD":
+    case "NEW":
+    {
+        // Add file to source safe
+        string szReturn = classes::Des::CRFSystem::HWNDControl::DoIPCCommand(Form,ID,mode.Upper()+","+Form.FileName);
+        if(szReturn.eq("#CANCELLED"))
+        {
+            Close();
+            Form.EnableForm(1);
+            return 0;
+        }
+        iOK = szReturn.GetToken(0).Val();
+        // Do we need to do a source safe call back?
+        if(szReturn.GetToken(1))
+        {
+            Form.SourceSafeCallBack(szReturn.GetToken(1).Val(),szReturn.GetToken(2).Val(),szReturn.GetToken(3),szReturn.GetToken(4).Val());
+        }
+
+
+    }
+}
+
+Form.ToTop();
+Form.EnableForm(1);
+
+if(iOK<0) return 0;
+if(iOK>=0) return 1;]]>
+</method>
+</members>
+<static>
+<method name="checkOut" return="int">
+<param name="filename" type="string" />
+<param name="par" type="WClassView" />
+<param name="CRF" type="classes::UPM2::Baseclasses::CRF" />
+<param name="ForDesigner" type="object" />
+<![CDATA[//@cmember checkOut
+//@param string | filename |
+//@param WClassView | par |
+//@param classes::UPM2::Baseclasses::CRF | CRF |
+//@param object | ForDesigner |
+//@return int |
+//@version Andrew Griffin | 20-02-02 10:33 |
+//@version Jonny Moo | 15-01-03 15:10 |
+
+return doCheck( filename, par, 0, CRF,NULL,NULL,NULL,NULL,NULL,ForDesigner);]]>
+</method>
+<method name="checkIn" return="int">
+<param name="filename" type="string" />
+<param name="par" type="WClassView" />
+<param name="CRF" type="classes::UPM2::BaseClasses::CRF" />
+<param name="skipDialog" type="int" />
+<param name="ForDesigner" type="object" />
+<![CDATA[//@cmember checkIn
+//@param string | filename |
+//@param WClassView | par |
+//@param classes::UPM2::BaseClasses::CRF | CRF |
+//@param int | skipDialog |
+//@param object | ForDesigner |
+//@return int | -1 Fail, 0 No need, otherwise the version number is returned
+//@version Andrew Griffin | 21-02-02 16:14 |
+//@version Jonny Moo | 15-01-03 15:10 |
+
+return doCheck( filename, par, 1, CRF, skipDialog ,NULL,NULL,NULL,NULL,ForDesigner);]]>
+</method>
+<method name="undoCheckOut" return="int">
+<param name="filename" type="string" />
+<param name="par" type="WClassView" />
+<param name="ForDesigner" type="object" />
+<param name="CRF" type="object" />
+<![CDATA[//@cmember undoCheckOut
+//@param string | filename |
+//@param WClassView | par |
+//@param object | ForDesigner |
+//@param object | CRF |
+//@return int |
+//@version Jonny Moo | 28-02-03 14:00 |
+return doCheck( filename, par, 4,CRF,NULL,NULL,NULL,NULL,NULL,ForDesigner);]]>
+</method>
+<method name="doCheck">
+<param name="filename" type="string" />
+<param name="par" type="object" />
+<param name="func" type="int" />
+<param name="CRF" type="classes::UPM2::baseClasses::CRF" />
+<param name="skipDialog" type="int" />
+<param name="SSFileName" type="object" />
+<param name="DirTo" type="object" />
+<param name="VersionNo" type="object" />
+<param name="ProjectID" type="object" />
+<param name="ForDesigner" type="object" />
+<param name="bReturnAnObject" type="object" />
+<param name="ExtraParam1" type="object" />
+<param name="szExtraParam1" type="string" />
+<![CDATA[//@cmember doCheck
+//@param string | filename |
+//@param object | par |
+//@param int | func |
+//@param classes::UPM2::baseClasses::CRF | CRF |
+//@param int | skipDialog |
+//@param object | SSFileName |
+//@param object | DirTo |
+//@param object | VersionNo |
+//@param object | ProjectID |
+//@param object | ForDesigner |
+//@param object | bReturnAnObject |
+//@param object | ExtraParam1 |
+//@param string | szExtraParam1 |
+//@version Andrew Griffin | 21-02-02 16:14 |
+//@version Jonny Moo | 09-04-03 14:35 |
+// func == 0 : CheckOut
+//         1 : CheckIn
+//         2 : CheckInKeepOut  - NOTUSED
+//         3 : GetLatest - NOTUSED
+//         4 : UndoCheckOut
+//         5 : GetVersion
+//         6 : Get File Version No
+//         7 : Get Status
+//         8 : Add File
+//         9 : Get Labels
+//         10: Get working directory
+
+classes::UPM2::vss::sourcesafe SSafe;
+
+string wnm = SSafe.ClassName();
+
+SSafe.SetWindowName(wnm);
+
+SSafe.Dialog(par);
+SSafe.SizeFormToContent();
+if (FileName!=NULL) SSafe.filename = filename;
+SSafe.func = func;
+if (CRF!=null) SSafe.CRF = CRF;
+if (skipDialog!=null) SSafe.skipDialog = skipDialog;
+if (SSFileName!=NULL) SSafe.SSFileName = SSFileName;
+if (DirTo!=NULL) SSafe.DirTo = DirTo;
+if (VersionNo!=NULL) SSafe.GetVersionNo = VersionNo;
+if (ProjectID!=NULL) SSafe.ProjectID = ProjectID;
+if (ForDesigner!=NULL) SSafe.ForDesigner = ForDesigner;
+
+// Do Begin as a timer method because of problems with com and the stack
+SSafe.ExtraParam1.SetMagicPointer(ExtraParam1);
+if(szExtraParam1!=NULL) SSafe.szExtraParam1 = szExtraParam1;
+
+SSafe.SetTimer(1);
+int iOK = 0;
+while(1)
+{
+    if(SSafe.iBeginFinished)
+    {
+        iOK = SSafe.iBeginReturn;
+        break;
+    }
+    sys::wait(10);
+
+}
+//int iOK = SSafe.Begin(ExtraParam1);
+
+// -2 = OK but close form
+if(iOK == -2)
+{
+    int iRetVal = SSafe.iRetVal;
+    object pReturn = &SSafe.pReturn;
+
+    SSafe.Close();
+    if(bReturnAnObject!=NULL&&bReturnAnObject)
+    {
+        return pReturn;
+    }
+    else
+    {
+        return iRetVal;
+    }
+}
+
+// -1 = Bad close
+if(iOK == -1)
+{
+    SSafe.close();
+    if(bReturnAnObject!=NULL&&bReturnAnObject)
+    {
+        return NULL;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+// Wait for form to close
+
+while(1)
+{
+    object TheForm = par.GetPopup(wnm);
+    if(TheForm == NULL) return -1;
+    if(TheForm.Func == -1)
+    {
+        TheForm.Close();
+        if(bReturnAnObject!=NULL&&bReturnAnObject)
+        {
+            return NULL;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    if(TheForm.Func == -2)
+    {
+        int iRetVal = TheForm.iRetVal;
+        object pReturn = &TheForm.pReturn;
+        TheForm.Close();
+
+        if(bReturnAnObject!=NULL&&bReturnAnObject)
+        {
+            return pReturn;
+        }
+        else
+        {
+            return iRetVal;
+        }
+
+    }
+
+    sys::wait(100);
+}]]>
+</method>
+<method name="GetVersion" return="int">
+<param name="SSFileName" type="string" />
+<param name="DirTo" type="string" />
+<param name="VersionNo" type="int" />
+<param name="ProjectID" type="int" />
+<param name="par" type="object" />
+<param name="tmpFileName" type="object" />
+<![CDATA[//@cmember GetVersion
+//@param string | SSFileName | e.g. classes::UPM2::BaseObject.xml
+//@param string | DirTo | (up but not including the classes) e.g. c:\w2
+//@param int | VersionNo | file version number in source safe
+//@param int | ProjectID |
+//@param object | par |
+//@param object | tmpFileName |
+//@return int | 0 Fail, 1 Success
+//@version Jonny Moo | 05-03-03 14:57 |
+//@i
+
+return DoCheck(tmpFileName,par,5,NULL,NULL,SSFileName,DirTo,VersionNo,ProjectID);]]>
+</method>
+<method name="GetFileVersionNo">
+<param name="FileName" type="object" />
+<param name="ProjectID" type="object" />
+<param name="par" type="object" />
+<![CDATA[//@cmember GetFileVersionNo
+//@param object | FileName | Full Path (i.e. C:\w2\classes\etc)
+//@param object | ProjectID | Used to get source safe settings
+//@param object | par | Form to use as the parent
+//@version Jonny Moo | 15-01-03 09:59 |
+//@i
+
+return DoCheck(fileName,par,6,NULL,NULL,NULL,NULL,NULL,ProjectID);]]>
+</method>
+<method name="GetStatus" return="string">
+<param name="FileName" type="object" />
+<param name="ProjectID" type="object" />
+<param name="par" type="object" />
+<![CDATA[//@cmember GetStatus
+//@param object | FileName | Full Path (i.e. C:\w2\classes\etc)
+//@param object | ProjectID | Used to get source safe settings
+//@param object | par | Form to use as the parent
+//@return string | #ERROR for fail, otherwise the working directory for this project
+//@version Jonny Moo | 16-01-03 10:46 |
+//@version Darren.Ball | 13-03-03 12:03 |
+//@version Jonny Moo | 09-04-03 15:20 |
+//@i
+
+int i =  DoCheck(fileName,par,7,NULL,NULL,NULL,NULL,NULL,ProjectID);
+if(i<0) return "#ERROR";
+
+if(i==1) return "I";
+if(i==2) return "O";
+
+return "";]]>
+</method>
+<method name="GetWorkingDir" return="string">
+<param name="ProjectID" type="object" />
+<param name="par" type="object" />
+<![CDATA[//@cmember GetWorkingDir
+//@param object | ProjectID | Used to get source safe settings
+//@param object | par | Form to use as the parent
+//@return string | #ERROR for fail, O for Out, I for in, blank for not found
+//@version Jonny Moo | 16-01-03 10:46 |
+//@version Darren.Ball | 13-03-03 12:03 |
+//@version Jonny Moo | 09-04-03 15:29 |
+//@i
+
+object x =  DoCheck(NULL,par,10,NULL,NULL,NULL,NULL,NULL,ProjectID,NULL,1);
+if(x==NULL) return "#ERROR";
+
+return x.Code;]]>
+</method>
+<method name="AddFileToCRF" return="string">
+<param name="FileName" type="object" />
+<param name="ProjectID" type="object" />
+<param name="par" type="object" />
+<![CDATA[//@cmember AddFileToCRF
+//@param object | FileName | Full Path (i.e. C:\w2\classes\etc)
+//@param object | ProjectID | Used to get source safe settings
+//@param object | par | Form to use as the parent
+//@return string | #ERROR for fail, O for Out, I for in, blank for not found
+//@version Jonny Moo | 17-01-03 16:09 |
+//@i
+
+// ADDS TO CRF NOT TO SOURCE SAFE
+
+int i =  DoCheck(fileName,par,8,NULL,NULL,NULL,NULL,NULL,NULL);
+if(i<0) return 0;
+return 1;]]>
+</method>
+<method name="GetVersionStructure" return="string">
+<param name="ProjectID" type="object" />
+<param name="par" type="object" />
+<param name="pParam" type="object" />
+<![CDATA[//@cmember GetVersionStructure
+//@param object | ProjectID | Used to get source safe settings
+//@param object | par | Form to use as the parent
+//@param object | pParam | Either pass a date or label name
+//@return string | #ERROR for fail, O for Out, I for in, blank for not found
+//@version Jonny Moo | 21-01-03 12:02 |
+//@version Chris.Moran | 22-01-03 13:03 |
+//@version Jonny Moo | 06-03-03 15:22 |
+//@version Jonathan.Muir | 07-08-03 14:46 |
+//@i
+
+// ADDS TO CRF NOT TO SOURCE SAFE
+
+string szParam;
+
+if(pParam!=NULL)
+{
+    szParam = pParam.ToString();
+}
+
+return DoCheck(NULL,par,9,NULL,NULL,NULL,NULL,NULL,ProjectID,NULL,1,NULL,szParam);]]>
+</method>
+<method name="GetVersionFromDir" return="string">
+<param name="ProjectID" type="object" />
+<param name="par" type="object" />
+<param name="dir" type="object" />
+<![CDATA[//@cmember GetVersionFromDir
+//@param object | ProjectID | Used to get source safe settings
+//@param object | par | Form to use as the parent
+//@param object | dir | Directory to compare
+//@return string | #ERROR for fail, O for Out, I for in, blank for not found
+//@version Jonny Moo | 21-01-03 12:02 |
+//@version Chris.Moran | 22-01-03 13:03 |
+//@version Jonny Moo | 06-03-03 14:58 |
+//@version Andy.Hatch | 17-07-03 11:00 |
+//@i Compare a directory with source safe
+
+// ADDS TO CRF NOT TO SOURCE SAFE
+
+return DoCheck(NULL,par,11,NULL,NULL,NULL,NULL,NULL,ProjectID,NULL,1,NULL,dir);]]>
+</method>
+<method name="DoSourceSafe">
+<param name="Mode" type="object" />
+<param name="CallBack" type="object" />
+<param name="Form" type="object" />
+<![CDATA[//@cmember DoSourceSafe
+//@param object | Mode |
+//@param object | CallBack |
+//@param object | Form |
+//@version Jonny Moo | 13-06-03 17:01 |
+//@version Jonathan.Muir | 14-08-03 14:40 |
+//@i
+classes::Des::CRFSystem::SourceSafe x;
+x.Open();
+x.SSParams.Mode = Mode;
+x.SSParams.Form.SetMagicPointer(Form);
+x.NewThread("DoSourceSafeThread");
+sys::wait(100);
+x.Close();
+return 1;
+
+int iOK = -1;
+
+// Get HWND ID for wCRF
+
+int ID = DoGetAppHandle(Form);
+
+if(ID<=0) return 0;
+
+//
+
+switch(mode.upper())
+{
+    case "GL":
+    case "CO":
+    case "CI":
+    case "CK":
+    case "UD":
+    case "NEW":
+    {
+        // Add file to source safe
+        string szReturn = classes::UPM2::HWNDControl::DoIPCCommand(Form,ID,mode.Upper()+","+Form.FileName);
+        if(szReturn.eq("#CANCELLED"))
+        {
+            return 0;
+        }
+        iOK = szReturn.GetToken(0).Val();
+        // Do we need to do a source safe call back?
+        if(szReturn.GetToken(1))
+        {
+            Form.SourceSafeCallBack(szReturn.GetToken(1).Val(),szReturn.GetToken(2).Val(),szReturn.GetToken(3),szReturn.GetToken(4).Val());
+        }
+
+
+    }
+}
+
+Form.ToTop();
+
+if(iOK<0) return 0;
+if(iOK>=0) return 1;]]>
+</method>
+<method name="DoGetAppHandle">
+<param name="Form" type="object" />
+<![CDATA[//@cmember DoGetAppHandle
+//@param object | Form |
+//@version Jonny Moo | 06-03-03 09:39 |
+//@version Jonathan.Muir | 14-08-03 14:46 |
+//@i
+
+string ini = path().upper();
+ini = ini.left(ini.indexof("\\CLASSES\\"));
+ini+="\\CLASSES\\DES\\DES.INI";
+
+string CRFAPP = Sys::GetPrivateProfileString("SourceSafe","SessionsDB",ini);
+
+string szHWNDID = classes::DES::CRFSystem::HWNDControl::GetHWNDID(Form,"UPM2CRF",CRFAPP);
+if(szHWNDID.eq("#CANCELLED"))
+{
+    return -1;
+}
+
+if(szHWNDID.Val()>0) return szHWNDID.Val();
+
+if(szHWNDID.Val()==0)
+{
+    // Application not open - Go and open it
+
+    // Start the info box
+
+    classes::DES::CRFSystem::WProgress SSafe;
+
+    string wnm = SSafe.ClassName()+"::DOGETAPPHANDLE";
+
+    SSafe.SetWindowName(wnm);
+
+    SSafe.Dialog(Form);
+
+    SSafe.idProgress.SetText("Opening CRF Application.\r\nYou should get the login screen for the CRF system.\r\nIf this form stays open after you have logged in,\r\nor the login screen doesn't appear there may have been an error.");
+    SSafe.idProgress.SetVisible(1);
+    SSafe.idCancel.SetVisible(1);
+
+    SSafe.SizeFormToContent();
+
+    SSafe.Show(1);
+
+
+
+    // Start the application
+
+    string szTheApp = sys::GetModulePath()+"xrunapp.exe";
+
+    sys::ShellExecute("",szTheApp,CRFAPP+"workers/wlogin.xml","");
+
+
+    // Wait for login
+
+    while(1)
+    {
+
+        sys::wait(100);
+
+        object TheForm = Form.GetPopup(wnm);
+        if(TheForm == NULL) return -1;
+
+        szHWNDID = classes::DES::CRFSystem::HWNDControl::GetHWNDID(Form,"UPM2CRF",CRFAPP,1);
+        if(szHWNDID.eq("#CANCELLED"))
+        {
+            SSafe.Close();
+            return -1;
+        }
+
+        if(szHWNDID.Val()>0)
+        {
+
+            SSafe.Close();
+            return szHWNDID.Val();
+        }
+
+    }
+
+}
+
+
+
+
+
+return -1;]]>
+</method>
+<method name="CompareBlobs" return="int">
+<param name="b1" type="object" />
+<param name="b2" type="object" />
+<param name="FileExt" type="string" />
+<![CDATA[//@cmember CompareBlobs
+//@param object | b1 |
+//@param object | b2 |
+//@param string | FileExt |
+//@return int | 0 = Different, 1 = The Same
+//@version Jonny Moo | 06-03-03 16:09 |
+//@i
+
+if(b1==NULL||b2==NULL) return 0;
+
+// Is it a w2 class?
+int isW2 = 0;
+int b1Start = 0;
+int b2Start = 0;
+if(FileExt.eq("XML"))
+{
+    // Get First Line
+
+    string szb1 = b1.subString(0,b1.IndexOf("\n")).Trim().Upper();
+    string szb2 = b2.subString(0,b1.IndexOf("\n")).Trim().Upper();
+
+    if(szb1.StartsWith("<CLASS NAME"))
+    {
+        // We are w2 - Treat first line differently (because of revision times etc)
+        isW2 = 1;
+        // Start proper compare at end of this line
+        b1Start = b1.IndexOf("\n");
+        b2Start = b2.IndexOf("\n");
+
+        // Only compare the important bit
+        int b1LineEnd = szb1.IndexOf("FAUTHOR");
+        if(b1LineEnd<0)
+        {
+            b1LineEnd = szb1.IndexOf("FDATE");
+            if(b1LineEnd<0)
+            {
+                b1LineEnd = szB1.IndexOf("FREVISION");
+                if(b1LineEnd<0) b1LineEnd = szB1.Length();
+            }
+        }
+
+        szb1 = szb1.left(b1LineEnd);
+
+        int b2LineEnd = szb2.IndexOf("FAUTHOR");
+        if(b2LineEnd<0)
+        {
+            b2lineEnd = szb2.IndexOf("FDATE");
+            if(b2LineEnd<0)
+            {
+                b2LineEnd = szB2.IndexOf("FREVISION");
+                if(b2LineEnd<0) b2LineEnd = szB2.Length();
+            }
+        }
+        szb2 = szb2.left(b2LineEnd);
+
+        // Do important bits match?
+        if(!(szb1.trim().eq(szb2.trim()))) return 0;
+    }
+
+
+
+}
+
+if(isW2)
+{
+
+    // w2 XML
+
+    // State booleans
+    C_BlobCompare b1Comp;
+    C_blobCompare b2Comp;
+
+    b1Comp.InDoubleQuote = 0;
+    b1Comp.InComment = 0;
+    b1Comp.InLineComment = 0;
+    b1Comp.AtBeginningOfLine = 1;
+
+    b2Comp.InDoubleQuote = 0;
+    b2Comp.InComment = 0;
+    b2Comp.InLineComment = 0;
+    b2Comp.AtBeginningOfLine = 1;
+
+    // Counters
+    b1Comp.Index = b1Start;
+    b2Comp.Index = b2Start;
+
+    // Loop through b1 compare to b1
+    int doloop = 1;
+    while(doloop)
+    {
+
+        ScanWhiteSpace(b1,b1Comp);
+        ScanWhiteSpace(b2,b2Comp);
+
+        // Are we at the end of both files?
+        if(b1Comp.Index == b1.length()&&b2Comp.Index == b2.length())
+        {
+            // Both at end of file = OK
+            return 1;
+        }
+
+        // Are we at the end of one file but not the other
+        if(b1Comp.Index == b1.Length()||b2Comp.Index == b2.Length())
+        {
+            // Not equal
+            return 0;
+        }
+
+
+        // This Character is important - make sure it matches
+        // Case Sensitive if in double quotes
+        if(b1Comp.InDoubleQuote&&(b1.ByteAt(b1Comp.Index)!=b2.ByteAt(b2Comp.Index)))
+        {
+            // not equal
+            return 0;
+        }
+        // Case InSensitive if not in double quotes
+        if(!b1Comp.InDoubleQuote&&(!(b1.ByteAt(b1Comp.Index).CharString().eq(b2.ByteAt(b2Comp.Index).CharString()))))
+        {
+            // not equal
+            return 0;
+        }
+        // In double quotes?
+
+        if(b1.ByteAt(b1Comp.Index)=='"')
+        {
+            b1Comp.InDoubleQuote = !b1Comp.InDoubleQuote;
+        }
+
+        if(b2.ByteAt(b2Comp.Index)=='"')
+        {
+            b2Comp.InDoubleQuote = !b2Comp.InDoubleQuote;
+        }
+
+        // New lines handled by Scan White Space but
+        // need to check end sections
+
+        if(b1.Length()>=2&&
+           b1.ByteAt(b1Comp.Index)=='>'&&
+           b1.ByteAt(b1Comp.Index-1)==']'&&
+           b1.ByteAt(b1Comp.Index-2)==']')
+        {
+            b1Comp.AtbeginningOfLine = 1;
+        }
+        else
+        {
+            b1Comp.AtBeginningOfLine = 0;
+        }
+
+        if(b2.Length()>=2&&
+           b2.ByteAt(b2Comp.Index)=='>'&&
+           b2.ByteAt(b2Comp.Index-1)==']'&&
+           b2.ByteAt(b2Comp.Index-2)==']')
+        {
+            b2Comp.AtbeginningOfLine = 1;
+        }
+        else
+        {
+            b2Comp.AtBeginningOfLine = 0;
+        }
+
+        b1Comp.Index = b1Comp.Index+1;
+        b2Comp.Index = b2Comp.Index+1;
+    }
+
+
+}
+else
+{
+    // NOT XML
+
+    if(b1.Length()!=b2.Length()) return 0;
+    for(int x=0;x<b1.Length();x++)
+    {
+        if(b1.byteAt(x)!=b2.byteAt(x))
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}]]>
+</method>
+<method name="ScanWhiteSpace">
+<param name="TheBlob" type="object" />
+<param name="TheBlobComp" type="object" />
+<![CDATA[//@cmember ScanWhiteSpace
+//@param object | TheBlob |
+//@param object | TheBlobComp |
+//@version Jonny Moo | 06-03-03 15:37 |
+//@i
+
+while(TheBlobComp.Index<TheBlob.length())
+{
+    //Are we in a DoubleQuote - all characters important
+    if(TheBlobComp.InDoubleQuote) return;
+
+    //Are we in a comment
+    if(TheBlobComp.InComment)
+    {
+        // Check for end comment
+        if(TheBlobComp.Index<=(TheBlob.Length()-2)&&
+           TheBlob.ByteAt(TheBlobComp.Index)=='*'&&
+           TheBlob.ByteAt(TheBlobComp.Index+1)=='/')
+        {
+            TheBlobComp.InComment = 0;
+            TheBlobComp.AtBeginningOfLine = 0;
+            TheBlobComp.Index = TheBlobComp.Index+2;
+        }
+        else if(TheBlobComp.Index<=(TheBlob.Length()-3)&&
+            TheBlob.ByteAt(TheBlobComp.Index)==']'&&
+            TheBlob.ByteAt(TheBlobComp.Index+1)==']'&&
+            TheBlob.ByteAt(TheBlobComp.Index+2)=='>')
+        {
+            TheBlobComp.InComment = 0;
+            TheBlobComp.Index = TheBlobComp.Index+1;
+            TheBlobComp.AtBeginningOfLine = 0;
+        }
+        else
+        {
+            TheBlobComp.Index++;
+            TheBlobComp.AtBeginningOfLine = 0;
+        }
+
+    }
+    // Are we in an inline comment
+    else if(TheBlobComp.InLineComment)
+    {
+        // Check for newline
+        if(TheBlob.ByteAt(TheBlobComp.Index)=='\r'||TheBlob.ByteAt(TheBlobComp.Index)=='\n')
+        {
+            TheBlobComp.InLineComment =0;
+            TheBlobComp.AtBeginningOfLine = 1;
+        }
+
+        TheBlobComp.Index++;
+
+    }
+    // Ignore newline (white space)
+    else if(TheBlob.ByteAt(TheBlobComp.Index)=='\r'||TheBlob.byteAt(TheBlobComp.Index)=='\n')
+    {
+        TheBlobComp.AtBeginningOfLine = 1;
+        TheBlobComp.Index++;
+    }
+    // space at beginning of lines
+    else if(TheBlobComp.AtBeginningOfLine==1&&TheBlob.ByteAt(TheBlobComp.Index)==' ')
+    {
+        TheBlobComp.Index++;
+    }
+    // space followed by a space
+    else if(TheBlobComp.Index<=(TheBlob.Length()-2)&&
+            TheBlob.ByteAt(TheBlob)==' '&&
+            TheBlob.ByteAt(TheBlobComp.Index+1)==' '
+           )
+    {
+        TheBlobComp.Index++;
+    }
+    // space followed by a newline
+    else if(TheBlobComp.Index<=(TheBlob.Length()-2)&&
+            TheBlob.ByteAt(TheBlobComp.Index)==' '&&
+            (
+             TheBlob.ByteAt(TheBlobComp.Index+1)=='\r'||
+             TheBlob.ByteAt(TheBlobComp.Index+1)=='\n')
+            )
+    {
+        TheBlobComp.Index++;
+        TheBlobComp.AtBeginningOfLine = 1;
+    }
+    // space followed by a end section
+    else if(TheBlobComp.Index<=(TheBlob.Length()-4)&&
+            TheBlob.ByteAt(TheBlobComp.Index)==' '&&
+            TheBlob.ByteAt(TheBlobComp.Index+1)==']'&&
+            TheBlob.ByteAt(TheBlobComp.Index+2)==']'&&
+            TheBlob.ByteAt(TheBlobComp.Index+3)=='>')
+    {
+        TheBlobComp.AtBeginningOfLine = 1;
+        TheBlobComp.Index++;
+    }
+    // Otherwise this character is important
+    else
+    {
+        return;
+    }
+
+
+
+}]]>
+</method>
+<method name="GetVSSItem" return="object">
+<param name="objVSSRoot" type="object" />
+<param name="szName" type="string" />
+<![CDATA[//@cmember GetVSSItem
+//@param object | objVSSRoot |
+//@param string | szName |
+//@return object |
+//@version Andrew Griffin | 22-02-02 09:41 |
+//@version Jonny Moo | 27-05-03 12:12 |
+
+for (int i=1; i<=objVSSRoot.count(); i++) {
+
+
+    classes::com::ComObject obj = objVSSRoot.item(i);
+
+    if(obj.Name().eq(szName)) return obj;
+}
+
+
+return null;]]>
+</method>
+<method name="StartCRFProcess" return="int">
+<param name="TheCRF" type="object" />
+<param name="szUserID" type="object" />
+<param name="TheForm" type="object" />
+<param name="pStartDocNo" type="int" />
+<param name="pTheAttachmentList" type="list" />
+<![CDATA[//@cmember StartCRFProcess
+//@param object | TheCRF | The new crf object
+//@param object | szUserID | User to Start Process against
+//@param object | TheForm | The Project to start CRF in
+//@param int | pStartDocNo | The initial doc no (if required)
+//@param list | pTheAttachmentList | List of documents to index against the
+//@return int | The CRFID or 0 for fail
+//@version Jonny Moo | 13-06-03 11:56 |
+//@version Chris.Moran | 04-07-03 10:41 |
+//@i
+
+int iStartDocNo = 0;
+
+if (pStartDocNo != NULL) iStartDocNo = pStartDocNo;
+
+TheCRF.ModDisableTrigger = "Y";
+
+if(TheCRF.InsertObject()==0)
+{
+    return 0;
+}
+
+classes::UPM2::BaseClasses::CRFDCH DCH;
+classes::Core::Global::CopyObjectInto(TheCRF,DCH);
+
+DCH.ModType = "I";
+DCH.ModUser = szUserID;
+DCH.ModDate = classes::UPM2::Functions::GetServerTime();
+DCH.ModCheck = 1;
+
+classes::UPM2::BaseClasses::Project P;
+P.ProjectID = TheCRF.ProjectID;
+if(P.RefreshObject()==0)
+{
+    return 0;
+}
+
+if(classes::UPM2::Proc::ProcessFunctions::DoAutoStartProcess(TheForm,"CREATECRF",P,iStartDocNo,NULL,NULL,NULL,TheCRF,"THECRF",szUserID, pTheAttachmentList)==0)
+{
+    TheCRF.DeleteObject();
+    return 0;
+}
+
+
+// Get the started process so we can pretent the CRF was created in this process./
+string szSQL = "select CONCAT(CONCAT(p.processno,','),p.userid) from w2Process p,UPMProcessInfo pi "
+               "where p.processname = 'CREATECRF' "
+               "and p.ProcessNo = pi.ProcessNo "
+               "and pi.InfoType = 'OBJ' "
+               "and pi.InfoCode = 'THECRF' "
+               "and pi.InfoValue = '"+TheCRF.CRFID+",crf' "
+               "order by p.moddate desc";
+
+string szModProcessNo = classes::UPM2::Global::srvSimpleQuery::ClientExec(szSQL);
+
+if (szModProcessNo.eq("#ERROR"))
+{
+    TheCRF.DeleteObject();
+    return 0;
+}
+
+DCH.ModProcessNo = szModProcessNo.GetToken(0,",").Val();
+DCH.InsertObject();
+TheCRF.ModProcessNo = szModProcessNo.GetToken(0,",").Val();
+TheCRF.ModDisableTrigger = "N";
+TheCRF.ModType = "U";
+TheCRF.ModUser = szModProcessNo.GetToken(1,",");
+TheCRF.ModDate = classes::UPM2::Functions::GetServerTime();
+TheCRF.ModCheck = 1;
+TheCRF.UpdateObject();
+
+return TheCRF.CRFID;]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col w="200" />
+<col />
+</row>
+<row>
+<col />
+<col lpad="4" tpad="4" rpad="4" bpad="12" align="C" bk="0,128,128">
+<Label name="idWait" text="Accessing SourceSafe&#13;&#10;Please Wait..." tx="255,255,255" size="12" style="b" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col tpad="8" bpad="8">
+<Label name="idProgress" text="Progress" hide="Y" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="WH">
+<grid>
+<row>
+<col bpad="4" align="W">
+<grid groups="notes" hide="Y">
+<row>
+<col bpad="8">
+<Label text="CRF:" />
+</col>
+<col>
+<Label name="idCRFDesc" text="Label" />
+</col>
+</row>
+<row>
+<col tpad="2" rpad="8" align="W">
+<Label text="Description:" />
+</col>
+<col w="270" h="80" align="WH">
+<Edit name="idNote" multi="1" bind="lastNote" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" align="V" />
+</row>
+<row>
+<col align="W" />
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="8" />
+<col />
+</row>
+<row>
+<col />
+<col h="8" align="WH">
+<ListBox name="idList" IsList="Y" list="objs" hide="Y" fixsize="1">
+<row>
+<col lpad="4" tpad="4" bpad="4" align="W" bk="0,128,128">
+<Label text="Select Required Project:" tx="255,255,255" header="1" style="b" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2" align="W">
+<Label text="Label" bind="project" onClick="doObjClicked" />
+</col>
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="8" align="WH">
+<ListBox name="idFolderList" IsList="Y" list="folders" hide="Y" fixsize="1" ondoubleclick="doFolderClicked">
+<row>
+<col lpad="4" tpad="4" bpad="4" align="W" bk="0,128,128">
+<Label text="Select Required Project Folder:" tx="255,255,255" header="1" style="b" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2" align="W">
+<Label text="Label" bind="project" />
+</col>
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="8" />
+<col />
+</row>
+<row>
+<col />
+<col align="WV" imgtile="32">
+<grid>
+<row>
+<col align="W" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label name="idButtonAdd" text="Add to SourceSafe" tx="255,255,255" txsel="FFFF00" style="b" onClick="doFolderClicked" hide="Y" />
+</col>
+<col w="8" align="CV" imgtile="32" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label name="idButton" text="Check In" tx="255,255,255" txsel="FFFF00" style="b" onClick="doCheckIn" hide="Y" />
+</col>
+<col w="8" align="CV" imgtile="32" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label name="idCancel" text="Cancel" tx="255,255,255" txsel="FFFF00" style="b" onClick="close" hide="Y" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="addFolders" cls="fitems" />
+<rmeth name="DoGetFileVersion" cls="int" />
+<rmeth name="DoGetFileVersionNo" cls="int" />
+<rmeth name="DoGetStatus" cls="int" />
+<rmeth name="locateFile" cls="object" />
+<rmeth name="checkOut" cls="int" />
+<rmeth name="checkIn" cls="int" />
+<rmeth name="undoCheckOut" cls="int" />
+<rmeth name="GetVersion" cls="int" />
+<rmeth name="GetStatus" cls="string" />
+<rmeth name="GetWorkingDir" cls="string" />
+<rmeth name="AddFileToCRF" cls="string" />
+<rmeth name="GetVersionStructure" cls="string" />
+<rmeth name="GetVersionFromDir" cls="string" />
+<rmeth name="CompareBlobs" cls="int" />
+<rmeth name="GetVSSItem" cls="object" />
+<rmeth name="StartCRFProcess" cls="int" />
+</return>
+</form>

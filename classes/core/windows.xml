@@ -1,0 +1,29 @@
+<class name="Windows" fauthor="$Author: David.s $" fdate="$Date: 24/05/01 10:45 $" frevision="$Revision: 2 $">
+<static>
+<Integer name="MB_OK" constval="0" />
+<Integer name="MB_OKCANCEL" constval="1" />
+<Integer name="MB_ABORTRETRYIGNORE" constval="2" />
+<Integer name="MB_YESNOCANCEL" constval="3" />
+<Integer name="MB_YESNO" constval="4" />
+<Integer name="MB_RETRYCANCEL" constval="5" />
+<Integer name="MB_ICONHAND" constval="16" />
+<Integer name="MB_ICONSTOP" constval="16" />
+<Integer name="MB_ICONQUESTION" constval="32" />
+<Integer name="MB_ICONEXCLAMATION" constval="48" />
+<Integer name="MB_ICONASTERISK" constval="64" />
+<Integer name="MB_ICONINFORMATION" constval="64" />
+<Integer name="MB_DEFBUTTON1" constval="0" />
+<Integer name="MB_DEFBUTTON2" constval="256" />
+<Integer name="MB_DEFBUTTON3" constval="512" />
+<Integer name="IDOK" constval="1" />
+<integer name="IDCANCEL" constval="2" />
+<integer name="IDABORT" constval="3" />
+<integer name="IDRETRY" constval="4" />
+<integer name="IDIGNORE" constval="5" />
+<integer name="IDYES" constval="6" />
+<integer name="IDNO" constval="7" />
+<integer name="IDCLOSE" constval="8" />
+<integer name="IDHELP" constval="9" />
+</static>
+<members />
+</class>

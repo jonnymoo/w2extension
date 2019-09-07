@@ -1,0 +1,1029 @@
+<form name="wSessionEdit" caption="W2 Session Manager" savepos="sesMangPos" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:41$" frevision="$Revision: 2$">
+<members>
+<List name="sessions" cls="aSession" />
+<List name="trans" cls="aSSafeTrans" />
+<Integer name="justMine" />
+<Integer name="justActive" />
+<Integer name="remDupl" />
+<Integer name="checkInAll" />
+<Integer name="justOUT" />
+<Object name="par" />
+<String name="searchClass" />
+<method name="go">
+<![CDATA[//@cmember go
+//@param
+//@return
+//@version Andrew Griffin | 10-05-02 10:19 |
+//@i
+
+SetWindowName( "desSesManager" );
+
+justMine = 1;
+justActive = 1;
+remDupl = 1;
+justOUT = 0;
+
+reQueryRows();
+open();
+
+idSesList.SetList( &sessions );
+idTransList.SetList( &trans );]]>
+</method>
+<method name="doNew">
+<![CDATA[//@cmember doNew
+//@version Andrew Griffin | 20-02-02 12:32 |
+//@i
+
+aSession tmp = &sessions.CreateRow();
+tmp.userId = ::func::me;
+
+dbconnection db = &classes::core::srvglobal::GetDB( aSession::sessionDB );
+
+if (!db.InsertObject( tmp ))
+{
+    tmp.RemoveFromList();
+    message( "Error Inserting New Row\r\nError: " + db.GetError() + "\r\nSQL: " + db.LastSQL(), "Database Error" );
+    return;
+}
+
+db.Commit();
+
+tmp.startDate.SysTime();
+tmp.mod = 1;
+
+sessions.SetCurrent( sessions.Count()-1 );
+
+onSelectSession();
+idDocNo.SetFocus();]]>
+</method>
+<method name="doDelete">
+<![CDATA[//@cmember doDelete
+//@version Andrew Griffin | 20-02-02 09:39 |
+//@i
+
+aSession tmp = &sessions.CurrentRow();
+if (tmp==null) return;
+if (!classes::core::globalForm::areYouSure( "Are you sure you want to delete this Session?", "Delete Session" )) return;
+
+dbconnection db = &classes::core::srvglobal::GetDB( aSession::sessionDB );
+
+if (db.DeleteObject( tmp ))
+{
+    clearEdits();
+
+    sessions.DeleteSelections();
+    db.Commit();
+} else
+    message( "Error Deleting Row", "Database Error" );]]>
+</method>
+<method name="clearEdits">
+<![CDATA[//@cmember clearEdits
+//@param
+//@return
+//@version Andrew Griffin | 20-02-02 09:39 |
+//@i
+
+idDocNo.BindTo( null );
+idStart.BindTo( null );
+idEnd.BindTo( null );
+idName.BindTo( null );
+idDesc.BindTo( null );
+idNotes.BindTo( null );
+
+idDocNo.setText( "" );
+idStart.setText( "" );
+idEnd.setText( "" );
+idName.setText( "" );
+idDesc.setText( "" );
+idNotes.setText( "" );]]>
+</method>
+<method name="reQueryRows">
+<![CDATA[//@cmember reQueryRows
+//@param
+//@return
+//@version Andrew Griffin | 16-05-02 11:13 |
+//@i
+
+checkInAll = 0;
+
+doSaveChanges();
+
+dbconnection db = &classes::core::srvglobal::GetDB( aSession::sessionDB );
+
+string sql;
+
+if (searchClass)
+{
+    // find all transactions that match the searchClass string...
+    list ts = &db.ListFromSQL( "select distinct sesId from desSSTrans where clsname like '%" + searchClass + "%'", 200 );
+    if (ts!=null && ts.Count())
+    {
+        string t;
+        for (int i=0; i<ts.Count(); i++)
+            t.addtoken( ts[i].sesId.sql() );
+
+        sql.addtoken( "sesId in (" + t + ")" , " and " );
+    }
+    else
+    {
+        sessions.reset();
+        return;
+    }
+}
+
+if (justMine) sql.addtoken( "userId=" + ::func::me.sql(), " and " );
+if (justActive) sql.addtoken( "endDate IS NULL", " and " );
+sql += " order by startDate DESC";
+
+sessions.reset();
+if (!db.ListQuery( sessions, sql, 1000 )) message( "Error getting sessions from database" + "\r\n\r\n" + db.LastSQL() );]]>
+</method>
+<method name="onSelectSession">
+<param name="con" type="object" />
+<![CDATA[//@cmember onSelectSession
+//@param object | con |
+//@version Andrew Griffin | 16-05-02 13:42 |
+
+if (con!=null) checkInAll=0;
+
+this.trans.reset();
+highlightSession();
+
+aSession tmp = &sessions.CurrentRow();
+if (tmp==null)
+{
+    clearEdits();
+}
+else
+{
+    idDocNo.BindTo( &tmp.docNo );
+    idStart.BindTo( &tmp.startDate );
+    idEnd.BindTo( &tmp.endDate );
+    idName.BindTo( &tmp.sname );
+    idDesc.BindTo( &tmp.descr );
+    idNotes.BindTo( &tmp.notes );
+}
+
+dbconnection db = &classes::core::srvglobal::GetDB( aSession::sessionDB );
+
+//string sql = "sesId=" + tmp.sesId.sql();
+string sql;
+for (int i=0; i<sessions.Count(); i++)
+    if (sessions[i].isselected())
+        sql.addtoken( sessions[i].sesId.sql() );
+
+if (!sql) return;
+
+sql = "sesId in (" + sql + ")";
+sql += " order by transDate DESC";
+
+assafetrans trans[];
+if (!db.ListQuery( trans, sql, 1000 )) message( "Error getting SSAFE transactions from database" );
+
+for (i=0; i<trans.Count(); i++)
+    trans[i].justName = trans[i].clsname.substring( trans[i].clsname.lastindexof(":")+1 );
+
+if (remDupl)
+{
+    // remove duplicates
+
+    for (i=0; i<trans.Count(); i++) {
+        assafetrans r = &trans[i];
+        for (int j=i+1; j<trans.Count(); j++)
+            if (trans[j].clsname.eq( r.clsname ))
+            {
+                trans[j].RemoveFromList();
+                j--;
+            }
+        if ((checkInAll || justOUT) && r.mode>1)    // if checking in all classes, remove ones that are not check outs
+        {
+            r.RemoveFromList();
+            i--;    // backtrack one...
+        }
+    }
+}
+
+classes::core::global::copyList( trans, this.trans );
+
+//
+// If we're searching for a specific class then select/highlight it...
+
+if (searchClass)
+{
+    for (i=0; i<this.trans.Count(); i++)
+      if (this.trans[i].clsname.indexof( searchClass, 0, 1 )>=0)
+      {
+        idTransList.setcurrent( i );
+        idTransList.ScrollToLine( i );
+        highlightSession( idTransList );
+        break;
+      }
+}]]>
+</method>
+<method name="onMod">
+<![CDATA[//@cmember onMod
+//@version Andrew Griffin | 19-02-02 14:08 |
+//@i
+
+object o = &sessions.CurrentRow();
+if (o!=null) o.mod = 1;
+else message( "First Create or select a session!", "Warning", classes::core::windows::MB_ICONEXCLAMATION );]]>
+</method>
+<method name="doSaveChanges">
+<![CDATA[//@cmember doSaveChanges
+//@param
+//@return
+//@version Andrew Griffin | 19-02-02 14:10 |
+//@i
+
+dbconnection db = &classes::core::srvglobal::GetDB( aSession::sessionDB );
+
+int ok = 1;
+
+for (int i=0; i<sessions.Count(); i++)
+  if (sessions[i].mod)
+  {
+    if (db.UpdateObject( sessions[i] ))
+        sessions[i].mod = 0;
+    else ok = 0;
+  }
+
+db.Commit();
+
+if (!ok) return classes::core::globalForm::areYouSure( "Error saving sessions, loose changes?", "Database Error" );
+
+return 1;]]>
+</method>
+<method name="onClose">
+<![CDATA[//@cmember onClose
+//@version Andrew Griffin | 25-02-02 09:46 |
+//@i
+
+if (!doSaveChanges()) return;
+
+Close();
+if (par!=null) par.wSessionClose();]]>
+</method>
+<method name="openClass" return="classes::des::wclassview">
+<![CDATA[//@cmember openClass
+//@return classes::des::wclassview |
+//@version Andrew Griffin | 20-02-02 10:00 |
+//@version Jonathan.Muir | 26-02-10 13:45 |
+//@i
+
+string clsName = idTransList.CurrentRow().clsname;
+
+object win = ::advSearch::OpenClassFile( clsName, classname(), "" );
+win.show(1);
+return win;]]>
+</method>
+<method name="doRightClickClass">
+<![CDATA[//@cmember doRightClickClass
+//@version Andrew Griffin | 24-05-02 16:09 |
+//@i
+
+aSSafeTrans c = &idTransList.CurrentRow();
+
+classes::core::wpopupmenu p;
+
+p.Add( "Open Class in Designer", "OP" );
+
+if (c.mode<=1)
+{
+    p.AddSeparator();
+    p.Add( "Check IN to SourceSafe", "CI" );
+}
+
+p.AddSeparator();
+p.Add( "Copy to release paths", "CR" );
+
+p.AddSeparator();
+p.Add( "Delete from session list", "DEL" );
+
+switch (p.track(1))
+{
+  case "OP":
+    openClass();
+    return;
+
+  case "CI":
+    docheckInCurrent();
+    return;
+
+  case "CR":
+    string fname = sys::MakeFullName( classes::cpicks::ClassName(), c.clsname+".xml" );
+    ::sourcesafe::sourcesafe::copyToReleasePaths( fname );
+    message( "Copy Complete" );
+    return;
+
+  case "DEL":
+    if (!classes::core::globalForm::areYouSure( "Remove this class transaction record from this session?", "Warning")) return;
+    if (c.deleteMe())
+    {
+        c.RemoveFromList();
+    } else message( "Error deleting row" );
+    return;
+}]]>
+</method>
+<method name="SourceSafeCallBack">
+<param name="sessionId" type="int" />
+<param name="mode" type="int" />
+<param name="filename" type="string" />
+<![CDATA[//@cmember SourceSafeCallBack
+//@param int | sessionId |
+//@param int | mode |
+//@param string | filename |
+//@version Andrew Griffin | 21-02-02 16:10 |
+
+//
+// Add Session Id to this class when we check it out...
+
+if (!sessionId || !mode) return;
+
+classes::des::wclassview wc = null;
+
+for (int i=0;; i++) {
+    form win = &sys::GetOpenWindow(i);
+    if (win==null) break;
+    if (win.getmemberdef("FileName")!=null)
+        if (filename.eq(win.FileName)) {
+            wc = &win;
+            break;
+        }
+}
+
+if (wc!=null)
+    wc.SourceSafeCallBack( sessionId, mode, filename );
+else
+    aSSafeTrans::registerSSAFE( filename, sessionId, mode );
+
+if (checkInAll)
+{
+    // select next row
+    i = trans.CurrentIndex() + 1;
+    if (i<trans.Count())
+    {
+        trans.SetCurrent( i );
+        doCheckInCurrent();
+        return;
+    }
+    checkInAll = 0; // all done
+}
+
+show(1);
+ToTop();
+SetFocus();
+
+onSelectSession();  // refresh]]>
+</method>
+<method name="SourceSafeCallbackFail">
+<param name="filename" type="string" />
+<![CDATA[//@cmember SourceSafeCallbackFail
+//@param string | filename |
+//@version Andrew Griffin | 25-02-02 09:30 |
+
+//
+// Add Session Id to this class when we check it out...
+
+checkInAll = 0; // all done
+
+show(1);
+ToTop();
+SetFocus();
+
+onSelectSession();  // refresh]]>
+</method>
+<method name="doComplete">
+<![CDATA[//@cmember doComplete
+//@version Andrew Griffin | 20-02-02 12:36 |
+//@i
+
+aSession tmp = &sessions.CurrentRow();
+
+if (tmp==null) return;
+
+tmp.endDate.SysTime();
+onMod();]]>
+</method>
+<method name="doOrderByDocNo">
+<![CDATA[//@cmember doOrderByDocNo
+//@version Andrew Griffin | 20-02-02 12:48 |
+//@i
+
+sessions.ResetOrder();
+sessions.OrderBy( "docNo", "ASC" );
+sessions.OrderList();]]>
+</method>
+<method name="doOrderByStarted">
+<![CDATA[//@cmember doOrderByStarted
+//@version Andrew Griffin | 20-02-02 12:48 |
+//@i
+
+sessions.ResetOrder();
+sessions.OrderBy( "startDate", "DESC" );
+sessions.OrderList();]]>
+</method>
+<method name="doSaveAllToRelease">
+<param name="ctrl" type="label" />
+<param name="option" type="string" />
+<![CDATA[//@cmember doSaveAllToRelease
+//@param label | ctrl |
+//@param string | option |
+//@version Andrew Griffin | 07-08-02 10:20 |
+//@i
+
+aSession tmp = &sessions.CurrentRow();
+if (tmp==null)
+{
+    message( "First select a session" );
+    return;
+}
+
+remDupl=1;
+onSelectSession();
+
+for (int i=0; i<trans.Count(); i++)
+{
+    if (trans[i].mode==1)
+    {
+        if (!classes::core::globalForm::areYouSure(
+            "Not all classes are checked into source safe.\r\n" +
+            "Do you want to proceed with copy?",
+            "Warning")
+        ) return;
+        else break;
+    }
+}
+
+//
+// Is this a browse path or release paths?
+
+string filePath;
+
+if (option!=null && option.eq("browse"))
+{
+    //
+    // Request a filename...
+
+    if (!prevSavePath)
+    {
+        for (i=0; i<::sourcesafe::sourcesafe::releasePaths.Count(); i++)
+        {
+            prevSavePath = ::sourcesafe::sourcesafe::releasePaths[i].desc;
+            if (::sourcesafe::sourcesafe::releasePaths[i].code)
+                break;
+        }
+    }
+
+    filePath = classes::core::winputbox::GetInput( this, "Enter a destination path", "Copy session to path", prevSavePath );
+    if (!filePath) return;
+    prevSavePath = filePath;
+}
+
+SetWaitCursor();
+
+for (i=0; i<trans.Count(); i++)
+{
+    string fname = sys::MakeFullName( classes::cpicks::ClassName(), trans[i].clsname+".xml" );
+    ::sourcesafe::sourcesafe::copyToReleasePaths( fname, filePath );
+}
+
+message( "Copy Complete" );]]>
+</method>
+<method name="doCheckInAll">
+<![CDATA[//@cmember doCheckInAll
+//@version Andrew Griffin | 16-05-02 15:31 |
+//@i
+
+if (!doSaveChanges()) return;
+
+aSession tmp = &sessions.CurrentRow();
+if (tmp==null)
+{
+    message( "First select a session" );
+    return;
+}
+
+remDupl=1;
+checkInAll = 1;
+onSelectSession();
+
+trans.SetCurrent( 0 );
+
+doCheckInCurrent(); // start 'check-in's]]>
+</method>
+<method name="doCheckInCurrent">
+<![CDATA[//@cmember doCheckInCurrent
+//@param
+//@return
+//@version Andrew Griffin | 16-05-02 15:31 |
+//@i
+
+if (!doSaveChanges()) return;
+
+aSSafeTrans c = &idTransList.CurrentRow();
+if (c==null)
+{
+    checkInAll = 0;
+    onSelectSession();
+    return;
+}
+string fname = sys::MakeFullName( classes::cpicks::ClassName(), c.clsname+".xml" );
+
+classes::des::wclassview wc = null;
+
+for (int i=0;; i++) {
+    form win = &sys::GetOpenWindow(i);
+    if (win==null) break;
+    if (win.getmemberdef("FileName")!=null)
+        if (fname.eq(win.FileName)) {
+            wc = &win;
+            wc.DoSourceSafe("CI", &this);
+            return;
+        }
+}
+
+aSession se = &aSession::getSession( c.sesId );
+classes::des::SourceSafe::SourceSafe::checkIn(  fname, this, se, 1 );]]>
+</method>
+<method name="doSelectAll">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doSelectAll
+//@param label | ctrl |
+//@version Andrew Griffin | 10-05-02 10:28 |
+
+for (int i=0; i<sessions.Count(); i++)
+    sessions.SelectRow( i );
+
+idSesList.CalcWidths();
+
+onSelectSession();]]>
+</method>
+<method name="highlightSession">
+<param name="ctrl" type="listbox" />
+<![CDATA[//@cmember highlightSession
+//@param listbox | ctrl |
+//@version Andrew Griffin | 10-05-02 11:12 |
+
+assafetrans tr = &idTransList.CurrentRow();
+int sesId = (tr==null) ? -1 : tr.sesId;
+
+for (int i=0; i<sessions.Count(); i++)
+{
+    if (sessions[i].sesId == sesId)
+    {
+        sessions[i].selIcon = "classes::resource::standard::tick2.bmp";
+        idSesList.ScrollToLine( i );
+    }
+    else
+        sessions[i].selIcon = "";
+}]]>
+</method>
+<method name="doCreateReport">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doCreateReport
+//@param label | ctrl |
+//@version Andrew Griffin | 10-05-02 11:33 |
+//@i
+
+string rep;
+
+for (int s=0; s<sessions.Count(); s++)
+{
+    if (!sessions[s].isselected()) continue;
+
+    string tmp = "SESSION " + sessions[s].sname.sql() + " (DocNo: " + sessions[s].docNo + ") Start Date: " + sessions[s].startDate.toString() + "\r\n";
+    tmp += "========================================\r\n";
+
+    string snew, scin, scout;
+
+    for (int c=0; c<trans.Count(); c++)
+    {
+        if (trans[c].sesId != sessions[s].sesId) continue;
+        switch (trans[c].mode)
+        {
+          case 0:   //new
+            snew.addtoken( trans[c].clsname, "\r\n" );
+            break;
+          case 1:   //out
+            scout.addtoken( trans[c].clsname, "\r\n" );
+            break;
+          case 2:   //In
+            scin.addtoken( trans[c].clsname, "\r\n" );
+            break;
+        }
+    }
+
+    if (snew || scout || scin)
+    {
+        rep += tmp;
+
+        if (snew)   rep += "\r\n* New Classes\r\n\r\n" + snew + "\r\n";
+        if (scout)  rep += "\r\n* Checked Out Classes\r\n\r\n" + scout + "\r\n";
+        if (scin)   rep += "\r\n* Checked In Classes\r\n\r\n" + scin + "\r\n";
+
+        rep += "\r\n\r\n";
+    }
+}
+
+sys::CopyToClipboard( rep );
+message( rep, "Copied to the clipboard", classes::core::windows::MB_ICONASTERISK );]]>
+</method>
+<method name="searchChange">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember searchChange
+//@param edit | ctrl |
+//@version Andrew Griffin | 16-05-02 10:41 |
+
+setTimer( 500 );]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember onTimer
+//@version Andrew Griffin | 16-05-02 11:03 |
+//@i
+
+KillTimer();
+
+//
+// Search Class Changed...
+
+reQueryRows();]]>
+</method>
+<method name="findClass">
+<param name="filename" type="string" />
+<![CDATA[//@cmember findClass
+//@param string | filename |
+//@version Andrew Griffin | 15-08-02 11:52 |
+
+if (filename==null || !filename) return;
+
+assafetrans t = &sessions::aSSafeTrans::getTransaction( filename, 1 );
+if (t==null) return;
+
+searchClass = t.clsname;
+reQueryRows();
+
+int sno = sessions.FindRowIndex( t.sesId );
+if (sno>=0)    // in current session view
+{
+    sessions.SelectRow( sno );
+    idSesList.setcurrent( sno );
+    onSelectSession( idSesList );
+    return;
+}
+
+// not in current session list so change list...
+
+aSession s = &aSession::getSession( t.sesId );
+if (s!=null)
+{
+    justMine = (t.userId == ::func::me);
+    justActive = (!s.endDate.Valid());
+    justOUT = (t.mode <= 1);
+
+    reQueryRows();
+}
+
+sno = sessions.FindRowIndex( t.sesId );
+if (sno>=0)    // in current session view
+{
+    sessions.SelectRow( sno );
+    idSesList.setcurrent( sno );
+    onSelectSession( idSesList );
+    return;
+}
+
+// Can't find it *sob*...]]>
+</method>
+<method name="doEditReleasePaths">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doEditReleasePaths
+//@param label | ctrl |
+//@version Andrew Griffin | 07-08-02 10:14 |
+//@i
+
+des::wconfig W = &des::wconfig::OpenWin();
+W.doTabClick( W.idTabSessions );]]>
+</method>
+</members>
+<static>
+<String name="prevSavePath" />
+<method name="Main">
+<param name="cmd" type="string" />
+<param name="par" type="form" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@param form | par |
+//@version Andrew Griffin | 16-05-02 11:34 |
+//@i
+
+wsessionEdit fnd = &sys::FindWindow( "desSesManager" );
+if (fnd==null)
+{
+    fnd = &createInstance();
+    if (par!=null) fnd.par.setMagicPointer( &par );
+    fnd.go();
+}
+else
+{
+    if (par!=null) fnd.par.setMagicPointer( &par );
+    fnd.Show( 1 );
+    fnd.ToTop();
+    fnd.SetFocus();
+    fnd.searchClass = "";
+    fnd.reQueryRows();
+    fnd.onSelectSession();
+}
+
+fnd.findClass( cmd );]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col lpad="4" bpad="8" align="W">
+<grid>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="New +" tx="255,255,255" txsel="FFFF00" style="b" onclick="doNew" help="Create a new session" />
+</col>
+<col w="8" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Delete -" tx="255,255,255" txsel="FFFF00" style="b" onclick="doDelete" help="Delete selected session" />
+</col>
+<col w="8" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Select All" tx="255,255,255" txsel="FFFF00" style="b" onclick="doSelectAll" help="Select all sessions below" />
+</col>
+<col w="8" />
+<col lpad="8" align="V">
+<CheckBox text=" just my sessions" v0="0" v1="1" bind="justMine" onclick="reQueryRows" help="Show all / just my sessions" />
+</col>
+<col lpad="12" align="V">
+<CheckBox text=" just active sessions" v0="0" v1="1" bind="justActive" onclick="reQueryRows" help="Show all / just active sessions" />
+</col>
+<col lpad="12" align="V">
+<Label text="Search Class:" help="Only show sessions containing classes matching this search string" />
+</col>
+<col lpad="4" align="WV">
+<Edit w="160" bind="searchClass" onchange="searchChange" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="256" align="WH">
+<grid>
+<row>
+<col lpad="4" h="256" align="WH">
+<grid>
+<row>
+<col h="128" align="WH">
+<ListBox name="idSesList" IsList="Y" list="sessions" multi="1" onselect="onSelectSession">
+<row>
+<col lpad="6" tpad="2" rpad="6" bpad="4">
+<Label text="Doc No" style="b" onclick="doOrderByDocNo" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="4" w="128">
+<Label text="Name" tx="0,0,128" style="b" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="4">
+<Label text="User" tx="0,128,0" header="1" style="b" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="4">
+<Label text="Started" tx="128,0,0" header="1" style="b" onclick="doOrderByStarted" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="4" />
+</row>
+<row>
+<col lpad="6" tpad="2" rpad="6" bpad="2">
+<Label text="&gt;&gt;" bind="docNo" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="2">
+<Label text="&gt;&gt;" tx="0,0,128" bind="sname" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="2">
+<Label text="&gt;&gt;" tx="0,128,0" bind="userId" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="2">
+<Label text="&gt;&gt;" tx="128,0,0" bind="startDate" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="2">
+<Label text="&lt;icon&gt;" tx="128,0,0" bind="selIcon" isimg="1" bksel="FFFFFF" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+<row>
+<col h="8" align="XY">
+<SizeBar text="SizeBar" vert="1" />
+</col>
+</row>
+<row>
+<col bpad="16" h="128" align="WH">
+<grid>
+<row>
+<col bpad="4">
+<grid>
+<row>
+<col lpad="8" align="V">
+<CheckBox text=" Remove Duplicates" v0="0" v1="1" bind="remDupl" onclick="onSelectSession" help="Only show most recent transactions of each class file" />
+</col>
+<col lpad="12" align="V">
+<CheckBox text=" Just OUT classes" v0="0" v1="1" bind="justOUT" onclick="onSelectSession" help="Only show classes that are still checked out of Source Safe" />
+</col>
+<col />
+<col />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="128" align="WH">
+<ListBox name="idTransList" IsList="Y" list="trans" ondoubleclick="openClass" onrightclick="doRightClickClass" onselect="highlightSession">
+<row>
+<col lpad="6" tpad="2" rpad="6" bpad="4">
+<Label text="Class Name" style="b" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="4">
+<Label text="Full Path" tx="0,0,128" style="b" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="4" align="C">
+<Label text="In/Out" tx="0,128,0" header="1" style="b" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="4">
+<Label text="Date" tx="128,0,0" header="1" style="b" />
+</col>
+</row>
+<row>
+<col lpad="6" tpad="2" rpad="6" bpad="2">
+<Label text="&gt;&gt;" bind="justName" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="2">
+<Label text="&gt;&gt;" tx="0,0,128" bind="clsname" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="2" align="C">
+<Label text="&gt;&gt;" tx="0,128,0" bind="mode" />
+</col>
+<col lpad="6" tpad="2" rpad="6" bpad="2">
+<Label text="&gt;&gt;" tx="128,0,0" bind="transDate" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+<col lpad="16" rpad="8" align="H">
+<grid>
+<row>
+<col />
+<col bpad="16" w="256" align="X">
+<grid>
+<row>
+<col tpad="2" rpad="8">
+<Label text="DocNo:" />
+</col>
+<col>
+<Edit name="idDocNo" w="92" numeric="1" onchange="onMod" />
+</col>
+</row>
+<row>
+<col tpad="2" rpad="8">
+<Label text="Name:" />
+</col>
+<col align="W">
+<Edit name="idName" onchange="onMod" />
+</col>
+</row>
+<row>
+<col tpad="2" rpad="8">
+<Label text="Description:" />
+</col>
+<col align="W">
+<Edit name="idDesc" h="64" multi="1" onchange="onMod" />
+</col>
+</row>
+<row>
+<col tpad="2" rpad="8" bpad="8">
+<Label text="Notes:" />
+</col>
+<col bpad="8" align="W">
+<Edit name="idNotes" h="64" multi="1" onchange="onMod" />
+</col>
+</row>
+<row>
+<col tpad="2" rpad="8">
+<Label text="Start Date:" />
+</col>
+<col>
+<Edit name="idStart" w="148" date="1" onchange="onMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="V">
+<Label text="End Date:" />
+</col>
+<col>
+<grid>
+<row>
+<col rpad="4" align="V">
+<Edit name="idEnd" w="148" date="1" onchange="onMod" />
+</col>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="&lt; Complete" tx="255,255,255" txsel="FFFF00" style="b" onclick="doComplete" help="Mark this session as complete" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col bpad="16" w="256" align="R">
+<grid>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="&apos;Check In&apos; Session" tx="255,255,255" txsel="FFFF00" style="b" onclick="doCheckInAll" help="Check all classes from this session into Source Safe" />
+</col>
+</row>
+<row>
+<col h="12" align="CV" imgtile="32" />
+</row>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Copy Session to Release Paths" tx="255,255,255" txsel="FFFF00" style="b" onclick="doSaveAllToRelease" help="Copy all classes in this session to the release paths (right click to edit paths)" onrightclick="doEditReleasePaths" />
+</col>
+</row>
+<row>
+<col h="12" align="CV" imgtile="32" />
+</row>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Copy Session to Path  &gt;&gt;" tx="255,255,255" txsel="FFFF00" style="b" onclick="doSaveAllToRelease browse" help="Copy all classes in this session to a given path" />
+</col>
+</row>
+<row>
+<col h="12" align="CV" imgtile="32" />
+</row>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Report Session to Clipboard" tx="255,255,255" txsel="FFFF00" style="b" onclick="doCreateReport" help="Copy a report of selected sessions to the clipboard" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="H" />
+<col />
+</row>
+<row>
+<col />
+<col align="W">
+<grid>
+<row>
+<col />
+<col align="W" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Close" tx="255,255,255" txsel="FFFF00" style="b" onclick="onClose" help="Close session manager" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="openClass" cls="classes::des::wclassview" />
+</return>
+</form>

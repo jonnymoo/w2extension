@@ -1,0 +1,18 @@
+<class name="ThreadPool" description="Server side thread pool">
+<members>
+<method name="ExecuteThread">
+<param name="className" type="string" />
+<param name="callBackObj" type="string" />
+<param name="callBackMethod" type="string" />
+<![CDATA[//@cmember ExecuteThread( string className, object callBackObj, string callBackMethod );
+//@param string | className | Will call the onRequest(ECB) method on an instance of this class
+//@return object |  callBackObj | will call back the callBackMethod(blob) on this object
+//@param string | callBackMethod | the name of the call back method to call on callbackobj.  Will pass a blob which is the ECB result from the onRequest
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+</return>
+</class>

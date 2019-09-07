@@ -1,0 +1,310 @@
+<class name="Control" description="W2 Script Reference">
+<members sub="Contents">
+<method name="GetCell">
+<![CDATA[//@cmember GridCell GetCell(  );
+//@return GridCell | 
+//@i cell that owns control
+]]>
+ />
+</method>
+<method name="GetGrid">
+<![CDATA[//@cmember Grid GetGrid(  );
+//@return Grid | 
+//@i grid that contains the cell that owns the control
+]]>
+ />
+</method>
+<method name="GetRow">
+<![CDATA[//@cmember GridRow GetRow(  );
+//@return GridRow | 
+//@i Grid Row that contains the cell that owns the control
+]]>
+ />
+</method>
+</members>
+<members sub="Information">
+<method name="ControlID">
+<![CDATA[//@cmember String ControlID(  );
+//@return String | 
+//@i ie, "idOK" or "idListBox"
+]]>
+ />
+</method>
+<method name="ClassName">
+<![CDATA[//@cmember String ClassName(  );
+//@return String | 
+//@i e.g "ListBox"
+]]>
+ />
+</method>
+<method name="getBkColor">
+<![CDATA[//@cmember int getBkColor(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetControlAttr">
+<param name="name" type="String" />
+<![CDATA[//@cmember String GetControlAttr( String name );
+//@param String | name | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="getCurrentH">
+<![CDATA[//@cmember int getCurrentH(  );
+//@return int | Height of Control in pixels
+//@i Returns the height of Control in pixels
+]]>
+ />
+</method>
+<method name="getCurrentW">
+<![CDATA[//@cmember int getCurrentW(  );
+//@return int | Width of Control in pixels
+//@i Returns the width of Control in pixels
+]]>
+ />
+</method>
+<method name="GetParent">
+<![CDATA[//@cmember Form GetParent(  );
+//@return Form | 
+//@i base level window
+]]>
+ />
+</method>
+<method name="getText">
+<![CDATA[//@cmember String getText(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="getTxColor">
+<![CDATA[//@cmember int getTxColor(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="HasFocus">
+<![CDATA[//@cmember int HasFocus(  );
+//@return int | returns 1 if the control has the focus on the current form
+//@i 
+]]>
+ />
+</method>
+<method name="hasmethod">
+<![CDATA[//@cmember int hasmethod(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="isContentValid">
+<![CDATA[//@cmember int isContentValid);
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="isEnabled">
+<![CDATA[//@cmember int isEnabled(  );
+//@return int | 
+//@i enabled state for this control (not parents)
+]]>
+ />
+</method>
+<method name="istype">
+<param name="type" type="String" />
+<![CDATA[//@cmember String istype( String type );
+//@param String | type | 
+//@return String | 
+//@i ie, if (C.IsType("ListBox")) ...
+]]>
+ />
+</method>
+<method name="isVisible">
+<![CDATA[//@cmember int isVisible(  );
+//@return int | 
+//@i visible state for this control (not parents)
+]]>
+ />
+</method>
+<method name="isVisibleReally">
+<![CDATA[//@cmember int isVisibleReally(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Manipulation">
+<method name="makevisible">
+<![CDATA[//@cmember void makevisible(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetAttr">
+<param name="" type="string" />
+<param name="" type="string" />
+<![CDATA[//@cmember void SetAttr( string, string );
+//@param string |  | 
+//@param string |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="setBkColor">
+<param name="bgr" type="int" />
+<![CDATA[//@cmember void setBkColor( int bgr );
+//@param int | bgr | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="setEnabled">
+<param name="b" type="int" />
+<![CDATA[//@cmember void setEnabled( int b );
+//@param int | b | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetFocus">
+<![CDATA[//@cmember void SetFocus(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="seth">
+<param name="" type="int" />
+<![CDATA[//@cmember void seth( int );
+//@param int |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="setLocation">
+<param name="x" type="int" />
+<param name="y" type="int" />
+<![CDATA[//@cmember void setLocation( int x, int y );
+//@param int | x | 
+//@param int | y | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="setSize">
+<param name="w" type="int" />
+<param name="h" type="int" />
+<![CDATA[//@cmember void setSize( int w, int h );
+//@param int | w | 
+//@param int | h | 
+//@return void | 
+//@i could be useful ?
+]]>
+ />
+</method>
+<method name="setText">
+<param name="t" type="String" />
+<![CDATA[//@cmember void setText( String t );
+//@param String | t | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="setTxColor">
+<param name="bgr" type="int" />
+<![CDATA[//@cmember void setTxColor( int bgr );
+//@param int | bgr | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="setVisible">
+<param name="b" type="int" />
+<![CDATA[//@cmember void setVisible( int b );
+//@param int | b | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="setw">
+<param name="" type="int" />
+<![CDATA[//@cmember void setw( int );
+//@param int |  | 
+//@return void | 
+//@i Set Control Width
+]]>
+ />
+</method>
+<method name="UpdateWindow">
+<![CDATA[//@cmember void UpdateWindow(  );
+//@return void | 
+//@i if invalidated, redraws window
+]]>
+ />
+</method>
+</members>
+<members sub="Setup">
+<method name="InstanceControl">
+<![CDATA[//@cmember void InstanceControl(  );
+//@return void | 
+//@i Create the control (except labels) and make visiable on form.
+//@Exam gridcell gcell = idGrid.getCell(0,0);
+//@Exam gcell.setControl("Edit");
+//@Exam gcell.control.instanceControl();   // Create the edit box
+//@Exam gcell.control.setw(256);
+//@Exam ]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="GetCell" cls="GridCell" />
+<rmeth name="GetGrid" cls="Grid" />
+<rmeth name="GetRow" cls="GridRow" />
+<rmeth name="ControlID" cls="String" />
+<rmeth name="ClassName" cls="String" />
+<rmeth name="getBkColor" cls="int" />
+<rmeth name="GetControlAttr" cls="String" />
+<rmeth name="getCurrentH" cls="int" />
+<rmeth name="getCurrentW" cls="int" />
+<rmeth name="GetParent" cls="Form" />
+<rmeth name="getText" cls="String" />
+<rmeth name="getTxColor" cls="int" />
+<rmeth name="HasFocus" cls="int" />
+<rmeth name="hasmethod" cls="int" />
+<rmeth name="isContentValid" cls="int" />
+<rmeth name="isEnabled" cls="int" />
+<rmeth name="istype" cls="String" />
+<rmeth name="isVisible" cls="int" />
+<rmeth name="isVisibleReally" cls="int" />
+<rmeth name="makevisible" cls="void" />
+<rmeth name="SetAttr" cls="void" />
+<rmeth name="setBkColor" cls="void" />
+<rmeth name="setEnabled" cls="void" />
+<rmeth name="SetFocus" cls="void" />
+<rmeth name="seth" cls="void" />
+<rmeth name="setLocation" cls="void" />
+<rmeth name="setSize" cls="void" />
+<rmeth name="setText" cls="void" />
+<rmeth name="setTxColor" cls="void" />
+<rmeth name="setVisible" cls="void" />
+<rmeth name="setw" cls="void" />
+<rmeth name="UpdateWindow" cls="void" />
+<rmeth name="InstanceControl" cls="void" />
+</return>
+</class>

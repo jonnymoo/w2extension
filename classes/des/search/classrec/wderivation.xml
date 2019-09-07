@@ -1,0 +1,198 @@
+<form name="wDerivation" margin="4" sizeable="2" toolwindow="1" hidden="1" thinframe="1" closeondeactivate="1" nocaption="1" esccancel="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:41$" frevision="$Revision: 2$">
+<members>
+<String name="cName" />
+<Integer name="fndY" />
+<method name="createForm">
+<param name="x" type="xml" />
+<![CDATA[//@cmember createForm
+//@param xml | x |
+//@version Andrew Griffin | 31-07-02 16:40 |
+//@i
+
+createDropGrid( idGrid, x );
+SizeFormToContent();]]>
+</method>
+<method name="createDropGrid">
+<param name="g" type="grid" />
+<param name="x" type="xml" />
+<![CDATA[//@cmember createDropGrid
+//@param grid | g |
+//@param xml | x |
+//@version Andrew Griffin | 31-07-02 16:53 |
+
+//
+// Create label for class name
+
+gridcell lc = &g.GetCell( 0, 0 );
+lc.setH( 16 );
+lc.setAlign( "V" );
+label title = &lc.setControl( "Label" );
+title.SetAttr( "font", "Tahoma" );
+title.setText( x.Tag() );
+
+if (fndY<=0) fndY--;
+
+if (x.Tag().eq( cName ))
+{
+    fndY = -fndY*16+4;
+    title.setTxColor( sys::RGB( 128,0,0 ) );
+    title.setAttr( "txsel", "800000" );
+    //title.SetAttr( "style", "b" );
+}
+else
+{
+    title.setTxColor( sys::RGB( 0,0,128 ) );
+    title.setAttr( "txsel", "000080" );
+}
+
+title.SetAttr( "onClick", "doOpenClass" );
+title.setAttr( "bksel", "C6CDE2" );
+
+//
+// Now create grid for child grids...
+
+//g.GetCell( 1,0 ).setLPad( 8 );
+
+g.GetCell( 1, 0 ).setAlign( "W" );
+grid cg = &g.GetCell( 1, 0 ).setControl( "Grid" );
+cg.SetGridSize(2,1);
+
+int els = x.Count()-1;
+
+for (int i=0; i<=els; i++)
+    createFullItem( cg.AddRow(), x[i], i==els );]]>
+</method>
+<method name="createFullItem">
+<param name="gr" type="gridRow" />
+<param name="x" type="xml" />
+<param name="lastOne" type="int" />
+<![CDATA[//@cmember createFullItem
+//@param gridRow | gr |
+//@param xml | x |
+//@param int | lastOne |
+//@version Andrew Griffin | 31-07-02 16:23 |
+
+//
+// Put hierarchy arrow on left side of grid
+
+gridcell hic = &gr.GetCell( 0 );
+
+if (lastOne)
+{
+    hic.setBKImg( "hierLast.bmp" );
+}
+else
+{
+    hic.setBKImg( "hierMore.bmp" );
+}
+
+hic.setTPad( 12 );
+hic.setImgTile( 8 );    // Pad Tile
+hic.setW( 16 );
+hic.setH( 16 );
+
+//
+// Now add grid to right hand cell
+
+gridcell dg = &gr.GetCell( 1 );
+dg.setLPad( 4 );
+dg.setAlign( "W" );
+
+grid g = &dg.setControl( "Grid" );
+g.SetGridSize( 1,2 );
+
+createDropGrid( g, x );]]>
+</method>
+<method name="doOpenClass">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doOpenClass
+//@param label | ctrl |
+//@version Andrew Griffin | 31-07-02 16:46 |
+//@version Jonathan.Muir | 26-02-10 13:45 |
+
+string cname = ctrl.getText();
+cname = sys::MakeFullName( path(), cname+".xml" );
+
+close();
+
+object win = classes::Des::AdvSearch::OpenClassFilePath( cname, "" );
+if(win!=null) win.show(1);]]>
+</method>
+</members>
+<static>
+<method name="showDerived">
+<param name="filename" type="string" />
+<param name="par" type="form" />
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember showDerived
+//@param string | filename |
+//@param form | par |
+//@param control | ctrl |
+//@version Andrew Griffin | 31-07-02 16:55 |
+
+if (par!=null) par.SetWaitCursor();
+
+string classname = classes::core::globalString::MakeFullClassRef( filename );
+
+xml X = &aclassrec::tellMeAbout( classname );
+if (X==null) return;
+
+//
+// Get inheritence
+
+X = X[0][0];
+
+wDerivation f;
+if (par==null)
+    f.open();
+else
+{
+    f.dialog( par );
+    f.SnapToCell( ctrl.getcell() );
+}
+
+f.cName = classname;
+f.createForm( X );
+
+f.SetPos( f.XPos() - f.fndY - 48, f.YPos() - f.fndY );
+f.SizeToFitIntoView();
+f.Show( 1 );
+f.SetFocus();]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 31-07-02 15:57 |
+//@i
+
+showDerived( "c:\\w2\\classes\\callcentre\\basecontact.xml" );]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col imgtile="8" />
+<col>
+<grid name="idGrid">
+<row>
+<col />
+</row>
+<row>
+<col align="W" />
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

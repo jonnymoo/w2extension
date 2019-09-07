@@ -1,0 +1,558 @@
+<form name="wparseall" caption="Parse Files" savepos="wParseFilePos" icon="findFiles.ico" bk="CCCCCC" minsize="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:41$" frevision="$Revision: 2$">
+<members>
+<Object name="par" cls="::wclassview" />
+<Object name="hier" />
+<String name="fndStr" />
+<String name="sPath" />
+<List name="errorList" cls="classes::des::errors" />
+<Integer name="noWarning" />
+<Integer name="lastSelected" />
+<Integer name="fCount" />
+<Integer name="cnames" />
+<Integer name="bcnames" />
+<Integer name="mnames" />
+<Integer name="mtypes" />
+<Integer name="fnames" />
+<Integer name="fsource" />
+<Integer name="fcnames" />
+<Integer name="ismod" />
+<String name="progressChar" />
+<Integer name="progressCnt" />
+<Integer name="stop" />
+<String name="errorType" pick="errorTypePL" />
+<Integer name="iDebug" />
+<method name="startParse">
+<![CDATA[//@cmember startParse
+//@param
+//@return
+//@version Andrew Griffin | 19-06-02 09:44 | Search trial
+//@version Jonathan.Muir | 27-02-06 09:37 |
+//
+//@i Does a comprehensive search of the open class for
+//@i a given search string
+//sys::SetDontGetMemberLists(1);
+idebug = 1;
+
+if (idParse.getText()=="STOP!!") {
+    stop=1;
+    sys::SetDontGetMemberLists(0);
+    return;
+}
+
+idParse.setText("STOP!!");
+fitRecursive();
+stop=0;
+sys::wait(1);
+
+lastSearch = fndStr;
+
+errorList.reset();
+string lastName="#not likely#";
+
+fcount = 0;
+
+string sstr = idSearchIn.getText();
+
+if (!sstr) sstr = "classes";
+if (sstr.indexOf("::")>=0 || sstr.eq("classes")) sstr = sys::MakeFullName( path(), sstr );
+
+int i=sstr.indexOf(".xml");
+if (i>=0) sstr=sstr.left( sstr.lastindexOf( "\\" ) +1 );
+
+if (sstr.right(1)!="\\") sstr += "\\";
+
+sPath = sstr;
+
+DoParse( sstr );
+
+FitRecursive();
+isMod = 0;
+
+if (!stop)
+    setText( "Parse Files - Parse Complete" );
+else
+    setText( "Parse Files - Parse CANCELLED!!" );
+
+stop = 0;
+
+idParse.setText("Parse");
+fitrecursive();
+sizeadjust();
+sizeadjust();]]>
+</method>
+<method name="doParse">
+<param name="pathS" type="string" />
+<![CDATA[//@cmember doParse
+//@param
+//@return
+//@version Andrew Griffin | 13-05-02 15:07 | Search trial
+//@version Jonathan.Muir | 01-03-06 13:23 |
+//
+
+//object browser = classes::des::Browse::ClsBrowser::doInit();   // Launch Class Browser Root App
+//if(browser!=NULL) browser.show(0);
+
+classes::des::browse::clsBrowser::openProject.init();
+
+int i = pathS.lastIndexOf( "\\" );
+if (i==-1)
+{
+    //if(browser!=NULL) browser.close();
+    return;
+}
+
+string pathP = pathS.left( i+1 );
+
+FileFinder FF = &sys::NewFileFinder();
+
+int ok = FF.FindFirst( pathS+"*.xml" , "" );    // look in sub folders too
+
+while (ok && !stop) {
+
+  if (!FF.IsDir) {
+
+    string fname = pathP + FF.FileName;
+
+    classes::des::errors err;
+    idCurrentFile.SetText(fname);
+
+    classes::des::WClassView Q;
+    Q.Init(1);
+    Q.ReadFile(fname,NULL,NULL,NULL,err);
+    if(err.ertyp)
+    {
+        AddError(err);
+    }
+    else
+    {
+        iDebug++;
+        idDebug.SetText(iDebug.ToString());
+        Q.doParseAll( null, 0 );
+
+        object errs = Q.GetErrors();
+        for(int j=0;j<errs.Count();j++)
+        {
+            AddError(errs[j]);
+        }
+    }
+    Q.Close();
+
+
+
+    setText( "Parse Files - Parsing " + progressChar );
+    sys::wait( 1 );
+
+    switch (progressChar) {
+      case "\\" : progressChar = "|"; break;
+      case "|" :  progressChar = "/"; break;
+      case "/" :  progressChar = "-"; break;
+      default:    progressChar = "\\"; break;
+    }
+  }
+
+  ok = FF.FindNext();
+}
+
+
+ok = FF.FindFirst( pathS+"*.*" , "D" );    // look in sub folders too
+
+while (ok && !stop) {
+
+    if (FF.IsDir && FF.FileName[0]!='.') {
+        doParse( pathP + FF.FileName + "\\" );
+    }
+
+    ok = FF.FindNext();
+}
+
+
+//classes::debug::showObj(errorList);
+
+//if(browser!=NULL) browser.close();
+
+idErrorList.CalcWidths();
+idErrorList.UpdateWindow();]]>
+</method>
+<method name="Mod">
+<![CDATA[//@version Andrew Griffin | 02-08-01 15:18 |
+//@version Jonathan.Muir | 22-02-06 12:31 |
+
+if (!ismod) {
+    idParse.setText("Parse");
+    fitRecursive();
+    ismod = 1;
+}
+
+stop = 1;]]>
+</method>
+<method name="onChar">
+<param name="TheKey" type="object" />
+<param name="TheState" type="object" />
+<param name="TheControl" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 02-08-01 15:23 |
+//@version Jonathan.Muir | 22-02-06 12:50 |
+//@i
+
+if (TheKey==13) {
+    if (TheControl==idErrorList) {
+        jumpToItem(&idErrorList);
+        TheControl.setfocus();
+    }
+    else
+    if ((TheControl==idSearchIn) ) {
+        startParse();
+    }
+} else
+if (TheKey==27) {   // escape
+    if (idParse.getText()=="STOP!!") {
+        stop=1;
+        return;
+    } else close();
+}]]>
+</method>
+<method name="doSearchInAll">
+<![CDATA[//@cmember doSearchInAll
+//@version Andrew Griffin | 06-08-01 12:26 |
+//@i
+
+int setTo = 1;
+if (cnames && bcnames && mnames && mtypes && fnames && fsource && fcnames) {
+    setTo = 0;
+}
+
+cnames = setTo;
+bcnames = setTo;
+mnames = setTo;
+mtypes = setTo;
+fnames = setTo;
+fsource = setTo;
+fcnames = setTo;
+
+mod();]]>
+</method>
+<method name="onClose">
+<![CDATA[//@cmember onClose
+//@param
+//@return
+//@version Andrew Griffin | 20-03-02 16:08 |
+//@version Jonathan.Muir | 22-02-06 12:31 |
+//@i
+
+if (idParse.getText()=="STOP!!")
+    stop=1;
+
+close();]]>
+</method>
+<method name="sortBy">
+<param name="ctrl" type="ListBox" />
+<param name="ColNo" type="int" />
+<param name="PStr" type="string" />
+<![CDATA[//@cmember sortBy
+//@param ListBox | ctrl |
+//@param int | ColNo |
+//@param string | PStr |
+//@version Andrew Griffin | 13-05-02 15:07 |
+//@version Jonathan.Muir | 22-02-06 12:51 |
+//@i
+
+errorList.ResetOrder();
+errorList.OrderBy( PStr.gettoken( 0, " " ), PStr.gettoken( 1, " " ) );
+errorList.OrderList();]]>
+</method>
+<method name="jumpToItem">
+<param name="lbox" type="listbox" />
+<param name="colNo" type="int" />
+<![CDATA[//@cmember
+//@param listbox | lbox |
+//@param int | colNo |
+//@version Andrew Griffin | 13-05-02 15:07 |
+//@version Jonathan.Muir | 26-02-10 13:44 |
+//@i
+
+foundFileRec f = &errorList.CurrentRow();
+string what;
+
+::WClassView par = &::AdvSearch::OpenClassFilePath( f.filename, what );
+
+if (par==null) {
+    return;
+}
+par.show(1);
+par.doParseAll();
+/*
+if (f.typ.indexOf("Method [")==0) {
+
+    object pan = &par.idMulti.FindPane("MethodEdit");
+    if (pan==null) return;
+
+    int pos = f.findCode.gettoken(1).val();
+
+    if (pan.magic.script.subString(pos, pos+fndStr.length()).eq(fndStr)) {
+        pan.idsource.SetSelection(pos, pos+fndStr.length());
+        pan.highlightText( fndStr );
+    } else message("Source has changed since search was performed...");
+
+}
+*/]]>
+</method>
+<method name="AddError">
+<param name="err" type="classes::des::errors" />
+<![CDATA[//@cmember AddError
+//@param classes::des::errors | err |
+//@version Jonathan.Muir | 24-02-06 17:06 |
+//@i
+
+if(!err.Error.Upper().StartsWith("WARNING")||errorType!="E")
+{
+    object x = errorList.CreateRow();
+    x = err;
+    fcount++;
+}]]>
+</method>
+</members>
+<static>
+<String name="lastSearch" />
+<List name="errorTypePL" cls="classes::CPickS">
+<item code="E" desc="Show Errors Only" PickType="" />
+<item code="EW" desc="Show Errors and Warnings" PickType="" />
+</List>
+<method name="getContext" return="string">
+<param name="str" type="string" />
+<param name="pos" type="int" />
+<param name="pos2" type="int" />
+<![CDATA[//@cmember getContext
+//@param string | str | The W2 script string
+//@param int | pos | The position in the script to bring out
+//@return string | The context
+//@version Andrew Griffin | 06-08-01 12:10 |
+//@i Returns the context given the whole script and a location
+
+int s = str.lastIndexOf("\r\n", pos);
+if (s < 0) s = 0; else s+=2;
+
+int e = str.indexOf("\r\n", pos2);
+if (e < 0) e = str.length();
+
+// do larger context...
+
+int s2 = str.lastIndexOf("\r\n", s-3);
+if (s2 < 0) s2 = 0; else s2+=2;
+
+int e2 = str.indexOf("\r\n", e+1);
+if (e2 < 0) e2 = str.length();
+
+string big = str.subString( s2, s ) + "+" +
+             str.subString( s, e ) +
+             str.subString( e, e2 );
+
+// larger context done...
+
+if (pos-s>20) s = pos-20;   // 20 chars to the left
+if (e-pos>40) e = pos+40;   // 40 to the right
+
+return str.subString( s, e ).trim() + "¬¬" + big;
+
+/*
+string tmp = str.subString( s, pos+1 ).trim();
+rec.contextLeftStr = tmp.left(tmp.length()-1);
+rec.contextMidStr = str.subString(pos, pos2).lower();
+tmp = str.subString( pos2-1, e ).trim();
+rec.contextRightStr = tmp.substring(1);]]>
+</method>
+<method name="chkWholeWordChar" return="int">
+<param name="c" type="int" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+return (c<'0' || c>'9' && c<'@' || c>'Z' && c!='\\' && c!='\'' && c<'a' || c>'z');]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 21-02-02 09:45 |
+//@version Jonathan.Muir | 24-02-06 16:28 |
+//@i
+
+wparseall w;
+
+w.open();
+w.fndStr = cmd;
+w.errorType = "E";]]>
+</method>
+<method name="init">
+<param name="scls" type="string" />
+<param name="typ" type="int" />
+<param name="fnd" type="string" />
+<![CDATA[//@cmember
+//@param string | scls |
+//@param int | typ |
+//@param string | fnd |
+//@version Andrew Griffin | 21-02-02 09:42 |
+//@i
+
+int i=scls.indexOf(".xml");
+if (i>=0) scls=scls.left( scls.lastindexOf( "\\" ) +1 );
+
+wSearchinFiles w;
+w.open();
+w.SetWindowName( "SearchInFiles" );
+w.idSearchIn.setText( scls );
+w.idSearchFor.setFocus();
+
+if (sys::Version() < 2108)
+{
+    w.idIgnore.setVisible( 0 );
+    w.ignoreComments = 0;
+} else w.ignoreComments = 1;
+
+if (typ!=null) {
+  if (typ==1) { // whole word in source
+    w.WholeWord = 1;
+    w.fsource = 1;
+  }
+} else {
+    w.wholeword = 1;
+}
+
+if (fnd!=null) w.fndStr = fnd;]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col align="W">
+<grid>
+<row>
+<col rpad="8" w="58" align="V">
+<Label text="Search In" />
+</col>
+<col align="W">
+<Edit name="idSearchIn" bind="fndStr" onChange="Mod" />
+</col>
+</row>
+<row>
+<col rpad="8" w="58" align="V">
+<Label text="Error Type" />
+</col>
+<col align="W">
+<Edit bind="errorType" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="W" />
+<col />
+</row>
+<row>
+<col />
+<col>
+<Label name="idDebug" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="WH">
+<grid>
+<row>
+<col lpad="4" bpad="6">
+<Label text="Search results:" style="b" />
+</col>
+<col lpad="4" bpad="6" align="W">
+<Label name="idCurrentFile" />
+</col>
+<col lpad="4" bpad="6" align="V">
+<Label text="found:" tx="0,0,128" />
+</col>
+<col lpad="4" rpad="4" bpad="6" align="V">
+<Label text="&lt;n&gt;" tx="0,0,128" bind="fCount" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="WH" bk="255,255,255">
+<ListBox name="idErrorList" IsList="Y" list="errorlist" onDoubleClick="jumpToItem" onRightClick="jumpToItem">
+<row>
+<col lpad="3" rpad="6" bpad="6">
+<Label text="Filename" tx="128,0,0" style="b" header="1" onClick="sortBy filename ASC" onrightclick="sortBy filename DESC" />
+</col>
+<col lpad="6" rpad="6" bpad="6">
+<Label text="Type" style="b" onClick="sortBy ertyp ASC" onrightclick="sortBy ertyp DESC" />
+</col>
+<col lpad="6" rpad="6" bpad="6">
+<Label text="Context" tx="0,0,255" style="b" />
+</col>
+<col lpad="6" rpad="3" bpad="6">
+<Label text="Error" tx="128,0,128" style="b" onClick="sortBy error DESC" onrightclick="sortBy error ASC" />
+</col>
+</row>
+<row>
+<col lpad="3" rpad="6" bpad="2">
+<Label text="&lt;method&gt;" w="96" tx="128,0,0" bind="filename" />
+</col>
+<col lpad="6" rpad="6" bpad="2">
+<Label bind="ertyp" />
+</col>
+<col lpad="6" rpad="6" bpad="2" w="16">
+<Label tx="0,0,255" bind="context" />
+</col>
+<col lpad="6" rpad="3" bpad="2" w="16">
+<Label tx="128,0,128" bind="Error" />
+</col>
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="10" />
+<col />
+</row>
+<row>
+<col />
+<col align="W">
+<grid>
+<row>
+<col align="W" />
+<col lpad="10" tpad="3" rpad="10" bpad="3" w="68" align="C" bk="128,128,128" bksel="0,128,128" imgtile="8">
+<Label name="idParse" text="Parse All" tx="255,255,255" style="b" onClick="startParse" txsel="FFFF00" />
+</col>
+<col w="4" />
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col h="2" />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="getContext" cls="string" />
+<rmeth name="chkWholeWordChar" cls="int" />
+</return>
+</form>

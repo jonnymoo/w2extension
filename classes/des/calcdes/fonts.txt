@@ -1,0 +1,6 @@
+<List cls="classes::cpicks">
+<Item code="Arial" desc="Arial" />
+<Item code="Times New Roman" desc="Times New Roman" />
+<Item code="Tahoma" desc="Tahoma" />
+<Item code="Verdana" desc="Verdana" />
+</List>

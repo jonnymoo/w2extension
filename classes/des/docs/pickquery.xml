@@ -1,0 +1,44 @@
+<class name="PickQuery" description="W2 Script Reference" base="Control">
+<members>
+<method name="BindTo">
+<param name="" type="Member" />
+<![CDATA[//@cmember void BindTo( Member );
+//@param Member |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CheckPickList">
+<![CDATA[//@cmember int CheckPickList(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetPickList">
+<param name="" type="List" />
+<![CDATA[//@cmember void SetPickList( List );
+//@param List |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="ShowDropDown">
+<param name="SnapToMouse" type="int" />
+<![CDATA[//@cmember void ShowDropDown( int SnapToMouse );
+//@param int | SnapToMouse | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="BindTo" cls="void" />
+<rmeth name="CheckPickList" cls="int" />
+<rmeth name="SetPickList" cls="void" />
+<rmeth name="ShowDropDown" cls="void" />
+</return>
+</class>

@@ -1,0 +1,121 @@
+<form name="UsersCalc" base="BaseCalc" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<Object name="TheList" cls="classes::workers::user" />
+<method name="RunCalc">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+Super.RunCalc();]]>
+</method>
+<method name="GetListEntry">
+<param name="i" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+TheList = classes::workers::all::users[i];
+]]>
+</method>
+<method name="GetListCount">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+return classes::workers::all::users.count();
+
+
+]]>
+</method>
+<method name="GetNumProcesses">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+string sql = "select count(*) as ans from w2process where userid='"+TheList.User_ID+"'";
+
+
+Object R = classes::core::srvsqlquery::DoQuery( "ISE", sql, 10 );
+
+if ( R == null )
+    return "0";
+else
+    if ( R.Data.Count() == 0 )
+        return "0";
+    else
+    {
+        return ""+R.Data[0].Ans;
+    }
+]]>
+</method>
+<method name="GetNumDocuments">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+string sql = "select count(*) as ans from ccdocument where userid='"+TheList.User_ID+"'";
+
+
+Object R = classes::core::srvsqlquery::DoQuery( "ISE", sql, 10 );
+
+if ( R == null )
+    return "0";
+else
+    if ( R.Data.Count() == 0 )
+        return "0";
+    else
+    {
+        return ""+R.Data[0].Ans;
+    }
+]]>
+</method>
+<method name="GetAvgTalkTime">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+string sql = "select avg(TalkTime) as ans from ccuseraudit where talktime > 0 and talktime < 1000000 and takenby='"+TheList.User_ID+"'";
+
+
+Object R = classes::core::srvsqlquery::DoQuery( "ISE", sql, 10 );
+
+if ( R == null )
+    return "0";
+else
+    if ( R.Data.Count() == 0 )
+        return "0";
+    else
+    {
+        return ""+R.Data[0].Ans;
+    }
+]]>
+</method>
+</members>
+<static>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+UsersCalc TheCalc;
+TheCalc.SetCalc( "C:\\dev\\Dev3\\W2\\classes\\Des\\CalcDes\\users.xmc" );
+TheCalc.RunCalc();
+TheCalc.SizeToFit();]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+</row>
+</grid>
+</form>

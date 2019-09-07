@@ -1,0 +1,148 @@
+<form name="funcmessage" margin="0" fauthor="$Author: Simon.c $" fdate="$Date: 14/07/03 11:30 $" frevision="$Revision: 1 $">
+<members>
+<String name="methodtocall" />
+<method name="init">
+<param name="title" type="string" />
+<param name="instructions" type="object" />
+<param name="defaulttext" type="object" />
+<![CDATA[//@cmember init
+//@param string | title |
+//@param object | instructions |
+//@param object | defaulttext |
+//@version Simon Carroll | 14-07-03 11:29 |
+//@i
+
+open();
+if (title)
+    SetText(title);
+
+if (instructions)
+    idinstr.SetText(instructions);
+
+if (defaulttext)
+    idMessage.SetText(defaulttext);
+
+classes::workers::util::srvgetsessions X;
+Object R = classes::core::global::ServerMethod(X);
+if (R==null) return;
+
+if (R.Error){
+    classes::core::Message::open(R.Error);
+    return;
+    }
+
+Object CurrSess = R.Sessions;
+
+classes::cpicks LX[];
+
+for (int i = 0; i<CurrSess.count(); i++)
+{
+    Object C = LX.CreateRow();
+    C.code = CurrSess[i].uid;
+    C.desc = CurrSess[i].uid;
+}
+
+idUser.Setpicklist(LX);
+
+SizeToFit();]]>
+</method>
+<method name="onOk">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember onOk
+//@param label | ctrl |
+//@version Simon Carroll | 14-07-03 11:24 |
+//@i
+
+string res = srvsendmessage::SendMessage(iduser.GetText(), idmessage.getText(), methodtocall);
+
+if (!res.beginsWith("Message Failed."))
+    message("message sent successfully");
+
+
+close();]]>
+</method>
+<method name="onClose">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember onClose
+//@param label | ctrl |
+//@version Simon Carroll | 14-07-03 11:03 |
+//@i
+
+close();]]>
+</method>
+</members>
+<static>
+<method name="SendMessage">
+<param name="title" type="string" />
+<param name="instructions" type="object" />
+<param name="cmd" type="string" />
+<param name="defaulttext" type="object" />
+<![CDATA[//@cmember SendMessage
+//@param string | title |
+//@param object | instructions |
+//@param string | cmd |
+//@param object | defaulttext |
+//@version Simon Carroll | 14-07-03 11:24 |
+//@i
+
+funcMessage Q;
+Q.methodtocall = cmd;
+
+Q.Init(title, instructions, defaulttext);]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Simon Carroll | 14-07-03 11:14 |
+//@i
+
+string command = "Open Document;classes::callcentre::document;opendoc;#1002860";
+
+SendMessage("Send Document","Choose user to send the document to and press OK",command);]]>
+</method>
+</static>
+<grid>
+<row>
+<col lpad="5" tpad="5" bpad="5" bk="231,241,241">
+<Label name="idinstr" text="Choose User to send to, write the &#13;&#10;message and then press send" />
+</col>
+</row>
+<row>
+<col lpad="5" tpad="5" bpad="5" align="WH" bk="231,241,241">
+<grid>
+<row>
+<col rpad="5">
+<Label text="User" />
+</col>
+<col bpad="1">
+<Edit name="iduser" border="0" pick="classes::workers::all::users" />
+</col>
+</row>
+<row>
+<col rpad="5">
+<Label text="Message" />
+</col>
+<col tpad="1" w="200" h="100" align="WH">
+<Edit name="idMessage" multi="1" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="5" tpad="5" rpad="5" bpad="5" align="R" bk="231,241,241">
+<grid>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" w="65" align="CV" bkimg="classes::resource::standard::buttonongreen.bmp" imgtile="32">
+<Label text="OK" tx="255,255,255" txsel="FFFF00" style="b" onclick="onOk" />
+</col>
+<col lpad="12" tpad="3" rpad="12" bpad="6" w="65" align="CV" bkimg="classes::resource::standard::buttonongreen.bmp" imgtile="32">
+<Label text="Cancel" tx="255,255,255" txsel="FFFF00" style="b" onclick="onClose" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

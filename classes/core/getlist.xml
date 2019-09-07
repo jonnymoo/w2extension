@@ -1,0 +1,51 @@
+<form name="getlist" fauthor="$Author: Simon.c $" fdate="$Date: 7/11/01 11:40 $" frevision="$Revision: 2 $">
+<members>
+<Object name="list" />
+<method name="GetIt">
+<param name="str" />
+<![CDATA[//@cmember GetIt
+//@param
+//@return
+//@version Simon Carroll | Initial Version | 01/06/2001
+//@version simon.carroll | 07-11-01 11:39 |
+//@i This method will have a string passed into i
+
+string exec = "list = "+str+";";
+CompileAndExecute(exec);
+return List;]]>
+</method>
+</members>
+<static>
+<method name="main">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+testcompile Q;
+Q.Open();]]>
+</method>
+<method name="GetTheList">
+<param name="str" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version simon.carroll | 07-11-01 11:39 |
+//@i
+
+getlist A;
+return A.GetIt(str);]]>
+</method>
+</static>
+<grid>
+<row>
+<col>
+<Label text="Label" onClick="GetList" />
+</col>
+<col>
+<Edit name="ided" w="200" />
+</col>
+</row>
+</grid>
+</form>

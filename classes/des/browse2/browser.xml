@@ -1,0 +1,861 @@
+<class name="browser" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:37$" frevision="$Revision: 2$">
+<members>
+<String name="sStr" />
+<Integer name="terminated" />
+<String name="nxtStr" />
+<String name="varName" />
+<String name="origPath" />
+<String name="varType" />
+<Integer name="isList" />
+<Integer name="inList" />
+<Integer name="isForm" />
+<String name="origName" />
+<Object name="trace" />
+<method name="loadAndParse">
+<param name="clsName" type="string" />
+<param name="execPath" type="string" />
+<![CDATA[//@cmember loadAndParse
+//@param string | clsName |
+//@param string | execPath |
+//@version Andrew Griffin | 21-01-02 16:49 |
+//@version Andrew | 26-01-02 17:24 |
+//@version Andrew Griffin | 23-05-02 15:29 |
+//@version Ricky LEE | 31-03-06 09:13 |
+
+//sys::debugOut( "   * browser:loadAndParse (" + clsName + ")" );
+
+while (1) { // loop for base classes...
+
+    int canBStatic = (varName.eq("static")); // variable named static...
+
+    XML x;
+    String prePend,fileName;
+    // are we dealing with xsd class
+    if (!clsName.startswith("XSD:"))
+    {
+        filename = ::AdvSearch::classToPath(clsName, execPath, 0);
+        prePend=fileName;
+
+        x = &loadXML( filename );
+    }
+    else
+    {
+        if (execPath==null||execPath=="")
+        {
+            execPath = "";
+        }
+        x = classes::des::browse2::XSDClassUtil::fetch(clsName,null,execPath);
+    }
+
+    if (x==null)
+    {
+        //message( "File not found... " + filename );
+        xml x2;
+        x2.setTag( "Failed" );
+        x2.addAttr( "fileNotFound", "1" );
+        return x2;    // ERROR
+    }
+
+    //message( "Loaded XML for " + clsName );
+
+    if ( x.Tag() == "form" ) isForm = 1;
+
+    if (trace!=null) trace.addClass( clsName );
+
+    //
+    // now look for member
+
+    for (int i=0;;i++)
+    {
+        xml sx = &x[i];
+        if (sx==null) break;
+        string title = sx.tag();
+        if (title != "members" || canBstatic) {
+            if (title != "static" ) continue;
+            prePend = canBStatic ? "::" : ".";
+        } else prePend = ".";
+
+        //message("Section: " + sx.tag());
+
+        if (trace!=null) {
+            string subtitle = sx.getAttr( "sub" );
+            if (subtitle)
+                if (title=="static")
+                    title = subTitle + " (static)";
+                else title = subTitle;
+            trace.addTitle( title ); // Add section title
+        }
+
+        for (int m=0;; m++) {
+            xml fnd = &sx[m];
+            if (fnd == null) break;
+            if (trace!=null)
+
+                addMember( fnd, prePend );
+
+            else
+            {
+                if (!fnd.GetAttr( "name" ).eq( sStr )) continue;
+
+                // FOUND!! - do something
+                //message( "Found member: " + sStr + "\r\n * class: " + clsName );
+
+                if (!nxtStr) {
+
+                    //message( "Found Member... Terminated... All done" );
+                    xml x2;
+                    x2.setTag( "Found" );
+                    //message("Big daddy");
+                    x2.AddElement( fnd );
+                    return doFound( fnd, filename, 0, x2 ); // just the make up, don't call browse...
+                }
+
+                xml x2;
+                x2.setTag( "Go" );
+                return doFound( fnd, filename, 0, x2 );
+            }
+        }
+
+        if (trace!=null) trace.wasTitleUsed();
+    }
+
+
+    //
+    // Look in form
+
+    if (!canBStatic) {
+        xml grd = &x.FindElement( "grid" );
+        if (grd!=null) {
+            if (trace!=null) trace.addTitle( "Grid" ); // Add Grid title
+
+            xml fnd = &lookInGrid( &grd );
+            if (fnd!=null) {
+                // FOUND!! - do something
+                //message( "Found member: " + sStr + "\r\n * class: " + clsName );
+
+                if (!terminated) {
+                    //message( "Found Member... Terminated... All done" );
+                    xml x2;
+                    x2.setTag( "Found" );
+                    //message("Big daddy");
+                    x2.AddElement( fnd );
+                    return doFound( fnd, filename, 1, x2 ); // just the make up, don't call browse...
+                }
+
+                xml x2;
+                x2.setTag( "Go" );
+                return doFound( fnd, filename, 1, x2 );
+            }
+
+            if (trace!=null) trace.wasTitleUsed(); // Add section title
+        }
+    }
+
+
+    //
+    // So it's not in this class, but what about base classes?
+
+    if (x.GetAttr( "browsebase" )=="0") return null;
+
+    string bclass = x.GetAttr( "base" );
+    if (bclass) {
+        clsName = bclass;
+        if (!clsName.startswith("XSD:"))
+        {
+            execPath = filename;
+        }
+        continue;   // onto base class...
+    }
+
+
+    //
+    // No base classs, have we any inhereted classes?
+
+    if (filename.indexOf("des\\docs\\",0,1)>=0) return null;
+
+    clsName = isForm ? "form" : "object";
+    if (!clsName.startswith("XSD:"))
+    {
+        execPath = filename;
+    }
+}   // contiune to inhereted classes...]]>
+</method>
+<method name="lookInGrid">
+<param name="grd" type="xml" />
+<![CDATA[//@cmember lookInGrid
+//@param xml | grd |
+//@version Andrew Griffin | 21-01-02 15:22 |
+//@version Andrew | 24-01-02 11:04 |
+
+// look for named elements...
+
+//if (!classes::core::globalForm::areYouSure( "in Grid loop", "Continue?")) return null;
+
+for (int m=0;; m++) {
+    xml fnd = &grd[m];
+    if (fnd == null) break;
+
+    if (trace!=null)
+    {
+        if (fnd.getAttr( "name" )) {
+            addMember( fnd, "." );
+        }
+    }
+    else
+    {
+        if (fnd.GetAttr( "name" ).eq( sStr )) {
+
+            // FOUND!! - do something
+            return fnd;
+
+        }
+    }
+
+    if (fnd.count()) {
+        fnd = &lookInGrid( fnd );
+        if (fnd!=null) return fnd;  // found in sub Grid
+    }
+}
+
+return null;    // not in grid]]>
+</method>
+<method name="addMember">
+<param name="fnd" type="xml" />
+<param name="prePend" type="string" />
+<![CDATA[//@cmember addMember
+//@param xml | fnd | xml of a method / member / grid control...
+//@param string | prePend |
+//@version Andrew Griffin | 21-01-02 16:18 |
+//@version Andrew | 26-01-02 17:28 |
+//@version Andrew Griffin | 28-01-02 13:15 |
+
+string vName = fnd.GetAttr( "name" ),
+       vType = fnd.tag();
+
+//message( "Adding member: " + vtype + " " + vName );
+
+
+//
+// Member Variables
+
+if (vType != "method") {
+
+    string cls = fnd.GetAttr( "cls" );
+    if (cls) {
+        vType = (vType=="List") ? cls + "[]" : cls;
+    }
+
+    trace.addMember( vType,
+                     vName,
+                     vName + "¬" + vType + "¬" + vName + "¬" + prePend );
+    return;
+}
+
+
+
+//
+// Member Functions
+
+
+vType = fnd.GetAttr( "return" );
+
+switch (vName.lower()) {
+  case "getparent" :
+    string filename = ::AdvSearch::classToPath(origName, origPath, 0);
+    ::Project::aClass l[] = &::Browse::ClsBrowser::openProject.getFormParent( filename );
+    if (l.count()>0) {
+        vType = l[0].Path;  // got parent form from Project File
+        vType = sys::MakeRelativeName( classname(), vType );
+        vType = vType.left( vType.lastIndexOf(".") );
+    }
+    break;
+
+  case "findrow", "createrow", "currentrow" :
+    vType = origName;
+    break;
+}
+
+string paTag = "param", params;
+
+for (int i=0;; i++) {
+
+    xml px = &fnd[i];
+
+    if (px!=null && px.tag().eq( paTag )) {
+        if (params) params += ", ";
+        params += px.GetAttr("type") + " " + px.getAttr("name");
+        continue;
+    } else
+    {
+        if (px!=null && !px.tag().beginsWith( "param" )) continue;
+
+        string insertDef = vName + "(";
+        string rightDef = insertDef;
+        if (params) rightDef += " " + params + " ";
+               else insertDef += ")";
+        rightDef += ")";
+        string fullDef = vType + " " + rightDef;
+
+        trace.addMember( vType,
+                         rightDef /*vName*/,
+                         insertDef + "¬" + vType + "¬" + fullDef + "¬" + prePend );
+
+        if (px==null) break;
+        paTag = px.tag();
+        params = "";
+        i--;    // do again...
+    }
+}
+
+//message( "Done Adding member: " + vtype + " " + vName );]]>
+</method>
+<method name="doFound">
+<param name="fnd" type="xml" />
+<param name="execPath" type="string" />
+<param name="mode" type="int" />
+<param name="x" type="xml" />
+<![CDATA[//@cmember doFound
+//@param xml | fnd |
+//@param string | execPath |
+//@param int | mode |
+//@param xml | x | (optional)
+//@version Andrew Griffin | 21-01-02 16:49 |
+//@version Andrew | 26-01-02 17:24 |
+//@version Andrew Griffin | 25-07-02 13:04 |
+//
+// Loop onto next part of search string...
+
+string vName =      fnd.GetAttr( "name" ),
+       vType,
+       cName =      fnd.tag(),
+       pickList =   fnd.getAttr( "pick" );
+int isMethod;
+
+string cls = fnd.GetAttr( "cls" );
+
+if (cName == "List" || cName == "Object") {
+    if (inList) cName = "Object";
+    if (cls) {
+        vType = cName;
+        cName = cls;
+    }
+} else
+if (cName == "method") {
+    isMethod = 1;
+    vType = "";
+    cName = fnd.GetAttr( "return" );
+
+    switch (vName.lower()) {
+      case "getparent" :
+        string filename = ::AdvSearch::classToPath(origName, origPath, 0);
+        ::Project::aClass l[] = &::Browse::ClsBrowser::openProject.getFormParent( filename );
+        if (l.count()>0) {
+            cName = l[0].Path;  // got parent form from Project File
+            cName = sys::MakeRelativeName( classname(), cName );
+            cName = cName.left( cName.lastIndexOf(".") );
+        }
+        break;
+
+      case "findrow", "createrow", "currentrow" :
+        cName = origName;
+        execPath = origPath;
+        //message( "Original Type:\r\n * " + cName + "\r\n * " + execPath );
+        break;
+    }
+} else
+if (cls) {
+    vType = cName;
+    cName = cls;
+}
+
+x.AddAttr( "varName", vName );
+x.AddAttr( "varType", vType );
+x.AddAttr( "clsName", cName );
+x.AddAttr( "traceStr", nxtStr );
+x.AddAttr( "execPath", execPath );
+if (pickList) x.AddAttr( "pickList", pickList );
+if (!ismethod) x.AddAttr( "isMember", "1" );
+
+return x;]]>
+</method>
+</members>
+<static>
+<method name="getTypeInfo">
+<param name="varName" type="string" />
+<param name="varType" type="string" />
+<param name="clsName" type="string" />
+<param name="traceStr" type="string" />
+<param name="execPath" type="string" />
+<![CDATA[//@cmember getTypeInfo
+//@param string | varName | "this"
+//@param string | varType |
+//@param string | clsName | "classes::core::global"
+//@param string | traceStr | "userID.subString(2).val()"
+//@param string | execPath | "c:\\w2\\classes\\des\\browse2\\browser"
+//@version Andrew Griffin | 21-01-02 12:42 |
+//@i
+
+xml x = &browse( varName, varType, clsName, traceStr, execPath );
+return x;]]>
+</method>
+<method name="browseObj" return="string">
+<param name="varName" type="string" />
+<param name="varType" type="string" />
+<param name="clsName" type="string" />
+<param name="traceStr" type="string" />
+<param name="execPath" type="string" />
+<param name="trace" type="::popups::popform" />
+<![CDATA[//@cmember browseObj
+//@param string | varName | "this"
+//@param string | varType |
+//@param string | clsName | "classes::core::global"
+//@param string | traceStr | "userID.subString(2).val()"
+//@param string | execPath | "c:\\w2\\classes\\des\\browse2\\browser"
+//@param ::popups::popform | trace |
+//@return string |
+//@version Andrew Griffin | 21-01-02 16:18 |
+//@version Andrew | 26-01-02 17:24 |
+//@i
+
+/*message("Ok... now browsing the member... with:\r\n" +
+    varName + "\r\n" +
+    varType + "\r\n" +
+    clsName + "\r\n" +
+    traceStr + "\r\n" +
+    execPath
+);*/
+
+xml x = &browse( varName, varType, clsName, traceStr, execPath );
+
+if (x==null || !x.GetAttr( "clsName" )) return "*failed*"; // failed completly...
+
+//
+// ok... Do trace...
+
+/*message("Ok... now browsing the member... with:\r\n" +
+    x.getAttr( "varName" ) + "\r\n" +
+    x.getAttr( "varType" ) + "\r\n" +
+    x.getAttr( "clsName" ) + "\r\n" +
+    x.getAttr( "traceStr" ) + "\r\n" +
+    x.getAttr( "execPath" )
+);*/
+
+browse(
+    x.getAttr( "varName" ),
+    x.getAttr( "varType" ),
+    x.getAttr( "clsName" ),
+    x.getAttr( "traceStr" ),
+    x.getAttr( "execPath" ),
+
+    trace
+);
+
+return x.getAttr( "traceStr" ).lower();]]>
+</method>
+<method name="browseObj2" return="string">
+<param name="x" type="xml" />
+<param name="trace" type="::popups::popform" />
+<param name="sExecPath" type="String" />
+<![CDATA[//@cmember browseObj2
+//@param xml | x | "this"
+//@param ::popups::popform | trace |
+//@param String | sExecPath |
+//@return string |
+//@version Andrew Griffin | 21-01-02 16:18 |
+//@version Andrew | 24-01-02 12:46 |
+//@version Andrew Griffin | 25-07-02 13:02 |
+//@version Ricky LEE | 30-03-06 16:43 |
+//@i
+
+/*message("Ok... now browsing the member... with:\r\n" +
+    x.getAttr( "varName" ) + "\r\n" +
+    x.getAttr( "varType" ) + "\r\n" +
+    x.getAttr( "clsName" ) + "\r\n" +
+    x.getAttr( "traceStr" ) + "\r\n" +
+    x.getAttr( "execPath" )
+);*/
+
+string execPath = x.getAttr( "execPath" );
+
+if (sExecPath!=NULL)
+{
+    execPath=sExecPath;
+}
+
+
+browse(
+    x.getAttr( "varName" ),
+    x.getAttr( "varType" ),
+    x.getAttr( "clsName" ),
+    x.getAttr( "traceStr" ),
+    execPath,
+
+    trace,
+
+    x.GetAttr( "isMember" )
+);
+
+
+return x.getAttr( "traceStr" ).lower();]]>
+</method>
+<method name="browse" return="xml">
+<param name="varName" type="string" />
+<param name="varType" type="string" />
+<param name="clsName" type="string" />
+<param name="traceStr" type="string" />
+<param name="execPath" type="string" />
+<param name="trace" type="::popups::popform" />
+<param name="incMember" type="string" />
+<![CDATA[//@cmember browse
+//@param string | varName | "this"
+//@param string | varType |
+//@param string | clsName | "classes::core::global"
+//@param string | traceStr | "userID.subString(2).val()"
+//@param string | execPath | "c:\\w2\\classes\\des\\browse2\\browser"
+//@param ::popups::popform | trace | (optional)
+//@param string | incMember |
+//@return xml |
+//@version Andrew Griffin | 21-01-02 16:52 |
+//@version Andrew | 26-01-02 17:24 |
+//@version Andrew Griffin | 25-07-02 13:00 |
+//@version Ricky LEE | 31-03-06 09:05 |
+//@i
+
+// browse( "this", "classes::core::global", "userID.subString(2).val()", path() );
+
+if (!clsName) {
+    //message( "No Class Given..." );
+    return null;
+}
+
+/*if (::advSearch::checkBuiltIn( clsName )) {
+    varType = "";
+} else*/ if (!varType) varType = "object";
+
+/*message( "Browsing:\r\n"+
+         " * varname:  " + varName + "\r\n"+
+         " * varType:  " + varType + "\r\n"+
+         " * clsName:  " + clsName + "\r\n"+
+         " * traceStr:  " + traceStr + "\r\n"+
+         " * execPath:  " + execPath );
+*/
+string s;
+int p = 0, c, inList, mx = traceStr.length();
+
+while (p<mx) {
+    c = traceStr[p];
+    p++;
+
+    if (c=='.') {           // member seperator
+        break;
+    } else
+
+    if (c==':') {           // static seperator
+      if (traceStr[p]==':') {
+        p++;
+        break;
+      } else return null;   // error
+    } else
+
+    if (c=='(' || c=='[') {       // method/list indicator
+        int depth = 1;
+        for (; p<mx && depth>0; p++) {
+          switch (traceStr[p]) {
+            case ')', ']' : depth--; break;
+            case '(', '[' : depth++; break;
+          }
+        }
+        if (c=='[') inList = 1;
+    } else
+
+        s += c.charString();
+}
+
+browser b;
+
+b.sStr = s;
+b.nxtStr = traceStr.subString( p );
+b.terminated = (c=='.' || c==':');
+b.varName = varName;
+b.varType = varType;
+b.isForm = 0;
+b.isList = clsName.endsWith( "[]" );
+b.inList = inList;
+b.origName = clsName;
+b.origPath = execPath;
+if (b.isList) {
+    clsName = clsName.left( clsName.length()-2 );
+} else {
+    b.isList = varName.endsWith( "[]" );
+    if (b.isList) {
+        varName = varName.left( clsName.length()-2 );
+    } else
+        if (varType.eq( "List" )) b.isList = 1;
+//            varType = "Object";
+//        }
+}
+
+if (trace!=null) b.trace.setMagicPointer( trace );
+
+if (s || trace!=null) {
+
+    object ret = null;
+    if (b.isList && !inList) {
+        //message("moooo!!! list");
+        ret = &b.loadAndParse( "list", execPath );
+        if (ret!=null) {
+            if (ret.tag()=="Go")
+            {
+                string ePath;
+                if (!clsName.startswith("XSD:"))
+                {
+                    ePath = ret.getAttr("execPath");
+                }
+                else
+                {
+                    ePath = execPath;
+                }
+                ret = &browse( ret.getAttr("varName"),
+                               ret.getAttr("varType"),
+                               ret.getAttr("clsName"),
+                               ret.getAttr("traceStr"),
+                               ePath,
+                               NULL,
+                               ret.GetAttr("isMember") );
+            }
+            if (ret!=null) return ret;
+        }
+    }
+    else
+    {
+        b.isList = 0; // ****************
+
+        ret = &b.loadAndParse( clsName, execPath ); // Main class in question...
+        if (ret!=null) {
+            if (ret.tag()=="Go")
+            {
+                string ePath;
+                if (!clsName.startswith("XSD:"))
+                {
+                    ePath = ret.getAttr("execPath");
+                }
+                else
+                {
+                    ePath = execPath;
+                }
+                ret = &browse( ret.getAttr("varName"),
+                               ret.getAttr("varType"),
+                               ret.getAttr("clsName"),
+                               ret.getAttr("traceStr"),
+                               ePath,
+                               NULL,
+                               ret.GetAttr("isMember") );
+            }
+            if (ret!=null) return ret;
+        }
+    }
+
+    // inherent types...
+
+    if (varType && !varType.eq( "object" ) && !varType.eq( "list" )) {
+        ret = &b.loadAndParse( varType, execPath );
+        if (ret!=null) {
+            if (ret.tag()=="Go")
+            {
+                string ePath;
+                if (!clsName.startswith("XSD:"))
+                {
+                    ePath = ret.getAttr("execPath");
+                }
+                else
+                {
+                    ePath = execPath;
+                }
+                ret = &browse( ret.getAttr("varName"),
+                               ret.getAttr("varType"),
+                               ret.getAttr("clsName"),
+                               ret.getAttr("traceStr"),
+                               ePath,
+                               NULL,
+                               ret.GetAttr("isMember") );
+            }
+            if (ret!=null) return ret;
+        }
+    }
+
+    // Member types...
+
+    if (incMember!=null && incMember) {
+        ret = &b.loadAndParse( "member", execPath );
+        if (ret!=null) {
+            if (ret.tag()=="Go")
+                ret = &browse( ret.getAttr("varName"),
+                               ret.getAttr("varType"),
+                               ret.getAttr("clsName"),
+                               ret.getAttr("traceStr"),
+                               ret.getAttr("execPath"),
+                               NULL,
+                               ret.GetAttr("isMember") );
+            if (ret!=null) return ret;
+        }
+    }
+
+}
+
+//message( "Failed to find member: " + varName );
+xml x;
+x.SetTag( !s ? "Found" : "Failed" );
+if (!b.terminated) {
+    x.AddAttr( "varName", varName );
+    x.AddAttr( "varType", varType );
+    x.AddAttr( "clsName", clsName );
+    x.AddAttr( "traceStr", traceStr );
+    x.AddAttr( "execPath", execPath );
+}
+
+return x;   // Not found...]]>
+</method>
+<method name="browseBase" return="xml">
+<param name="varName" type="string" />
+<param name="varType" type="string" />
+<param name="clsName" type="string" />
+<param name="traceStr" type="string" />
+<param name="execPath" type="string" />
+<param name="inList" type="int" />
+<![CDATA[//@cmember browseBase
+//@param string | varName | "this"
+//@param string | varType |
+//@param string | clsName | "classes::core::global"
+//@param string | traceStr | "userID.subString(2).val()"
+//@param string | execPath | "c:\\w2\\classes\\des\\browse2\\browser"
+//@param int | inList | (optional)
+//@return xml |
+//@version Andrew Griffin | 21-01-02 16:52 |
+//@version Andrew | 25-01-02 10:54 |
+//@version Andrew Griffin | 25-07-02 13:02 |
+//@i
+
+//sys::debugOut( "  + browser:browseBase" );
+
+if (inList!=null && inList) {
+    if (varType.eq("list")) {
+        varType = "object";
+    } else
+    if (varName.endsWith( "[]" )) {
+        varName = varName.left( varName.length()-2 );
+    } else
+    if (clsName.endsWith( "[]" )) {
+        clsName = clsName.left( clsName.length()-2 );
+    }
+} else {
+    if (clsName.endsWith( "[]" )) {
+        clsName = clsName.left( clsName.length()-2 );
+        varType = "list";
+    }
+}
+
+xml x = &browse( varName, varType, clsName, traceStr, execPath, null );
+
+//sys::debugOut( "  - browser:browseBase" );
+
+return x;]]>
+</method>
+<method name="loadXML" return="xml">
+<param name="filename" type="string" />
+<![CDATA[//@cmember loadXML
+//@param string | filename |
+//@return xml |
+//@version Andrew Griffin | 21-01-02 10:40 |
+//@version Andrew | 25-01-02 11:31 |
+
+
+//
+// See if the class is loaded in a designer window
+
+XML myXML;
+
+::wclassview wc = &::wclassview::getOpenClass( Filename );
+if (wc!=null) return &wc.getOverviewXML();
+
+
+//
+// Load the XML for the class using the cashed XML loader
+myXML = &classes::des::globalxml::LoadXML( filename );
+if (myXML.tag() == "error") {
+    return null;
+}
+
+myXML = &myXML[0];
+::WClassView::TransformXMLReturns(&myXML);
+
+return myXML;]]>
+</method>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 21-01-02 16:32 |
+//@version Andrew | 24-01-02 12:12 |
+//@i
+
+
+//classes::des::browse::ClsBrowser::myBrowserHid.myHier.Lmem[4].Lmem[1].Lmem[10].GetParameterDesc( moo ).addtoken( "ha" ).val().sign().MemberClass().i
+
+// Example case
+
+//browse( "this", "classes::core::global", "userID.subString(2).val()", path() );
+
+//message("go");
+
+while (classes::core::globalForm::areYouSure( "Continue?", "Are you sure?" )) {
+
+    ::popups::popform trace;
+
+    trace.open();
+
+    string autocomplete = browseObj(
+                "this",
+                "object",
+                "WFuncEdit",
+                "browseMode.",
+                "e:\\w2\\classes\\des\\",
+                trace
+            );
+/*
+    string autocomplete = browseObj(
+                "fat",
+                "form",
+                "classes::des::browse::ClsBrowser",
+                "myBrowserHid.myHier.Lmem[4].Lmem[1].Lmem[10].GetParameterDesc( moo )." +
+                "addtoken( \"ha\" ).val().sign().MemberClass()",
+                path(),
+                trace
+            );
+*/
+    if (autocomplete=="*failed*") {
+        //message( "Failed trace");
+        trace.close();
+        return;
+    }
+
+    trace.typed = autocomplete;
+    trace.typedR = trace.typed;
+    trace.typedFlash = trace.typed;
+
+    trace.go( 20,20 );
+
+    sys::wait(500);
+    trace.close();
+//    break;
+}
+// * once found - return browse vars to give]]>
+</method>
+</static>
+<return>
+<rmeth name="browseObj" cls="string" />
+<rmeth name="browseObj2" cls="string" />
+<rmeth name="browse" cls="xml" />
+<rmeth name="browseBase" cls="xml" />
+<rmeth name="loadXML" cls="xml" />
+</return>
+</class>

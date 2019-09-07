@@ -1,0 +1,30 @@
+<class name="Preferences">
+<members />
+<static>
+<List name="PX" cls="classes::CPickS" />
+<method name="Store">
+<param name="name" />
+<param name="value" />
+<![CDATA[
+Object X = PX.FindRow(name);
+if (X==null){
+    X = &PX.CreateRow();
+    X.code = name;
+    }
+X.desc = value;]]>
+</method>
+<method name="Get">
+<param name="name" />
+<![CDATA[Object X = PX.FindRow(name);
+if (X==null)
+    return "";
+return X.desc;]]>
+</method>
+<method name="Flush">
+<![CDATA[// save to server]]>
+</method>
+<method name="Init">
+<![CDATA[// get from server]]>
+</method>
+</static>
+</class>

@@ -1,0 +1,376 @@
+<form name="CtrlEdit" caption="Control" savepos="Control Attr Editor" icon="::designer.ico" margin="0" fauthor="$Author: Andrew.g $" fdate="$Date: 1/10/01 9:55 $" frevision="$Revision: 8 $" xxsizeable="1" xxtoolwindow="1" comment="This is the floating window for editting a control properties">
+<members>
+<List name="cAttrib" cls="classes::CPickS" />
+<method name="Init">
+<![CDATA[
+SetWindowName("ControlEditor");
+TheComp.Init();]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" type="control" />
+<![CDATA[
+// params: Ctrl - an EdObject or EdGrid from the GridEditor
+
+cAttrib.reset();
+
+if (Ctrl!=null)
+    {
+    String CName = Ctrl.TypeName;
+    // is it a list grid box?
+    if (CName=="grid"){
+        if (Ctrl.GetAttr("IsList")=="Y") CName = "ListBox";
+        if (Ctrl.GetAttr("IsComp")=="Y") CName = "Component";
+        if (Ctrl.GetAttr("IsMultiPane")=="Y") CName = "MultiPane";
+    }
+    // go
+    setText(CName);
+    String CCls = CtrlInfo::GetClassName(CName);
+
+    if (TheComp.CompClass()==CCls){
+        TheComp.ShowCtrl(Ctrl);
+
+        setupCAttr( Ctrl );
+        return;
+        }
+
+    TheComp.SetVisible(0);
+    if (TheComp.SetComp( CCls )){
+        TheComp.Init();
+        TheComp.ShowCtrl(Ctrl);
+        TheComp.SetVisible(1);
+
+        setupCAttr( Ctrl );
+        return;
+        }
+    TheComp.SetVisible(1);
+
+}
+setText("Control");
+TheComp.SetComp( "CBlank" );
+showGroup("cAttr", 0);
+SizeToFit();]]>
+</method>
+<method name="setupCAttr">
+<param name="Ctrl" type="Control" />
+<![CDATA[showGroup("cAttr", 1);
+
+idLoadable.setVisible( TheComp.classname().indexOf("des\\grid\\ccomp",0,1)>=0);
+
+for (int i=0;; i++) {
+    string n = Ctrl.AttrName(i);
+    if (n=="") break;
+    string v = Ctrl.AttrValue(i);
+    if (builtInAttrib(n) || v=="") continue;
+
+    classes::CPickS nr = &cAttrib.createRow();
+
+    nr.code = n;
+    nr.desc = v;
+}
+idCustomAttr.cancelSelect();
+idCustomAttr.setFocus();
+idCustomAttr.setCurrent( cAttrib.count()-1 );
+SizeToFit();]]>
+</method>
+<method name="SetCtrlAttr">
+<param name="attr" />
+<param name="val" />
+<![CDATA[//@version Andrew Griffin | 03-08-01 17:07 |
+
+WGridEdit P = &GetParent();
+if (P==null) return;
+
+Object X = &P.idGridEdit.CurrentCell();
+if (X==null){ // nothing selected
+    P.idGridEdit.TheGrid.SetAttr(attr,val);
+    P.idGridEdit.CalcSizesIf();
+    }
+else{
+    P.idGridEdit.SetControlAttr( attr, val );
+    P.idGridEdit.CalcSizesIf();
+    }
+
+P.GetParent().SetMod(null,1);]]>
+</method>
+<method name="OnClose">
+<![CDATA[
+Show(0);]]>
+</method>
+<method name="ShowAllAttr">
+<![CDATA[
+Object P = &GetParent();
+if (P==null) return;
+Object X = &P.idGridEdit.CurrentCell();
+if (X==null) return; // nothing selected
+Object Obj = X.GetObject();
+if (Obj==null) return;
+
+String s;
+for(int n=0;;n++){
+    String nm = Obj.AttrName(n); if (!nm) break;
+    s += nm + "='" + Obj.AttrValue(n) + "'\r\n";
+    }
+
+if (s)
+    Message(s,"Other Attributes...");]]>
+</method>
+<method name="doAdd">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+classes::core::WinputBox::Open(this, "addAttrib", "Enter New Attribute name", "Add Custom Attribute", "");]]>
+</method>
+<method name="addAttrib">
+<param name="str" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+if (str=="") return;
+
+str.toLower();
+
+if (str.indexOf(" ")>=0) {
+    message("Custom Attributes can't contain spaces. Please try again.");
+    doAdd();
+    return;
+}
+
+if (builtInAttrib(str)) {
+    message("This is a reserved attribute name. Please choose a different name.");
+    doAdd();
+    return;
+}
+
+classes::CPickS nr = &cAttrib.findRow( str );
+
+if (nr!=null) {
+    message("This custom attribute already exists, choose a new name");
+    doAdd();
+    return;
+}
+
+nr = &cAttrib.createRow();
+
+nr.code = str;
+nr.desc = "<enter value>";
+
+SizeFormToContent();
+idCustomAttr.cancelSelect();
+idCustomAttr.setFocus();
+idCustomAttr.setCurrent( cAttrib.count()-1 );
+
+SetCtrlAttr( str, nr.desc );]]>
+</method>
+<method name="doDel">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+int i = cAttrib.CurrentIndex();
+if (i==-1) return;
+
+SetCtrlAttr( cAttrib[i].code, "" );
+
+cAttrib.deleteRow(i);
+
+SizeFormToContent();]]>
+</method>
+<method name="getCAttrs">
+<![CDATA[
+string cls = theComp.idClassName.getText();
+
+if (cls=="") return;
+
+object clas = getParent().getParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+
+object o = &sys::newObject( cls, tPath );
+if (o==null) {
+    message("Class does not exist. Please check the file name");
+    return;
+}
+
+classes::CPickS atrBack[];
+for (int i=0; i<cAttrib.count(); i++)
+    atrBack.addRow( cAttrib[i] );
+
+cAttrib.reset();
+
+for (i=0; i<o.memberCount(); i++) {
+  memberDef m = &o.memberDef(i);
+  if (m.GetAttr("cattr")=="Y") {
+
+    classes::CPickS nr = &cAttrib.findRow( m.name().lower() );
+    if (nr!=null) continue;
+    nr = &cAttrib.createRow();
+    nr.code = m.name().lower();
+
+    object o2 = &atrBack.findRow( nr.code );
+    if (o2==null) {
+        nr.desc = m.GetAttr("constval");
+        if (nr.desc=="") nr.desc = "<enter value>";
+    } else {
+        nr.desc = o2.desc;
+        o2.removeFromList();
+    }
+
+    SetCtrlAttr( nr.code, nr.desc );
+  }
+}
+
+if (atrBack.count() > 0) {
+
+  string atrStr;
+  for (i=0; i<atrBack.count(); i++)
+    atrStr += (atrStr ? ", " : "") + atrBack[i].code;
+
+  int ans = (message( "Do you want to delete the attributes listed below:\r\n" + atrStr,
+      "Delete unspecified attributes",
+      classes::core::windows::MB_YESNO ) == classes::core::windows::IDYES);
+
+    for (i=0; i<atrBack.count(); i++)
+      if (!ans) cAttrib.addRow( atrBack[i] );
+           else SetCtrlAttr( atrBack[i].code, "" );
+
+  }
+
+SizetoFit();
+
+idCustomAttr.cancelSelect();
+idCustomAttr.setFocus();
+idCustomAttr.setCurrent( cAttrib.count()-1 );]]>
+</method>
+<method name="changeCustom">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+classes::CPickS nr = &idCustomAttr.currentRow();
+
+if (nr==null) return;   // should never happen...
+
+SetCtrlAttr( nr.code, nr.desc );]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[//@cmember builtInAttrib
+//@param string | builtInAttrib | attribute name to check
+//@return int | 1 = This is a built in attribute, 0 = otherwise
+//@version Andrew Griffin | v1
+//@i Returns true if the passed attribute name is a built in attribute.
+
+
+switch (attrName.lower()) {
+  case  "disable", "hide", "mandatory", "notab", "font", "size", "style",
+        "name", "text", "bind",  "help", "groups", "pick", "img", "border",
+        "lpad",  "tpad", "rpad", "bpad", "idhelp",
+        "shadx", "shady", "shadc", "tlc", "brc", "shadt",
+        "iscomp", "iscomp2" : return 1;
+}
+
+return TheComp.builtInAttrib( attrName );]]>
+</method>
+<method name="onChar">
+<param name="Key" type="int" />
+<param name="State" type="int" />
+<param name="Ctrl" type="control" />
+<![CDATA[//@cmember onChar
+//@param int | Key |
+//@param int | State |
+//@param control | Ctrl |
+//@version Andrew Griffin | 07-08-01 15:37 |
+//@i
+
+getParent().onChar( Key, State, Ctrl );]]>
+</method>
+<method name="doExpandAll">
+<![CDATA[//@cmember doExpandAll
+//@version Andrew Griffin | 24-09-01 15:55 |
+//@i
+
+if (TheComp.hasmethod( "expandAll" )) TheComp.expandAll();]]>
+</method>
+<method name="doShrinkWrap">
+<![CDATA[//@cmember doShrinkWrap
+//@version Andrew Griffin | 24-09-01 15:55 |
+//@i
+
+if (TheComp.hasmethod( "shrinkEmpty" )) TheComp.shrinkEmpty();]]>
+</method>
+</members>
+<static />
+<grid bk="224,224,192">
+<row>
+<col bpad="4" align="WH">
+<Component name="TheComp" cls="CBlank" />
+</col>
+</row>
+<row>
+<col lpad="1" tpad="1" rpad="1" bpad="1" align="X" bk="224,192,128">
+<grid groups="cAttr">
+<row>
+<col align="W">
+<Label text="Custom Attribs" />
+</col>
+<col lpad="4" rpad="4">
+<Label name="idLoadable" text="Load" onClick="getCAttrs" />
+</col>
+<col lpad="4" rpad="4">
+<Label text="Add" onClick="doAdd" />
+</col>
+<col lpad="4" rpad="4">
+<Label text="Del" onClick="doDel" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col bpad="2" h="3" align="X" />
+</row>
+<row>
+<col bpad="2" align="X" bk="224,224,192">
+<ListBox name="idCustomAttr" IsList="Y" list="cAttrib" border="0" fixsize="1" groups="cAttr">
+<row>
+<col w="60" align="V" bk="224,224,192">
+<Label text="&lt;name&gt;" bind="code" />
+</col>
+<col rpad="2" h="16" align="W">
+<Edit name="idCustVal" bind="desc" border="2" onChange="changeCustom" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+<row>
+<col align="R">
+<grid>
+<row>
+<col lpad="4" rpad="4" align="R">
+<Label text="Expand All" onClick="doExpandAll" font="Microsoft Sans Serif" size="6" />
+</col>
+<col lpad="4" rpad="4" align="R">
+<Label text="Shrink wrap" onClick="doShrinkWrap" font="Microsoft Sans Serif" size="6" />
+</col>
+<col lpad="4" align="R">
+<Label text="???" onClick="ShowAllAttr" font="Arial" size="6" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

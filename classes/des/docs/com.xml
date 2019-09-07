@@ -1,0 +1,136 @@
+<class name="COM" description="W2 Script Reference">
+<members>
+<method name="ClassName">
+<![CDATA[//@cmember string ClassName(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="Connect">
+<param name="Prog" type="string" />
+<param name="Sink" type="string" />
+<param name="Interface" type="string" />
+<![CDATA[//@cmember int Connect( string Prog, string Sink, string Interface );
+//@param string | Prog | 
+//@param string | Sink | 
+//@param string | Interface | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Disconnect">
+<![CDATA[//@cmember int Disconnect(  );
+//@return int | 
+//@i Always return zero.
+]]>
+ />
+</method>
+<method name="Get">
+<![CDATA[//@cmember variable_type Get(  );
+//@return variable_type | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetProperty">
+<param name="Property" type="string" />
+<![CDATA[//@cmember variable_type GetProperty( string Property );
+//@param string | Property | 
+//@return variable_type | 
+//@i double rent = D.GetProperty( "Rent" );
+]]>
+ />
+</method>
+<method name="Invoke">
+<param name="Function" type="string" />
+<param name="" type="variable_type" />
+<param name="" type="variable_type" />
+<param name="" type="..." />
+<![CDATA[//@cmember int Invoke( string Function, variable_type, variable_type, ... );
+//@param string | Function | 
+//@param variable_type |  | 
+//@param variable_type |  | 
+//@param ... |  | 
+//@return int | 
+//@i int x = D.Invoke( "TestMethod", p1, p2, p3... );
+]]>
+ />
+</method>
+<method name="Set">
+<param name="Type" type="int" />
+<param name="Val" type="variable_type" />
+<![CDATA[//@cmember void Set( int Type, variable_type Val );
+//@param int | Type | 
+//@param variable_type | Val | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetBSTR">
+<param name="" type="string" />
+<![CDATA[//@cmember void SetBSTR( string );
+//@param string |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetCY">
+<param name="Val" type="double" />
+<![CDATA[//@cmember void SetCY( double Val );
+//@param double | Val | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetI2">
+<param name="Val" type="int" />
+<![CDATA[//@cmember void SetI2( int Val );
+//@param int | Val | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetNotificationEvent">
+<param name="" type="string" />
+<param name="" type="object" />
+<![CDATA[//@cmember void SetNotificationEvent( string, object );
+//@param string |  | 
+//@param object |  | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetProperty">
+<param name="Property" type="string" />
+<param name="Value" type="variable_type" />
+<![CDATA[//@cmember int SetProperty( string Property, variable_type Value );
+//@param string | Property | 
+//@param variable_type | Value | 
+//@return int | 
+//@i int ok = D.SetProperty( "Rent", 100.22 );
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="ClassName" cls="string" />
+<rmeth name="Connect" cls="int" />
+<rmeth name="Disconnect" cls="int" />
+<rmeth name="Get" cls="variable_type" />
+<rmeth name="GetProperty" cls="variable_type" />
+<rmeth name="Invoke" cls="int" />
+<rmeth name="Set" cls="void" />
+<rmeth name="SetBSTR" cls="void" />
+<rmeth name="SetCY" cls="void" />
+<rmeth name="SetI2" cls="void" />
+<rmeth name="SetNotificationEvent" cls="void" />
+<rmeth name="SetProperty" cls="int" />
+</return>
+</class>

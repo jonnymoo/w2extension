@@ -1,0 +1,30 @@
+<class name="msxml4base" description="Base MSXML4 functions" >
+<members>
+<method name="HaveError">
+<![CDATA[//@cmember int HaveError( );
+//@return int | Returns 1 if an error occurred otherwise 0
+//@i 
+]]>
+ />
+</method>
+<method name="GetLastError">
+<![CDATA[//@cmember string GetLastError( );
+//@return string | The Last Error Message
+//@i Use this to get a description of the last error.  Will return "" if no error occurred.
+]]>
+ />
+</method>
+<method name="GetLastHRESULTError">
+<![CDATA[//@cmember int GetLastHRESULTError( );
+//@return int | The last HRESULT that occurred
+//@i Use this in conjunction with HaveError() or GetLastError().  Will return 0 if no error or the error was not a microsoft error.
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="HaveError" cls="int" />
+<rmeth name="GetLastError" cls="string" />
+<rmeth name="GetLastHRESULTError" cls="int" />
+</return>
+</class>

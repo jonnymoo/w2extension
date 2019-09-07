@@ -1,0 +1,153 @@
+<form name="quickorderbase" caption="Order" margin="2" sizeable="0" hidden="1" topmost="1" closeondeactivate="1" nocaption="1" esccancel="1" fauthor="$Author: Sorina Grave $" fdate="$Date: 18/02/04 15:29 $" frevision="$Revision: 5 $">
+<members>
+<Object name="m_objListContainer" comment="Object contains list to be sorted.  Container must support GetList()." />
+<Object name="m_objParent" />
+<method name="DoAction">
+<param name="objRow" type="object" />
+<![CDATA[//@cmember DoAction
+//@param object | objRow |
+//@version Scott.Goodwin | 16-05-03 10:25 |
+DoOrder(objRow,"");]]>
+</method>
+<method name="DoActionD">
+<param name="objRow" type="object" />
+<![CDATA[//@cmember DoActionD
+//@param object | objRow |
+//@version Scott.Goodwin | 16-05-03 10:25 |
+DoOrder(objRow,"desc");]]>
+</method>
+<method name="Start">
+<![CDATA[//@version Scott.Goodwin | 19-05-03 11:42 |
+dialog(m_objParent);
+SizeToFit();
+SnapToCursor();
+Show(1);
+SetFocus();]]>
+</method>
+<method name="DoAdvanced">
+<![CDATA[//@version Scott.Goodwin | 16-05-03 14:57 |
+//@version Sorina Grave | 16-02-04 13:36 |
+Close();
+
+classes::ZOrder::WOrder::OpenWin( m_objListContainer,m_strTargetName);
+
+if ( this.hasmethod("onClose") )
+    this.onClose();]]>
+</method>
+<method name="DoOrder">
+<param name="objRow" type="object" />
+<param name="objOption" type="object" />
+<![CDATA[//@cmember DoOrder
+//@param object | objRow |
+//@param object | objOption |
+//@version Scott.Goodwin | 16-05-03 13:59 |
+Close();
+
+String strOrderColumn = objRow.GetControlAttr("param");
+object lstTarget = m_objListContainer.GetList();
+if ( lstTarget != null )
+{
+    lstTarget.ResetOrder();
+    lstTarget.OrderBy(strOrderColumn,objOption);
+    lstTarget.OrderList();
+}
+
+if ( this.hasmethod("onClose") )
+    this.onClose();]]>
+</method>
+<method name="OpenWin_">
+<param name="objParent" type="object" />
+<param name="objListContainer" type="object" />
+<param name="objShowAdvanced" type="object" />
+<![CDATA[//@cmember OpenWin_
+//@param object | objParent | Parent Form
+//@param object | objListContainer | Object containing list to sort
+//@param object | objShowAdvanced | Show Advanced search options
+//@version Scott.Goodwin | 19-05-03 15:01 |
+//@version Sorina Grave | 16-02-04 13:39 |
+
+if ( null == objParent || null == objListContainer || !this.hasmember("m_lstOrderByColumns") )
+    return;
+
+m_objParent = objParent;
+m_objListContainer = objListContainer;
+
+//Advanced search options
+if ( null != objShowAdvanced && 1 == objShowAdvanced )
+{
+    Object objNewGridRow = idGrid.DuplicateRow(0);
+    objNewGridRow.GetControl("idOrderEntry").SetAttr("Text","Advanced...");
+    objNewGridRow.GetControl("idOrderEntry").SetAttr("OnClick","DoAdvanced");
+
+}
+
+//Populate Grid
+
+for ( int i = this.m_lstOrderByColumns.count() -1 ; i >= 0; i-- )
+{
+    Object objNewGridRow = idGrid.DuplicateRow(0);
+    objNewGridRow.GetControl("idOrderEntry").SetAttr("Text",this.m_lstOrderByColumns[i].m_strColumnDesc);
+    objNewGridRow.GetControl("idOrderEntry").SetAttr("Param",this.m_lstOrderByColumns[i].m_strColumnName);
+    objNewGridRow.GetControl("idOrderEntry").SetAttr("OnClick","DoAction");
+    objNewGridRow.GetControl("idOrderEntry").SetAttr("OnRightClick","DoActionD");
+}
+idGrid.DeleteRow(0);
+
+Start();]]>
+</method>
+</members>
+<static>
+<method name="GetOrderByColumns_">
+<![CDATA[//@cmember GetOrderByColumns_
+//@version Scott.Goodwin | 19-05-03 15:05 |
+//@version Sorina Grave | 18-02-04 15:29 |
+
+m_lstOrderByColumns.Reset();
+string strSQL = "OrderByType = " + m_strTargetName.sql() + " AND UserID = " + classes::workers::currentuser::uid.SQL();
+classes::core::global::listquery(m_lstOrderByColumns,strSQL,50);
+
+m_lstOrderByColumns.ResetOrder();
+m_lstOrderByColumns.OrderBy("m_nPositionInList");
+m_lstOrderByColumns.OrderList();]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col lpad="2" tpad="1" bpad="1" align="X" bk="200,224,224">
+<Label name="DRAG_ME" text="Order By..." style="b" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col tpad="2">
+<grid name="idGrid" lpad="2" tpad="1" rpad="2" bpad="1">
+<row>
+<col>
+<Image text="Image" img="classes::resource::standard::blue_blip.bmp" />
+</col>
+<col align="X">
+<Label name="idOrderEntry" style="b" bksel="800000" txsel="FFFFFF" />
+</col>
+</row>
+<row>
+<col />
+<col />
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

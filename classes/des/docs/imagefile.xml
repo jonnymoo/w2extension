@@ -1,0 +1,84 @@
+<class name="ImageFile" description="W2 Script Reference">
+<members>
+<method name="AddImage">
+<param name="Image" type="object" />
+<![CDATA[//@cmember int AddImage( object Image );
+//@param object | Image | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Close">
+<![CDATA[//@cmember void Close(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Create">
+<param name="" type="string" />
+<param name="" type="int" />
+<![CDATA[//@cmember int Create( string, int );
+//@param string |  | 
+//@param int |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="CreateLowResImage">
+<param name="maxSize" type="int" />
+<![CDATA[//@cmember Object Image CreateLowResImage( int maxSize );
+//@param int | maxSize | 
+//@return Object Image | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetImage">
+<param name="id" type="int" />
+<![CDATA[//@cmember Object Image GetImage( int id );
+//@param int | id | 
+//@return Object Image | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetImageCount">
+<![CDATA[//@cmember int GetImageCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Open">
+<param name="b" type="blob" />
+<param1 name="s" type="string" />
+<![CDATA[//@cmember int Open( {blob b} or {string s} );
+//@param blob | b | 
+//@param string | s | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ToString">
+<![CDATA[//@cmember string ToString(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddImage" cls="int" />
+<rmeth name="Close" cls="void" />
+<rmeth name="Create" cls="int" />
+<rmeth name="CreateLowResImage" cls="Object Image" />
+<rmeth name="GetImage" cls="Object Image" />
+<rmeth name="GetImageCount" cls="int" />
+<rmeth name="Open" cls="int" />
+<rmeth name="ToString" cls="string" />
+</return>
+</class>

@@ -1,0 +1,303 @@
+<form name="CEdit" base="CtrlBase" bk="Face" margin="0">
+<members>
+<method name="Init">
+<![CDATA[
+//SetYesNo(idTabStop);
+//SetYesNo(idEnabled);
+//SetYesNo(idVisible);
+idEditType.AddOption("Normal");
+idEditType.AddOption("Multiline");
+idEditType.AddOption("Upper");
+idEditType.AddOption("Lower");
+idEditType.AddOption("Numeric");
+idEditType.AddOption("Date");
+idEditType.AddOption("Date & Time");
+idEditType.AddOption("Password");
+idComboList.AddOption("None");
+idComboList.AddOption("Edit + List");
+idComboList.AddOption("No Edit");
+SizeToFit();
+
+super.Init();]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" />
+<![CDATA[
+// THIS IS CALLED FROM THE GRID EDITOR
+idName.setText( Ctrl.Name );
+ShowVisible(Ctrl);
+ShowEnabled(Ctrl);
+ShowTabStop(Ctrl);
+idBind.setText( Ctrl.GetAttr("bind") );
+idEventChange.setText( Ctrl.GetAttr("onChange") );
+idEventClear.setText( Ctrl.GetAttr("onClear") );
+idHelp.setText( Ctrl.GetAttr("help") );
+idPickList.setText( Ctrl.GetAttr("pick") );
+// combo
+String combo = Ctrl.GetAttr("combo");
+if      (combo=="1") idComboList.setText("Edit + List");
+else if (combo=="2") idComboList.setText("No Edit");
+else                 idComboList.setText("None");
+// type
+String s = "";
+if      (Ctrl.GetAttr("multi"))    s = "Multiline";
+else if (Ctrl.GetAttr("ucase"))    s = "Upper";
+else if (Ctrl.GetAttr("lcase"))    s = "Lower";
+else if (Ctrl.GetAttr("numeric"))  s = "Numeric";
+else if (Ctrl.GetAttr("date"))     s = "Date";
+else if (Ctrl.GetAttr("datetime")) s = "Date & Time";
+else if (Ctrl.GetAttr("pword"))    s = "Password";
+else s = "Normal";
+idEditType.setText(s);
+
+idQueryField.SetText( Ctrl.GetAttr("query") );
+idQueryType.SetText( Ctrl.GetAttr("querytype") );
+
+idTXSel.setText( Ctrl.GetAttr("txsel") );
+
+super.ShowCtrl(Ctrl);]]>
+</method>
+<method name="DoEventChange">
+<![CDATA[
+GetParent().SetCtrlAttr("onChange",idEventChange.getText());
+]]>
+</method>
+<method name="DoEventClear">
+<![CDATA[
+GetParent().SetCtrlAttr("onClear",idEventClear.getText());
+]]>
+</method>
+<method name="DoCombo">
+<![CDATA[
+String s = idComboList.getText();
+if (s=="Edit + List") s = "1";
+else if (s=="No Edit") s = "2";
+else s = "";
+GetParent().SetCtrlAttr("combo",s);
+]]>
+</method>
+<method name="DoType">
+<![CDATA[
+String multi,numer,pw,dat,datt,ucase,lcase;
+String s = idEditType.getText();
+if      (s=="Multiline") multi="1";
+else if (s=="Upper") ucase="1";
+else if (s=="Lower") lcase="1";
+else if (s=="Numeric") numer="1";
+else if (s=="Date") dat="1";
+else if (s=="Date & Time") datt="1";
+else if (s=="Password") pw="1";
+GetParent().SetCtrlAttr("multi",multi);
+GetParent().SetCtrlAttr("ucase",ucase);
+GetParent().SetCtrlAttr("lcase",lcase);
+GetParent().SetCtrlAttr("numeric",numer);
+GetParent().SetCtrlAttr("date",dat);
+GetParent().SetCtrlAttr("datetime",datt);
+GetParent().SetCtrlAttr("pword",pw);
+]]>
+</method>
+<method name="DoQueryField">
+<![CDATA[
+GetParent().SetCtrlAttr("query",idQueryField.GetText());
+]]>
+</method>
+<method name="DoQueryType">
+<![CDATA[
+GetParent().SetCtrlAttr("querytype",idQueryType.GetText());
+]]>
+</method>
+<method name="DoOption">
+<param name="Ctrl" />
+<![CDATA[
+String attr = Ctrl.ControlID();
+
+attr = attr.right( attr.length()-2 );
+
+GetParent().SetCtrlAttr(attr,Ctrl.getText());]]>
+</method>
+<method name="findMethod">
+<param name="src" />
+<![CDATA[object ob=null;
+
+switch (src.getText()) {
+    case "EventChange:" : ob=&idEventChange; break;
+    case "EventClear:" : ob=&idEventClear; break;
+    default: message("TBD"); return;
+}
+
+::AdvSearch::findMethod(getParent().getParent().getParent(), ob.getText(), ob);
+]]>
+</method>
+</members>
+<static />
+<grid rpad="2" bpad="1" bk="224,224,192">
+<row>
+<col align="V">
+<Label text="Name:" />
+</col>
+<col align="W">
+<Edit name="idName" w="120" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="TabStop:" />
+</col>
+<col>
+<Edit name="idTabStop" combo="2" onChange="DoTabStop" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Enabled:" />
+</col>
+<col>
+<Edit name="idEnabled" combo="2" onChange="DoEnabled" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Visible:" />
+</col>
+<col>
+<Edit name="idVisible" combo="2" onChange="DoVisible" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Mandatory:" />
+</col>
+<col>
+<Edit name="idMandatory" combo="2" onChange="DoMandatory" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups:" />
+</col>
+<col align="W">
+<Edit name="idGroups" onChange="DoGroups" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" rpad="1" bpad="1" bk="224,192,128">
+<Label text="Behaviour" />
+</col>
+</row>
+<row>
+<col tpad="2" align="V">
+<Label text="EditType:" />
+</col>
+<col tpad="2">
+<Edit name="idEditType" w="120" combo="2" onChange="DoType" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="ComboList:" />
+</col>
+<col>
+<Edit name="idComboList" w="120" combo="2" onChange="DoCombo" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="EventChange:" onClick="findMethod" />
+</col>
+<col align="W">
+<Edit name="idEventChange" w="120" onChange="DoEventChange" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="EventClear:" onClick="findMethod" />
+</col>
+<col align="W">
+<Edit name="idEventClear" w="120" onChange="DoEventClear" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="HelpText:" />
+</col>
+<col align="W">
+<Edit name="idHelp" w="120" onChange="DoHelp" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Border:" />
+</col>
+<col>
+<Edit name="idBorder" w="120" onChange="DoBorder" combo="2" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="TXSel:" />
+</col>
+<col>
+<Edit name="idtxsel" w="120" onChange="DoOption" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" rpad="1" bpad="1" bk="224,192,128">
+<Label text="Data Binding" />
+</col>
+</row>
+<row>
+<col tpad="2" align="V">
+<Label text="BindTo:" />
+</col>
+<col tpad="2" align="X">
+<grid>
+<row>
+<col align="W">
+<Edit name="idBind" w="100" onChange="DoBind" border="0" />
+</col>
+<col align="V">
+<Button w="14" h="14" onClick="ChooseBind" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="PickList:" />
+</col>
+<col align="X">
+<grid>
+<row>
+<col align="W">
+<Edit name="idPickList" w="100" onChange="DoPickList" border="0" />
+</col>
+<col align="V">
+<Button w="14" h="14" onClick="ChoosePickList" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Query Field:" />
+</col>
+<col align="W">
+<Edit name="idQueryField" w="120" onChange="DoQueryField" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Query Type:" />
+</col>
+<col align="X">
+<Edit name="idQueryType" w="120" onChange="DoQueryType" border="0" />
+</col>
+</row>
+<row>
+<col align="V" />
+<col />
+</row>
+</grid>
+</form>

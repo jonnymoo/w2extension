@@ -1,0 +1,78 @@
+<class name="xmlObj" HierImageField="Icon" fauthor="$Author: Andrew.g$" fdate="$Date: 24/06/02 9:39$" frevision="$Revision: 4$">
+<members>
+<String name="Name" />
+<String name="justName" />
+<String name="Icon" />
+<List name="elements" cls="xmlObj" />
+<method name="setTo">
+<param name="X" type="XML" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 21-06-02 14:05 |
+//@i
+
+elements.reset();
+justName = X.tag();
+
+if (X.content()!="") {
+    name = (justName=="" ? "" : justName + " ") + "content: \"" + X.content() + "\"";
+    if (ownerList()!=null)
+        ownerList().ownerRow().name += " <" + X.content() + ">";
+} else {
+    Icon="classes::resource::standard::hobject.bmp";
+    Name = justName;
+}
+
+for (int i=0; i<X.attrCount(); i++)
+    name += " " + X.AttrName(i) + "=\"" + X.AttrVal(i) + "\"";
+
+for (i=0; i<X.count(); i++)
+    elements.createRow().setTo( X[i] );
+
+if (X.count()==1) elements[0].setOpen(1);
+setQueried(1);]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+Hier.getParent().idInfo.setText(
+  justName + ":   index no. " + ownerlist().findIndex(this) +
+  " / " + (ownerList().count()-1)
+);
+
+string t, idxStr;
+xmlObj c = &this;
+
+while (1) {
+    list l = &c.ownerList();
+    if (l==null) break;
+    t = c.justName + idxStr + t;
+    idxStr = "(" + l.findIndex(c) + ") -> ";
+    c = &l.ownerRow();
+}
+
+Hier.getParent().idTree.setText( t );
+
+Hier.getParent().fitRecursive();]]>
+</method>
+<method name="EventHierDoubleClick">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember EventHierDoubleClick
+//@param hierarchy | Hier |
+//@version jonathan.muir | 18-02-10 15:25 |
+//@i
+
+hier.getParent().EventHierDoubleClick(this);]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="Name" />
+</disp>
+</class>

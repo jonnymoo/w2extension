@@ -1,0 +1,21 @@
+<form name="cwcaptionbar" margin="0">
+<members>
+<method name="SetTitle">
+<param name="Title" />
+<![CDATA[
+// Set the caption
+lblTitle.SetText(Title);
+]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col lpad="7" tpad="3" w="11" bkimg="classes::resource::standard::green_bar_thin_edge_right.bmp" imgtile="8" />
+<col lpad="5" tpad="3" rpad="5" w="179" h="24" align="W" bkimg="classes::resource::standard::green_bar_thin_edge.bmp" imgtile="8">
+<Label name="lblTitle" text="Title" tx="255,255,255" style="b" font="Arial" />
+</col>
+<col w="11" bkimg="classes::resource::standard::green_bar_thin_edge_left.bmp" />
+</row>
+</grid>
+</form>

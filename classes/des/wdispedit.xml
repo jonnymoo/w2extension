@@ -1,0 +1,135 @@
+<form name="WDispEdit" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:42 $" frevision="$Revision: 2 $">
+<members>
+<method name="Init">
+<![CDATA[
+
+]]>
+</method>
+<method name="Setup">
+<param name="CD" />
+<![CDATA[if (CD==null) {
+    doBlank();
+    return;
+}
+
+idF.BindTo(&CD.F);
+idSfx.BindTo(&CD.Sfx);
+idBtw.BindTo(&CD.Btw);
+idDfmt.BindTo(&CD.Dfmt);
+idTfmt.BindTo(&CD.Tfmt);
+idCap.BindTo(&CD.Cap);
+idList.BindTo(&CD.aList);
+idSfxa.BindTo(&CD.Sfxa);
+
+showGroup("HDisplay", 1);
+
+idf.setFocus();
+idf.selectText();]]>
+</method>
+<method name="SetMod">
+<![CDATA[
+GetParent().SetMod();]]>
+</method>
+<method name="doBlank">
+<![CDATA[idF.BindTo();
+idSfx.BindTo();
+idBtw.BindTo();
+idDfmt.BindTo();
+idTfmt.BindTo();
+idCap.BindTo();
+idList.BindTo();
+idSfxa.BindTo();
+
+idF.setText("");
+idSfx.setText("");
+idBtw.setText("");
+idDfmt.setText("");
+idTfmt.setText("");
+idCap.setState(0);
+idList.setState(0);
+idSfxa.setState(0);
+
+showGroup("HDisplay", 0);]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col lpad="6" tpad="4" rpad="6" bpad="6" align="W" bkimg="title.bmp" imgtile="8">
+<Label name="idMenuName" text="Hierarchy Display List" tx="255,255,255" shadc="0,0,0" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="12" />
+</col>
+</row>
+<row>
+<col>
+<grid tpad="2" rpad="2">
+<row>
+<col rpad="8" w="100" h="12" align="RV" />
+<col colspan="3" tpad="10" bpad="16" />
+</row>
+<row>
+<col tpad="4" rpad="8" bpad="28" align="R">
+<Label name="idCaptionCap" text="Member Name:" groups="HDisplay" />
+</col>
+<col colspan="3">
+<Edit name="idF" w="200" onChange="SetMod" groups="HDisplay" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="32" align="RV">
+<Label name="idNameCap" text="Suffix:" groups="HDisplay" />
+</col>
+<col colspan="3" bpad="4">
+<Edit name="idSfx" w="128" onChange="SetMod" groups="HDisplay" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV">
+<Label name="idNameCap" text="Date Format:" groups="HDisplay" />
+</col>
+<col colspan="3" bpad="4">
+<Edit name="idDfmt" w="128" onChange="SetMod" groups="HDisplay" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="32" align="RV">
+<Label name="idNameCap" text="Time Format:" groups="HDisplay" />
+</col>
+<col colspan="3" bpad="4">
+<Edit name="idTfmt" w="128" onChange="SetMod" groups="HDisplay" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV" />
+<col colspan="3" bpad="4" align="V">
+<CheckBox name="idCap" text="  Show Item Caption" v1="Y" onClick="SetMod" groups="HDisplay" />
+</col>
+</row>
+<row>
+<col />
+<col colspan="3" align="V">
+<grid groups="HDisplay">
+<row>
+<col rpad="12" bpad="4" align="V">
+<CheckBox name="idList" text="  List of Items," v1="Y" onClick="SetMod" />
+</col>
+<col rpad="8" bpad="4" align="RV">
+<Label name="idNameCap" text="Between:" />
+</col>
+<col bpad="4">
+<Edit name="idBtw" w="48" onChange="SetMod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV" />
+<col colspan="3" bpad="4" align="V">
+<CheckBox name="idSfxa" text="  Always Show Suffix" v1="Y" onClick="SetMod" groups="HDisplay" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

@@ -1,0 +1,88 @@
+<class name="DDEConversation" description="W2 Script Reference" base="ClassDef">
+<members sub="Connection">
+<method name="Connect">
+<param name="server" type="String" />
+<param name="topic" type="String" />
+<![CDATA[//@cmember int Connect( String server, String topic );
+//@param String | server | 
+//@param String | topic | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Disconnect">
+<![CDATA[//@cmember void Disconnect(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Valid">
+<![CDATA[//@cmember int Valid(  );
+//@return int | 
+//@i 0 or 1
+]]>
+ />
+</method>
+</members>
+<members sub="Actions">
+<method name="Execute">
+<param name="data" type="String" />
+<![CDATA[//@cmember int Execute( String data );
+//@param String | data | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Poke">
+<param name="item" type="String" />
+<param name="data" type="String" />
+<![CDATA[//@cmember int Poke( String item, String data );
+//@param String | item | 
+//@param String | data | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Request">
+<param name="item" type="String" />
+<![CDATA[//@cmember String Request( String item );
+//@param String | item | 
+//@return String | 
+//@i returns "" on error
+]]>
+ />
+</method>
+</members>
+<members sub="Misc">
+<method name="LastError">
+<![CDATA[//@cmember int LastError(  );
+//@return int | 
+//@i returns the DDEML error code
+]]>
+ />
+</method>
+<method name="SetTimeout">
+<param name="ms" type="int" />
+<![CDATA[//@cmember void SetTimeout( int ms );
+//@param int | ms | 
+//@return void | 
+//@i default timeout is 5000 ms
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Connect" cls="int" />
+<rmeth name="Disconnect" cls="void" />
+<rmeth name="Valid" cls="int" />
+<rmeth name="Execute" cls="int" />
+<rmeth name="Poke" cls="int" />
+<rmeth name="Request" cls="String" />
+<rmeth name="LastError" cls="int" />
+<rmeth name="SetTimeout" cls="void" />
+</return>
+</class>

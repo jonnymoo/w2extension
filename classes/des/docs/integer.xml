@@ -1,0 +1,218 @@
+<class name="Integer" description="W2 Script Reference" base="MemberDef">
+<members sub="Arithmetic">
+<method name="abs">
+<![CDATA[//@cmember int abs(  );
+//@return int | absolute value (unsigned)
+//@i absolute value (unsigned)
+]]>
+ />
+</method>
+<method name="adp">
+<![CDATA[//@cmember int adp(  );
+//@return int | After decimal point (always 0)
+//@i always 0 for integer
+]]>
+ />
+</method>
+<method name="ceil">
+<![CDATA[//@cmember int ceil(  );
+//@return int | Round up (returns self)
+//@i returns self, no change as there is no decimal point to round up.
+]]>
+ />
+</method>
+<method name="div">
+<param name="n" type="double" />
+<![CDATA[//@cmember double div( double n );
+//@param double | n | divide by this value
+//@return double | Integer divided by 'n'
+//@i 
+]]>
+ />
+</method>
+<method name="floor">
+<![CDATA[//@cmember int floor(  );
+//@return int | round down (returns self)
+//@i integer value
+]]>
+ />
+</method>
+<method name="mul">
+<param name="n" type="double" />
+<![CDATA[//@cmember double mul( double n );
+//@param double | n | multiply by this value
+//@return double | Integer multiplied by 'n'
+//@i 
+]]>
+ />
+</method>
+<method name="pow">
+<param name="n" type="double" />
+<![CDATA[//@cmember Double pow( double n );
+//@param double | n | raise self to the power of this value
+//@return Double | this to the power of 'n'
+//@i r = x.pow(y);
+]]>
+ />
+</method>
+<method name="round">
+<![CDATA[//@cmember int round(  );
+//@return int | Round to nearest (returns self)
+//@i integer value
+]]>
+ />
+</method>
+<method name="sign">
+<![CDATA[//@cmember int sign(  );
+//@return int | 1 if positive, -1 if negative, 0 if zero
+//@i returns 1, 0 or -1 depending on sign of the double
+]]>
+ />
+</method>
+<method name="sqrt">
+<![CDATA[//@cmember Double sqrt(  );
+//@return Double | the square root of this (NAN if negative)
+//@i square root - sqrt() on negative numbers returns NAN
+]]>
+ />
+</method>
+</members>
+<members sub="Conversion">
+<method name="charstring">
+<![CDATA[//@cmember String charstring(  );
+//@return String | single character string (from ascii)
+//@i returns a single character string
+]]>
+ />
+</method>
+<method name="sql">
+<![CDATA[//@cmember String sql(  );
+//@return String | Integer returned as a string in single quotes
+//@i standard
+]]>
+ />
+</method>
+<method name="tostring">
+<param name="format]" type="[String" />
+<![CDATA[//@cmember String tostring( [String format] );
+//@param [String | format] | Formatting string
+//@return String | integer converted to a string
+//@i produce a string using a format model
+]]>
+ />
+</method>
+</members>
+<members sub="Information">
+<method name="ClassName">
+<![CDATA[//@cmember string ClassName(  );
+//@return string | returns "Integer"
+//@i 
+]]>
+ />
+</method>
+<method name="getbvalue">
+<![CDATA[//@cmember int getbvalue(  );
+//@return int | Blue value 0-255 set with rgb(...)
+//@i B value 0-255 set with rgb(...)
+]]>
+ />
+</method>
+<method name="getgvalue">
+<![CDATA[//@cmember int getgvalue(  );
+//@return int | Green value 0-255 set with rgb(...)
+//@i G value 0-255 set with rgb(...)
+]]>
+ />
+</method>
+<method name="getrvalue">
+<![CDATA[//@cmember int getrvalue(  );
+//@return int | Red value 0-255 set with rgb(...)
+//@i R value 0-255 set with rgb(...)
+]]>
+ />
+</method>
+<method name="getzvalue">
+<![CDATA[//@cmember int getzvalue(  );
+//@return int | Z value 0-255 (the top 8 bits)
+//@i Z value 0-255 (the top 8 bits)
+]]>
+ />
+</method>
+<method name="hiword">
+<![CDATA[//@cmember int hiword(  );
+//@return int | high 16 bits
+//@i high 16 bits
+]]>
+ />
+</method>
+<method name="isinfinite">
+<![CDATA[//@cmember int isinfinite(  );
+//@return int | 1 if infinite or NAN
+//@i is infinite - will also return 1 if integer is NAN
+]]>
+ />
+</method>
+<method name="isnan">
+<![CDATA[//@cmember int isnan(  );
+//@return int | 1 if not a number
+//@i is not a number - will return 0 if integer is INFINITE
+]]>
+ />
+</method>
+<method name="loword">
+<![CDATA[//@cmember int loword(  );
+//@return int | low 16 bits
+//@i low 16 bits
+]]>
+ />
+</method>
+</members>
+<members sub="Modification">
+<method name="reset">
+<![CDATA[//@cmember void reset(  );
+//@return void | 
+//@i set the value to SQL NULL
+]]>
+ />
+</method>
+<method name="rgb">
+<param name="r" type="int" />
+<param name="g" type="int" />
+<param name="b" type="int" />
+<![CDATA[//@cmember int rgb( int r, int g, int b );
+//@param int | r | Red value (0..255)
+//@param int | g | Green value (0..255)
+//@param int | b | Blue value (0..255)
+//@return int | RGB color value
+//@i set RGB color value
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="abs" cls="int" />
+<rmeth name="adp" cls="int" />
+<rmeth name="ceil" cls="int" />
+<rmeth name="div" cls="double" />
+<rmeth name="floor" cls="int" />
+<rmeth name="mul" cls="double" />
+<rmeth name="pow" cls="Double" />
+<rmeth name="round" cls="int" />
+<rmeth name="sign" cls="int" />
+<rmeth name="sqrt" cls="Double" />
+<rmeth name="charstring" cls="String" />
+<rmeth name="sql" cls="String" />
+<rmeth name="tostring" cls="String" />
+<rmeth name="ClassName" cls="string" />
+<rmeth name="getbvalue" cls="int" />
+<rmeth name="getgvalue" cls="int" />
+<rmeth name="getrvalue" cls="int" />
+<rmeth name="getzvalue" cls="int" />
+<rmeth name="hiword" cls="int" />
+<rmeth name="isinfinite" cls="int" />
+<rmeth name="isnan" cls="int" />
+<rmeth name="loword" cls="int" />
+<rmeth name="reset" cls="void" />
+<rmeth name="rgb" cls="int" />
+</return>
+</class>

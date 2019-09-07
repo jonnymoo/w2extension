@@ -1,0 +1,19 @@
+<class name="xmlschemacollection" description="MSXML4 Schema Collection Class" base="MSXML4Base">
+<members>
+<method name="add">
+<param name="NameSpaceURI" type="string" />
+<param name="Schema" type="string" />
+<![CDATA[//@cmember int add( string NameSpaceURI, string Schema  );
+//@param string | NameSpaceURI | (see http://msdn.microsoft.com/library/default.asp?url=/library/en-us/xmlsdk/html/xmmthaddschemacoll.asp) The namespace to associate with the specified schema. The empty string, "", will associate the schema with the empty namespace, xmlns="". 
+//@param string | Schema | (see http://msdn.microsoft.com/library/default.asp?url=/library/en-us/xmlsdk/html/xmmthaddschemacoll.asp) This specifies the schema to load.  
+//@return int | 0 = Failed, 1 = Passed
+//@i Add a schema definition to a schema collection with a corresponding namespace to associate with the specified schema
+//@i The schema collection can then be used to do a SAX Parse with (see xmlsaxreader)
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="add" cls="int" />
+</return>
+</class>

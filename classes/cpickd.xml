@@ -1,0 +1,31 @@
+<class name="cpickd" description="Picklist item, linking a double-value to a string" fauthor="$Author: Andrew.broad $" fdate="$Date: 10/01/02 10:02 $" frevision="$Revision: 1 $" desc="String Pick List">
+<members>
+<Double name="code" size="40" />
+<String name="desc" sql="descx" size="100" />
+<String name="PickType" size="100" comment="This is for the DB table - what picklist is it" />
+<method name="toString">
+<![CDATA[//@cmember toString
+//@return String | Concatenated code and description.
+//@version David Salter | V1.00 13/3/2001 | Original Version
+//@version Andrew.Broad | 09-01-02 14:29 |
+//@i Returns the concatenated string in the format
+//@i "code: desc"
+
+return code.toString()+": "+desc;]]>
+</method>
+</members>
+<static>
+<method name="GetPickList">
+<param name="picktype" />
+<param name="LX" type="cpicks" />
+<![CDATA[//@cmember GetPickList
+//@param object | picktype |
+//@param cpicks | LX |
+//@version Simon Carroll | 06-12-01 12:26 |
+//@i
+
+string sql = "picktype = "+picktype.sql();
+classes::core::global::listquery( LX, sql, 1000);]]>
+</method>
+</static>
+</class>

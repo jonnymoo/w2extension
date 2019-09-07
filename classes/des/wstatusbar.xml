@@ -1,0 +1,167 @@
+<form name="wstatusbar" bk="FFFFFF" margin="0" sizeable="0" thinframe="1" nocaption="1" fauthor="$Author: Darren Ball$" fdate="$Date: 4/11/04 17:22$" frevision="$Revision: 4$">
+<members>
+<String name="ccError" />
+<String name="ccMessage" />
+<String name="ccStatus" />
+<method name="SizeParent">
+<![CDATA[//@cmember SizeParent
+//@version Darren Ball | 08-02-06 09:51 |
+//@i
+
+object Parent = GetParent();
+
+Parent.UpdateWindow();
+Parent.FitRecursive();
+Parent.SizeAdjust();
+Parent.SizeAdjust();
+
+FitRecursive();
+SizeAdjust();
+SizeAdjust();]]>
+</method>
+<method name="DisplayInfo">
+<param name="szStatus" type="string" />
+<param name="szMessage" type="string" />
+<param name="szError" type="string" />
+<![CDATA[//@cmember DisplayInfo
+//@param string | szStatus |
+//@param string | szMessage |
+//@param string | szError |
+//@version Darren Ball | 08-02-06 10:59 |
+//@i
+ccStatus=szStatus.replace("\n"," ");
+ccStatus=ccStatus.replace("\r","");
+ccMessage=szMessage.replace("\n"," ");
+ccMessage=ccMessage.replace("\r","");
+ccError=szError.replace("\n"," ");
+ccError=ccError.replace("\r","");
+
+
+idccStatus.SetAttr("help",ccStatus);
+
+idccStatus.SetText(ccStatus);
+idccStatus.UpdateWindow();
+
+idccMess.SetAttr("help",ccMessage);
+if(ccMessage.length()>75) ccMessage = ccMessage.Left(72)+"...";
+idccMess.SetText(ccMessage);
+idccMess.UpdateWindow();
+
+idccError.SetAttr("help",ccError);
+if(ccError.length()>140) ccError = ccError.Left(137)+"...";
+
+idccError.SetText(ccError);
+idccError.UpdateWindow();
+
+sizeParent();]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col colspan="2" align="W" bk="213,218,152" imgtile="7">
+<grid groups="Clearcase">
+<row>
+<col h="1" align="V" bk="213,218,152" />
+<col w="1" h="1" align="V" bk="224,224,224" />
+<col h="1" align="V" bk="213,218,152" />
+<col w="1" h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col w="1" h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col w="1" h="1" align="V" bk="213,218,152" />
+<col h="2" align="WV" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+</row>
+<row>
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="WV" bk="0,0,15" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="WV" bk="0,0,15" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="V" bk="213,218,152" />
+</row>
+<row>
+<col lpad="8" tpad="1" rpad="5" bpad="1" w="5" h="10" align="V" bk="213,218,152" />
+<col lpad="8" tpad="1" rpad="5" bpad="1" align="V" bk="0,0,15" />
+<col lpad="3" tpad="1" rpad="10" bpad="1" w="150" align="WV" bk="213,218,152">
+<Label name="idCCMess" text="Ready." />
+</col>
+<col align="V" bk="255,255,255" />
+<col lpad="1" tpad="3" rpad="1" bpad="3" align="V" bk="213,218,152" />
+<col align="V" bk="0,0,15" />
+<col lpad="3" tpad="1" rpad="2" bpad="1" align="V" bk="213,218,152">
+<Label text="Class status: " />
+</col>
+<col lpad="1" tpad="1" rpad="5" bpad="1" align="V" bk="213,218,152">
+<Label name="idCCstatus" text="N/A" />
+</col>
+<col w="1" align="V" bk="255,255,255" />
+<col lpad="1" tpad="3" rpad="1" bpad="3" align="V" bk="213,218,152" />
+<col lpad="8" tpad="1" rpad="5" bpad="1" align="V" bk="0,0,15" />
+<col lpad="3" tpad="1" rpad="5" bpad="1" align="WV" bk="213,218,152">
+<Label name="idCCError" text="View:" />
+</col>
+<col w="1" align="V" bk="255,255,255" />
+<col w="5" align="V" bk="213,218,152" />
+</row>
+<row>
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="WV" bk="255,255,255" />
+<col h="1" align="V" bk="255,255,255" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="V" bk="255,255,255" />
+<col h="1" align="V" bk="255,255,255" />
+<col h="1" align="V" bk="255,255,255" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="0,0,15" />
+<col h="1" align="WV" bk="255,255,255" />
+<col align="V" bk="255,255,255" />
+<col align="V" />
+</row>
+<row>
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="224,224,224" />
+<col align="WV" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="1" align="V" bk="213,218,152" />
+<col h="2" align="WV" bk="213,218,152" />
+<col lpad="8" tpad="1" rpad="5" bpad="1" align="V" />
+<col lpad="8" tpad="1" rpad="5" bpad="1" align="V" bk="213,218,152" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col colspan="2" align="W" imgtile="7">
+<grid>
+<row>
+<col h="1" align="WV" bk="255,255,255" />
+<col h="1" align="WV" bk="255,255,255" />
+<col align="V" bk="255,255,255" />
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</form>

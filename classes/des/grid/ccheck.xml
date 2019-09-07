@@ -1,0 +1,364 @@
+<form name="CCheck" base="CtrlBase" bk="Face" margin="0" fauthor="$Author: Andrew.g $" fdate="$Date: 1/10/01 9:55 $" frevision="$Revision: 4 $">
+<members>
+<method name="Init">
+<![CDATA[
+idSteps.AddOption("2");
+idSteps.AddOption("3");
+
+idBold.AddOption("Normal");
+idBold.AddOption("Bold");
+
+super.Init();]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" />
+<![CDATA[//@version Andrew Griffin | 26-09-01 10:22 |
+
+idSteps.setText(  Ctrl.GetAttr("steps") );
+
+idV0.setText(  Ctrl.GetAttr("v0") );
+idV1.setText(  Ctrl.GetAttr("v1") );
+idV2.setText(  Ctrl.GetAttr("v2") );
+
+CheckSteps();
+
+String s = Ctrl.GetAttr("style");
+if (s=="b") idBold.setText("Bold");
+else        idBold.setText("Normal");
+
+ShowFont(Ctrl);
+idTextColor.setBkColor( Ctrl.TextColor );
+
+super.ShowCtrl(Ctrl);]]>
+</method>
+<method name="DoV0">
+<![CDATA[GetParent().SetCtrlAttr("v0",idV0.getText());]]>
+</method>
+<method name="DoV1">
+<![CDATA[GetParent().SetCtrlAttr("v1",idV1.getText());]]>
+</method>
+<method name="DoV2">
+<![CDATA[GetParent().SetCtrlAttr("v2",idV2.getText());]]>
+</method>
+<method name="DoSteps">
+<![CDATA[GetParent().SetCtrlAttr("steps",idSteps.getText());
+CheckSteps();]]>
+</method>
+<method name="CheckSteps">
+<![CDATA[
+String s = idSteps.getText();
+
+if (s=="") { s = "2"; idSteps.SetText(s); }
+
+int e = 1;
+if (s=="2") e = 0;
+
+idV2.setEnabled(e);
+idV2Cap.setEnabled(e);]]>
+</method>
+<method name="DoBold">
+<![CDATA[
+String s = idBold.GetText();
+
+if (s=="Bold") s = "b";
+else           s = "";
+
+SetAttr( "style", s );]]>
+</method>
+<method name="findMethod">
+<param name="src" />
+<![CDATA[object ob=null;
+
+switch (src.getText()) {
+    case "OnClick:" : ob=&idOnClick; break;
+    default: message("TBD"); return;
+}
+
+::AdvSearch::findMethod(getParent().getParent().getParent(), ob.getText(), ob);]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="AttrName" type="string" />
+<![CDATA[switch (attrName.lower()) {
+  case  "steps", "v0", "v1", "v2", "style", "onclick" : return 1;
+}
+
+return 0;]]>
+</method>
+<method name="ShrinkEmpty">
+<![CDATA[//@cmember ShrinkEmpty
+//@version Andrew Griffin | 25-09-01 09:57 |
+//@i
+
+doDropOptions( dropDisp, 1 );
+
+doDropOptions( dropBinding,
+                idV0.getText() ||
+                idV1.getText() ||
+                idV2.getText() ||
+                idHelp.getText()
+             );
+
+doDropOptions( dropEvent,
+                idOnClick.getText()
+             );]]>
+</method>
+<method name="ExpandAll">
+<![CDATA[//@cmember ExpandAll
+//@version Andrew Griffin | 25-09-01 09:57 |
+//@i
+
+doDropOptions( dropDisp, 1 );
+doDropOptions( dropBinding, 1 );
+doDropOptions( dropEvent, 1 );]]>
+</method>
+</members>
+<static />
+<grid tpad="1" bk="224,224,192">
+<row>
+<col align="W">
+<grid rpad="2" bpad="1">
+<row>
+<col w="48" align="V">
+<Label text="Name" tx="64,32,16" />
+</col>
+<col align="W">
+<Edit name="idName" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups" tx="64,32,16" />
+</col>
+<col align="W">
+<Edit name="idGroups" onChange="DoGroups" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid>
+<row>
+<col align="V">
+<Image name="dropDisp" text="Image" img="upbutt.bmp" Param="gDisplay" onClick="doDropOptions" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Display..." txsel="000000" onClick="doDropOptions" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" bpad="2" align="V">
+<grid groups="gDisplay">
+<row>
+<col rpad="4" align="V">
+<Label text="Tab" tx="64,32,16" />
+</col>
+<col>
+<Edit name="idTabStop" w="32" combo="2" onChange="DoTabStop" border="0" />
+</col>
+<col lpad="4" rpad="4" w="48" align="V">
+<Label text="Enabled" tx="64,32,16" />
+</col>
+<col>
+<Edit name="idEnabled" w="32" combo="2" onChange="DoEnabled" border="0" />
+</col>
+<col lpad="4" rpad="4" align="WV">
+<Label text="Visible" tx="64,32,16" />
+</col>
+<col>
+<Edit name="idVisible" w="32" combo="2" onChange="DoVisible" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gDisplay">
+<row>
+<col w="48">
+<Label text="Text" tx="64,32,16" />
+</col>
+<col align="WH">
+<Edit name="idText" multi="1" onChange="DoText" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Image:" tx="64,32,16" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col align="WV" bk="255,255,255">
+<Label name="idImage" text="image..." w="104" h="16" onClick="DoImage" />
+</col>
+<col>
+<Button text="?" w="16" h="16" onClick="DoImage" />
+</col>
+<col>
+<Button name="idNoImage" text="X" w="16" h="16" onClick="DoNoImage" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Steps:" tx="64,32,16" />
+</col>
+<col align="W">
+<Edit name="idSteps" onChange="DoSteps" combo="2" border="0" />
+</col>
+</row>
+<row>
+<col rpad="4" align="V">
+<Label name="idTextColorC" text="Style" tx="64,32,16" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col rpad="2">
+<Button name="idTextColor" w="32" h="14" onClick="DoTextColor" />
+</col>
+<col>
+<Edit name="idBold" w="64" onChange="DoBold" combo="2" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Font" tx="64,32,16" hide="Y" />
+</col>
+<col align="W">
+<Edit name="idFont" w="120" combo="2" onChange="DoFont" border="0" hide="Y" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Hidden:" tx="64,32,16" hide="Y" />
+</col>
+<col>
+<grid hide="Y">
+<row>
+<col>
+<Edit name="idFontStyle" w="70" combo="2" onChange="DoFontStyle" border="0" />
+</col>
+<col rpad="2" align="W">
+<Edit name="idFontSize" w="40" h="18" combo="1" onChange="DoFontSize" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid>
+<row>
+<col align="V">
+<Image name="dropBinding" text="Image" img="upbutt.bmp" Param="gBind" onClick="doDropOptions" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Data Binding..." txsel="000000" onClick="doDropOptions" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gBind">
+<row>
+<col w="48" align="V">
+<Label text="BindTo" tx="64,32,16" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col tpad="1" align="W">
+<Edit name="idBind" w="100" onChange="DoBind" border="0" />
+</col>
+<col>
+<Image text="Image" img="p_right.bmp" onClick="ChooseBind" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Value 0:" tx="64,32,16" onChange="DoHelp" />
+</col>
+<col align="W">
+<Edit name="idV0" w="120" onChange="DoV0" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Value 1:" tx="64,32,16" onChange="DoHelp" />
+</col>
+<col align="W">
+<Edit name="idV1" w="120" onChange="DoV1" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label name="idV2Cap" text="Value 2:" tx="64,32,16" onChange="DoHelp" />
+</col>
+<col align="W">
+<Edit name="idV2" w="120" onChange="DoV2" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Help:" tx="64,32,16" onChange="DoHelp" />
+</col>
+<col align="W">
+<Edit name="idHelp" onChange="DoHelp" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="2" align="W">
+<grid>
+<row>
+<col align="V">
+<Image name="dropEvent" text="Image" img="upbutt.bmp" Param="gevent" onClick="doDropOptions" />
+</col>
+<col lpad="4" align="W" bk="224,192,128">
+<Label text="Events..." txsel="000000" onClick="doDropOptions" size="6" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<grid rpad="2" bpad="1" groups="gevent">
+<row>
+<col w="48" align="V">
+<Label text="OnClick:" tx="64,32,16" onClick="findMethod" />
+</col>
+<col align="W">
+<Edit name="idOnClick" onChange="DoOnClick" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

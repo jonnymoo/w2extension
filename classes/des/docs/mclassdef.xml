@@ -1,0 +1,340 @@
+<class name="MClassDef">
+<members>
+<method name="AttrName">
+<param name="i" type="int" />
+<![CDATA[// String AttrName( int i );
+//
+// Comments : // ret null if out of range
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="AttrVal">
+<param name="i" type="int" />
+<![CDATA[// String AttrVal( int i );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="BaseClass">
+<![CDATA[// Class BaseClass(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="Class">
+<![CDATA[// Object Class(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="ClassName">
+<![CDATA[// String ClassName(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="Class_LastMod">
+<![CDATA[// string Class_LastMod(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="Class_LastModDate">
+<![CDATA[// date Class_LastModDate(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="CreateInstance">
+<![CDATA[// Object CreateInstance(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="CreateList">
+<![CDATA[// MList CreateList(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="Element">
+<param name="idx" type="int" />
+<![CDATA[// XML Element( int idx );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="ExecMethod">
+<param name="" type="string" />
+<param name="" type="string" />
+<param name="..." type="string" />
+<![CDATA[// bool ExecMethod( string, string, string ... );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="GetAttr">
+<param name="name" type="String" />
+<![CDATA[// String GetAttr( String name );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="GetElement">
+<param name="tag" type="String" />
+<![CDATA[// XML GetElement( String tag );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="GetMemberDef">
+<param name="name" type="String" />
+<![CDATA[// MMemberDef GetMemberDef( String name );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="getstaticmember">
+<param name="name" type="String" />
+<![CDATA[// MMember getstaticmember( String name );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="HasMethod">
+<param name="name" type="String" />
+<![CDATA[// int HasMethod( String name );
+//
+// Comments : // ret 1 if class has a member method of name
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="MemberCount">
+<![CDATA[// int MemberCount(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="MemberDef">
+<param name="i" type="int" />
+<![CDATA[// MMemberDef MemberDef( int i );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="MethodPath">
+<![CDATA[// String MethodPath(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="Path">
+<![CDATA[// String Path(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="SetWaitCursor">
+<![CDATA[// void SetWaitCursor(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="show">
+<![CDATA[// void show(  );
+//
+// Comments : // show static data
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="XMLDebugOut">
+<![CDATA[// void XMLDebugOut(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+</members>
+<return>
+<rmeth name="AttrName" cls="String" />
+<rmeth name="AttrVal" cls="String" />
+<rmeth name="BaseClass" cls="Class" />
+<rmeth name="Class" cls="Object" />
+<rmeth name="ClassName" cls="String" />
+<rmeth name="Class_LastMod" cls="string" />
+<rmeth name="Class_LastModDate" cls="date" />
+<rmeth name="CreateInstance" cls="Object" />
+<rmeth name="CreateList" cls="MList" />
+<rmeth name="Element" cls="XML" />
+<rmeth name="ExecMethod" cls="bool" />
+<rmeth name="GetAttr" cls="String" />
+<rmeth name="GetElement" cls="XML" />
+<rmeth name="GetMemberDef" cls="MMemberDef" />
+<rmeth name="getstaticmember" cls="MMember" />
+<rmeth name="HasMethod" cls="int" />
+<rmeth name="MemberCount" cls="int" />
+<rmeth name="MemberDef" cls="MMemberDef" />
+<rmeth name="MethodPath" cls="String" />
+<rmeth name="Path" cls="String" />
+<rmeth name="SetWaitCursor" cls="void" />
+<rmeth name="show" cls="void" />
+<rmeth name="XMLDebugOut" cls="void" />
+</return>
+</class>

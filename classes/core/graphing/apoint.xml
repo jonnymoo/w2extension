@@ -1,0 +1,40 @@
+<class name="aPoint" fauthor="$Author: Andrew.g $" fdate="$Date: 13/09/02 16:30 $" frevision="$Revision: 1 $">
+<members>
+<Double name="x" />
+<Double name="y" />
+<Double name="z" />
+<method name="setTo" return="aPoint">
+<param name="x" type="double" />
+<param name="y" type="double" />
+<param name="z" type="double" />
+<![CDATA[//@cmember setTo
+//@param double | x |
+//@param double | y |
+//@param double | z | (optional)
+//@return aPoint |
+//@version Andrew Griffin | 12-09-02 11:01 |
+
+//
+// Scaler...
+
+aPoly p = &OwnerList().OwnerRow();
+cwGraphics g = &p.OwnerList().OwnerRow();
+aScale scl = &g.scale[0];   // active scaler
+
+//
+// Now assign
+
+this.x = scl.scaleX(x);
+this.y = scl.scaleY(y);
+
+if (z!=null)
+    this.z = scl.scaleZ(z);
+
+return this;]]>
+</method>
+</members>
+<static />
+<return>
+<rmeth name="setTo" cls="aPoint" />
+</return>
+</class>

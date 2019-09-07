@@ -1,0 +1,8 @@
+<class name="AttribList" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<String name="AttribName" />
+<String name="AttribValue" />
+<String name="AttribDesc" />
+</members>
+<static />
+</class>

@@ -1,0 +1,39 @@
+<class name="Component" description="W2 Script Reference" base="Control">
+<members>
+<method name="CompClass">
+<![CDATA[//@cmember string CompClass(  );
+//@return string | 
+//@i Returns the class name that the component is using
+]]>
+ />
+</method>
+<method name="ComponentValid">
+<![CDATA[//@cmember int ComponentValid(  );
+//@return int | 
+//@i Returns '1' if the component contains a valid class and is therefore correctly set up.
+]]>
+ />
+</method>
+<method name="SetComp">
+<param name="class" type="string" />
+<![CDATA[//@cmember void SetComp( string class );
+//@param string | class | 
+//@return void | 
+//@i Changes the class within a component to 'class'.
+//@Exam // Set the class to 'aButton.xml'
+//@Exam myButton.setComp("classes::comps::aButton");
+//@Exam // ALWAYS instance the component before referencing it
+//@Exam myButton.InstanceControl();
+//@Exam // Now you can access the component directly
+//@Exam myButton.caption = "Press Me";
+//@Exam // Resize the parent form
+//@Exam fitrecursive();]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="CompClass" cls="string" />
+<rmeth name="ComponentValid" cls="int" />
+<rmeth name="SetComp" cls="void" />
+</return>
+</class>

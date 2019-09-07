@@ -1,0 +1,36 @@
+<class name="RTFMerge" description="W2 Script Reference">
+<members>
+<method name="Merge">
+<param name="Template" type="blob" />
+<param name="Form" type="object" />
+<![CDATA[//@cmember blob Merge( blob Template, object Form );
+//@param blob | Template | 
+//@param object | Form | 
+//@return blob | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetUser">
+<param name="User" type="string" />
+<![CDATA[//@cmember int SetUser( string User );
+//@param string | User | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ToString">
+<![CDATA[//@cmember string ToString(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Merge" cls="blob" />
+<rmeth name="SetUser" cls="int" />
+<rmeth name="ToString" cls="string" />
+</return>
+</class>

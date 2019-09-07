@@ -1,0 +1,169 @@
+<class name="xmlbaseAction" base="classes::worktray::proc::WAction" fauthor="$Author: Simon.c $" fdate="$Date: 29/01/03 15:44 $" frevision="$Revision: 2 $">
+<members>
+<method name="GetAddress" return="string">
+<![CDATA[//@cmember GetAddress
+//@return string | The address where the xml message should be sent
+//@version Simon Carroll | 29-01-03 14:25 |
+//@i This method is used when creating the process action.  If a user selects
+//@i this xml message, this method will be called to supply the default address
+//@i of where the xml message should be sent.
+//@i
+//@i This method should be recreated in any derived class
+
+//this should be created in any derived class
+return "Enter the address for the xml message here";]]>
+</method>
+<method name="GetHelptext" return="string">
+<![CDATA[//@cmember GetHelptext
+//@return string | Help text displayed to the user when selecting this xml message as a process action
+//@version Simon Carroll | 29-01-03 14:29 |
+//@i This method returns a string which appears to the user once they have selected this xml message.
+
+
+//this should be created in any derived class
+return "This is help text for this xml message";]]>
+</method>
+<method name="DoParam">
+<param name="idParam" type="edit" />
+<param name="form" type="classes::core::xml::actions::wxmlparam" />
+<![CDATA[//@cmember DoParam
+//@param edit | idParam | The edit box containing the parameters for this xml message
+//@param classes::core::xml::actions::wxmlparam | form | The xml message form
+//@version Simon Carroll | 29-01-03 14:35 |
+//@i If the xml message requires parameters, this method can be used to help the user in selecting
+//@i those parameters.
+
+//this should be created in any derived class
+
+//get Current selection
+
+PopUpMenu P;
+
+P.Add("Insert parameters manually for this xml message");
+string q = P.track();
+idParam.setText(q);
+form.ReconstructParameters();]]>
+</method>
+<method name="RespondImmediately" return="integer">
+<![CDATA[//@cmember RespondImmediately
+//@return integer | 1=Expect response immediately, 0=You will need to wait for a response
+//@version Simon Carroll | 29-01-03 14:39 |
+//@i Return 1 if the recipient of this action is going to respond immediately and 0 if you are going to need to wait for
+//@i a response
+
+//this should be created in any derived class
+
+return 1;]]>
+</method>
+<method name="returnCompletionCodes" return="classes::cpickn[]">
+<param name="Action" type="classes::core::maps::actioninfo" />
+<param name="LX" type="classes::cpickn[]" />
+<![CDATA[//@cmember returnCompletionCodes
+//@param classes::core::maps::actioninfo | Action | The action object currently using this xml message
+//@param classes::cpickn[] | LX | an empty list
+//@return classes::cpickn[] | The list of completion codes for this action.
+//@version Simon Carroll | 29-01-03 14:43 |
+//@i The list LX should be populated with all of the completion codes based on the action and its parameter.
+
+//this should be created in any derived class
+
+//return the completion codes that are going to be used for this xml message
+
+return LX;]]>
+</method>
+<method name="GetXMLObject" return="XML">
+<param name="Param" type="string" />
+<param name="Process" type="xlasses::worktray::process" />
+<param name="KeyObj" type="object" />
+<param name="x" type="XML" />
+<![CDATA[//@cmember GetXMLObject
+//@param string | Param | The parameter for this xml message
+//@param classes::worktray::process | Process | The Process Object
+//@param object | KeyObj | The KeyObject
+//@param XML | x | The XML that needs to be built up
+//@return XML |
+//@version Simon Carroll | 29-01-03 14:56 |
+//@i This method is used to build up the xml message that is going to be sent.
+//@i
+//@i NOTE: This method should always be derived
+
+
+//Get Function XML;
+
+return X;]]>
+</method>
+<method name="execAction">
+<param name="address" type="string" />
+<param name="param" type="string" />
+<param name="Process" type="classes::worktray::process" />
+<param name="Form" type="classes::core::maps::wmapstage" />
+<![CDATA[//@cmember execAction
+//@param string | address | The Address that the xml should be sent to
+//@param string | param | The parameters chosen by the user
+//@param classes::worktray::process | Process | the current process
+//@param classes::core::maps::wmapstage | Form | The process form
+//@version Simon Carroll | 29-01-03 15:03 |
+//@i This method is called when the actual action is running.  This method will create the http connection based
+//@i on the address parameter.  The method GetXMLObject is run to create the xml.  The xml message is
+//@i then posted and if the respondimmediately() method returns 1, the results are passed to the MessageReceived method
+//@i
+//@i NOTE: This should not be created in the derived class unless the way this is run needs to be altered.
+
+
+xml x;
+
+GetXMLObject(param, Process, Process.KeyObject(), X);
+
+InitNotification(Form, Process);
+
+string addresswithouthttp = address.right(address.length()-(address.beginswith("https://") ? 8 : 7));
+
+string servername = addresswithouthttp.left(addresswithouthttp.indexof("/"));
+
+string path = addresswithouthttp.right(addresswithouthttp.length()-addresswithouthttp.indexof("/")-1);
+
+HTTPConnection Q;
+
+if (address.beginsWith("https://"))
+    Q.UseHTTPS(1);
+
+Q.Setserver(ServerName);
+Q.SetPath(path);
+
+Q.WriteXML("Data",X);
+
+int ok = Q.DoPost();
+if (RespondImmediately())
+{
+    Object res = Q.GetResultsBlob();
+
+    int compcode = MessageReceived(res);
+
+    if (compcode >=0)
+        NotifyActionComplete(compcode>0 ? compcode : null);
+}
+else
+    NotifyActionRequested();]]>
+</method>
+<method name="MessageReceived" return="integer">
+<param name="B" type="Blob" />
+<![CDATA[//@cmember MessageReceived
+//@param Blob | B | The results of the posting of the xml message
+//@return integer | 0 = Complete but without completion code, >0 is the completion code
+//@version Simon Carroll | 29-01-03 15:10 |
+//@i This method disects the results that come back from posting the xml message.  The results will come back as a blob.
+
+
+return 0;]]>
+</method>
+</members>
+<static />
+<return>
+<rmeth name="GetAddress" cls="string" />
+<rmeth name="GetHelptext" cls="string" />
+<rmeth name="RespondImmediately" cls="integer" />
+<rmeth name="returnCompletionCodes" cls="classes::cpickn[]" />
+<rmeth name="GetXMLObject" cls="XML" />
+<rmeth name="MessageReceived" cls="integer" />
+</return>
+</class>

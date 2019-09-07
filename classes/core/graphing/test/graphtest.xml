@@ -1,0 +1,238 @@
+<form name="graphTest" savepos="testGrapher1" fauthor="$Author: Andrew.broad $" fdate="$Date: 13/09/02 16:44 $" frevision="$Revision: 3 $">
+<members>
+<Integer name="steps" />
+<Integer name="rotOn" />
+<method name="Start">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Start
+//@param string | cmd |
+//@version Andrew Griffin | 13-09-02 16:19 |
+//@version Andrew.Broad | 13-09-02 16:42 |
+//@i
+
+open();
+
+// Use this line if you don't have a recent dll, or you want all polygons to be transparent
+idGraph.dontUseSolids = 1;
+
+sys::SetRand( sys::TickCount() );
+
+
+//
+// Start with the pie chart...
+
+goPie();]]>
+</method>
+<method name="goLine">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember goLine
+//@param label | ctrl |
+//@version Andrew Griffin | 13-09-02 16:19 |
+//@i
+
+//
+// Initialise some data
+
+dateValObj data[];
+int lv = (sys::Rand() % 4000) - 2000;
+int num = sys::Rand() % 20 + 10;
+
+for (int i=0; i<num; i++)
+{
+    data.CreateRow().setTo( sys::Date().AddDays( i ), lv );
+    lv = lv + (sys::Rand() % 1000) - 500;
+}
+
+//
+// Call graph component
+
+if (!idGraph.init( "Don't believe everything you see", NULL, NULL, 1, 1, 1 ))    // initiate graph control
+{
+    message( "Failed to load background image..." );
+    return;
+}
+
+idGraph.addGraph_LineChart( data, "dat", "weight", 1, 1 );
+
+onTimer( 1 );]]>
+</method>
+<method name="goBar">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember goBar
+//@param label | ctrl |
+//@version Andrew Griffin | 13-09-02 16:27 |
+//@i
+
+//
+// Initialise some data
+
+dateValObj data[];
+int lv = (sys::Rand() % 4000) - 2000;
+int num = sys::Rand() % 10 + 7;
+
+for (int i=0; i<num; i++)
+{
+    data.CreateRow().setTo( sys::Date().AddDays( i ), lv );
+    lv = lv + (sys::Rand() % 1000) - 500;
+}
+
+//
+// Call graph component
+
+if (!idGraph.init( "Don't believe everything you see", NULL, NULL, 1, 1, 1 ))    // initiate graph control
+{
+    message( "Failed to load background image..." );
+    return;
+}
+
+idGraph.is3d = 0;   // stops the chart drawing the 3d backings to each bar (up to you)
+idGraph.addGraph_BarChart( data, "dat", "weight", 1, 1 );
+
+onTimer( 1 );]]>
+</method>
+<method name="goPie">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember goPie
+//@param label | ctrl |
+//@version Andrew Griffin | 13-09-02 16:17 |
+//@i
+
+//
+// Initialise some data
+
+dateValObj data[];
+int lv = (sys::Rand() % 4000) - 2000;
+int num = sys::Rand() % 10 + 5;
+
+for (int i=0; i<num; i++)
+{
+    data.CreateRow().setTo(
+        sys::Date().AddDays( i ),
+        sys::Rand() % 1000,
+        "Item " + i
+    );
+}
+
+//
+// Call graph component
+
+if (!idGraph.init( "Don't believe everything you see", "classes::resource::standard::graphBackSqr.jpg", NULL, 1, 1, 1 ))    // initiate graph control
+{
+    message( "Failed to load background image..." );
+    return;
+}
+
+idGraph.addGraph_PieChart( data, "weight", "caption", 1, 1, 2 );
+
+onTimer( 1 );]]>
+</method>
+<method name="toggleTimer">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember toggleTimer
+//@param label | ctrl |
+//@version Andrew Griffin | 13-09-02 16:17 |
+//@i
+
+rotOn = !rotOn;
+
+if (rotOn) SetTimer(25);
+else KillTimer();]]>
+</method>
+<method name="onTimer">
+<param name="justDraw" type="int" />
+<![CDATA[//@cmember onTimer
+//@param int | justDraw |
+//@version Andrew Griffin | 13-09-02 16:17 |
+//@i
+
+if (justDraw==null || justDraw==0) steps+=1;
+
+//
+// Calculate swinging angles for graph drawing
+
+double rotx = 30 * classes::core::graphing::apoly::sin( steps*1.5 );
+double roty = 60 * classes::core::graphing::apoly::sin( steps*4 );
+double rotz = 0;
+
+//
+// Ask the grapher to render the chart at the specified angles
+
+idGraph.render( rotx, roty, rotz, 2000 );]]>
+</method>
+<method name="doPrint">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember doPrint
+//@param label | ctrl |
+//@version Andrew Griffin | 06-09-02 14:15 |
+//@i
+
+int nBorder=0;
+string strTitle = "";
+string strFooter = "";
+
+Printer ThePrinter = &Sys::Printer();
+ThePrinter.PrintDialog();
+if (ThePrinter.DC()==0)
+    return;
+
+SetWaitCursor();
+
+ThePrinter.StartDoc();
+ThePrinter.StartPage();
+
+int vertres = ThePrinter.GetCaps("VERTRES");
+int ppiy = ThePrinter.GetCaps("LOGPIXELSY");
+
+ThePrinter.PrintObject( idGraph.idImage, ThePrinter.DC(), 1, nBorder );
+
+ThePrinter.CreateFont("Tahoma",12,1);
+ThePrinter.TextOut(0,0,strTitle);
+
+int nyPos = vertres - (ppiy*18)/72; // font size 72pnt is supposed to be an inch high
+ThePrinter.TextOut(0, nyPos, strFooter );
+
+// DONE
+ThePrinter.EndPage();
+ThePrinter.EndDoc();]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col />
+<col bpad="8" align="C">
+<grid>
+<row>
+<col lpad="16" rpad="16">
+<Label text="Line Chart" onclick="goLine" help="Draw a Line chart" />
+</col>
+<col lpad="16" rpad="16">
+<Label text="Bar Chart" onclick="goBar" help="Draw a bar chart" />
+</col>
+<col lpad="16" rpad="16">
+<Label text="Pie Chart" onclick="goPie" help="Draw a pie chart" />
+</col>
+<col lpad="16" rpad="16">
+<Label text="Rotate" style="b" onclick="toggleTimer" help="Click to toggle rotating mode on and off" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="WH">
+<Component name="idGraph" cls="classes::core::graphing::cwGraph" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col tpad="8" align="C">
+<Label text="Print" onclick="doPrint" help="Print the current chart to a printer" />
+</col>
+<col />
+</row>
+</grid>
+</form>

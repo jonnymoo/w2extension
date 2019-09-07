@@ -1,0 +1,263 @@
+<form name="CGrid" base="CtrlBase" caption="Grid" margin="0" toolwindow="1" fauthor="$Author: Andrew.g $" fdate="$Date: 11/04/01 16:25 $" frevision="$Revision: 4 $" xxsizeable="0">
+<members>
+<String name="imgFilename" />
+<method name="Init">
+<![CDATA[
+//SetYesNo(idEnabled);
+//SetYesNo(idVisible);
+// SizeToFit();
+super.Init();
+]]>
+</method>
+<method name="SetYesNo">
+<param name="C" />
+<![CDATA[
+C.AddOption("Yes");
+C.AddOption("No");
+]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" type="edObject" />
+<![CDATA[
+// THIS IS CALLED FROM THE GRID EDITOR
+idName.setText( Ctrl.Name );
+idLeftPad.setText( PadS(Ctrl.LeftPad) );
+idTopPad.setText( PadS(Ctrl.TopPad) );
+idRightPad.setText( PadS(Ctrl.RightPad) );
+idBottomPad.setText( PadS(Ctrl.BottomPad) );
+
+idImageTile.setText( Ctrl.imgtile );
+
+bk_E.setText( ::WClsDef::ColToHex(Ctrl.BKcolor) );
+doColorEd( bk_E, 1 );
+
+//bk_P.setBkColor( ctrl.BKcolor );
+imgFilename = ctrl.BKimg;
+
+ShowVisible(Ctrl);
+ShowEnabled(Ctrl);
+
+super.ShowCtrl(Ctrl);]]>
+</method>
+<method name="PadS">
+<param name="pad" />
+<![CDATA[
+if (pad<0) return "";
+return pad.toString();
+]]>
+</method>
+<method name="DoName">
+<![CDATA[
+GetParent().SetCtrlAttr("name",idName.getText());
+]]>
+</method>
+<method name="DoBkColor">
+<![CDATA[
+int i = Sys::GetColor( idBkColor.getBkColor() );
+if (i==-1) return;
+int r = (i & 0xFF0000) / 0x10000;
+int g = (i & 0xFF00) / 0x100;
+int b = i & 0xFF;
+String s = r+","+g+","+b;
+GetParent().SetCtrlAttr("bk",s);
+
+idBkColor.setBkColor( i );]]>
+</method>
+<method name="NoBkColor">
+<![CDATA[
+GetParent().SetCtrlAttr("bk","");
+
+idBkColor_bk.setBkColor( -1 );]]>
+</method>
+<method name="DoBkImage">
+<![CDATA[
+string fn=imgFilename,
+       pth=getParent().getParent().getParent().filename;
+
+int i = pth.lastIndexOf("\\");
+if (i>=0) pth = pth.left(i+1);
+
+if (fn!="") fn=::AdvSearch::classToPath( fn, pth, 1);
+
+fn = GetOpenFileName("Cell Background Image", "BMP Files|*.bmp|All|*.*", fn);
+if (!fn) return;
+getParent().SetCtrlAttr("bkimg","file::"+fn);
+
+imgFilename = fn;
+
+
+
+
+
+//String fn = GetOpenFileName("Grid Background Image","BMP Files|*.bmp|All|*.*","");
+//if (!fn) return;
+//GetParent().SetCtrlAttr("bkimg","file::"+fn);
+]]>
+</method>
+<method name="NoBkImage">
+<![CDATA[
+GetParent().SetCtrlAttr("bkimg","");
+]]>
+</method>
+<method name="DoImageTile">
+<![CDATA[  GetParent().SetCtrlAttr("imgtile",idImageTile.getText());  ]]>
+</method>
+<method name="DoLeftPad">
+<![CDATA[  GetParent().SetCtrlAttr("lpad",idLeftPad.getText());  ]]>
+</method>
+<method name="DoTopPad">
+<![CDATA[  GetParent().SetCtrlAttr("tpad",idTopPad.getText());  ]]>
+</method>
+<method name="DoRightPad">
+<![CDATA[  GetParent().SetCtrlAttr("rpad",idRightPad.getText());  ]]>
+</method>
+<method name="DoBottomPad">
+<![CDATA[  GetParent().SetCtrlAttr("bpad",idBottomPad.getText());  ]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[switch (attrName.lower()) {
+  case "leftpad", "toppad", "rightpad", "bottompad", "islist" : return 1;
+}
+
+return 0;]]>
+</method>
+</members>
+<static>
+<List name="TileOptions" cls="classes::CPickN">
+<item code="0" desc="Tile" />
+<item code="1" desc="Stretch" />
+<item code="7" desc="Single" />
+</List>
+</static>
+<grid bpad="1" bk="224,224,192">
+<row>
+<col align="V">
+<Label text="Name" />
+</col>
+<col align="W">
+<Edit name="idName" w="120" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Enabled" />
+</col>
+<col>
+<grid>
+<row>
+<col>
+<Edit name="idEnabled" combo="2" onChange="DoEnabled" border="0" />
+</col>
+<col lpad="8" align="V">
+<Label text="Visible " />
+</col>
+<col>
+<Edit name="idVisible" combo="2" onChange="DoVisible" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups" />
+</col>
+<col align="W">
+<Edit name="idGroups" w="120" onChange="DoGroups" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" rpad="1" bpad="1" bk="224,192,128">
+<Label text="Display" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="BkColor" />
+</col>
+<col align="W">
+<grid>
+<row>
+<col align="WY">
+<Edit name="bk_E" w="112" onChange="DoColorEd" border="0" />
+</col>
+<col>
+<Button name="bk_P" w="18" h="18" onClick="DoColorSel" />
+</col>
+<col>
+<Button name="bk_X" text=" x" w="18" h="18" onClick="DoColorDel" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="4" align="V">
+<Label text="BkImage" />
+</col>
+<col>
+<grid>
+<row>
+<col>
+<Button text="&gt;&gt;" w="20" h="20" onClick="DoBkImage" />
+</col>
+<col>
+<Button text=" x" w="20" h="20" onClick="NoBkImage" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Tiling" />
+</col>
+<col>
+<Edit name="idImageTile" w="64" onChange="DoImageTile" border="0" combo="2" pick="TileOptions" />
+</col>
+</row>
+<row>
+<col colspan="2" lpad="1" tpad="1" rpad="1" bpad="1" bk="224,192,128">
+<Label text="Cell Padding" />
+</col>
+</row>
+<row>
+<col colspan="2" align="V">
+<grid rpad="2" bpad="1">
+<row>
+<col align="V">
+<Label text="Left" />
+</col>
+<col>
+<Edit name="idLeftPad" onChange="DoLeftPad" border="0" />
+</col>
+<col align="V">
+<Label text="Top" />
+</col>
+<col>
+<Edit name="idTopPad" onChange="DoTopPad" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Right" />
+</col>
+<col>
+<Edit name="idRightPad" onChange="DoRightPad" border="0" />
+</col>
+<col align="V">
+<Label text="Bottom" />
+</col>
+<col>
+<Edit name="idBottomPad" onChange="DoBottomPad" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

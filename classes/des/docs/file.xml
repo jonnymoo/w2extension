@@ -1,0 +1,306 @@
+<class name="File" description="W2 Script Reference" base="OutputStream">
+<members sub="Read / Write Position">
+<method name="SeekTo">
+<param name="pos" type="int" />
+<![CDATA[//@cmember void SeekTo( int pos );
+//@param int | pos | index to move read/write file locatin to
+//@return void | 
+//@i move read/write position to specific position (from start of file)
+]]>
+ />
+</method>
+<method name="SeekToEnd">
+<![CDATA[//@cmember void SeekToEnd(  );
+//@return void | 
+//@i move read/write position to end of file
+]]>
+ />
+</method>
+<method name="SeekToStart">
+<![CDATA[//@cmember void SeekToStart(  );
+//@return void | 
+//@i move read/write position to start of file
+]]>
+ />
+</method>
+</members>
+<members sub="Opening a File">
+<method name="Close">
+<![CDATA[//@cmember void Close(  );
+//@return void | 
+//@i close an open file
+]]>
+ />
+</method>
+<method name="Create">
+<param name="file" type="String" />
+<![CDATA[//@cmember int Create( String file );
+//@param String | file | Name of file to create
+//@return int | 1 if file created successfully
+//@i create a new file (opened for reading and writing)
+]]>
+ />
+</method>
+<method name="CreateFile">
+<param name="FileName" type="string" />
+<![CDATA[//@cmember int CreateFile( string FileName );
+//@param string | FileName | Name of file to create
+//@return int | 1 if file created successfully
+//@i 
+]]>
+ />
+</method>
+<method name="Open">
+<param name="filename" type="String" />
+<param name="mode" type="String" />
+<param1 name="filename" type="String" />
+<param1 name="mode" type="int" />
+<![CDATA[//@cmember int Open( {String filename, String mode} or {String filename, int mode} );
+//@param String | filename | Name of file to open
+//@param String | mode | "r" or 0=read, "w" or 1=write, "rw" or 2=read/write
+//@param String | filename | Name of file to open
+//@param int | mode | "r" or 0=read, "w" or 1=write, "rw" or 2=read/write
+//@return int | 1 if file opened successfully
+//@i {mode: read="r", write="w", read and write="rw" - defaults to read} and {mode: read=0, write=1, rw=2}
+]]>
+ />
+</method>
+<method name="OpenFile">
+<param name="FileName" type="string" />
+<param name="Mode" type="int" />
+<![CDATA[//@cmember int OpenFile( string FileName, int Mode );
+//@param string | FileName | Name of file to open
+//@param int | Mode | 0=read, 1=write, 2=read/write
+//@return int | 1 if file opened successfully
+//@i 0 = success
+]]>
+ />
+</method>
+</members>
+<members sub="Reading from a file">
+<method name="IsEOF">
+<![CDATA[//@cmember int IsEOF(  );
+//@return int | 1 if end of file is reached
+//@i returns 1 if end of file has been reached, or the file is not open
+]]>
+ />
+</method>
+<method name="ReadBlob">
+<param name="max" type="int" />
+<![CDATA[//@cmember Blob ReadBlob( int max );
+//@param int | max | maximum number of bytes to read
+//@return Blob | a blob returned from the open file
+//@i read file as a Blob
+]]>
+ />
+</method>
+<method name="ReadLine">
+<![CDATA[//@cmember String ReadLine(  );
+//@return String | One line of text read from the open file
+//@i read a single line of text from the file
+]]>
+ />
+</method>
+<method name="SendToStream">
+<param name="dest" type="OutputDataStream" />
+<param name="nbytes]" type="[int" />
+<![CDATA[//@cmember int SendToStream( OutputDataStream dest, [int nbytes] );
+//@param OutputDataStream | dest | Destination Stream
+//@param [int | nbytes] | number of bytes to be sent
+//@return int | 1 if send to stream is successful
+//@i read from file and send data to the stream, nbytes is optional
+]]>
+ />
+</method>
+</members>
+<members sub="File Information">
+<method name="FileLength">
+<![CDATA[//@cmember int FileLength(  );
+//@return int | length of file in bytes (or -1 for error)
+//@i length of file (or -1 for error)
+]]>
+ />
+</method>
+<method name="FileName">
+<![CDATA[//@cmember String FileName(  );
+//@return String | name of the currently open file
+//@i name used in Open( ) or Create( )
+]]>
+ />
+</method>
+<method name="getlasterror">
+<![CDATA[//@cmember int getlasterror(  );
+//@return int | returns the last error number
+//@i 
+]]>
+ />
+</method>
+<method name="IsOpen">
+<![CDATA[//@cmember int IsOpen(  );
+//@return int | non-zero if the file is open
+//@i non-zero if the file is open
+]]>
+ />
+</method>
+<method name="LastModTick">
+<![CDATA[//@cmember int LastModTick(  );
+//@return int | last modified date in seconds since Jan-01-1970
+//@i last modified date in seconds since Jan-01-1970
+]]>
+ />
+</method>
+<method name="LastModTime">
+<![CDATA[//@cmember date LastModTime(  );
+//@return date | date and time file was last modified
+//@i returns date and time last modified
+]]>
+ />
+</method>
+</members>
+<static>
+<method name="setReadOnly">
+<param name="file" type="string" />
+<param name="ReadOnly" type="int" />
+<![CDATA[//@cmember int setReadOnly( string file, int ReadOnly );
+//@param string | file | Filename & Path of file to update
+//@param int | ReadOnly | 1 = readonly, 0 = read writable
+//@return int | 1 for successful attribute change
+//@i 
+]]>
+ />
+</method>
+</static>
+<static sub="Directory Control">
+<method name="CreateDir">
+<param name="dir" type="String" />
+<![CDATA[//@cmember int CreateDir( String dir );
+//@param String | dir | Filename of directory to be created
+//@return int | 1 for successful creation of directory
+//@i create a directory
+]]>
+ />
+</method>
+<method name="RemoveDir">
+<param name="dir" type="String" />
+<![CDATA[//@cmember int RemoveDir( String dir );
+//@param String | dir | Filename of the directory to be deleted
+//@return int | 1 for successful deletion of directory
+//@i remove a directory
+]]>
+ />
+</method>
+<method name="RenameDir">
+<param name="dir" type="String" />
+<param name="new_name" type="String" />
+<![CDATA[//@cmember int RenameDir( String dir, String new_name );
+//@param String | dir | original filename to be renamed
+//@param String | new_name | new filename
+//@return int | 1 for successful renaming of file
+//@i 
+]]>
+ />
+</method>
+<method name="SetCurrentDirectory">
+<param name="path" type="string" />
+<![CDATA[//@cmember int SetCurrentDirectory( string path );
+//@param string | path | Path to set at current directory
+//@return int | 1 for successful current path change
+//@i 
+]]>
+ />
+</method>
+</static>
+<static sub="File Information">
+<method name="CopyFile">
+<param name="srcFile" type="String" />
+<param name="destFile" type="String" />
+<param name="failIfExist]" type="[int" />
+<![CDATA[//@cmember int CopyFile( String srcFile, String destFile, [int failIfExist] );
+//@param String | srcFile | Filename of file to copy
+//@param String | destFile | Filename to copy to
+//@param [int | failIfExist] | if set to 1, copy will fail if destFile exists
+//@return int | 0 on success, else an error code
+//@i Copies a file
+]]>
+ />
+</method>
+<method name="DeleteFile">
+<param name="filename" type="String" />
+<![CDATA[//@cmember int DeleteFile( String filename );
+//@param String | filename | Filename of file to delete
+//@return int | 0 on success, else an error code
+//@i Deletes a file
+]]>
+ />
+</method>
+<method name="FileLastModTick">
+<param name="filename" type="String" />
+<![CDATA[//@cmember int FileLastModTick( String filename );
+//@param String | filename | File to retrieve timestamp from
+//@return int | last modified date in seconds since Jan-01-1970
+//@i last modified date in seconds since Jan-01-1970
+]]>
+ />
+</method>
+<method name="FileLastModTime">
+<param name="filename" type="String" />
+<![CDATA[//@cmember date FileLastModTime( String filename );
+//@param String | filename | Filename of file to get time stamp from
+//@return date | date and time file was last modified
+//@i date and time a named file was last modified
+]]>
+ />
+</method>
+<method name="FileLength">
+<param name="filename" type="String" />
+<![CDATA[//@cmember int FileLength( String filename );
+//@param String | filename | Name of file to retrieve length from
+//@return int | Length of file in bytes (characters)
+//@i length of a named file
+]]>
+ />
+</method>
+<method name="RenameFile">
+<param name="curFile" type="String" />
+<param name="newFile" type="String" />
+<![CDATA[//@cmember int RenameFile( String curFile, String newFile );
+//@param String | curFile | current filename of file to rename
+//@param String | newFile | new filename to rename to
+//@return int | 0 on success, else an error code
+//@i Renames a file
+]]>
+ />
+</method>
+</static>
+<return>
+<rmeth name="Close" cls="void" />
+<rmeth name="Create" cls="int" />
+<rmeth name="CreateFile" cls="int" />
+<rmeth name="Open" cls="int" />
+<rmeth name="OpenFile" cls="int" />
+<rmeth name="IsEOF" cls="int" />
+<rmeth name="ReadBlob" cls="Blob" />
+<rmeth name="ReadLine" cls="String" />
+<rmeth name="SendToStream" cls="int" />
+<rmeth name="FileLength" cls="int" />
+<rmeth name="FileName" cls="String" />
+<rmeth name="getlasterror" cls="int" />
+<rmeth name="IsOpen" cls="int" />
+<rmeth name="LastModTick" cls="int" />
+<rmeth name="LastModTime" cls="date" />
+<rmeth name="CreateDir" cls="int" />
+<rmeth name="RemoveDir" cls="int" />
+<rmeth name="RenameDir" cls="int" />
+<rmeth name="SetCurrentDirectory" cls="int" />
+<rmeth name="CopyFile" cls="int" />
+<rmeth name="DeleteFile" cls="int" />
+<rmeth name="FileLastModTick" cls="int" />
+<rmeth name="FileLastModTime" cls="date" />
+<rmeth name="FileLength" cls="int" />
+<rmeth name="RenameFile" cls="int" />
+<rmeth name="SeekTo" cls="void" />
+<rmeth name="SeekToEnd" cls="void" />
+<rmeth name="SeekToStart" cls="void" />
+<rmeth name="setReadOnly" cls="int" />
+</return>
+</class>

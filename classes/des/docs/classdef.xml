@@ -1,0 +1,296 @@
+<class name="ClassDef" description="W2 Script Reference">
+<members sub="Attributes">
+<method name="AttrName">
+<param name="i" type="int" />
+<![CDATA[//@cmember String AttrName( int i );
+//@param int | i | 
+//@return String | 
+//@i // ret null if out of range
+]]>
+ />
+</method>
+<method name="AttrVal">
+<param name="i" type="int" />
+<![CDATA[//@cmember String AttrVal( int i );
+//@param int | i | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetAttr">
+<param name="name" type="String" />
+<![CDATA[//@cmember String GetAttr( String name );
+//@param String | name | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Display">
+<method name="SetWaitCursor">
+<![CDATA[//@cmember void SetWaitCursor(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="show">
+<![CDATA[//@cmember void show(  );
+//@return void | 
+//@i // show static data
+]]>
+ />
+</method>
+<method name="XMLDebugOut">
+<![CDATA[//@cmember void XMLDebugOut(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Elements">
+<method name="Element">
+<param name="idx" type="int" />
+<![CDATA[//@cmember XML Element( int idx );
+//@param int | idx | 
+//@return XML | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetElement">
+<param name="tag" type="String" />
+<![CDATA[//@cmember XML GetElement( String tag );
+//@param String | tag | 
+//@return XML | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Members">
+<method name="GetMemberDef">
+<param name="name" type="String" />
+<![CDATA[//@cmember MemberDef GetMemberDef( String name );
+//@param String | name | 
+//@return MemberDef | 
+//@i 
+]]>
+ />
+</method>
+<method name="getstaticmember">
+<param name="name" type="String" />
+<![CDATA[//@cmember Member getstaticmember( String name );
+//@param String | name | 
+//@return Member | 
+//@i 
+]]>
+ />
+</method>
+<method name="MemberCount">
+<![CDATA[//@cmember int MemberCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="MemberDef">
+<param name="i" type="int" />
+<![CDATA[//@cmember MemberDef MemberDef( int i );
+//@param int | i | 
+//@return MemberDef | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<static sub="Class">
+<method name="BaseClass">
+<![CDATA[//@cmember object BaseClass(  );
+//@return object | 
+//@i Returns the static part of the current class's base class.
+]]>
+ />
+</method>
+<method name="Class">
+<![CDATA[//@cmember Object Class(  );
+//@return Object | 
+//@i 
+]]>
+ />
+</method>
+<method name="ClassName">
+<![CDATA[//@cmember String ClassName(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="Class_LastMod">
+<![CDATA[//@cmember string Class_LastMod(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="Class_LastModDate">
+<![CDATA[//@cmember date Class_LastModDate(  );
+//@return date | 
+//@i 
+]]>
+ />
+</method>
+<method name="Path">
+<![CDATA[//@cmember String Path(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+</static>
+<static sub="Creation">
+<method name="CreateInstance">
+<![CDATA[//@cmember Object CreateInstance(  );
+//@return Object | 
+//@i Creates a new instance of the class.
+//@Exam object o = &CLASS_NAME::createInstance();
+//@Exam ]]>
+ />
+</method>
+<method name="CreateList">
+<![CDATA[//@cmember List CreateList(  );
+//@return List | 
+//@i Creates a new empty list for items of the same type as the class this method is called from.
+//@Exam list LX = &CLASS_NAME::createList();
+//@Exam LX.newRow();   // create a row in the new list.
+//@Exam ]]>
+ />
+</method>
+</static>
+<static sub="Methods">
+<method name="ExecMethod">
+<param name="method" type="string" />
+<param name="param1]" type="[string" />
+<param name="param2]" type="[string" />
+<param name="" type="[...]" />
+<![CDATA[//@cmember int ExecMethod( string method, [string param1], [string param2], [...] );
+//@param string | method | Name of method to call
+//@param [string | param1] | parameter 1 of method
+//@param [string | param2] | parameter 2 of method
+//@param [...] |  | more parameters...
+//@return int | 1 on success, 0 on fail
+//@i Calls the method 'method' on this class.
+//@Exam string meth = "callthis";
+//@Exam aClass cls;
+//@Exam // The two following lines do the same thing.
+//@Exam cls.callthis("Testing 1");
+//@Exam cls.execMethod( meth, "testing 2" );]]>
+ />
+</method>
+<method name="ExecGridMethod">
+<param name="method" type="string" />
+<param name="param1]" type="[string" />
+<param name="param2]" type="[string" />
+<param name="" type="[...]" />
+<![CDATA[//@cmember int ExecMethod( string method, [string param1], [string param2], [...] );
+//@param string | method | Name of method to call
+//@param [string | param1] | parameter 1 of method
+//@param [string | param2] | parameter 2 of method
+//@param [...] |  | more parameters...
+//@return int | 1 on success, 0 on fail
+//@i Call a method on the grid compiled after a sys::ComplileGrids has been called
+]]>
+ />
+</method>
+<method name="ExecReturnMethod">
+<param name="method" type="string" />
+<param name="param1]" type="[string" />
+<param name="param2]" type="[string" />
+<param name="" type="[...]" />
+<![CDATA[//@cmember object ExecReturnMethod( string method, [string param1], [string param2], [...] );
+//@param string | method | Name of method to call
+//@param [string | param1] | parameter 1 of method
+//@param [string | param2] | parameter 2 of method
+//@param [...] |  | more parameters...
+//@return object | object returned by method called
+//@i Calls the method 'method' on this class.
+//@Exam string meth = "callthis";
+//@Exam aClass cls;
+//@Exam // The two following lines do the same thing.
+//@Exam cls.callthis("Testing 1");
+//@Exam cls.execMethod( meth, "testing 2" );]]>
+ />
+</method>
+<method name="HasMethod">
+<param name="method" type="string" />
+<![CDATA[//@cmember int HasMethod( string method );
+//@param string | method | 
+//@return int | 
+//@i returns >0 if the class has a method by the name of 'method', otherwise returns 0.
+]]>
+ />
+</method>
+<method name="HasMember">
+<param name="method" type="string" />
+<![CDATA[//@cmember int HasMember( string property );
+//@param string | property | 
+//@return int | 
+//@i returns >0 if the class has a property by the name of 'property', otherwise returns 0.
+]]>
+ />
+</method>
+<method name="MethodPath">
+<![CDATA[//@cmember String MethodPath(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetArgumentCount">
+<![CDATA[//@cmember String GetArgumentCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetArgument">
+<![CDATA[//@cmember String GetArgument(  );
+//@return object | 
+//@i 
+]]>
+ />
+</method>
+</static>
+<return>
+<rmeth name="AttrName" cls="String" />
+<rmeth name="AttrVal" cls="String" />
+<rmeth name="GetAttr" cls="String" />
+<rmeth name="BaseClass" cls="object" />
+<rmeth name="Class" cls="Object" />
+<rmeth name="ClassName" cls="String" />
+<rmeth name="Class_LastMod" cls="string" />
+<rmeth name="Class_LastModDate" cls="date" />
+<rmeth name="Path" cls="String" />
+<rmeth name="CreateInstance" cls="Object" />
+<rmeth name="CreateList" cls="List" />
+<rmeth name="SetWaitCursor" cls="void" />
+<rmeth name="show" cls="void" />
+<rmeth name="XMLDebugOut" cls="void" />
+<rmeth name="Element" cls="XML" />
+<rmeth name="GetElement" cls="XML" />
+<rmeth name="GetMemberDef" cls="MemberDef" />
+<rmeth name="getstaticmember" cls="Member" />
+<rmeth name="MemberCount" cls="int" />
+<rmeth name="MemberDef" cls="MemberDef" />
+<rmeth name="ExecMethod" cls="int" />
+<rmeth name="ExecReturnMethod" cls="object" />
+<rmeth name="HasMethod" cls="int" />
+<rmeth name="HasMember" cls="int" />
+<rmeth name="MethodPath" cls="String" />
+<rmeth name="GetArgumentCount" cls="int" />
+<rmeth name="GetArgument" cls="object" />
+</return>
+</class>

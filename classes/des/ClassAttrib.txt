@@ -1,0 +1,16 @@
+<List cls="classes::des::AttribList" >
+
+<Item AttribName="CLEAN" AttribValue="N" AttribDesc="No"/>
+<Item AttribName="CLEAN" AttribValue="Y" AttribDesc="Yes"/>
+<Item AttribName="EDM" AttribValue="N" AttribDesc="No"/>
+<Item AttribName="EDM" AttribValue="Y" AttribDesc="Yes"/>
+<Item AttribName="MAINTENANCE" AttribValue="N" AttribDesc="No"/>
+<Item AttribName="MAINTENANCE" AttribValue="Y" AttribDesc="Yes"/>
+<Item AttribName="UPM2" AttribValue="N" AttribDesc="No"/>
+<Item AttribName="UPM2" AttribValue="Y" AttribDesc="Yes"/>
+<Item AttribName="UPM2PAYROLL" AttribValue="N" AttribDesc="No"/>
+<Item AttribName="UPM2PAYROLL" AttribValue="Y" AttribDesc="Yes"/>
+
+
+
+</List>

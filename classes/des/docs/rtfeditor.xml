@@ -1,0 +1,108 @@
+<class name="RTFEditor" description="W2 Script Reference" base="Control">
+<members>
+<method name="DoMenu">
+<param name="Param" type="int" />
+<![CDATA[//@cmember void DoMenu( int Param );
+//@param int | Param | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetBlob">
+<![CDATA[//@cmember blob GetBlob(  );
+//@return blob | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetText">
+<![CDATA[//@cmember string GetText(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="IsModified">
+<![CDATA[//@cmember bool IsModified(  );
+//@return bool | 
+//@i 
+]]>
+ />
+</method>
+<method name="Open">
+<param name="File" type="string" />
+<![CDATA[//@cmember bool Open( string File );
+//@param string | File | 
+//@return bool | 
+//@i 
+]]>
+ />
+</method>
+<method name="Print">
+<param name="" type="int" />
+<![CDATA[//@cmember bool Print( int );
+//@param int |  | 
+//@return bool | 
+//@i 
+]]>
+ />
+</method>
+<method name="Save">
+<param name="File" type="string" />
+<![CDATA[//@cmember bool Save( string File );
+//@param string | File | 
+//@return bool | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetReadOnly">
+<param name="" type="int" />
+<![CDATA[//@cmember bool SetReadOnly( int );
+//@param int |  | 
+//@return bool | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetText">
+<param name="b" type="blob" />
+<param1 name="s" type="string" />
+<![CDATA[//@cmember void SetText( {blob b} or {string s} );
+//@param blob | b | 
+//@param string | s | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="InsertPictureFromFile">
+<param name="s" type="string" />
+<![CDATA[//@Call int InsertPictureFromFile( {string s} );
+//@Info TER ONLY
+]]>
+ />
+</method>
+<method name="InsertRTF">
+<param name="s" type="blob" />
+<![CDATA[//@Call void InsertRTF( {blob s} );
+//@Info Insert raw RTF Data
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="DoMenu" cls="void" />
+<rmeth name="GetBlob" cls="blob" />
+<rmeth name="GetText" cls="string" />
+<rmeth name="IsModified" cls="bool" />
+<rmeth name="Open" cls="bool" />
+<rmeth name="Print" cls="bool" />
+<rmeth name="Save" cls="bool" />
+<rmeth name="SetReadOnly" cls="bool" />
+<rmeth name="SetText" cls="void" />
+<rmeth name="InsertPictureFromFile" cls="bool" />
+<rmeth name="InsertRTF" cls="void" />
+</return>
+</class>

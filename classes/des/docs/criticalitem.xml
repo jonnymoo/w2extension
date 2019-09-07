@@ -1,0 +1,13 @@
+<class name="CriticalItem" description="W2 Script Reference">
+<members sub="Entry">
+<method name="TryEnter">
+<![CDATA[//@cmember CriticalLock TryEnter();
+//@return CriticalLock | Returns null if fails to gain lock, otherwise returns a CriticalLock object. Does not wait for the lock to become free
+//@i 
+]]>
+</method>
+</members>
+<return>
+<rmeth name="TryEnter" cls="CriticalLock" />
+</return>
+</class>

@@ -1,0 +1,110 @@
+<form name="TaxCalc" base="BaseCalc" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<Double name="m_dSalary" />
+<Double name="m_dBenefits" />
+<Double name="m_dTax20" />
+<Double name="m_dTax3" />
+<Double name="m_dTax17" />
+<Double name="m_dNetYearly" />
+<method name="GetVal">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+
+return ( m_nRow + m_nCol );]]>
+</method>
+<method name="GetTax20">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+
+m_dTax20 = (m_dSalary + m_dBenefits) * 0.2;
+return m_dTax20;]]>
+</method>
+<method name="GetTax3">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+m_dTax3 = ( m_dSalary + m_dBenefits - 4100 ) * 0.03;
+
+return m_dTax3;]]>
+</method>
+<method name="GetTax17">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+double x = m_dBenefits + m_dSalary - 26100.0;
+
+if ( x > 0 )
+    m_dTax17 = x * 0.17;
+else
+    m_dTax17 = 0.0;
+
+return m_dTax17;]]>
+</method>
+<method name="GetNetYearly">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+m_dNetYearly = m_dSalary - m_dTax20 - m_dTax3 - m_dTax17;
+
+return m_dNetYearly;]]>
+</method>
+<method name="GetNetMonthly">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+return m_dNetYearly / 12.0;]]>
+</method>
+<method name="GetTax">
+<param name="rate" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+int a;
+return 312;]]>
+</method>
+</members>
+<static>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+TaxCalc TheCalc;
+TheCalc.SetCalc( "C:\\dev\\Dev3\\W2\\classes\\Des\\CalcDes\\tax.xmc" );
+TheCalc.m_dSalary = 10000.0;
+TheCalc.m_dBenefits = 1000.0;
+TheCalc.RunCalc();
+TheCalc.SizeToFit();]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+</row>
+</grid>
+</form>

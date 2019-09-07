@@ -1,0 +1,200 @@
+<form name="WMagicList" caption="Query List" margin="0" fauthor="$Author: Sally.woolrich $" fdate="$Date: 11/06/01 13:16 $" frevision="$Revision: 4 $">
+<members>
+<List name="ViewList" cls="classes::CPickS" />
+<Object name="OrigList" />
+<method name="CurrentRow">
+<![CDATA[
+if (OrigList==null) return null;
+return OrigList.CurrentRow();
+]]>
+</method>
+<method name="GetList">
+<![CDATA[
+return OrigList;
+]]>
+</method>
+<method name="SetList">
+<param name="LX" />
+<![CDATA[
+OrigList.SetMagicPointer( LX );
+
+classes::CPickS VL[];
+
+for(int n=0;n<LX.Count();n++){
+    Object R = VL.CreateRow();
+    LX[n].GetListInfo( R );       // VIRTUAL FUNCTION
+    }
+
+// copy
+ViewList.Reset();
+VL.MoveAllTo( ViewList );
+
+idResults.CalcWidths();
+
+If (LX.CurrentIndex() == -1)
+{
+    ViewList.SetCurrent(0);
+    OnSelect();
+    idResults.SetFocus();
+}    
+else    
+    ViewList.SetCurrent( LX.CurrentIndex() );
+    
+int cc = LX.Count();
+if (cc==1) idStat.SetText("1 item");
+else       idStat.SetText(cc + " items");
+idStat.SetBkColor(0xFFFFFF);]]>
+</method>
+<method name="SetStatus">
+<param name="txt" />
+<![CDATA[
+idStat.SetText(txt);]]>
+</method>
+<method name="OnSelect">
+<![CDATA[
+int i = ViewList.CurrentIndex();
+OrigList.SetCurrent(i);
+
+Object P = GetParent();
+if (P==null) return;
+
+if (P.HasMethod("OnMagicSelect"))
+    P.OnMagicSelect( OrigList.CurrentRow() );
+
+]]>
+</method>
+<method name="OnDoubleClick">
+<![CDATA[
+Object P = GetParent();
+if (P==null) return;
+
+if (P.HasMethod("OnMagicDoubleClick")){
+    if (OrigList==null) return;
+    Object CR = OrigList.CurrentRow();
+    if (CR==null) return;
+    P.OnMagicDoubleClick( CR );
+    }
+
+]]>
+</method>
+<method name="OnRightClick">
+<![CDATA[
+Object P = GetParent();
+if (P!=null){
+    if (P.HasMethod("OnMagicRightClick")){
+        P.OnMagicRightClick( OrigList.CurrentRow() );
+        return;
+        }
+    }
+
+// default handling
+Object R = OrigList.CurrentRow();
+if (R==null) return;
+
+if (R.HasMethod("DoPopupMenu")){
+    R.DoPopupMenu(P);
+    return;
+    }
+
+PopupMenu X;
+if (R.HasMethod("OpenViewer"))   // VIRTUAL FUNCTION
+    X.Add("Open");
+if (R.HasMethod("CopyToClipboard"))   // VIRTUAL FUNCTION
+    X.Add("Copy");
+X.Add("Details");
+
+String s = X.Track(1);
+
+if (s=="Details")
+    classes::zorder::WShow::ShowObject(R);
+else if (s=="Copy")
+    R.CopyToClipboard();
+else if (s)
+    R.OpenViewer();
+    ]]>
+</method>
+<method name="Reset">
+<![CDATA[
+ViewList.Reset();]]>
+</method>
+<method name="SetLimit">
+<param name="max" />
+<![CDATA[// call after setlist
+if (max<=ViewList.Count()){
+    idStat.SetText("Warning: the query was limited to " + max + " items - you may need to be more specific");
+    idStat.SetBkColor(0xFFFF00);
+    }]]>
+</method>
+<method name="OnOrderChange">
+<![CDATA[
+SetList( OrigList );]]>
+</method>
+<method name="SetBold">
+<![CDATA[idResults.SetCellAttr( "idTopLine", "style", "b" );]]>
+</method>
+</members>
+<static>
+<method name="main">
+<![CDATA[
+Object Q = CreateInstance();
+Q.open();
+
+String sql;
+classes::revenues::AccAndProp LX[];
+//classes::callcentre::contact LX[];
+//classes::UPM::Folder LX[];
+//sql = "PostCode is not null";
+
+classes::core::global::ListQuery( LX,sql,20);
+
+Q.SetList( LX );
+
+]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col align="WH" />
+<col />
+</row>
+<row>
+<col />
+<col align="WH" />
+<col />
+</row>
+<row>
+<col />
+<col align="WH" bk="255,255,255">
+<ListBox name="idResults" lpad="2" tpad="2" rpad="2" bpad="2" IsList="Y" list="ViewList" onDoubleClick="OnDoubleClick" onSelect="OnSelect" onRightClick="OnRightClick">
+<row>
+<col lpad="2" rpad="2" bk="255,255,255" bksel="255,255,255">
+<Image text="Image" img="classes::resource::standard::blue_blip.bmp" />
+</col>
+<col bk="255,255,255" bksel="0,128,128">
+<Label name="idTopLine" text="code" bind="code" style="b" />
+</col>
+</row>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" bk="255,255,255" bksel="255,255,255" />
+<col tpad="0" rpad="4" bk="255,255,255" bksel="0,128,128">
+<Label text="desc" bind="desc" />
+</col>
+</row>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" bk="255,255,255" bksel="255,255,255" />
+<col rpad="4" h="2" bk="0,128,128" bksel="0,128,128" />
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col tpad="2">
+<Label name="idStat" text="0 items" />
+</col>
+<col />
+</row>
+</grid>
+</form>

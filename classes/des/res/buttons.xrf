@@ -1,0 +1,33 @@
+<W2DesResource name="Buttons/Tabs">
+
+<res name="Button" base="StdButton" text="Button">
+<cell bkimg="" imgtile="" halign="C" valign="V"
+	h="" lpad="0" rpad="0" tpad="0" bpad="0" />
+  <control style="b"/>
+</res>
+
+<res name="Button - Soft Edges" base="StdButton" text="Button"> 
+<cell bkimg="" imgtile="" halign="C" valign="V"
+	h="" lpad="0" rpad="0" tpad="0" bpad="0" />
+  <control style="b" SoftEdges="1" />
+</res>
+
+<res name="Button - Old Version" base="Button" text="Button">
+  <control/>
+</res>
+
+<separator />
+
+<res name="Tab (Behind)" base="Label" text="Tab">
+  <cell bkimg="classes::resource::standard::tab_blue.bmp" imgtile="8" halign="C" valign="V"
+	w="88" h="28" lpad="8" rpad="8" tpad="6" bpad="6" />
+  <control tx="FFFFFF" txsel="FFFF00" style="b" />
+</res>
+
+<res name="Tab (Front)" base="Label" text="Tab">
+  <cell bkimg="classes::resource::standard::tab_sel.bmp" imgtile="8" halign="C" valign="V"
+	w="88" h="28" lpad="8" rpad="8" tpad="6" bpad="6" />
+  <control tx="000000" txsel="000000" style="b" />
+</res>
+
+</W2DesResource>

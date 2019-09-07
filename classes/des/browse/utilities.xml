@@ -1,0 +1,215 @@
+<class name="Utilities" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members />
+<static>
+<method name="DoPop">
+<param name="win" type="object" />
+<param name="Cls" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:08 |
+
+// classes::debug::showObj(Cls);
+
+classes::core::wpopupmenu P;
+P.Add("Output SQL (SQL Server)","MS");
+P.Add("Output SQL (Oracle)","ORA");
+String s = P.Track();
+
+if (!s) return;
+
+if (s=="MS"){
+    DoSQL(Cls,"MS");
+    }
+else if (s=="ORA"){
+    DoSQL(Cls,"ORA");
+    }]]>
+</method>
+<method name="GetTableSQL">
+<param name="Cls" type="object" />
+<![CDATA[
+if (Cls.SQLName)
+    return Cls.SQLName;
+
+if (Cls.BaseClass){
+    Object X = ::Dict::GetAClassDef( Cls.BaseClass, Cls.ClassPath );
+    if (X!=null){
+        return GetTableSQL( X );
+        }
+    }
+
+return "";]]>
+</method>
+<method name="MemberSQL">
+<param name="M" type="object" />
+<param name="db" type="object" />
+<![CDATA[
+if (M.MemberSQL=="~") return "";
+
+String name = M.MemberName;
+if (M.MemberSQL) name = M.MemberSQL;
+
+int siz = M.MemberSize.val();
+int adp = M.MemberADP.val();
+
+String sqlt;
+
+if (db=="ORA"){
+    switch(M.MemberType){
+    case "Integer": sqlt = "number(10)"; break;
+    case "String":  sqlt = "varchar2("+siz+")"; break;
+    case "Date":    sqlt = "date"; break;
+    case "Double":
+        if (adp) sqlt = "number("+siz+","+adp+")";
+        else     sqlt = "float";
+        break;
+    default: return "";
+        }
+    }
+else{ // MS
+    switch(M.MemberType){
+    case "Integer": sqlt = "integer"; break;
+    case "String":  sqlt = "varchar("+siz+")"; break;
+    case "Date":    sqlt = "datetime"; break;
+    case "Double":
+        if (adp) sqlt = "numeric("+siz+","+adp+")";
+        else     sqlt = "float";
+        break;
+    default: return "";
+        }
+    }
+
+String ret = name + "\t" + sqlt;
+
+if (M.Seq && db=="MS")
+    ret += " IDENTITY(1,1)";
+
+if (M.Nullable=="N")
+    ret += " NOT NULL";
+
+return ret;]]>
+</method>
+<method name="GetMemberSQL">
+<param name="SQL" type="Blob" />
+<param name="Cls" type="object" />
+<param name="cc" type="object" />
+<param name="db" type="object" />
+<![CDATA[
+if (Cls.BaseClass){
+    Object X = ::Dict::GetAClassDef( Cls.BaseClass, Cls.ClassPath );
+    if (X!=null){
+        cc += GetMemberSQL( SQl, X, cc, db );
+        }
+    }
+
+// add members
+
+Object Members = Cls.Sections[0].MemberDefs;
+
+for(int n=0;n<Members.Count();n++){
+    ::MemberDef M = Members[n];
+
+    String msq = MemberSQL(M,db);
+    if (!msq) continue;
+
+    if (cc)
+        SQL.Write(",\r\n");
+    SQL.Write(msq);
+    cc++;
+    }
+
+// done
+return cc;]]>
+</method>
+<method name="DoSQL">
+<param name="Cls" type="object" />
+<param name="db" type="object" />
+<![CDATA[// Cls is a des::ClassDef object
+
+Blob SQL;
+
+String table = GetTableSQL(Cls);
+
+SQL.Write("create table ", table, "\r\n(\r\n");
+
+int cc = GetMemberSQL(SQL,Cls,0,db);
+
+SQL.Write("\r\n)\r\n");
+
+String text = SQL.toString();
+
+Sys::CopyToClipboard(text);
+
+Message(text,"SQL Copied to Clipboard");]]>
+</method>
+<method name="DoMSSQL_old">
+<param name="Cls" type="object" />
+<param name="Recurse" type="object" />
+<![CDATA[// Cls is a des::ClassDef object
+// Recurse is 0 for first time in
+
+if (Recurse==0){
+    ::Dict::Reset();
+    }
+
+Blob SQL;
+int cc;
+
+if (Cls.BaseClass){
+    Object X = ::Dict::GetAClassDef( Cls.BaseClass, Cls.ClassPath );
+    if (X!=null){
+        DoMSSQL( X, Recurse+1 );
+        }
+    }
+
+String table = GetTableSQL(Cls);
+
+SQL.Write("create table ", table, "\r\n(\r\n");
+
+Object Members = Cls.Sections[0].MemberDefs;
+
+for(int n=0;n<Members.Count();n++){
+    ::MemberDef M = Members[n];
+
+    if (M.MemberSQL=="~") continue;
+
+    String name = M.MemberName;
+    if (M.MemberSQL) name = M.MemberSQL;
+
+    int siz = M.MemberSize.val();
+    int adp = M.MemberADP.val();
+
+    String sqlt;
+    switch(M.MemberType){
+    case "Integer": sqlt = "integer"; break;
+    case "String":  sqlt = "varchar("+siz+")"; break;
+    case "Date":    sqlt = "datetime"; break;
+    case "Double":
+        if (adp) sqlt = "numeric("+siz+","+adp+")";
+        else     sqlt = "float";
+        break;
+    default: continue;
+        }
+
+    if (cc)
+        SQL.Write(",\r\n");
+
+    SQL.Write(name,"\t",sqlt);
+
+    if (M.Seq)
+        SQL.Write(" IDENTITY(1,1) NOT NULL");
+    else if (M.Nullable=="N")
+        SQL.Write(" NOT NULL");
+
+    cc++;
+    }
+
+SQL.Write("\r\n)\r\n");
+
+Message(SQL.toString());]]>
+</method>
+<method name="main">
+<![CDATA[// test code
+
+// ::WClassView::main("e:\\dev3\\w2\\classes\\Callcentre\\Document.xml");
+::WClassView::main("e:\\dev3\\w2\\classes\\client\\Document.xml");]]>
+</method>
+</static>
+</class>

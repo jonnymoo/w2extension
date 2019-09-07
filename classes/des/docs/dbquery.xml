@@ -1,0 +1,32 @@
+<class name="DBQuery" description="W2 Script Reference">
+<members sub="Misc">
+<method name="EndFetch">
+<![CDATA[//@cmember Void EndFetch(  );
+//@return Void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetQueryData">
+<param name="D" type="Object" />
+<![CDATA[//@cmember Void GetQueryData( Object D );
+//@param Object | D | 
+//@return Void | 
+//@i copies row into the MObject
+]]>
+ />
+</method>
+<method name="ReadData">
+<![CDATA[//@cmember int ReadData(  );
+//@return int | 
+//@i get the next row, 0 if no more rows
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="EndFetch" cls="Void" />
+<rmeth name="GetQueryData" cls="Void" />
+<rmeth name="ReadData" cls="int" />
+</return>
+</class>

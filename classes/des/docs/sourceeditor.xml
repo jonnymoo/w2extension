@@ -1,0 +1,250 @@
+<class name="SourceEditor" description="W2 Script Reference" base="Control">
+<members>
+<method name="AddBookmark">
+<param name="YPos" type="int" />
+<![CDATA[//@cmember int AddBookmark( int YPos );
+//@param int | YPos | 
+//@return int | 
+//@i int idx = SE.AddBookmark( int line )
+]]>
+ />
+</method>
+<method name="AddBreakpoint">
+<param name="BufferOffset" type="int" />
+<![CDATA[//@cmember int AddBreakpoint( int BufferOffset );
+//@param int | BufferOffset | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="BindTo">
+<param name="MMember" type="object" />
+<![CDATA[//@cmember void BindTo( object MMember );
+//@param object | MMember | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetBookmark">
+<param name="idx" type="int" />
+<![CDATA[//@cmember int GetBookmark( int idx );
+//@param int | idx | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetBookmarkCount">
+<![CDATA[//@cmember int GetBookmarkCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetBreakpoint">
+<param name="idx" type="int" />
+<![CDATA[//@cmember int GetBreakpoint( int idx );
+//@param int | idx | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetBreakpointCount">
+<![CDATA[//@cmember int GetBreakpointCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCaretPos">
+<![CDATA[//@cmember int GetCaretPos(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCaretX">
+<![CDATA[//@cmember int GetCaretX(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCaretY">
+<![CDATA[//@cmember int GetCaretY(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="getCharsX">
+<![CDATA[//@cmember int getCharsX(  );
+//@return int | Width of editor pane in ascii chars
+//@i 
+]]>
+ />
+</method>
+<method name="getCharsY">
+<![CDATA[//@cmember int getCharsY(  );
+//@return int | Height of editor pane in ascii chars
+//@i 
+]]>
+ />
+</method>
+<method name="GetSelectionEnd">
+<![CDATA[//@cmember int GetSelectionEnd(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetSelectionStart">
+<![CDATA[//@cmember int GetSelectionStart(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetText">
+<![CDATA[//@cmember string GetText(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetViewX">
+<![CDATA[//@cmember int GetViewX(  );
+//@return int | 
+//@i get first visible column
+]]>
+ />
+</method>
+<method name="GetViewY">
+<![CDATA[//@cmember int GetViewY(  );
+//@return int | 
+//@i get first visible line
+]]>
+ />
+</method>
+<method name="InsertText">
+<param name="Source" type="string" />
+<![CDATA[//@cmember void InsertText( string Source );
+//@param string | Source | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Open">
+<param name="" type="string" />
+<![CDATA[//@cmember int Open( string );
+//@param string |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetCaretPos">
+<param name="OffsetPos" type="int" />
+<![CDATA[//@cmember void SetCaretPos( int OffsetPos );
+//@param int | OffsetPos | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetCurrentLine">
+<param name="LineNum" type="int" />
+<![CDATA[//@cmember void SetCurrentLine( int LineNum );
+//@param int | LineNum | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="setKeyword">
+<param name="id" type="int" />
+<param name="KeyWord" type="string" />
+<param name="is_Fixed_Length]" type="[int" />
+<![CDATA[//@cmember void setKeyword( int id, string KeyWord, [int is_Fixed_Length] );
+//@param int | id | which keyword? (0 or 1)
+//@param string | KeyWord | The Keyword string
+//@param [int | is_Fixed_Length] | 1 if it is an exact string, or 0 if it only begins with this string
+//@return void | Sets one fo the two user defined highlighted keywords
+//@i 
+]]>
+ />
+</method>
+<method name="SetReadOnly">
+<param name="b" type="int" />
+<![CDATA[//@cmember void SetReadOnly( int b );
+//@param int | b | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetSelection">
+<param name="OffsetStart" type="int" />
+<param name="OffsetEnd" type="int" />
+<![CDATA[//@cmember void SetSelection( int OffsetStart, int OffsetEnd );
+//@param int | OffsetStart | 
+//@param int | OffsetEnd | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetText">
+<param name="Source" type="string" />
+<![CDATA[//@cmember void SetText( string Source );
+//@param string | Source | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetView">
+<param name="x" type="int" />
+<param name="y" type="int" />
+<![CDATA[//@cmember void SetView( int x, int y );
+//@param int | x | 
+//@param int | y | 
+//@return void | 
+//@i set first visible character
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddBookmark" cls="int" />
+<rmeth name="AddBreakpoint" cls="int" />
+<rmeth name="BindTo" cls="void" />
+<rmeth name="GetBookmark" cls="int" />
+<rmeth name="GetBookmarkCount" cls="int" />
+<rmeth name="GetBreakpoint" cls="int" />
+<rmeth name="GetBreakpointCount" cls="int" />
+<rmeth name="GetCaretPos" cls="int" />
+<rmeth name="GetCaretX" cls="int" />
+<rmeth name="GetCaretY" cls="int" />
+<rmeth name="getCharsX" cls="int" />
+<rmeth name="getCharsY" cls="int" />
+<rmeth name="GetSelectionEnd" cls="int" />
+<rmeth name="GetSelectionStart" cls="int" />
+<rmeth name="GetText" cls="string" />
+<rmeth name="GetViewX" cls="int" />
+<rmeth name="GetViewY" cls="int" />
+<rmeth name="InsertText" cls="void" />
+<rmeth name="Open" cls="int" />
+<rmeth name="SetCaretPos" cls="void" />
+<rmeth name="SetCurrentLine" cls="void" />
+<rmeth name="setKeyword" cls="void" />
+<rmeth name="SetReadOnly" cls="void" />
+<rmeth name="SetSelection" cls="void" />
+<rmeth name="SetText" cls="void" />
+<rmeth name="SetView" cls="void" />
+</return>
+</class>

@@ -1,0 +1,184 @@
+<class name="Dict" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<static>
+<List name="Classes" cls="ClassDef" />
+<String name="LastError" />
+<method name="GetMemberPop">
+<param name="P" />
+<param name="path" />
+<param name="clsname" />
+<param name="pre" />
+<![CDATA[//@version Andrew Griffin | 26-07-01 12:28 | 
+
+
+String file = Sys::MakeFullName(path,clsname);
+file.toLower();
+
+for(int n=0;n<Classes.Count();n++)
+  {
+  if (Classes[n].ClassPath==file)
+    {
+    Classes[n].GetMemberPop(P,file,pre);
+    return;
+    }
+  }
+
+// need to load in the class!
+
+XML X = &globalxml::LoadXML( file+".xml" );
+if (X.tag()=="error") {
+    P.Add(".Open file error: "+ file + ".xml");
+    return;
+}
+
+/*File F;
+if (!F.Open(file+".xml",0)){
+  P.Add(".Open file error: "+ file + ".xml");
+  return;
+  }
+Object B = F.ReadBlob();
+Object X = B.toXMLObject();*/
+
+Object EX = &X.Element(0);
+// Message("Opening tag: "+ EX.Tag());
+if (EX.Tag()=="class" || EX.Tag()=="form")
+  {
+  Object C = &Classes.CreateRow();
+  C.SetTo(EX);
+  C.ClassPath = file;
+  C.GetMemberPop(P,file,pre);
+  }
+else
+  P.Add(".Invalid Class: "+ file + ".xml");
+
+]]>
+</method>
+<method name="AddObjectToDynaMenu">
+<param name="P" />
+<param name="MemberName" />
+<param name="clsname" />
+<param name="ClassPath" />
+<![CDATA[
+if (!clsname){
+    P.Add(MemberName);
+    return;
+    }
+
+Object Cls = GetAClassDef( clsname, ClassPath );
+
+String q = MemberName;
+if (P.Prefix()) q = P.Prefix() + "." + MemberName;
+
+if (Cls==null){
+   if (LastError=="SYS"){
+      P.Add(MemberName + "\t" + clsname,q);
+      }
+   else
+      P.Add( MemberName + "..." + LastError );
+   return;
+   }
+
+// ie: "TheContact", ClassDef, "ABC." 
+P.AddPopup(MemberName + "\t" + Cls.ClassName, Cls,q);
+]]>
+</method>
+<method name="GetAClassDef">
+<param name="clsname" />
+<param name="path" />
+<![CDATA[//@version Andrew Griffin | 26-07-01 12:28 | 
+
+String xc = clsname;
+xc.toLower();
+LastError = "SYS";
+
+switch(xc){
+case "blob":
+case "criticalitem":
+case "criticalsection":
+case "dbconnection":
+case "dde":
+case "file":
+case "httpconnection":
+case "mapisession":
+case "socket":
+case "xml":
+case "":
+    return null;
+    }
+
+String file = Sys::MakeFullName(path,clsname);
+file.toLower();
+
+for(int n=0;n<Classes.Count();n++)
+  {
+  if (Classes[n].ClassPath==file)
+    {
+    return Classes[n];
+    }
+  }
+
+// need to load in the class!
+
+XML X = &globalxml::LoadXML( file+".xml" );
+if (X.tag()=="error") {
+  LastError = ".Open file error: "+ file + ".xml";
+  return null;
+}
+
+/*
+File F;
+if (!F.Open(file+".xml",0)){
+  LastError = ".Open file error: "+ file + ".xml";
+  return null;
+  }
+Object B = F.ReadBlob();
+Object X = B.toXMLObject();*/
+
+Object EX = &X.Element(0);
+// Message("Opening tag: "+ EX.Tag());
+if (EX.Tag()=="class" || EX.Tag()=="form")
+  {
+  Object C = &Classes.CreateRow();
+  C.SetTo(EX);
+  C.ClassPath = file;
+  return C;
+  }
+else
+  LastError = ".Invalid Class: "+ file + ".xml";
+
+return null;
+]]>
+</method>
+<method name="FindMethod">
+<param name="mname" />
+<![CDATA[
+for(int n=0;n<Classes.Count();n++)
+    {
+    Object Cls = &Classes[n];
+    for(int s=0;s<Cls.Sections.Count();s++){
+        Object Sec = &Cls.Sections[s];
+        for(int f=0;f<Sec.Functions.Count();f++){
+            Object Func = &Sec.Functions[f];
+            if (Func.FuncName==mname || mname==""){
+                String q = Cls.ClassName + "." + Func.FuncName;
+                Message(q);
+                }
+            }
+        }
+    }
+]]>
+</method>
+<method name="Reset">
+<![CDATA[
+Classes.Reset();]]>
+</method>
+<method name="main">
+<![CDATA[
+// Message("ABOUT TO START UP..........");
+WClassView Q; Q.open();
+// Q.ToTop();
+Q.SetFocus();
+]]>
+</method>
+</static>
+<members />
+</class>

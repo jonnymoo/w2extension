@@ -1,0 +1,1576 @@
+<form name="WClsDef" margin="0" fauthor="$Author: Chris Moran$" fdate="$Date: 31 03 04 11:16$" frevision="$Revision: 4$">
+<members>
+<List name="AttribListFG" cls="Classes::des::AttribList" sql="~" />
+<String name="lstGroup" />
+<List name="auditLst" cls="methAudit" />
+<Integer name="dbTyp" />
+<Integer name="dispTyp" />
+<method name="Init">
+<![CDATA[//@version Andrew Griffin | 18-09-01 12:10 |
+//@version Chris Moran | 29-03-04 11:57 |
+lstGroup = "clsDef";
+dbTyp = 0;
+dispTyp = 0;
+
+String ini = Sys::MakeFullName(Path(),"des.ini");
+int iShowHelpControl = Sys::GetPrivateProfileString("ide","ShowHelpControl",ini).val();
+
+ShowGroup("HelpControlGroup", iSHowHelpControl);]]>
+</method>
+<method name="Setup">
+<param name="CD" type="ClassDef" />
+<![CDATA[//@cmember Setup
+//@param ClassDef | CD |
+//@version Andrew Griffin | 23-05-02 15:37 |
+//@version Simon Carroll | 17-06-03 10:50 |
+//@version Chris Moran | 29-03-04 11:39 |
+//@version Jonathan.Muir | 08-03-06 16:11 |
+//@version Nick Gomm | 25-06-08 15:09 |
+//@version jonathan.muir | 02-12-08 15:17 |
+//@version Jonathan.Muir | 09-09-16 16:01 |
+
+idClassName.BindTo(&CD.ClassName);
+idBaseClass.BindTo(&CD.BaseClass);
+idInterfaceClass.BindTo(&CD.InterfaceClass);
+idBrowsable.BindTo(&CD.browseBase);
+idDescription.BindTo(&CD.Description);
+idReference.BindTo(&CD.Reference);
+idHelpFile.BindTo(&CD.HelpFile);
+idLibrary.BindTo(&CD.Library);
+idLibrary.GetCell().setBK( idLibrary.getText() ? "255,0,0" : "224,224,192" );
+idLibraryHelp.BindTo(&CD.LibraryHelp);
+idLibrary.GetCell().setBK( idLibrary.getText() ? "255,0,0" : "224,224,192" );
+
+
+idSQLName.BindTo(&CD.SQLName);
+idSQLHasDCH.BindTo(&CD.SQLHasDCH);
+idDataSource.BindTo(&CD.DataSource);
+idSQLAlias.BindTo(&CD.SQLAlias);
+idSQLSeq.BindTo(&CD.SQLSeq);
+idSQLJoin.BindTo(&CD.SQLJoin);
+
+idHierImage.BindTo(&CD.HierImage);
+idHierImageField.BindTo(&CD.HierImageField);
+
+idCaption.BindTo(&CD.Caption);
+idSavePos.BindTo(&CD.SavePos);
+idIcon.BindTo(&CD.Icon);
+idBkImg.BindTo(&CD.BkImg);
+
+idBkColor.BindTo(&CD.Bk);
+idMargins.BindTo(&CD.Margin);
+idSizeable.BindTo( &CD.Sizeable );
+idToolWindow.BindTo(&CD.ToolWindow);
+idAcceptFiles.BindTo(&CD.AcceptFiles);
+idHidden.BindTo(&CD.Hidden);
+idNoActivate.BindTo(&CD.NoActivate);
+idTopMost.BindTo(&CD.TopMost);
+idThinFrame.BindTo(&CD.ThinFrame);
+idCloseOnDeactivate.BindTo(&CD.CloseOnDeactivate);
+idNoCaption.BindTo(&CD.NoCaption);
+idEscCancel.BindTo(&CD.EscCancel);
+
+idDisableClose.BindTo(&CD.DisableClose);
+
+idAuthor.BindTo(&CD.fAuthor);
+idDate.BindTo(&CD.fDate);
+idRevision.BindTo(&CD.fRevision);
+
+idBkColor2.setBkColor( ColorToInt( idBkColor.getText() ) );
+
+idMinSize.BindTo(&CD.minSize);
+idMinSizeWidth.BindTo(&CD.minSizeWidth);
+idMinSizeHeight.BindTo(&CD.minSizeHeight);
+
+idCustomView.SetList( &CD.Attributes );
+
+chkUnitTest.BindTo(&CD.testClass);
+
+refreshTabView();]]>
+</method>
+<method name="SetMod">
+<param name="con" type="control" />
+<![CDATA[//@cmember SetMod
+//@param control | con |
+//@version Andrew Griffin | 12-12-01 11:42 |
+
+GetParent().SetMod();
+
+if (con == idLibrary) {
+    idLibrary.GetCell().setBK( idLibrary.getText() ? "255,0,0" : "224,224,192" );
+}]]>
+</method>
+<method name="SetMod2">
+<param name="control" type="object" />
+<![CDATA[//@cmember SetMod2
+//@param object | control |
+//@version Andrew Griffin | 03-08-01 17:06 |
+//@version andrew.banyard | 31-03-15 15:06 |
+//@i
+
+if(control==chkUnitTest){
+  if(idBaseClass.GetText()=="" && chkUnitTest.GetValue() == "1"){
+     idBaseClass.settext("classes::w2unittest::framework::testbase");
+  }
+}
+
+GetParent().SetMod(null,1);]]>
+</method>
+<method name="openBaseClass">
+<![CDATA[//@version Jonathan.Muir | 26-02-10 13:38 |
+string cls = idBaseClass.getText();
+if (cls=="") return;
+object clas = GetParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+object win = AdvSearch::OpenClassFile( cls, tPath, "");
+if(win!=null) win.show(1);]]>
+</method>
+<method name="openInterfaceClass">
+<![CDATA[//@cmember openInterfaceClass
+//@version Jonathan.Muir | 26-02-10 13:39 |
+
+Popupmenu p;
+
+for(int i=0;;i++)
+{
+    string sz = idInterfaceClass.GetText().GetToken(i);
+    if(!sz) break;
+    Popupmenu p2;
+    p2.Add("Open Class","O:"+sz);
+    p2.Add("Add default methods","A:"+sz);
+    p.Add(p2,sz);
+}
+
+string cls = p.track();
+if (cls=="") return;
+
+if(cls.beginswith("O:"))
+{
+    object clas = GetParent().XFile.Classes[0];
+    string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+    object win = AdvSearch::OpenClassFile( cls.SubString(2), tPath, "");
+    if(win!=null) win.show(1);
+}
+else
+{
+    // Do add methods
+    DoAddInterfaceMethods(cls.SubString(2));
+}]]>
+</method>
+<method name="DoBkColor2">
+<param name="vt" type="control" />
+<![CDATA[//@cmember DoBkColor
+//@param control | vt |
+//@version Andrew Griffin | 11-06-02 15:56 |
+//@i
+
+int i = classes::Des::Grid::wCustomColor::getColor(
+    ColorToInt( idBkColor.getText() ), this, idBkColor2.GetCell()
+);
+
+if (i==-1) return;
+if (i==-2) i=-1;
+
+//int i = Sys::GetColor( idBkColor2.getBkColor() );
+edit ebox = &idBkColor; //2.GetGrid().GetCell( 0, 0 ).Control;
+
+string cols = grid::wFloatCtrlEdit::colIntToStr( i, idBkColor.getText().indexOf(",")==-1 );
+
+//SetCtrlAttr( idBkColor.GetControlAttr( "setattr" ), cols);
+
+idBkColor2.setBkColor( i );
+idBkColor.setText( cols );
+
+/*
+int i = Sys::GetColor( idBkColor2.getBkColor() );
+if (i==-1) return;
+String s;
+if (idBkColor.getText().indexOf(",")>=0) {
+    int r = (i & 0xFF0000) / 0x10000;
+    int g = (i & 0xFF00) / 0x100;
+    int b = i & 0xFF;
+    s = r+","+g+","+b;
+} else {
+    s = i.toString("08X").subString(2);
+}
+
+idBkColor2.setBkColor(i);
+idBkColor.setText( s );
+*/
+
+setMod();]]>
+</method>
+<method name="bgUpdate">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 17-05-02 13:15 |
+//@i
+
+idBkColor2.setBkColor( ColorToInt( idBkColor.getText() ) );
+SetMod();]]>
+</method>
+<method name="browseFile">
+<param name="ctrl" type="control" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 03-08-01 17:07 |
+//@version DazzaBee | 01-03-04 11:00 |
+//@version Chris Moran | 29-03-04 11:24 |
+//@version Jonathan.Muir | 08-03-06 16:30 |
+//@i
+string fileTyp = ctrl.GetControlAttr("filetype");
+control bindTo = &GetControl( ctrl.GetControlAttr("bindto") );
+string description = ctrl.GetControlAttr("desc");
+
+string filename = bindTo.getText();
+filename = sys::MakeFullName( GetParent().FileName, filename );
+string filter;
+
+if (filetyp.eq("xml")) {
+    filter.addToken("XML files|*.xml", ";");
+    if (filename) filename += ".xml";
+} else
+if (filetyp.eq("bmp")) {
+    filter.addToken("BMP files|*.bmp", ";");
+} else
+if (filetyp.eq("ico")) {
+    filter.addToken("Icon files|*.ico", ";");
+} else
+if (fileTyp.eq("hsc"))
+{
+    filter.addToken("Help files|*.hsc", ";");
+}
+
+filename = GetOpenFileName( "Choose a " + description, filter, filename ).lower();
+
+if (!filename) return 0;
+
+String szPath = GetParent().FileName.Lower();
+int iIndex = szPath.IndexOf(".xml");
+if(iIndex>-1) szPath = szPath.Left(iIndex);
+iIndex = szPath.LastIndexOf("\\");
+if(iIndex>-1) szPath = szPath.Left(iIndex);
+
+filename = sys::MakeFullName( szPath, filename );
+filename = sys::MakeRelativeName( szPath, filename );
+
+if (filetyp.eq("xml")) {
+    int i = filename.indexof(".xml",0,1);
+    if (i>=0) filename = filename.left( i );
+}
+
+iIndex = filename.Indexof("classes::",0,1);
+if(iIndex>-1) FileName = FileName.SubString(iIndex,FileName.Length()).Lower();
+
+iIndex = filename.Indexof(":::",0,1);
+if(iIndex>-1) FileName = FileName.SubString(iIndex+3,FileName.Length()).Lower();
+
+string szbindto = ctrl.GetControlAttr("bindto");
+
+if(szbindto.eq("idInterfaceClass"))
+{
+    string szCurrent = bindTo.GetText();
+    szCurrent.AddToken(filename);
+    bindTo.setText(szCurrent);
+    if(message("Do you want to add unimplemented methods now?","Interface Methods",4)==6)
+    {
+        DoAddInterfaceMethods(filename);
+
+    }
+
+}
+else
+{
+    bindTo.setText( filename );
+}
+setMod2();]]>
+</method>
+<method name="doGetSQL">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 24-05-02 16:05 |
+//@i
+
+classes::core::wpopupmenu p,ps,po;
+
+ps.Add( "Create Table", "getCreateTable,0,0" );
+po.Add( "Create Table", "getCreateTable,1,0" );
+
+ps.Add( "Create Table DCH", "getCreateTable,0,1" );
+po.Add( "Create Table DCH", "getCreateTable,1,1" );
+
+ps.Add( "Create Triggers", "getCreateTriggers,0" );
+po.Add( "Create Triggers", "getCreateTriggers,1" );
+
+ps.Add( "Drop Triggers", "getDropTriggers,0" );
+
+p.Add( ps, "SQL Server" );
+p.Add( po, "Oracle" );
+
+string s = p.Track(1);
+if (!s) return;
+
+// Saved?
+
+getparent().OptionalSave( "You must save changes before producing SQL" );
+
+browse::SQLutils::ExecMethod( s.getToken(0), getparent().FileName, s.getToken(1).val(), s.getToken(2).val() );]]>
+</method>
+<method name="doTabClick">
+<param name="theTab" type="edit" />
+<![CDATA[//@cmember doTabClick
+//@param edit | theTab |
+//@version Andrew Griffin | 04-12-01 14:43 |
+//@version andrew.banyard | 31-03-15 15:10 |
+//@i
+
+// deSelect all tabs
+gridRow tabRow = &idTabs.getRow( 0 );
+
+GridCell cCell = &theTab.GetCell();
+
+for (int i=1; i<6; i++) {
+    GridCell cel = &tabRow.GetCell( i );
+    if (cel == null) break;
+
+    if (cel==cCell)
+    {
+        cel.setbkimg("classes::des::res::tabFront.bmp");
+        cel.Control.SetTxColor(0);
+        cel.Control.SetHighlightColor(0);
+        //cel.Control.SetAttr( "style", "b" );
+    }
+    else
+    {
+        cel.setbkimg("classes::des::res::tabBack.bmp");
+        cel.Control.SetTxColor(0x524938);
+        cel.Control.SetHighlightColor( 0xFFFFFF );
+        //cel.Control.SetAttr( "style", "" );
+    }
+}
+
+showGroup( lstGroup, 0 );
+lstGroup = theTab.GetControlAttr( "param" );
+showGroup( lstGroup, 1 );
+fitrecursive();
+
+if (lstGroup=="AuditDef") showAudit();
+if (lstGroup=="dbDef") showSQL();]]>
+</method>
+<method name="showAudit">
+<![CDATA[//@cmember showAudit
+//@version Andrew Griffin | 07-02-02 09:25 |
+//@i
+
+// Go through each method looking for method author information...
+
+getAudit( auditLst, getParent(), 0 );]]>
+</method>
+<method name="doAuditDblClick">
+<![CDATA[//@cmember doAuditDblClick
+//@version Andrew Griffin | 18-09-01 10:43 |
+//@i
+
+string meth = idAuditView.CurrentRow().methodName;
+advSearch::openMethodMember( GetParent(), meth );]]>
+</method>
+<method name="AddRow">
+<![CDATA[//@cmember AddRow
+//@version Andrew Griffin | 18-09-01 11:21 |
+//@version Darren Ball | 09-12-04 10:12 |
+
+classes::core::WinputBox::Open(this, "addCAttrib", "Enter New Attribute name", "Add Custom Attribute", "");]]>
+</method>
+<method name="DelRow">
+<![CDATA[//@cmember DelRow
+//@version Andrew Griffin | 18-09-01 11:29 |
+
+XMLAttr L[] = &idCustomView.GetList();
+if (L==null) return;
+
+int idx = L.CurrentIndex();
+if (idx<0) return;
+
+if (
+    message( "Delete Attribute " + L[idx].Attr.sql(), "Warning, Can't Undo this operation",
+             classes::core::windows::MB_ICONEXCLAMATION |
+             classes::core::windows::MB_OKCANCEL )
+        == classes::core::windows::IDCANCEL
+   ) return;
+
+idCustomView.DeleteRow(idx);
+if (idx>=L.Count()) idx--;
+L.SetCurrent(idx);
+idCustomView.CalcWidths();
+
+setMod();]]>
+</method>
+<method name="MoveParam">
+<param name="ctrl" type="object" />
+<![CDATA[//@cmember MoveParam
+//@param object | ctrl |
+//@version Andrew Griffin | 18-09-01 11:26 |
+
+int d;
+
+if (ctrl==idMoveUp) d = -1; else d = 1;
+
+Object L = idCustomView.GetList();
+if (L==null) return;
+
+int idx = L.CurrentIndex();
+if (idx<0) return;
+
+d += idx;
+if (d<0 || d>=L.count()) return;
+
+L.MoveRow(idx, d);
+L.SetCurrent(d);
+idCustomView.CalcWidths();
+
+setMod();]]>
+</method>
+<method name="showSQL">
+<![CDATA[//@cmember showSQL
+//@version Andrew Griffin | 26-09-01 12:28 |
+//@version Rob Davis | 30-01-02 13:51 |
+//@i
+
+string fname = getParent().FileName;
+string clsName = sys::MakeRelativeName( path(), fname );
+clsName = clsName.left( clsName.lastIndexOf( "." ) );
+
+string sql, sql2, sql3;
+string cm = (dbTyp == 0 ? "--" : "--");   // comments
+
+// What about member tables?
+string mtabs = browse::SQLutils::getListOfMemberTabs( fname );
+
+// do we want a DCH?
+sql2 = browse::SQLutils::getCreateTable( fname, dbTyp, 1, 0 );
+
+if (sql2 == "Error: Missing SQLName") {
+    idSQLView.setText( "\r\n  No SQL Table name specified in class definition.\r\n" );
+    return;
+}
+if (dispTyp==0) {   // Tables
+
+    sql = cm + "*** Table Creation SQL for '" + clsName + "' ***\r\n\r\n";
+
+    sql3 = browse::SQLutils::getCreateTable( fname, dbTyp, 0, 0 );
+
+    if (!sql3) {
+        idSQLView.setText( "\r\n  Unable to create SQL from this class." );
+        return;
+    }
+
+    sql += sql3;
+
+    if (sql2) {
+        sql += sql2;
+    }
+
+    if (mtabs) sql += "\r\n" + cm + " Comma Delimeted Tables linked to '" + clsName + "'\r\n";
+
+    for (int i=0;; i++) {
+        string t = mtabs.gettoken( i );
+        if (!t) break;
+        sql += "\r\n" + WMembEdit::getCreateTableS( t, dbTyp, 0, 0 );
+        sql += WMembEdit::getCreateTableS( t, dbTyp, 1, 0 );
+    }
+
+    sql += cm + "*** End of Table Creation SQL for '" + clsName + "' ***\r\n\r\n";
+
+} else if (sql2) {      // Triggers
+
+    sql = cm + "*** Trigger Creation SQL for class '" + clsName + "' ***\r\n\r\n";
+
+    sql += browse::SQLutils::getDropTriggers( fname, dbTyp, 0 );
+    sql += browse::SQLutils::getCreateTriggers( fname, dbTyp, 0 );
+
+    if (mtabs) sql += "\r\n" + cm + " Comma Delimeted Triggers linked to '" + clsName + "'\r\n";
+
+    for (int i=0;; i++) {
+        string t = mtabs.gettoken( i );
+        if (!t) break;
+        sql += "\r\n" + WMembEdit::getDropTriggersS( t, dbTyp, 0 );
+        sql += WMembEdit::getCreateTriggersS( t, dbTyp, 1, 0 );
+    }
+
+    sql += cm + "*** End of Trigger Creation SQL for class '" + clsName + "' ***\r\n\r\n";
+
+} else {
+    sql = "\r\n  W2 Desinger only builds triggers for classes with the following members:\r\n" +
+          "\r\n"+
+          "    String\tmodUser\r\n" +
+          "    Date\tmodDate\r\n" +
+          "    String\tmodType\r\n";
+}
+
+idSQLView.setText( sql );]]>
+</method>
+<method name="doCopySQL">
+<![CDATA[//@cmember doCopySQL
+//@version Andrew Griffin | 18-09-01 12:10 |
+//@i
+
+sys::CopyToClipboard( idSQLView.getText() );]]>
+</method>
+<method name="refreshTabView">
+<![CDATA[//@cmember refreshTabView
+//@param
+//@return
+//@version Andrew Griffin | 24-09-01 11:11 |
+//@i
+
+if (lstGroup=="AuditDef") showAudit();
+if (lstGroup=="dbDef") showSQL();]]>
+</method>
+<method name="doHasDCHClick">
+<param name="con" type="checkbox" />
+<![CDATA[//@cmember doHasDCHClick
+//@param checkbox | con |
+//@version Andrew Griffin | 26-09-01 11:39 |
+//@i
+
+setMod();
+
+// *** Add or remove modDate, modUser & modType ***
+
+// do they exist already?
+
+wclassview wc = &GetParent();
+ClassSection cs = &wc.XFile.Classes[0].Sections[0];
+
+object hasDate = classes::core::globalList::FindRowEq( cs.MemberDefs, "modDate" );
+object hasUser = classes::core::globalList::FindRowEq( cs.MemberDefs, "modUser" );
+object hasType = classes::core::globalList::FindRowEq( cs.MemberDefs, "modType" );
+
+int wantDCH = con.GetState();
+
+if (wantDCH) {
+    if ((hasDate==null || hasUser==null || hasType==null) &&
+        message( "Automatically add modDate, modUser & modType members?",
+                 "Designer Helper",
+                 classes::core::windows::MB_ICONQUESTION | classes::core::windows::MB_YESNO
+        ) == classes::core::windows::IDYES)
+    {
+        if (hasDate==null) {
+            xml md;
+            md.SetTag( "Date" );
+            md.AddAttr( "name", "modDate" );
+            md.AddAttr( "desc", "~" );
+            md.AddAttr( "time", "Y" );
+            md.AddAttr( "null", "N" );
+            cs.AddMember( md );
+        }
+        if (hasUser==null) {
+            xml md;
+            md.SetTag( "String" );
+            md.AddAttr( "name", "modUser" );
+            md.AddAttr( "desc", "~" );
+            md.AddAttr( "size", "20" );
+            md.AddAttr( "null", "N" );
+            cs.AddMember( md );
+        }
+        if (hasType==null) {
+            xml md;
+            md.SetTag( "String" );
+            md.AddAttr( "name", "modType" );
+            md.AddAttr( "desc", "~" );
+            md.AddAttr( "size", "1" );
+            md.AddAttr( "null", "N" );
+            cs.AddMember( md );
+        }
+    }
+}
+else
+{
+    if ((hasDate!=null || hasUser!=null || hasType!=null) &&
+        message( "Automatically remove modDate, modUser & modType members?",
+                 "Designer Helper",
+                 classes::core::windows::MB_ICONQUESTION | classes::core::windows::MB_YESNO
+        ) == classes::core::windows::IDYES)
+    {
+        if (hasDate!=null) hasDate.RemoveFromList();
+        if (hasUser!=null) hasUser.RemoveFromList();
+        if (hasType!=null) hasType.RemoveFromList();
+    }
+}]]>
+</method>
+<method name="StoreState" return="string">
+<![CDATA[//@cmember StoreState
+//@return string |
+//@version Andrew Griffin | 28-09-01 09:54 |
+//@i
+
+return "WCLSDEFOK";]]>
+</method>
+<method name="RestoreState" return="string">
+<param name="state" type="string" />
+<![CDATA[//@cmember RestoreState
+//@param string | state |
+//@return string |
+//@version Andrew Griffin | 28-09-01 09:54 |
+//@i
+
+if (state=="WCLSDEFOK") refreshTabView();]]>
+</method>
+<method name="OpenHelpFile">
+<![CDATA[//@cmember OpenHelpFile
+//@version Chris Moran | 29-03-04 12:23 |
+//@i       Opens up the .hsc file in Help Scribble if installed
+
+string szHelp = idHelpFile.GetText();
+string szRoot = sys::GetModulePath();
+
+string szHelpFullName = sys::MakeFullName(szRoot, szHelp);
+
+sys::ShellExecute("open", szHelpFullName);]]>
+</method>
+<method name="AddAttr">
+<param name="ctrl" type="image" />
+<![CDATA[//@cmember AddAttr
+//@param
+//@return
+//@version Darren Ball | 09-12-04 10:17 |
+//@i
+SetWaitCursor();
+if(AttribListFG.Count()==0) classes::core::Global::LoadList( "classes::des::ClassAttrib.txt", AttribListFG );
+if(AttribListFG.Count()==0) Return;
+
+String szAttrName = "";
+PopupMenu P;
+Object Q;
+For(int i =0;i<AttribListFG.Count();i++)
+{
+    if(!AttribListFG[i].AttribName.EQ(szAttrName))
+    {
+        Q = sys::NewObject("PopupMenu");
+        Q.Add(AttribListFG[i].AttribDesc,AttribListFG[i].AttribName + "|" +AttribListFG[i].AttribValue);
+        P.Add(Q,AttribListFG[i].AttribName);
+        szAttrName = AttribListFG[i].AttribName;
+    } else
+    {
+        Q.Add(AttribListFG[i].AttribDesc,AttribListFG[i].AttribName + "|" +AttribListFG[i].AttribValue);
+    }
+}
+
+String sz = P.Track();
+if(sz.eq("")) return;
+
+XMLAttr L[] = &idCustomView.GetList();
+if (L==null) return;
+
+Object oRow = &L.FindRow(sz.GetToken(0,"|"),0);
+
+if(oRow==NULL)
+{
+    int pos = L.CurrentIndex();
+    XMLAttr F = &L.CreateRow( pos+1 );
+    F.Attr = sz.GetToken(0,"|");
+    F.Value = sz.GetToken(1,"|");
+    L.SetCurrent(pos+1);
+}
+Else
+{
+    L.SetCurrent(&L.FindIndex(oRow));
+    oRow.Value = sz.GetToken(1,"|");
+}
+
+idCustomView.CalcWidths();]]>
+</method>
+<method name="RefreshAttr">
+<param name="ctrl" type="image" />
+<![CDATA[//@cmember RefreshAttr
+//@param
+//@return
+//@version Darren Ball | 09-12-04 10:12 |
+//@i
+SetWaitCursor();
+AttribListFG.Reset();
+AddAttr(ctrl);]]>
+</method>
+<method name="addCAttrib">
+<param name="name" type="string" />
+<![CDATA[//@cmember addCAttrib
+//@param string | name |
+//@version Andrew Griffin | 03-10-01 10:59 |
+//@version Darren Ball | 09-12-04 10:12 |
+//@i
+
+XMLAttr L[] = &idCustomView.GetList();
+
+Object oRow = &L.FindRow(name,0);
+
+if(oRow==NULL)
+{
+
+    int pos = L.CurrentIndex();
+    XMLAttr F = &L.CreateRow( pos+1 );
+    F.Attr = name;
+    L.SetCurrent(pos+1);
+}
+Else Message("Attribute already exists!");
+
+idCustomView.CalcWidths();
+// notify parent
+
+setMod();]]>
+</method>
+<method name="DoAddInterfaceMethods">
+<param name="FileName" type="object" />
+<![CDATA[//@cmember DoAddInterfaceMethods
+//@param object | FileName |
+//@version Jonathan.Muir | 09-03-06 12:38 |
+//@i
+
+if (FileName=="") return;
+object clas = GetParent().XFile.Classes[0];
+string tPath = clas.classPath.left(clas.classPath.length() - clas.ClassName.length() - 4);
+WClassView tmp;
+tmp.open();
+
+string fname = advSearch::classToPath( FileName, tPath, 0 );
+if (!tmp.ReadFile( fname, 0, 0 )) return null;
+if (tmp.XFile.Classes.count()==0) return null;
+
+
+string szExistingFuncs = "";
+
+for(int n=0;n<tmp.XFile.Classes[0].Sections.Count();n++)
+{
+    object thisClass = GetParent().XFile.Classes[0];
+    if(thisClass.Sections.Count()>n)
+    {
+        //Copy functions to this class
+        for(int i=0;i<tmp.XFile.Classes[0].Sections[n].Functions.Count();i++)
+        {
+            // Check not already exists
+            int bExists = 0;
+            for(int j=0;j<thisClass.Sections[n].Functions.Count();j++)
+            {
+
+                if(tmp.Xfile.Classes[0].Sections[n].Functions[i].FuncName.eq(thisClass.Sections[n].Functions[j].FuncName))
+                {
+                    bExists = 1;
+                    break;
+                }
+            }
+
+            if(!bExists)
+            {
+                // Copy the function across
+                XML x;
+                tmp.XFile.Classes[0].Sections[n].Functions[i].AddScriptHeader("#ERROR Interface method requires implementing");
+                tmp.XFile.Classes[0].Sections[n].Functions[i].GetXML(x);
+                thisClass.Sections[n].AddMethod(x);
+            }
+            else
+            {
+                szExistingFuncs.addToken(tmp.Xfile.Classes[0].Sections[n].Functions[i].FuncName);
+            }
+
+
+        }
+
+
+    }
+
+
+}
+
+if(szExistingFuncs)
+{
+    message("The following functions already existed (and where therefore not copied)\r\n"+szExistingFuncs.Replace(",","\r\n"));
+}]]>
+</method>
+</members>
+<static>
+<List name="YesNoFg" cls="CPickS">
+<item code="1" desc="Yes" />
+<item code="0" desc="No" />
+</List>
+<List name="YesNoScrollFg" cls="CPickS">
+<item code="1" desc="Yes" />
+<item code="0" desc="No" />
+<item code="2" desc="No - but scrolls" />
+</List>
+<List name="DeActivateFg" cls="CPickS">
+<item code="" desc="Normal" />
+<item code="1" desc="Close" />
+<item code="2" desc="Hide" />
+</List>
+<List name="dbTypes" cls="classes::CPickN">
+<item code="0" desc="Microsoft SQL Server" />
+<item code="1" desc="Oracle" />
+</List>
+<List name="dispTypes" cls="classes::CPickN">
+<item code="0" desc="Table Creation" />
+<item code="1" desc="Trigger Creation" />
+</List>
+<method name="ColorToInt" return="int">
+<param name="col" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 18-09-01 11:01 |
+//@i
+
+if (col=="") return -1;
+
+if (col.indexOf(",")==-1) return HexToInt( col );
+
+return (col.getToken(0).val()*256 + col.getToken(1).val())*256 + col.getToken(2).val();]]>
+</method>
+<method name="HexToInt" return="int">
+<param name="hex" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+int t, c;
+hex = hex.trim().upper();
+
+for (int i=0; i<hex.length(); i++) {
+
+    c = hex[i];
+    t = t * 16 + ( c<'A' ? c-'0' : (c-'A')+10 );
+
+}
+
+return t;]]>
+</method>
+<method name="ColToHex" return="string">
+<param name="col" type="int" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+if (col==-1) return "";
+
+return col.toString("08X").subString(2);]]>
+</method>
+<method name="getAudit">
+<param name="auditLst" type="methaudit[]" />
+<param name="cv" type="wclassview" />
+<param name="unique" type="int" />
+<![CDATA[//@cmember getAudit
+//@param methaudit[] | auditLst |
+//@param wclassview | cv |
+//@param int | unique |
+//@version Andrew Griffin | 07-02-02 09:30 |
+//@i
+
+// Go through each method looking for method author information...
+
+int red, black;
+red.rgb( 255, 0, 0 );
+black.rgb( 0, 0, 0 );
+
+auditLst.reset();
+
+classDef cd = &cv.XFile.Classes[0];
+methAudit tmp;
+
+date chkDate; chkDate.FromString( cd.FDate );
+if (chkDate.Year()<80)
+    chkDate.SetCentury( 20 ); else
+if (chkDate.Year()<100)
+    chkDate.SetCentury( 19 );
+
+if (!chkDate.Valid()) chkDate.setDate( 1900, 1, 1 );
+
+for (int i=0; i<cd.Sections.count(); i++) {
+    for (int j=0; j<cd.Sections[i].Functions.count(); j++) {
+
+        Func cFunc = &cd.Sections[i].Functions[j];
+        // look for "//@versio""n" tags
+
+        int cpos=0;
+
+        while (1) {
+            if (!unique) {
+                cpos = cFunc.Script.indexOf( "//@versio""n", cpos );
+                if (cpos>0 && cFunc.Script.charAt(cpos-1) != '\n') {
+                    cpos+=10;
+                    continue;
+                }
+            }
+            else
+                cpos = cFunc.Script.lastIndexOf( "//@versio""n" );
+
+            if (cpos==-1) break;
+            cpos+=10;
+            int p2 = cFunc.Script.indexOf( "\r\n", cpos );
+            if (p2==-1) p2 = cFunc.Script.length();
+            string ver = cFunc.Script.subString( cpos, p2 ).trim();
+
+            tmp.methodName = cFunc.FuncName;
+            tmp.modUser = ver.getToken(0, "|").trim();
+            tmp.modDate.FromString( ver.getToken(1, "|").trim() );
+            if (tmp.modDate.Year()<80)
+                tmp.modDate.SetCentury( 20 ); else
+            if (tmp.modDate.Year()<100)
+                tmp.modDate.SetCentury( 19 );
+
+            if (tmp.modDate.Valid()) {
+                tmp.colour = (tmp.modDate > chkDate) ? red : black;
+                auditLst.AddRow( tmp );
+            }
+
+            cpos = p2;
+            if (unique) break;
+        }
+    }
+}
+
+auditLst.OrderBy( "modDate", "desc" );
+auditLst.OrderList();]]>
+</method>
+<method name="getAuditPopup" return="popupMenu">
+<param name="wc" type="wclassview" />
+<![CDATA[//@cmember getAuditPopup
+//@param wclassview | wc |
+//@return classes::core::wpopupmenu |
+//@version Andrew Griffin | 24-05-02 16:05 |
+//@i
+
+methaudit mA[];
+getAudit( mA, wc, 1 );
+
+classes::core::wpopupmenu p;
+
+int oldCol, max = mA.Count();
+if (max) oldCol = mA[0].colour;
+if (max>16) max=16;
+
+for (int i=0; i<max; i++)
+{
+    methAudit m = &mA[i];
+    if (m.colour!=oldCol) p.AddSeparator();
+    p.Add( m.methodName + "\t" + m.modUser, m.methodName );
+    oldCol = m.colour;
+}
+
+return p;]]>
+</method>
+</static>
+<grid bk="224,224,192">
+<row>
+<col rpad="32" bpad="6" align="W" bk="212,208,200" imgtile="8">
+<grid>
+<row>
+<col lpad="12" tpad="4" rpad="12" bpad="1" bk="224,192,128" imgtile="8">
+<Label text="Class Definition" shadc="255,255,255" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="12" />
+</col>
+<col align="W" bkimg="res::faderight.bmp" imgtile="1" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col bpad="32" w="64" align="W" imgtile="8">
+<grid name="idTabs">
+<row>
+<col w="12" align="WV" bkimg="res::tabblank.bmp" imgtile="1" />
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabfront.bmp" imgtile="32">
+<Label text="Class Def." txsel="000000" onClick="doTabClick" param="clsDef" />
+</col>
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabback.bmp" imgtile="32">
+<Label text="Database &amp; SQL" tx="82,73,56" txsel="FFFFFF" onClick="doTabClick" param="dbDef" />
+</col>
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabback.bmp" imgtile="32">
+<Label text="Hierarchy" tx="82,73,56" txsel="FFFFFF" onClick="doTabClick" param="HierDef" />
+</col>
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabback.bmp" imgtile="32">
+<Label text="Form Options" tx="82,73,56" txsel="FFFFFF" onClick="doTabClick" param="FormDef" />
+</col>
+<col lpad="9" tpad="3" rpad="14" w="64" h="22" align="CV" bkimg="res::tabback.bmp" imgtile="32">
+<Label text="Custom" tx="82,73,56" txsel="FFFFFF" onClick="doTabClick" param="custDef" />
+</col>
+<col lpad="8" tpad="6" rpad="8" bpad="6" align="WV" bkimg="res::tabblank.bmp" imgtile="1" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="12" bpad="12" imgtile="8">
+<grid tpad="2" bpad="2" groups="clsDef">
+<row>
+<col rpad="8" align="RV">
+<Label text="Class Name:" />
+</col>
+<col lpad="2" rpad="16" align="W">
+<grid>
+<row>
+<col>
+<Edit name="idClassName" w="400" onChange="SetMod" />
+</col>
+<col lpad="47">
+<CheckBox name="chkUnitTest" text=" Unit Test" img="res::checkbox2.bmp" onClick="SetMod2" v0="0" v1="1" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Base Class:" onClick="openBaseClass" />
+</col>
+<col lpad="2" rpad="16" w="400" align="W">
+<grid>
+<row>
+<col>
+<Edit name="idBaseClass" w="400" onChange="SetMod2" />
+</col>
+<col lpad="3" align="V">
+<Image text="Image" img="grid::p_right.bmp" onClick="browseFile" filetype="xml" bindto="idBaseClass" desc="Base Class" />
+</col>
+<col lpad="30">
+<CheckBox name="idBrowsable" text=" Browsable" img="res::checkbox2.bmp" onClick="SetMod2" v0="0" help="Show base classes is designer browser" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Interfaces:" onClick="openInterfaceClass" />
+</col>
+<col lpad="2" rpad="16" w="500" align="W">
+<grid>
+<row>
+<col align="W">
+<Edit name="idInterfaceClass" w="550" onChange="SetMod2" multi="1" />
+</col>
+<col lpad="3" align="V">
+<Image name="imgInterface" text="Image" img="grid::p_right.bmp" onClick="browseFile" filetype="xml" bindto="idInterfaceClass" desc="Interface Classes" />
+</col>
+<col lpad="16" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV">
+<Label text="Description:" />
+</col>
+<col lpad="2" rpad="33" w="500" align="W">
+<Edit name="idDescription" w="550" onChange="SetMod" multi="1" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV">
+<Label text="Class Reference:" />
+</col>
+<col lpad="2" rpad="33" w="550" align="W">
+<Edit name="idReference" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Help File:" onClick="openHelpFile" groups="HelpControlGroup" hide="Y" />
+</col>
+<col lpad="2" rpad="16" w="500" align="W">
+<grid groups="HelpControlGroup" hide="Y">
+<row>
+<col>
+<Edit name="idHelpFile" w="400" onChange="SetMod2" />
+</col>
+<col align="V">
+<Image text="Image" img="grid::p_right.bmp" onClick="browseFile" filetype="hsc" bindto="idHelpFile" desc="Help File" />
+</col>
+<col lpad="16" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="24" align="RV" />
+<col lpad="2" h="24" />
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV">
+<Label text="Library:" />
+</col>
+<col lpad="2" rpad="16">
+<Edit name="idLibrary" w="200" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV">
+<Label text="Library Help:" />
+</col>
+<col lpad="2" rpad="16">
+<Edit name="idLibraryHelp" w="200" onChange="SetMod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="12" bpad="12" imgtile="8">
+<grid bpad="4" groups="dbDef" hide="Y">
+<row>
+<col rpad="8" align="RV">
+<Label text="SQL Table Name:" onClick="doGetSQL" />
+</col>
+<col rpad="16">
+<grid>
+<row>
+<col rpad="24">
+<Edit name="idSQLName" w="200" onChange="SetMod" />
+</col>
+<col>
+<CheckBox name="idSQLHasDCH" text=" has a DCH table?" img="res::checkbox2.bmp" v1="Y" onClick="doHasDCHClick" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Data Source:" />
+</col>
+<col rpad="16" w="400">
+<Edit name="idDataSource" w="200" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="SQL Alias:" />
+</col>
+<col rpad="16" w="400">
+<Edit name="idSQLAlias" w="200" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV">
+<Label text="SQL Sequence:" />
+</col>
+<col rpad="16" w="400">
+<Edit name="idSQLSeq" w="200" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV">
+<Label text="SQL Join:" />
+</col>
+<col rpad="16" bpad="4" w="400" align="W">
+<Edit name="idSQLJoin" onChange="SetMod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col bpad="12" h="8" align="WH">
+<grid name="idSQLGrid" groups="dbDef" hide="Y">
+<row>
+<col h="1" align="W" bk="0,0,0" />
+</row>
+<row>
+<col lpad="12" tpad="4" rpad="12" bpad="2" align="W" imgtile="8">
+<grid>
+<row>
+<col imgtile="8">
+<Label text="SQL View (updates on save)" shadc="255,255,255" shadx="1" shady="1" shadt="1" font="Arial" style="b" size="10" onClick="showSQL" />
+</col>
+<col align="W" imgtile="8" />
+<col lpad="8" align="V">
+<Label text="&apos;Copy SQL&apos;" style="b" onClick="doCopySQL" />
+</col>
+<col lpad="8">
+<Edit combo="2" bind="dispTyp" pick="dispTypes" onChange="showSQL" />
+</col>
+<col lpad="8">
+<Edit combo="2" bind="dbTyp" pick="dbTypes" onChange="showSQL" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="12" tpad="5" rpad="12" align="WH">
+<SourceEditor name="idSQLView" text="SourceEditor" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="12" bpad="12" imgtile="8">
+<grid bpad="4" groups="HierDef" hide="Y">
+<row>
+<col rpad="8" align="RV">
+<Label text="Hierarchy Image:" />
+</col>
+<col rpad="16" w="400" align="W">
+<grid>
+<row>
+<col align="W">
+<Edit name="idHierImage" onChange="SetMod" />
+</col>
+<col align="V">
+<Image text="Image" img="grid::p_right.bmp" onClick="browseFile" filetype="bmp" bindto="idHierImage" desc="Hierarchy Image" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="8" rpad="8" bpad="4" align="RV">
+<Label text="Hierarchy Image Field:" />
+</col>
+<col rpad="16" bpad="4">
+<Edit name="idHierImageField" w="200" onChange="SetMod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="12" bpad="12">
+<grid bpad="4" groups="FormDef" hide="Y">
+<row>
+<col rpad="8" align="RV">
+<Label text="Caption:" />
+</col>
+<col colspan="3" rpad="16" w="400" align="W">
+<Edit name="idCaption" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Save Position As:" />
+</col>
+<col colspan="3" rpad="16" align="W">
+<grid>
+<row>
+<col rpad="16">
+<Edit name="idSavePos" w="200" onChange="SetMod" />
+</col>
+<col rpad="8" align="RV" />
+<col align="W" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Min Size?:" help="Form is forced to stay larger than it&apos;s minimum size" />
+</col>
+<col colspan="3" rpad="16" align="W">
+<grid>
+<row>
+<col align="W">
+<Edit name="idMinSize" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+<col rpad="8" align="RV" />
+<col align="W" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Min Width:" help="Form is forced to stay larger than it&apos;s minimum size" />
+</col>
+<col colspan="3" rpad="16" align="W">
+<grid>
+<row>
+<col align="W">
+<Edit name="idMinSizeWidth" w="80" onChange="SetMod" numeric="1" />
+</col>
+<col lpad="15" rpad="8" align="RV">
+<Label text="Min Height:" help="Form is forced to stay larger than it&apos;s minimum size" />
+</col>
+<col align="W">
+<Edit name="idMinSizeHeight" w="80" onChange="SetMod" numeric="1" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Icon:" />
+</col>
+<col colspan="3" rpad="16" w="400" align="W">
+<grid>
+<row>
+<col align="W">
+<Edit name="idIcon" onChange="SetMod" />
+</col>
+<col align="V">
+<Image text="Image" img="grid::p_right.bmp" onClick="browseFile" filetype="ico" bindto="idIcon" desc="Window Icon" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Background Image:" />
+</col>
+<col colspan="3" rpad="16" w="400" align="W">
+<grid>
+<row>
+<col align="W">
+<Edit name="idBkImg" onChange="SetMod" />
+</col>
+<col align="V">
+<Image text="Image" img="grid::p_right.bmp" onClick="browseFile" filetype="bmp" bindto="idBKImg" desc="Background Image" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Background Color:" />
+</col>
+<col align="X">
+<grid>
+<row>
+<col align="X">
+<Edit name="idBkColor" w="80" onChange="bgUpdate" />
+</col>
+<col>
+<Button name="idBkColor2" w="20" h="20" onClick="DoBkColor2" />
+</col>
+</row>
+</grid>
+</col>
+<col rpad="8" align="RV">
+<Label text="Margins:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idMargins" w="80" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Sizeable:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idSizeable" w="80" combo="2" pick="YesNoScrollFg" onChange="SetMod" />
+</col>
+<col rpad="8" align="RV">
+<Label text="Tool Window:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idToolWindow" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Accept Files:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idAcceptFiles" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+<col rpad="8" align="RV">
+<Label text="Initially Hidden:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idHidden" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="No Mouse Activate:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idNoActivate" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+<col rpad="8" align="RV">
+<Label text="Topmost Window:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idTopMost" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Thin Frame:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idThinFrame" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+<col rpad="8" align="RV">
+<Label text="On DeActivate:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idCloseOnDeactivate" w="80" combo="2" pick="DeActivateFg" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV">
+<Label text="No Caption:" />
+</col>
+<col rpad="16" bpad="4" align="X">
+<Edit name="idNoCaption" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+<col rpad="8" align="RV">
+<Label text="Close on Escape:" />
+</col>
+<col rpad="16" align="X">
+<Edit name="idEscCancel" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" bpad="4" align="RV" />
+<col rpad="16" bpad="4" align="X" />
+<col rpad="8" bpad="4" align="RV">
+<Label text="Disable Close:" />
+</col>
+<col rpad="16" bpad="4" align="X">
+<Edit name="idDisableClose" w="80" combo="2" pick="YesNoFg" onChange="SetMod" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="12" bpad="12" align="WH" imgtile="8">
+<grid bpad="4" groups="custDef" hide="Y">
+<row>
+<col rpad="4" align="H">
+<grid>
+<row>
+<col bpad="8" align="C">
+<Label text="Custom Attributes:" />
+</col>
+</row>
+<row>
+<col rpad="6" bpad="8" align="R">
+<grid>
+<row>
+<col tpad="2" rpad="8" bpad="2" align="C">
+<Image text="Image" img="grid::add_ctrl.bmp" onClick="AddRow" onrightclick="AddAttr" />
+</col>
+<col align="CV">
+<Image name="idMoveUp" text="Image" img="grid::p_up.bmp" onClick="MoveParam" />
+</col>
+</row>
+<row>
+<col tpad="2" rpad="8" bpad="2" align="C">
+<Image text="Image" img="grid::bin.bmp" onClick="DelRow" />
+</col>
+<col align="CV">
+<Image name="idMoveDown" text="Image" img="grid::p_down.bmp" onClick="MoveParam" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+<col rpad="16" w="300" align="WH">
+<ListBox name="idCustomView" IsList="Y">
+<row>
+<col lpad="8" tpad="4" rpad="16" bpad="4" bk="203,196,167">
+<Label text="Name" header="1" />
+</col>
+<col lpad="8" tpad="4" rpad="16" bpad="4" align="W" bk="203,196,167">
+<Label text="Value" header="1" />
+</col>
+</row>
+<row>
+<col lpad="6" rpad="8" h="18" align="V">
+<Label text="&gt;&gt;" bind="Attr" />
+</col>
+<col lpad="6" rpad="8" h="18" align="XV">
+<Edit w="128" h="18" bind="Value" onChange="setMod" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="12" bpad="12" align="H" imgtile="8">
+<grid bpad="4" groups="AuditDef" hide="Y">
+<row>
+<col rpad="8" align="RV">
+<Label text="Author:" />
+</col>
+<col rpad="16" w="400" align="W">
+<Edit name="idAuthor" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Date:" />
+</col>
+<col rpad="16" w="400" align="W">
+<Edit name="idDate" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" align="RV">
+<Label text="Revision:" />
+</col>
+<col rpad="16" w="400" align="W">
+<Edit name="idRevision" onChange="SetMod" />
+</col>
+</row>
+<row>
+<col rpad="8" h="32" align="RV" />
+<col rpad="16" w="400" align="W" />
+</row>
+<row>
+<col tpad="4" rpad="8" align="R">
+<Label text="Method Audit:" />
+</col>
+<col rpad="16" w="400" align="WH">
+<ListBox name="idAuditView" IsList="Y" list="auditLst" onDoubleClick="doAuditDblClick">
+<row>
+<col lpad="8" tpad="4" rpad="16" bpad="4" bk="225,255,255">
+<Label text="Date" header="1" />
+</col>
+<col lpad="8" tpad="4" rpad="16" bpad="4" bk="225,255,255">
+<Label text="User" header="1" />
+</col>
+<col lpad="8" tpad="4" rpad="16" bpad="4" bk="225,255,255">
+<Label text="Method Name" header="1" />
+</col>
+</row>
+<row>
+<col lpad="8" rpad="16">
+<Label text="&gt;&gt;" bind="modDate" dfmt="dd/mm/yy hm" txfield="colour" bksel="E2E9FE" />
+</col>
+<col lpad="8" rpad="16">
+<Label text="&gt;&gt;" bind="modUser" txfield="colour" bksel="E2E9FE" />
+</col>
+<col lpad="8" rpad="16">
+<Label text="&gt;&gt;" bind="methodName" txfield="colour" bksel="E2E9FE" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="StoreState" cls="string" />
+<rmeth name="RestoreState" cls="string" />
+<rmeth name="ColorToInt" cls="int" />
+<rmeth name="HexToInt" cls="int" />
+<rmeth name="ColToHex" cls="string" />
+<rmeth name="getAuditPopup" cls="popupMenu" />
+</return>
+</form>

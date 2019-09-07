@@ -1,0 +1,484 @@
+<class name="ClassSection" description="Class Section" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:37$" frevision="$Revision: 2$">
+<members>
+<String name="SectionType" />
+<List name="MemberDefs" cls="MemberDef" />
+<List name="Functions" cls="Func" />
+<method name="classsection">
+<![CDATA[//@cmember classsection
+//@version andrew.banyard | 21-04-15 17:02 |
+//@i]]>
+</method>
+<method name="SetTo">
+<param name="X" type="object" />
+<param name="className" type="String" />
+<![CDATA[//@cmember SetTo
+//@param object | X |
+//@param String | className |
+//@version andrew.banyard | 20-05-15 17:10 |
+
+SetOpen(1);
+SetQueried(1);
+SectionType = X.Tag();
+for(int e=0;;e++)  {
+  Object EX = &X.Element(e);
+  if (EX==null)
+    break;
+  if (EX.Tag()=="method")
+    AddMethod(EX, e);
+  else
+    AddMember(EX,e);
+}
+
+if(classes::des::wclassview::SortMembers){
+  Functions.OrderBy("FuncName","asc");
+  //MemberDefs.OrderBy("MemberName","asc"); < Do not sort members as the order is important
+  MemberDefs.OrderList();
+  Functions.OrderList();
+
+  // Move constructor to the top
+  int constructor = -1;
+  if(null!=className){
+    for(int i=0;i<Functions.Count();i++){
+      if(Functions[i].FuncName!=null &&
+         Functions[i].FuncName.tostring().tolower() == className.tostring().tolower()){
+          constructor = i;
+          break;
+      }
+    }
+  }
+
+  if(constructor!=-1){
+    Functions.MoveRow(constructor, 0);
+  }
+}]]>
+</method>
+<method name="AddMethod" return="func">
+<param name="X" type="object" />
+<param name="idx" type="int" />
+<![CDATA[//@cmember AddMethod
+//@param object | X |
+//@param int | idx |
+//@return func |
+//@version Andrew Griffin | 01-07-02 15:18 |
+//@version andrew.banyard | 21-04-15 17:10 |
+
+object f = NULL;
+
+if (idx!=null) f = &Functions.CreateRow( idx );
+    else f = &Functions.CreateRow();
+
+f.SetTo(X);
+f.OriginalFileIndex = idx;
+
+return f;]]>
+</method>
+<method name="AddMember" return="memberdef">
+<param name="X" type="object" />
+<param name="idx" type="int" />
+<![CDATA[//@cmember AddMember
+//@param object | X |
+//@param int | idx |
+//@return memberdef |
+//@version Andrew Griffin | 01-07-02 15:18 |
+//@version andrew.banyard | 21-04-15 17:10 |
+
+object m = NULL;
+
+if (idx!=null) m = &MemberDefs.CreateRow( idx );
+    else m = &MemberDefs.CreateRow();
+
+m.SetTo(X);
+m.OriginalFileIndex =idx;
+
+return m;]]>
+</method>
+<method name="GetXML">
+<param name="X" type="object" />
+<![CDATA[//@cmember GetXML
+//@param object | X |
+//@version andrew.banyard | 27-05-15 11:11 |
+
+X.SetTag(SectionType);
+int n;
+
+// Write out the members in their original order
+
+classes::des::SortItem memberOrderList[];
+for(n=0;n<MemberDefs.Count();n++){
+   classes::des::SortItem item = &memberOrderList.CreateRow();
+   item.Index = n;
+   item.OriginalIndex = MemberDefs[n].OriginalFileIndex;
+}
+
+/*  Do not reorder members
+if(classes::des::wclassview::SortMembers){
+  memberOrderList.OrderBy("OriginalIndex","asc");
+  memberOrderList.OrderList();
+} */
+
+for(n=0;n<memberOrderList.Count();n++){
+    XML EX;
+    X.AddElement(EX);
+    MemberDefs[memberOrderList[n].Index].GetXML(EX);
+}
+
+// Write out the methods in their original order
+classes::des::SortItem functionOrderList[];
+
+for(n=0;n<Functions.Count();n++){
+   classes::des::SortItem item = &functionOrderList.CreateRow();
+   item.Index = n;
+   item.OriginalIndex = Functions[n].OriginalFileIndex;
+}
+
+if(classes::des::wclassview::SortMembers){
+  functionOrderList.OrderBy("OriginalIndex","asc");
+  functionOrderList.OrderList();
+}
+
+for(n=0;n<functionOrderList.Count();n++){
+    XML EX;
+    X.AddElement(EX);
+    Functions[functionOrderList[n].Index].GetXML(EX);
+
+}]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@cmember EventHierRightClick
+//@param object | Hier |
+//@version Andrew Griffin | 09-08-02 11:07 |
+//@version Scott.Goodwin | 11-11-02 18:15 |
+//@version jonathan.muir | 23-12-08 13:54 |
+
+classes::core::wpopupmenu P;
+P.Add("New Member","M","classes::des::res::object.ico");
+P.Add("New Method","F","classes::des::res::method.ico");
+
+string ctyp = clipboard::getTyp();
+if (ctyp.beginswith("MClip")) {
+    P.AddSeparator();
+    ctyp = ctyp.subString( 5 );
+    if (ctyp=="V") ctyp = "Member Variable(s)"; else
+    if (ctyp=="F") ctyp = "Member Functions(s)"; else
+    if (ctyp=="VF") ctyp = "Member Var(s) && Func(s)";
+    P.Add("Paste " + ctyp,"DPaste",classes::core::icons::clipboard_paste);
+}
+
+if (SectionType.eq("members")) {
+    P.AddSeparator();
+
+    classes::core::wpopupmenu PS1;
+    PS1.Add("Start()",                  "Fstart");
+    PS1.Add("onClose()",                "Fclose");
+    PS1.Add("onClosed()",               "Fclosed");
+    PS1.Add("onChildClosed()",          "Fcclosed");
+    PS1.AddSeparator();
+    PS1.Add("onMenu()",                 "Fmenu");
+    PS1.Add("onActivate()",             "Factive");
+    PS1.Add("onDeactivate()",           "Fdeact");
+    PS1.Add("OnWindowResize()",         "Fwindowresize");
+    PS1.Add("OnWindowScroll()",         "Fwindowscroll");
+    P.Add( PS1, "New Form Event" );
+
+    classes::core::wpopupmenu PS2;
+    PS2.Add("onChar()",                 "Fchar");
+    PS2.Add("onCharDown()",             "Fchardown");
+    PS2.Add("onDefaultKey()",           "Fdefault");
+    PS2.Add("onHelp()",                 "Fhelp");
+    P.Add( PS2, "New Keyboard Event" );
+
+    classes::core::wpopupmenu PS4;
+    PS4.Add("onTimer()",                "Ftimer");
+    P.Add( PS4, "New Timer Event" );
+
+    classes::core::wpopupmenu PS3;
+    PS3.Add("EventHierMouseSelect()",   "Fhms");
+    PS3.Add("EventHierDoubleClick()",   "Fhdc");
+    PS3.Add("EventHierRightClick()",    "Fhrc");
+    PS3.Add("EventHierQuery()",         "Fhqr");
+    PS3.Add("EventHierDrop()",          "Fhdp");
+    P.Add( PS3, "New Hierarchy Event");
+
+    classes::core::wpopupmenu PS5;
+    PS5.Add("OnTaskBarClick()",         "Ftbc");
+    PS5.Add("OnTaskBarRightClick()",    "Ftbr");
+    PS5.Add("OnTaskBarDoubleClick()",   "Ftbd");
+    PS5.Add("OnTaskBarInfoClick()",     "Ftbi");
+    P.Add( PS5, "New TaskBar Event");
+
+    classes::core::wpopupmenu PS6;
+    PS6.Add("OnDropFiles()",            "Fdfiles");
+    P.Add( PS6, "New Drag&&Drop Event");
+
+    classes::core::wpopupmenu PS7;
+    PS7.Add("OnWMCopyData()",           "Fwmcopyd");
+    P.Add( PS7, "New Communication Event");
+
+} else {
+    P.AddSeparator();
+
+    classes::core::wpopupmenu PS1;
+    PS1.Add("Main()",                   "Fmain");
+    P.Add( PS1, "New Startup Event" );
+}
+
+String s = P.Track(1);
+
+if (s[0]=='M') {
+    Object NM = &MemberDefs.CreateRow();
+    /*if (s.subString(1)=="paste")
+        NM.setTo( clipboard::getContent() );
+    else*/
+        NM.Init();
+    Hier.SelectRow(NM);
+    NM.EventHierMouseSelect(Hier);  // select itself
+    Hier.GetParent().SetMod(null,1);
+}
+else if (s[0]=='F')
+{
+    Func NF = &Functions.CreateRow();
+    NF.Init();
+
+    switch (s.subString(1)) {
+      case "start" :
+        NF.FuncName = "Start";
+        NF.addParameter( "cmd", "string" );
+        NF.Script += "\r\n\r\n// See:  Open();";
+        break;
+
+      case "close" :
+        NF.FuncName = "onClose";
+        NF.Script += "\r\n\r\n// See:  Close();";
+        break;
+
+      case "closed" :
+        NF.FuncName = "onClosed";
+        break;
+
+      case "cclosed" :
+        NF.FuncName = "onChildClosed";
+        NF.addParameter( "childForm", "form" );
+        break;
+
+      case "active" :
+        NF.FuncName = "onActivate";
+        break;
+
+      case "deact" :
+        NF.FuncName = "onDeactivate";
+        break;
+
+      case "windowresize" :
+        NF.FuncName = "onWindowResize";
+        break;
+
+      case "windowscroll" :
+        NF.FuncName = "onWindowScroll";
+        break;
+
+
+      case "menu" :
+        NF.FuncName = "onMenu";
+        NF.Script += "\r\n\r\nString s = MenuID();";
+        break;
+
+      case "char" :
+        NF.FuncName = "onChar";
+        NF.addParameter( "Key", "int" );
+        NF.addParameter( "State", "int" );
+        NF.addParameter( "Ctrl", "control" );
+        break;
+
+      case "chardown" :
+        NF.FuncName = "onCharDown";
+        NF.addParameter( "Key", "int" );
+        NF.addParameter( "State", "int" );
+        NF.addParameter( "Ctrl", "control" );
+        break;
+
+      case "default" :
+        NF.FuncName = "onDefaultKey";
+        break;
+
+      case "help" :
+        NF.FuncName = "onHelp";
+        break;
+
+      case "timer" :
+        NF.FuncName = "onTimer";
+        NF.Script += "\r\n\r\n// See:  SetTimer( time_in_milliseconds );" +
+                         "\r\n//       KillTimer();";
+        break;
+
+      case "hms" :
+        NF.FuncName = "EventHierMouseSelect";
+        NF.addParameter( "Hier", "hierarchy" );
+        break;
+
+      case "hrc" :
+        NF.FuncName = "EventHierRightClick";
+        NF.addParameter( "Hier", "hierarchy" );
+        break;
+
+      case "hdc" :
+        NF.FuncName = "EventHierDoubleClick";
+        NF.addParameter( "Hier", "hierarchy" );
+        break;
+
+      case "hqr" :
+        NF.FuncName = "EventHierQuery";
+        NF.addParameter( "Hier", "hierarchy" );
+        break;
+
+      case "hdp" :
+        NF.FuncName = "EventHierDrop";
+        NF.addParameter( "Hier", "hierarchy" );
+        break;
+
+      case "tbc" :
+        NF.FuncName = "OnTaskBarClick";
+        break;
+
+      case "tbr" :
+        NF.FuncName = "OnTaskBarRightClick";
+        break;
+
+      case "tbd" :
+        NF.FuncName = "OnTaskBarDoubleClick";
+        break;
+      case "tbi" :
+        NF.FuncName = "OnTaskBarInfoClick";
+        break;
+
+      case "main" :
+        NF.FuncName = "Main";
+        NF.addParameter( "cmd", "string" );
+        break;
+
+      case "dfiles" :
+        NF.FuncName = "onDropFiles";
+        NF.addParameter( "fileList", "stringArray" );
+        break;
+
+      case "Fwmcopyd" :
+        NF.FuncName = "OnWMCopyData";
+        NF.addParameter( "cmd", "string" );
+        NF.addParameter( "val", "int" );
+        break;
+
+      /*case "paste" :
+        NF.setTo( clipboard::getContent() );
+        NF.Caret = 0;
+        break;*/
+
+    }
+
+    Hier.SelectRow(NF);
+    wfuncedit wF = &NF.EventHierMouseSelect(Hier);  // select itself
+    NF.paramsUpdated( wF, 1 ); // update parameter values
+    wF.changeName();
+    Hier.GetParent().SetMod(null,1);
+} else
+if (s=="DPaste") {
+    pasteMembers(Hier);
+}]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[
+Hier.GetParent().EditSection(this);]]>
+</method>
+<method name="GetMemberPop">
+<param name="P" type="object" />
+<param name="path" type="object" />
+<param name="pre" type="object" />
+<![CDATA[
+for(int n=0;n<MemberDefs.Count();n++)
+{
+MemberDefs[n].GetMemberPop(P,path,pre);
+}]]>
+</method>
+<method name="FillMenu">
+<param name="P" type="object" />
+<param name="ClassPath" type="object" />
+<![CDATA[
+for(int n=0;n<MemberDefs.Count();n++)
+{
+MemberDefs[n].FillMenu(P,ClassPath);
+}
+
+return n;]]>
+</method>
+<method name="copySelected">
+<![CDATA[//@cmember copySelected
+//@param
+//@return
+//@version Andrew Griffin | 03-10-01 11:35 |
+//@i
+
+XML cxml;
+cxml.SetTag( "MemberCopy" );
+string vars, funcs;
+
+for (int i=0; i<MemberDefs.count(); i++)
+  if (MemberDefs[i].isselected()) {
+    xml xmbr;
+    MemberDefs[i].GetXML( xmbr );
+    cxml.AddElement( xmbr );
+    vars = "V";
+  }
+
+for (i=0; i<Functions.count(); i++)
+  if (Functions[i].isselected()) {
+    xml xmbr;
+    Functions[i].GetXML( xmbr );
+    cxml.AddElement( xmbr );
+    funcs = "F";
+  }
+
+ClipBoard::setClipboard( "MClip"+vars+funcs, cxml );]]>
+</method>
+<method name="pasteMembers">
+<param name="Hier" type="hierarchy" />
+<param name="idxV" type="int" />
+<param name="idxF" type="int" />
+<![CDATA[//@cmember pasteMembers
+//@param hierarchy | Hier |
+//@param int | idxV |
+//@param int | idxF |
+//@version Andrew Griffin | 01-07-02 15:18 |
+//@i
+
+XML cxml = &clipboard::getContent();
+if (cxml.Tag()!="MemberCopy") return 0;
+
+object lst;
+
+for (int i=0; i<cxml.Count(); i++) {
+    xml EX = &cxml[i];
+    if (EX.Tag()=="method")  {
+        lst = &AddMethod(EX, idxF);
+        if (idxF!=null) idxF++;
+//        Functions.SelectRow( Functions.Count()-1 );
+    }
+    else {
+        lst = &AddMember(EX, idxV);
+        if (idxV!=null) idxV++;
+//        MemberDefs.SelectRow( MemberDefs.Count()-1 );
+    }
+}
+
+if (lst==null) return;
+
+Hier.SelectRow(lst);
+lst.EventHierMouseSelect(Hier);  // select itself
+Hier.GetParent().SetMod(null,1);]]>
+</method>
+</members>
+<static />
+<return>
+<rmeth name="AddMethod" cls="func" />
+<rmeth name="AddMember" cls="memberdef" />
+</return>
+</class>

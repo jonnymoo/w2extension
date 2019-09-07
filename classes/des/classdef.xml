@@ -1,0 +1,432 @@
+<class name="ClassDef" description="Class Definition" HierImage="hClass.bmp" fauthor="$Author: Chris Moran$" fdate="$Date: 31 03 04 11:16$" frevision="$Revision: 3$">
+<members>
+<String name="ClassName" comment="ie Foo" />
+<String name="ClassPath" comment="ie c:\apps\classes\zzz\Foo.xml" />
+<String name="BaseClass" comment="ie classes::FooBase" />
+<String name="InterfaceClass" comment="ie classes::FooBase" />
+<String name="browseBase" />
+<String name="Description" />
+<String name="Library" />
+<String name="LibraryHelp" />
+<String name="HelpFile" comment="classes::HelpFiles::MyHelp.hsc" />
+<String name="Reference" />
+<String name="SQLName" />
+<String name="SQLHasDCH" />
+<String name="DataSource" />
+<String name="SQLAlias" />
+<String name="SQLSeq" />
+<String name="SQLJoin" />
+<String name="HierImage" />
+<String name="HierImageField" />
+<String name="Caption" />
+<String name="SavePos" />
+<String name="Icon" />
+<String name="BkImg" />
+<String name="Bk" />
+<String name="Margin" />
+<String name="Sizeable" pick="WClsDef::YesNoScrollFg" />
+<String name="ToolWindow" pick="WClsDef::YesNoFg" />
+<String name="AcceptFiles" />
+<String name="Hidden" pick="WClsDef::YesNoFg" />
+<String name="NoActivate" pick="WClsDef::YesNoFg" />
+<String name="TopMost" />
+<String name="ThinFrame" />
+<String name="CloseOnDeactivate" />
+<String name="NoCaption" pick="WClsDef::YesNoFg" />
+<String name="EscCancel" pick="WClsDef::YesNoFg" />
+<String name="ImgTile" />
+<String name="FAuthor" />
+<String name="FDate" />
+<String name="FRevision" />
+<String name="minSize" />
+<String name="minSizeWidth" />
+<String name="minSizeHeight" />
+<String name="DisableClose" />
+<List name="Attributes" cls="XMLAttr" hier="N" />
+<List name="Sections" cls="ClassSection" />
+<List name="Grids" cls="Grid" />
+<List name="Menus" cls="MenuRoot" />
+<List name="Disp" cls="DispRoot" />
+<List name="Others" cls="XMLObj" />
+<Integer name="testClass" />
+<method name="SetTo">
+<param name="X" type="object" />
+<![CDATA[//@version Andrew Griffin | 23-05-02 16:48 |
+//@version Simon Carroll | 17-06-03 10:53 |
+//@version Chris Moran | 29-03-04 11:41 |
+//@version Jonathan.Muir | 08-03-06 16:25 |
+//@version Nick Gomm | 25-06-08 15:06 |
+//@version jonathan.muir | 02-12-08 15:11 |
+//@version Jonathan.Muir | 09-09-16 16:10 |
+reset();
+SetOpen(1);
+if (X==null)
+{
+ClassName = "NewClass";
+NewSection("members");
+NewSection("static");
+Grids.CreateRow().SetTo(null);
+return;
+}
+
+for(int n=0;n<X.AttrCount();n++)
+{
+String s = X.AttrName(n);
+String sq = s.lower();
+String v = X.AttrVal(n);
+if      (sq=="name")           ClassName = v;
+else if (sq=="base")           BaseClass = v;
+else if (sq=="interface")      InterfaceClass = v;
+else if (sq=="browsebase")     browseBase = v;
+else if (sq=="description")    Description = v;
+else if (sq=="helpfile")       HelpFile = v;
+else if (sq=="library")        Library = v;
+else if (sq=="libraryhelp" )   LibraryHelp = v;
+else if (sq=="classref")       Reference = v;
+else if (sq=="hierimage")      HierImage = v;
+else if (sq=="hierimagefield") HierImageField = v;
+else if (sq=="sqlname")        SQLName = v;
+else if (sq=="sqlhasdch")      SQLHasDCH = v;
+else if (sq=="datasource")     DataSource = v;
+else if (sq=="sqlalias")       SQLAlias = v;
+else if (sq=="sqlseq")         SQLSeq = v;
+else if (sq=="sqljoin")        SQLJoin = v;
+else if (sq=="caption")        Caption = v;
+else if (sq=="savepos")        SavePos = v;
+else if (sq=="icon")           Icon = v;
+else if (sq=="bkimg")          BkImg = v;
+else if (sq=="bk")             Bk = v;
+else if (sq=="margin")         Margin = v;
+else if (sq=="sizeable")       Sizeable = v;
+else if (sq=="minsize")        MinSize = v;
+else if (sq=="minsizeheight")        MinSizeheight = v;
+else if (sq=="minsizewidth")        MinSizewidth = v;
+else if (sq=="toolwindow")     ToolWindow = v;
+else if (sq=="acceptfiles")    AcceptFiles = v;
+else if (sq=="hidden")         Hidden = v;
+else if (sq=="noactivate")     NoActivate = v;
+else if (sq=="topmost")        TopMost = v;
+else if (sq=="thinframe")      ThinFrame = v;
+else if (sq=="closeondeactivate") CloseOnDeactivate = v;
+else if (sq=="nocaption")      NoCaption = v;
+else if (sq=="esccancel")      EscCancel = v;
+else if (sq=="noclose")        DisableClose = v;
+else if (sq=="fauthor") {
+    FAuthor = v.subString( v.indexOf(":")+1, v.lastIndexOf("$") );
+    FAuthor = FAuthor.trim();
+}
+else if (sq=="fdate") {
+    FDate = v.subString( v.indexOf(":")+1, v.lastIndexOf("$") );
+    FDate = FDate.trim();
+}
+else if (sq=="frevision") {
+    FRevision = v.subString( v.indexOf(":")+1, v.lastIndexOf("$") );
+    FRevision = FRevision.trim();
+}
+else if (sq=="testclass") testClass=v.val();
+else                           AddAttr(s,v);
+}
+
+int gs,gm,gg;
+for(int e=0;;e++)
+{
+Object EX = &X.Element(e);
+if (EX==null) break;
+if      (EX.Tag()=="members") { gm = 1; AddSection(EX); }
+else if (EX.Tag()=="static")  { gs = 1; AddSection(EX); }
+else if (EX.Tag()=="grid")    { gg = 1; Grids.CreateRow().SetTo(EX); }
+else if (EX.Tag().eq("Menu")) { Menus.CreateRow().SetTo(EX); }
+else if (EX.Tag().eq("disp")) { Disp.CreateRow().SetTo(EX); }
+else                          AddXML(EX);
+}
+
+if (!gm) NewSection("members");
+if (!gs) NewSection("static");
+if (!gg) Grids.CreateRow().SetTo(null);]]>
+</method>
+<method name="GetXML">
+<param name="X" type="object" />
+<param name="Win" type="object" />
+<![CDATA[//@version Andrew Griffin | 09-08-02 10:16 |
+//@version Simon Carroll | 17-06-03 10:53 |
+//@version Chris Moran | 29-03-04 11:41 |
+//@version Jonathan.Muir | 08-03-06 16:25 |
+//@version Nick Gomm | 25-06-08 15:06 |
+//@version jonathan.muir | 02-12-08 15:12 |
+//@version Jonathan.Muir | 09-09-16 16:42 |
+X.SetTag("class");
+
+X.AddAttr("name",ClassName);
+if (BaseClass!="")      X.AddAttr("base",BaseClass);
+if (InterfaceClass!="") X.AddAttr("interface",InterfaceClass);
+if (browseBase)         X.AddAttr("browseBase",browseBase);
+if (Description!="")    X.AddAttr("description",Description);
+if (HelpFile!="")       X.AddAttr("helpfile",HelpFile);
+if (Library!="")        X.AddAttr("library",Library);
+if (LibraryHelp!="")    X.AddAttr("libraryHelp",LibraryHelp);
+if (Reference != "")    X.AddAttr("classref",Reference);
+if (SQLName!="")        X.AddAttr("sqlname",SQLName);
+if (SQLHasDCH!="")      X.AddAttr("sqlhasdch",SQLHasDCH);
+if (DataSource)         X.AddAttr("DataSource",DataSource);
+if (SQLAlias!="")       X.AddAttr("sqlalias",SQLAlias);
+if (SQLSeq!="")         X.AddAttr("sqlseq",SQLSeq);
+if (SQLJoin!="")        X.AddAttr("sqljoin",SQLJoin);
+if (HierImage!="")      X.AddAttr("HierImage",HierImage);
+if (HierImageField!="") X.AddAttr("HierImageField",HierImageField);
+if (Caption!="")        X.AddAttr("caption",Caption);
+if (SavePos!="")        X.AddAttr("savepos",SavePos);
+if (Icon!="")           X.AddAttr("icon",Icon);
+if (BkImg!="")          X.AddAttr("bkimg",BkImg);
+
+if (Bk!="")                 X.AddAttr("bk",Bk);
+if (Margin!="")             X.AddAttr("margin",Margin);
+//if (Sizeable && Sizeable!="1")  X.AddAttr("sizeable",Sizeable);
+if (!Sizeable.IsBlank())  X.AddAttr("sizeable",Sizeable);
+if (ToolWindow=="1")        X.AddAttr("toolwindow","1");
+if (AcceptFiles=="1")       X.AddAttr("acceptfiles","1");
+if (Hidden=="1")            X.AddAttr("hidden","1");
+if (NoActivate=="1")        X.AddAttr("noactivate","1");
+if (TopMost=="1")           X.AddAttr("topmost","1");
+if (ThinFrame=="1")         X.AddAttr("thinframe","1");
+if (CloseOnDeactivate)      X.AddAttr("closeondeactivate",CloseOnDeactivate);
+if (NoCaption=="1")         X.AddAttr("nocaption","1");
+if (EscCancel=="1")         X.AddAttr("esccancel","1");
+if (MinSize=="1")           X.AddAttr("minsize", "1");
+if (MinSizeWidth!="")           X.AddAttr("minsizewidth", MinSizeWidth);
+if (MinSizeHeight!="")           X.AddAttr("minsizeheight", MinSizeHeight);
+if (DisableClose=="1")      X.AddAttr("noclose", "1");
+X.AddAttr("fauthor",   "$" + "Author: "   + fAuthor   + "$");
+X.AddAttr("fdate",     "$" + "Date: "     + fDate     + "$");
+X.AddAttr("frevision", "$" + "Revision: " + fRevision + "$");
+if (testClass) X.AddAttr("testclass","1");
+
+int n;
+for(n=0;n<Attributes.Count();n++){
+    Object A = &Attributes[n];
+    if (A.Attr) X.AddAttr(A.Attr,A.Value);
+}
+for(n=0;n<Sections.Count();n++){
+    XML EX;
+    X.AddElement(EX);
+    Sections[n].GetXML(EX);
+}
+for(n=0;n<Grids.Count();n++){
+    Object GX = &Grids[n].GetXML(Win);
+    if (GX.Count()){
+       X.AddElement( GX );
+       X.SetTag("form");
+   }
+}
+for(n=0;n<Menus.Count();n++){
+    XML MX;
+    X.AddElement(MX);
+    Menus[n].GetXML(MX);
+}
+for(n=0;n<Disp.Count();n++){
+    XML MX;
+    X.AddElement(MX);
+    Disp[n].GetXML(MX);
+}
+for(n=0;n<Others.Count();n++){
+    XML ZX;
+    X.AddElement(ZX);
+    Others[n].GetXML(ZX);
+}]]>
+</method>
+<method name="AddSection">
+<param name="X" type="object" />
+<![CDATA[//@version andrew.banyard | 21-04-15 15:58 |
+
+Sections.CreateRow().SetTo(X,ClassName);]]>
+</method>
+<method name="NewSection">
+<param name="nam" type="object" />
+<![CDATA[
+Object S = &Sections.CreateRow();
+S.SectionType = nam;
+S.SetQueried(1);]]>
+</method>
+<method name="AddXML">
+<param name="X" type="object" />
+<![CDATA[
+int pos = Others.NewRow();
+Others[pos].SetTo(X);]]>
+</method>
+<method name="GetMembers">
+<param name="X" type="object" />
+<![CDATA[
+for(int e=0;;e++)
+{
+Object EX = &X.Element(e);
+if (EX==null) break;
+if      (EX.Tag()=="String")  AddMember(EX);
+else if (EX.Tag()=="Integer") AddMember(EX);
+else if (EX.Tag()=="Date")    AddMember(EX);
+else if (EX.Tag()=="method")  AddMethod(EX);
+}]]>
+</method>
+<method name="AddMember">
+<param name="X" type="object" />
+<![CDATA[
+int pos = MemberDefs.NewRow();
+Object MD = &MemberDefs[pos];
+MD.SetTo(X);]]>
+</method>
+<method name="AddMethod">
+<param name="X" type="object" />
+<![CDATA[
+int pos = MemberFuncs.NewRow();
+Object F = &MemberFuncs[pos];
+F.FuncName = X.GetAttr("name");
+for(int e=0;;e++)
+{
+Object EX = &X.Element(e);
+if (EX==null) break;
+if      (EX.Tag()=="param"){
+    int pps = F.Parameters.NewRow();
+    F.Parameters[pps].ParamName = EX.GetAttr("name");
+    }
+else if (EX.Tag()=="CDATA")  F.Script = EX.Content();
+}]]>
+</method>
+<method name="reset">
+<![CDATA[//@version Jonathan.Muir | 08-03-06 16:25 |
+
+ClassName = "";
+BaseClass = "";
+InterfaceClass = "";
+Attributes.Reset();
+Sections.Reset();
+Others.Reset();
+
+/* MemberFuncs.Reset();
+MemberDefs.Reset();
+StaticFuncs.Reset();
+StaticDefs.Reset(); */]]>
+</method>
+<method name="AddAttr">
+<param name="nm" type="object" />
+<param name="valu" type="object" />
+<![CDATA[
+int pos = Attributes.NewRow();
+Attributes[pos].Attr = nm;
+Attributes[pos].Value = valu.toString();]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 15:59 |
+
+classes::core::wpopupmenu P;
+P.Add("Browse Class","BC");
+if (Menus.count()==0) P.Add("New Form Menu","NM");
+if (Disp.count()==0) P.Add("New Hierarchy Display List", "NH");
+String s = P.Track(1);
+
+if (s=="NM") {
+    MenuRoot NM = &Menus.CreateRow();
+    NM.Init();
+    Hier.SelectRow(NM);
+    NM.EventHierMouseSelect(Hier);  // select itself
+    Hier.GetParent().SetMod();
+} else
+
+if (s=="NH") {
+    DispRoot NH = &disp.CreateRow();
+    NH.Init();
+    Hier.SelectRow(NH);
+    NH.EventHierMouseSelect(Hier);  // select itself
+    Hier.GetParent().SetMod();
+} else
+
+if (s=="BC") {
+    int i = classPath.lastIndexOf("\\");
+    object myBrowser = browse::clsBrowser::openAtCursor();
+    myBrowser.OpenVar("object", "this", className, classPath.left(i+1));
+}]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[
+Hier.GetParent().EditClassDef(this);]]>
+</method>
+<method name="GetMemberPop">
+<param name="P" type="object" />
+<param name="path" type="object" />
+<param name="pre" type="object" />
+<![CDATA[//@version Jonathan.Muir | 08-03-06 16:25 |
+
+for(int n=0;n<Sections.Count();n++)
+{
+Sections[n].GetMemberPop(P,path,pre);
+}
+if (BaseClass!="")
+{
+P.Add(".BaseClass..."+BaseClass);
+Dict::GetMemberPop(P,path,BaseClass,pre);
+}]]>
+</method>
+<method name="FillMenu">
+<param name="P" type="object" />
+<![CDATA[
+if (BaseClass)
+{
+//Dict::AddObjectToDynaMenu(P,BaseClass,BaseClass,ClassPath);
+
+Object Cls = Dict::GetAClassDef( BaseClass, ClassPath );
+if (Cls!=null){
+    Cls.FillMenu( P );
+    P.AddSeparator();
+    }
+}
+
+// this class...
+
+for(int n=0;n<Sections.Count();n++)
+{
+Sections[n].FillMenu(P,ClassPath);
+}]]>
+</method>
+<method name="GetMembDef" return="MemberDef">
+<param name="mName" type="object" />
+<param name="checkBase" type="int" />
+<param name="rform" type="wclassview" />
+<![CDATA[
+for(int n=0;n<Sections.Count();n++){
+    ClassSection S = &Sections[n];
+    for(int c=0;c<S.MemberDefs.Count();c++){
+        MemberDef M = &S.MemberDefs[c];
+        if (M.MemberName.eq(mName))
+            return M;
+        }
+    }
+
+if (!checkBase || !baseClass) return null;
+
+// Check base Classes for members!
+
+WClassView tmp;
+string fname = advSearch::classToPath( BaseClass, ClassPath, 0 );
+if (!tmp.ReadFile( fname, 0, 0 )) return null;
+if (tmp.XFile.Classes.count()==0) return null;
+
+return tmp.XFile.Classes[0].GetMembDef( mName, 1, rform );]]>
+</method>
+<method name="GetControlInfo">
+<param name="id" type="object" />
+<![CDATA[
+if (Grids.Count()){
+    return Grids[0].GetControlInfo( id, null );
+    }
+
+return null;]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="ClassName" sfx="... " />
+<e f="ClassPath" />
+</disp>
+<return>
+<rmeth name="GetMembDef" cls="MemberDef" />
+</return>
+</class>

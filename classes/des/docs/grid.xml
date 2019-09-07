@@ -1,0 +1,142 @@
+<class name="Grid" description="W2 Script Reference" base="control">
+<members sub="Cells">
+<method name="GetCell">
+<param name="RowNum" type="into" />
+<param name="ColNum" type="int" />
+<![CDATA[//@cmember GridCell GetCell( into RowNum, int ColNum );
+//@param into | RowNum | 
+//@param int | ColNum | 
+//@return GridCell | 
+//@i 
+]]>
+ />
+</method>
+<method name="MergeCells">
+<param name="Row1" type="int" />
+<param name="Col1" type="int" />
+<param name="Row2" type="int" />
+<param name="Col2" type="int" />
+<![CDATA[//@cmember void MergeCells( int Row1, int Col1, int Row2, int Col2 );
+//@param int | Row1 | 
+//@param int | Col1 | 
+//@param int | Row2 | 
+//@param int | Col2 | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Columns">
+<method name="AddColumn">
+<![CDATA[//@cmember int AddColumn(  );
+//@return int | 
+//@i Returns count of RowCells
+]]>
+ />
+</method>
+</members>
+<members sub="Grid">
+<method name="GetControl">
+<param name="ControlName" type="string" />
+<![CDATA[//@cmember Control GetControl( string ControlName );
+//@param string | ControlName | 
+//@return Control | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetFocus">
+<![CDATA[//@cmember void SetFocus(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetGridSize">
+<param name="Width" type="int" />
+<param name="Height" type="int" />
+<![CDATA[//@cmember void SetGridSize( int Width, int Height );
+//@param int | Width | 
+//@param int | Height | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Rows">
+<method name="AddRow">
+<param name="Position" type="int" />
+<![CDATA[//@cmember GridRow AddRow( int Position );
+//@param int | Position | 
+//@return GridRow | 
+//@i Parameter is optional
+]]>
+ />
+</method>
+<method name="DeleteRow">
+<param name="Position" type="int" />
+<![CDATA[//@cmember void DeleteRow( int Position );
+//@param int | Position | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="DuplicateRow">
+<param name="srcRow" type="int" />
+<param name="instance]" type="[int" />
+<param name="destRow]" type="[int" />
+<![CDATA[//@cmember GridRow DuplicateRow( int srcRow, [int instance], [int destRow] );
+//@param int | srcRow | Index of row to be duplicated
+//@param [int | instance] | 1=Instance any duplicated controls (defaults to 0 - off)
+//@param [int | destRow] | Index of new row to be created (defaults to srcRow+1)
+//@return GridRow | Duplicate a GridRow
+//@i Duplicates a grid row
+]]>
+ />
+</method>
+<method name="GetRow">
+<param name="RowNum" type="int" />
+<![CDATA[//@cmember GridRow GetRow( int RowNum );
+//@param int | RowNum | 
+//@return GridRow | 
+//@i 
+]]>
+ />
+</method>
+<method name="MoveRow">
+<param name="srcRow" type="int" />
+<param name="destRow" type="int" />
+<![CDATA[//@cmember void MoveRow( int srcRow, int destRow );
+//@param int | srcRow | Index of row to be moved
+//@param int | destRow | Index of new position for row after all rows below are moved up
+//@return void | Repositions a grid row on its parent grid
+//@i Repositions a grid row on its parent grid
+]]>
+ />
+</method>
+<method name="RowCount">
+<![CDATA[//@cmember int RowCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="GetCell" cls="GridCell" />
+<rmeth name="MergeCells" cls="void" />
+<rmeth name="AddColumn" cls="int" />
+<rmeth name="GetControl" cls="Control" />
+<rmeth name="SetFocus" cls="void" />
+<rmeth name="SetGridSize" cls="void" />
+<rmeth name="AddRow" cls="GridRow" />
+<rmeth name="DeleteRow" cls="void" />
+<rmeth name="DuplicateRow" cls="GridRow" />
+<rmeth name="GetRow" cls="GridRow" />
+<rmeth name="MoveRow" cls="void" />
+<rmeth name="RowCount" cls="int" />
+</return>
+</class>

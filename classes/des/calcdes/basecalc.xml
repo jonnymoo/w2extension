@@ -1,0 +1,369 @@
+<class name="BaseCalc" fauthor="$Author: $" fdate="$Date: $" frevision="$Revision: $">
+<members>
+<Integer name="m_nRow" />
+<Integer name="m_nCol" />
+<Object name="FileXML" cls="XML" />
+<String name="m_strCalc" />
+<Integer name="m_bRowIsList" />
+<List name="m_SubCalcs" cls="classes::cpicks" />
+<method name="RunCalc">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+
+DisplayCalc();
+AddSubCalcs();
+open();
+
+]]>
+</method>
+<method name="RunSubCalc">
+<param name="TheCalc" />
+<param name="strName" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+DisplayCalc();
+
+classes::cpicks obj;
+obj = &TheCalc.m_SubCalcs.CreateRow();
+obj.code = strName;
+obj.desc = strName;]]>
+</method>
+<method name="LoadCalc">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+Message( "Virtual Function" );]]>
+</method>
+<method name="SaveCalc">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+Message( "Virtual Function" );]]>
+</method>
+<method name="GetListEntry">
+<param name="i" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+Message( "Virtual Function" );]]>
+</method>
+<method name="TestCalc">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+Message( "Virtual Function" );]]>
+</method>
+<method name="DisplayCalc">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+String fn = m_strCalc;
+if (!fn)
+    return;
+File F;
+if (!F.Open(fn,0))
+    return;
+Object B = F.ReadBlob();
+Object X = B.toXMLObject();  // XML
+FileXML = X;
+
+Object GX = X.Element(0);
+LoadGrid(GX);
+
+setText(fn.toLower());
+]]>
+</method>
+<method name="LoadGrid">
+<param name="GX" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+m_nRow = 0;
+// Loop through the rows.
+for ( int n = 0; n < GX.Count(); n++ )
+{
+    Object RX = &GX.Element( n );
+    if ( RX.Tag() == "row" )
+    {
+        ParseRowToCheckIfList( RX );
+        
+        // If this row represents a list, repeat it for
+        // every entry in the list.
+        if ( m_bRowIsList == 1 )
+        {
+            for ( int i = 0; i < GetListCount(); i++ )
+            {
+                GetListEntry( i );
+                AddTheRow( RX );
+            }
+        }
+        // ... otherwise only add it once.
+        else
+            AddTheRow(RX);
+
+    }
+
+}
+
+]]>
+</method>
+<method name="AddTheRow">
+<param name="RX" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+m_bRowIsList = 0;
+Grid.AddRow();
+m_nRow = Grid.RowCount()-1;
+
+// Loop through the columns in the row.
+for ( int nCol = 0; nCol < RX.Count(); nCol++ )
+{
+    m_nCol = nCol;
+    Grid.AddColumn();
+    Object obj=Grid.GetCell( m_nRow,nCol);
+    Object CX = &RX.Element(nCol);
+
+    // Handle the attributes for the cell rather than the text.
+    for ( int i = 0;; i ++ )
+    {
+        if ( CX.AttrName(i) == "" )
+            break;
+        else if ( CX.AttrName(i) == "bk" )
+            Obj.SetBkColor( CX.AttrVal(i) );
+        else if ( CX.AttrName(i) == "align" )
+        {
+            Obj.SetAlign( CX.AttrVal(i) );
+        }
+    }
+    // Loop through the attributes for each cell.
+//            for ( int a = 0; a < CX.count(); a++ )
+int a = 0;
+    {
+        Object CtrlX = &CX.Element(0);
+        if ( ctrlX != null )
+        {
+            String tag = CtrlX.Tag();
+            // If its a label.
+            if ( tag == "Label" )
+            {
+                if ( CtrlX.AttrName(a)=="text" )
+                {
+
+                    obj.SetControl( "label" );
+                    obj.control.settext( ""+CtrlX.AttrVal(a) );
+                }
+
+                // Loop through the attributes.
+                for ( int nAttr = 0;; nAttr++ )
+                {
+                    if ( CtrlX.AttrName(nAttr) != "" )
+                        HandleAttribute( obj, CtrlX.AttrName(nAttr), CtrlX.AttrVal(nAttr) );
+                    else
+                        break;
+                }
+
+           }                
+        }            
+    }
+}
+]]>
+</method>
+<method name="ParseRowtoCheckIfList">
+<param name="RX" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+m_bRowIsList = 0;
+m_nRow = Grid.RowCount()-1;
+
+// Loop through the columns in the row.
+for ( int nCol = 0; nCol < RX.Count(); nCol++ )
+{
+    m_nCol = nCol;
+    Object CX = &RX.Element(nCol);
+    {
+        Object CtrlX = &CX.Element(0);
+        if ( ctrlX != null )
+        {
+            String tag = CtrlX.Tag();
+            // If its a label.
+            if ( tag == "Label" )
+            {
+                // Loop through the attributes.
+                for ( int nAttr = 0;; nAttr++ )
+                {
+                    if ( CtrlX.AttrName(nAttr) == "" )
+                        break;
+
+                    if ( ( CtrlX.AttrName(nAttr) == "CalcList" ) &&
+                         ( CtrlX.AttrVal(nAttr) == "1" ) )
+                    {
+                        m_bRowIsList = 1;
+                        break;
+                    }
+                }
+
+           }                
+        }            
+    }
+}
+]]>
+</method>
+<method name="HandleAttribute">
+<param name="Obj" />
+<param name="strName" />
+<param name="strVal" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+if ( strName == "style" )
+    obj.control.setattr( "style", strVal );
+
+else if ( strName == "size" )
+    obj.control.setattr( "size", strVal );
+
+else if ( strName == "font" )
+    obj.control.SetAttr( "font", strval );
+
+else if ( strName == "source" )
+    CompileAndExecute( strVal );
+
+else if ( strName == "tx" )
+    obj.control.SetAttr( "tx", strval );
+
+else if ( strName == "CalcList" )
+{
+    if ( strVal == "1" )
+        m_bRowIsList = 1;
+}
+]]>
+</method>
+<method name="SetContent">
+<param name="strVal" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+Object obj=Grid.GetCell( m_nRow, m_nCol );
+obj.Control.SetText( strVal );
+]]>
+</method>
+<method name="SetCalc">
+<param name="strCalc" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+m_strCalc = strCalc;]]>
+</method>
+<method name="GetListCount">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+Message( "Virtual Function" );]]>
+</method>
+<method name="AddSubCalcs">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+// Loop through all the sub calcs that have been called and add
+// a reference to them at the bottom.
+for ( int i = 0; i < m_SubCalcs.Count(); i++ )
+{
+    // Add a new row and column to the table.
+    Grid.AddRow();
+    int nRow = Grid.RowCount()-1;
+    int nCol = 0;
+    Grid.AddColumn();
+
+    // Create a label object and if it represents
+    // the first sub calc, give it some padding at the top.
+    Object obj = Grid.GetCell( nRow, nCol );
+    obj.SetControl( "label" );
+    if ( i == 0 )
+        obj.settpad( 10 );
+
+    // Set the labels attributes.
+    obj.control.settext( m_SubCalcs[i].code );
+    obj.control.setattr( "style", "b" );
+    obj.control.SetAttr( "onClick", "SubCalcClicked" );
+}]]>
+</method>
+<method name="SubCalcClicked">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+UsersCalc TheCalc;
+TheCalc.SetCalc( "C:\\dev\\Dev3\\W2\\classes\\Des\\CalcDes\\users.xmc" );
+TheCalc.RunCalc();
+TheCalc.SizeToFit();]]>
+</method>
+</members>
+<static>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+
+/*UsersCalc TheCalc;
+TheCalc.SetCalc( "C:\\Dev3\\W2\\classes\\Des\\CalcDes\\users.xmc" );
+TheCalc.RunCalc();
+TheCalc.SizeToFit();
+*/
+
+TaxCalc TheCalc;
+TheCalc.SetCalc( "C:\\Dev3\\W2\\classes\\Des\\CalcDes\\tax.xmc" );
+TheCalc.m_dSalary = 10000.0;
+TheCalc.m_dBenefits = 1000.0;
+TheCalc.RunCalc();
+TheCalc.SizeToFit();]]>
+</method>
+</static>
+</class>

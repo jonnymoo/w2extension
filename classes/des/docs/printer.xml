@@ -1,0 +1,256 @@
+<class name="Printer" description="W2 Script Reference">
+<members>
+<method name="Circle">
+<param name="x" type="int" />
+<param name="y" type="iny" />
+<param name="r" type="int" />
+<![CDATA[//@cmember void Circle( int x, iny y, int r );
+//@param int | x | 
+//@param iny | y | 
+//@param int | r | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="ColorRect">
+<param name="x" type="int" />
+<param name="y" type="int" />
+<param name="w" type="int" />
+<param name="h" type="int" />
+<param name="RGB" type="int" />
+<![CDATA[//@cmember void ColorRect( int x, int y, int w, int h, int RGB );
+//@param int | x | 
+//@param int | y | 
+//@param int | w | 
+//@param int | h | 
+//@param int | RGB | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CreateFont">
+<param name="Name" type="string" />
+<param name="Size" type="int" />
+<param name="Bold" type="int" />
+<param name="Italic" type="int" />
+<![CDATA[//@cmember void CreateFont( string Name, int Size, int Bold, int Italic );
+//@param string | Name | 
+//@param int | Size | 
+//@param int | Bold | 
+//@param int | Italic | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CreateFontEx">
+<param name="Name" type="string" />
+<param name="Size" type="int" />
+<param name="Bold" type="int" />
+<param name="Italic" type="int" />
+<param name="Under" type="int" />
+<param name="Escape" type="int" />
+<param name="Orient" type="int" />
+<![CDATA[//@cmember void CreateFontEx( string Name, int Size, int Bold, int Italic, int Under, int Escape, int Orient );
+//@param string | Name | 
+//@param int | Size | 
+//@param int | Bold | 
+//@param int | Italic | 
+//@param int | Under | 
+//@param int | Escape | 
+//@param int | Orient | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CreatePen">
+<param name="width" type="int" />
+<param name="RGB" type="int" />
+<param name="penType]" type="[int" />
+<![CDATA[//@cmember void CreatePen( int width, int RGB, [int penType] );
+//@param int | width | Width of pen in pixels (dots)
+//@param int | RGB | Colour of pen
+//@param [int | penType] | 0 = rounded pen (default), 1 = square ended pen
+//@return void | Sets the current printer pen for subsequent drawing
+//@i 
+]]>
+ />
+</method>
+<method name="DC">
+<![CDATA[//@cmember int DC(  );
+//@return int | 
+//@i will be 0 if not valid
+]]>
+ />
+</method>
+<method name="EndDoc">
+<![CDATA[//@cmember void EndDoc(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="EndPage">
+<![CDATA[//@cmember void EndPage(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCaps">
+<param name="Opt" type="string" />
+<![CDATA[//@cmember int GetCaps( string Opt );
+//@param string | Opt | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetTextSize">
+<param name="Text" type="string" />
+<![CDATA[//@cmember int GetTextSize( string Text );
+//@param string | Text | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Line">
+<param name="x1" type="int" />
+<param name="y1" type="int" />
+<param name="x2" type="int" />
+<param name="y2" type="int" />
+<![CDATA[//@cmember void Line( int x1, int y1, int x2, int y2 );
+//@param int | x1 | 
+//@param int | y1 | 
+//@param int | x2 | 
+//@param int | y2 | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="pagesetup">
+<![CDATA[//@cmember null pagesetup(  );
+//@return null | 
+//@i 
+]]>
+ />
+</method>
+<method name="printdialog">
+<![CDATA[//@cmember void printdialog(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="PrintObject">
+<param name="o1" type="object" />
+<param name="" type="...." />
+<![CDATA[//@cmember int PrintObject( object o1, .... );
+//@param object | o1 | 
+//@param .... |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="printSetup">
+<![CDATA[//@cmember String printSetup(  );
+//@return String | The name of the printer selected
+//@i Displays print setup dialog e.g. printer selection, page layout, paper
+]]>
+ />
+</method>
+<method name="SetBkColor">
+<param name="RGB" type="int" />
+<![CDATA[//@cmember void SetBkColor( int RGB );
+//@param int | RGB | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetBkMode">
+<param name="Mode" type="int" />
+<![CDATA[//@cmember void SetBkMode( int Mode );
+//@param int | Mode | 
+//@return void | 
+//@i  Mode : 1 = OPAQUE, 0 = TRANSPARENT
+]]>
+ />
+</method>
+<method name="setPrinter">
+<param name="PrinterName" type="string" />
+<![CDATA[//@cmember void setPrinter( string PrinterName );
+//@param string | PrinterName | Name of the printer to be used
+//@return void | Set the destination printer by name
+//@i Set the destination printer by name
+]]>
+ />
+</method>
+<method name="SetTextColor">
+<param name="RGB" type="int" />
+<![CDATA[//@cmember void SetTextColor( int RGB );
+//@param int | RGB | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="StartDoc">
+<![CDATA[//@cmember void StartDoc(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="StartPage">
+<![CDATA[//@cmember void StartPage(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="TextOut">
+<param name="x" type="int" />
+<param name="y" type="int" />
+<param name="Text" type="string" />
+<![CDATA[//@cmember void TextOut( int x, int y, string Text );
+//@param int | x | 
+//@param int | y | 
+//@param string | Text | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Circle" cls="void" />
+<rmeth name="ColorRect" cls="void" />
+<rmeth name="CreateFont" cls="void" />
+<rmeth name="CreateFontEx" cls="void" />
+<rmeth name="CreatePen" cls="void" />
+<rmeth name="DC" cls="int" />
+<rmeth name="EndDoc" cls="void" />
+<rmeth name="EndPage" cls="void" />
+<rmeth name="GetCaps" cls="int" />
+<rmeth name="GetTextSize" cls="int" />
+<rmeth name="Line" cls="void" />
+<rmeth name="pagesetup" cls="null" />
+<rmeth name="printdialog" cls="void" />
+<rmeth name="PrintObject" cls="int" />
+<rmeth name="PrintSetup" cls="String" />
+<rmeth name="SetBkColor" cls="void" />
+<rmeth name="SetBkMode" cls="void" />
+<rmeth name="setPrinter" cls="void" />
+<rmeth name="SetTextColor" cls="void" />
+<rmeth name="StartDoc" cls="void" />
+<rmeth name="StartPage" cls="void" />
+<rmeth name="TextOut" cls="void" />
+</return>
+</class>

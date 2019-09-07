@@ -1,0 +1,369 @@
+<form name="cwgridlist" fauthor="$Author: Andrew.broad $" fdate="$Date: 10/03/03 11:53 $" frevision="$Revision: 2 $">
+<members>
+<Integer name="nocols" />
+<Integer name="itemcount" />
+<Integer name="multiselecting" />
+<String name="rightClickEvent" cattr="Y" />
+<String name="selectEvent" cattr="Y" />
+<Integer name="init" />
+<method name="OnOverItem">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember OnOverItem
+//@param label | ctrl |
+//@version Andrew.Barrett | 09-10-02 12:41 |
+//@i
+
+int nIndex=ctrl.GetControlAttr("index").val();
+HighlightItem(nIndex);]]>
+</method>
+<method name="OnOutItem">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember OnOutItem
+//@param label | ctrl |
+//@version Andrew.Barrett | 09-10-02 12:41 |
+//@i
+
+int nIndex=ctrl.GetControlAttr("index").val();
+UnHighlightItem(nIndex);]]>
+</method>
+<method name="OnClickItem">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember OnClickItem
+//@param label | ctrl |
+//@version Andrew.Barrett | 09-10-02 12:33 |
+//@i
+
+if (!multiselecting)
+    ClearSelections();
+
+int nSelected=ctrl.GetControlAttr("selected").val();
+
+if (!nSelected)
+{
+    int nIndex=ctrl.GetControlAttr("index").val();
+    SelectItem(nIndex);
+}
+else
+{
+    int nIndex=ctrl.GetControlAttr("index").val();
+    UnSelectItem(nIndex);
+}
+
+if (getParent()!=null && selectEvent)
+{
+
+    if (!getParent().HasMethod(selectEvent))
+        message("Form doesn't have select event handler: " + selectEvent);
+    else
+    {
+        getParent().ExecMethod(selectEvent,ctrl.GetControlAttr("code"));
+    }
+}
+UpdateWindow();]]>
+</method>
+<method name="OnRightClickItem">
+<param name="ctrl" type="label" />
+<![CDATA[//@cmember OnRightClickItem
+//@param label | ctrl |
+//@version Andrew.Barrett | 09-10-02 12:33 |
+//@i
+
+if (getParent()!=null && rightClickEvent)
+{
+
+    if (!getParent().HasMethod(rightClickEvent))
+        message("Form doesn't have right click event handler: " + rightClickEvent);
+    else
+    {
+        getParent().ExecMethod(rightClickEvent,ctrl.GetControlAttr("code"));
+    }
+}
+
+UpdateWindow();]]>
+</method>
+<method name="AddItem">
+<param name="code" type="string" />
+<param name="description" type="string" />
+<param name="icon" type="string" />
+<![CDATA[//@cmember AddItem
+//@param string | code |
+//@param string | description |
+//@param string | icon |
+//@version Andrew.Barrett | 09-10-02 12:32 |
+//@i
+
+// Initialize if neccesary
+if (!init)
+{
+    if (GetOuterControl()!=null)
+    {
+        nocols=GetOuterControl().GetControlAttr("nocols").val();
+        if (!nocols) nocols=3;
+
+        rightClickEvent=GetOuterControl().GetControlAttr("onrightclick");
+        selectEvent=GetOuterControl().GetControlAttr("onselect");
+    }
+
+    idGrid.SetGridSize((nocols*2)+2,1);
+
+    init=1;
+}
+
+// Do we need to add a new row
+int nLastRow=itemCount/nocols;
+int nThisRow=(itemCount+1)/nocols;
+if (nThisRow>nLastRow)
+    idGrid.AddRow();
+
+// Get the cells
+gridCell textCell=&GetTextCell(itemcount);
+gridCell imageCell=&GetImageCell(itemcount);
+
+if (textCell==null || imageCell==null) return(0);
+
+ItemCount++;
+
+// Setup the text
+textCell.setLPad(3);
+textCell.setRPad(20);
+label textControl=&textCell.setControl("label");
+textControl.SetAttr("onmouseover","OnOverItem");
+textControl.SetAttr("onmouseout","OnOutItem");
+textControl.SetAttr("onClick","OnClickItem");
+textControl.SetAttr("onRightClick","OnRightClickItem");
+textControl.sethighlightcolor(sys::RGB(0,0,0));
+textControl.InstanceControl();
+textControl.SetText(description);
+textControl.SetAttr("code",code);
+textControl.SetAttr("index",(itemcount-1)+"");
+
+// Setup the image
+if (icon)
+{
+    image imageControl=&imageCell.setControl("image");
+    imageControl.SetAttr("img",icon);
+    textControl.SetAttr("code",code);
+    textControl.SetAttr("index",(itemcount-1)+"");
+    imageControl.InstanceControl();
+}
+
+
+FitRecursive();]]>
+</method>
+<method name="HighlightItem">
+<param name="index" type="int" />
+<![CDATA[//@cmember HighlightItem
+//@param int | index |
+//@version Andrew.Barrett | 09-10-02 12:42 |
+//@i
+
+if (IsSelected(index)) return(0);
+
+gridCell textCell=&GetTextCell(index);
+if (textCell==null || textCell.Control==null) return(0);
+
+textCell.control.setBkColor(0xF2F2F2);]]>
+</method>
+<method name="UnHighlightItem">
+<param name="index" type="int" />
+<![CDATA[//@cmember UnHighlightItem
+//@param int | index |
+//@version Andrew.Barrett | 09-10-02 12:40 |
+//@i
+
+if (IsSelected(index)) return(0);
+
+gridCell textCell=&GetTextCell(index);
+if (textCell==null || textCell.Control==null) return(0);
+
+textCell.control.setBkColor(sys::rgb(255,255,255));]]>
+</method>
+<method name="SelectItem">
+<param name="index" type="int" />
+<![CDATA[//@cmember SelectItem
+//@param int | index |
+//@version Andrew.Barrett | 09-10-02 10:51 |
+//@i
+
+gridCell textCell=&GetTextCell(index);
+if (textCell==null || textCell.Control==null) return(0);
+
+textCell.control.SetAttr("selected","1");
+textCell.control.setBkColor(sys::rgb(10,36,106));
+textCell.control.setTxColor(sys::rgb(255,255,255));
+textCell.control.sethighlightcolor(sys::rgb(255,255,255));]]>
+</method>
+<method name="UnSelectItem">
+<param name="index" type="int" />
+<![CDATA[//@cmember UnSelectItem
+//@param int | index |
+//@version Andrew.Barrett | 09-10-02 10:51 |
+//@i
+
+
+gridCell textCell=&GetTextCell(index);
+if (textCell==null || textCell.Control==null) return(0);
+
+textCell.Control.setBkColor(sys::rgb(255,255,255));
+textCell.Control.setTxColor(sys::rgb(0,0,0));
+textCell.Control.sethighlightcolor(sys::rgb(0,0,0));
+textCell.Control.SetAttr("selected","0");]]>
+</method>
+<method name="GetTextCell" return="GridCell">
+<param name="index" type="int" />
+<![CDATA[//@cmember GetTextCell
+//@param int | index |
+//@return GridCell |
+//@version Andrew.Barrett | 09-10-02 12:02 |
+//@i
+
+if (index>itemCount) return(null);
+
+int nRow=(index/nocols);
+int nCol=((index-(nRow*nocols))*2)+1;
+
+return(idGrid.GetCell(nRow,nCol));]]>
+</method>
+<method name="GetImageCell" return="GridCell">
+<param name="index" type="int" />
+<![CDATA[//@cmember GetImageCell
+//@param int | index |
+//@return GridCell |
+//@version Andrew.Barrett | 09-10-02 12:02 |
+//@i
+
+if (index>itemCount) return(null);
+
+int nRow=(index/nocols);
+int nCol=((index-(nRow*nocols))*2);
+
+return(idGrid.GetCell(nRow,nCol));]]>
+</method>
+<method name="ClearSelections">
+<![CDATA[//@cmember ClearSelections
+//@version Andrew.Barrett | 09-10-02 00:17 |
+//@i
+
+for (int nIndex=0; nIndex<itemcount; nIndex++)
+    UnSelectItem(nIndex);]]>
+</method>
+<method name="ResetList">
+<![CDATA[//@cmember ResetList
+//@version Andrew.Barrett | 18-11-02 14:40 |
+//@i
+
+// Delete current menu
+for(int y=idGrid.RowCount()-1; y>=0; y--)
+    idGrid.DeleteRow(y);
+
+itemcount=0;
+init=0;
+
+FitRecursive();]]>
+</method>
+<method name="IsSelected">
+<param name="index" type="int" />
+<![CDATA[//@cmember IsSelected
+//@param int | index |
+//@version Andrew.Barrett | 09-10-02 12:37 |
+//@i
+
+if (index>itemCount) return(-1);
+
+gridCell textCell=&GetTextCell(index);
+
+if (textcell.Control.GetControlAttr("selected").val()==1)
+    return(1);
+else
+    return(0);]]>
+</method>
+<method name="StartMultiSelect">
+<![CDATA[//@cmember StartMultiSelect
+//@version Andrew.Barrett | 09-10-02 12:45 |
+//@i
+
+
+multiselecting=1;]]>
+</method>
+<method name="EndMultiSelect">
+<![CDATA[//@cmember EndMultiSelect
+//@version Andrew.Barrett | 09-10-02 12:45 |
+//@i
+
+
+multiselecting=0;]]>
+</method>
+<method name="GetSelectedList">
+<![CDATA[//@cmember GetSelectedList
+//@version Andrew.Barrett | 09-10-02 12:48 |
+//@i
+
+string sResults;
+
+for (int nControl=0;;nControl++)
+{
+    control thisControl=&GetControl(nControl);
+    if (thisControl==null) break;
+
+    if (thisControl.GetControlAttr("selected")=="1")
+        sResults.AddToken(thisControl.GetControlAttr("code"));
+
+}
+
+return(sResults);]]>
+</method>
+<method name="GetItemList">
+<![CDATA[//@cmember GetItemList
+//@version Andrew.Barrett | 18-11-02 17:38 |
+//@i
+
+string sText;
+
+for (int nIndex=0; nIndex<itemcount; nIndex++)
+{
+
+    gridCell textCell=&GetTextCell(nIndex);
+    if (textCell==null || textCell.Control==null) continue;
+
+    sText.AddToken(textCell.Control.getText());
+
+}
+
+return(sText);]]>
+</method>
+</members>
+<static>
+<method name="main">
+<![CDATA[//@cmember main
+//@version Andrew.Barrett | 09-10-02 10:24 |
+//@i
+
+cwuserlb test;
+test.init(5);
+
+for (int nCount=0; nCount<100; nCount++)
+    test.Additem("Test"+nCount,"Test"+nCount,"classes::resource::telephony::luser.bmp");
+
+
+
+test.FitRecursive();]]>
+</method>
+</static>
+<grid>
+<row>
+<col>
+<grid name="idGrid">
+<row>
+<col />
+</row>
+</grid>
+</col>
+<col />
+<col w="100" h="100" />
+</row>
+</grid>
+<return>
+<rmeth name="GetTextCell" cls="GridCell" />
+<rmeth name="GetImageCell" cls="GridCell" />
+</return>
+</form>

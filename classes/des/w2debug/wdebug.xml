@@ -1,0 +1,74 @@
+<form name="wdebug" caption="Class State Browser" savepos="obElmPos" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:42 $" frevision="$Revision: 2 $">
+<members>
+<Object name="obj" cls="obElm" />
+<method name="disp">
+<param name="ob" type="object" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+obElm oE = &obj.elements.CreateRow();
+
+string fname = ob.class().ClassName();
+if (fname.indexOf("http://",0,1)>=0) {
+    fname = fname.subString( fname.indexOf("classes/",0,1) );
+    fname = fname.replace("/", "::");
+    fname = sys::MakeFullName( path(), fname );
+}
+
+oE.typ = fname;
+oE.Icon = "::hobject.bmp";
+oE.padding = "    ";
+oE.Name = "this";
+
+setText( fname );
+oE.SetTo( ob );
+oE.SetOpen( 1 );
+]]>
+</method>
+<method name="w2askClose">
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+return 0;   // not allowed to close this window.]]>
+</method>
+</members>
+<static>
+<method name="debug">
+<param name="ob" type="object" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+wdebug d;
+d.open();
+d.disp(ob);]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col align="WH">
+<Hierarchy name="idHier" text="Hierarchy" bind="obj" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

@@ -1,0 +1,123 @@
+<class name="globalFile" fauthor="$Author: Nick.g $" fdate="$Date: 17/09/02 14:18 $" frevision="$Revision: 3 $">
+<members />
+<static>
+<String name="offsetPath" />
+<method name="Path_To_FullRef" return="string">
+<param name="path" type="string" />
+<![CDATA[//@cmember Path_To_FullRef
+//@param string | path | i.e. "c:\\w2\\classes\\cpicks.xml"
+//@return string | i.e. "classes::cpicks"
+//@version Andrew Griffin | 13-08-02 17:00 |
+//@i
+
+if (!offsetpath)
+{
+    offsetPath = classname();
+    offsetPath = offsetPath.left( offsetPath.lastIndexOf( "classes", offsetPath.length(), 1 ) );
+}
+
+return strip_Extension( sys::MakeRelativeName( offsetPath, path ) );]]>
+</method>
+<method name="Ref_To_FullRef" return="string">
+<param name="classRef" type="string" />
+<param name="basePathRef" type="string" />
+<![CDATA[//@cmember Ref_To_FullRef
+//@param string | classRef | xml::globalxml
+//@param string | basePathRef | classes::core
+//@return string | "classes::core::xml::globalxml"
+//@version Andrew Griffin | 13-08-02 17:00 |
+
+basePathRef = sys::MakeFullName( path(), basePathRef );
+classRef = sys::MakeFullName( basePathRef, classRef );
+
+return Path_To_FullRef( classRef );]]>
+</method>
+<method name="strip_Extension" return="string">
+<param name="path" type="string" />
+<![CDATA[//@cmember strip_Extension
+//@param string | path | i.e. "c:\\w2\\classes\\cpicks.xml" or "classes::cpicks.xml"
+//@return string | i.e. "c:\\w2\\classes\\cpicks" or "classes::cpicks"
+//@i Strips a path string of its extension
+//@version Andrew Griffin | 13-08-02 17:00 |
+
+int i = path.length()-4;
+i = path.indexOf( ".", i );
+
+if (i==-1) return path;
+
+return path.left( i );]]>
+</method>
+<method name="Get_File_Attributes" return="FileFinder">
+<param name="filename" type="string" />
+<![CDATA[//@cmember Get_File_Attributes
+//@param string | filename |
+//@version Andrew Griffin | 13-08-02 17:00 |
+//@return FileFinder | Null if file not found else a filefinder object populated with files attributes
+
+FileFinder FF = &sys::NewFileFinder();
+if (!FF.FindFirst( filename )) return null;
+
+return FF;]]>
+</method>
+<method name="Exist" return="int">
+<param name="filename" type="string" />
+<![CDATA[//@cmember Exist
+//@param string | filename | name of file/folder to locate
+//@return int | 1 if file/folder exists, 0 if it does not
+//@version Andrew Griffin | 14-08-02 09:36 |
+
+if (filename.endsWith( "\\" )) filename = filename.left( filename.length()-1 );
+
+return Get_File_Attributes( filename ) != null;]]>
+</method>
+<method name="Create_Path" return="int">
+<param name="fullPath" type="string" />
+<![CDATA[//@cmember Create_Path
+//@param string | fullPath | of form "c:\tempPath\myPath"
+//@return int | 1 if path created succesfully, 0 if failed, -1 if already exists
+//@version Andrew Griffin | 14-08-02 09:36 |
+
+if (!fullPath.endsWith("\\")) fullPath += "\\";
+
+if (Exist( fullpath.left( fullpath.length() - 1 ) )) return -1;
+
+int i=fullPath.indexof(":\\")+1;
+while (1)
+{
+    i = fullPath.indexof( "\\", i+1 );
+    if (i==-1) break;
+    file::CreateDir( fullPath.left( i ) );
+}
+
+return Exist( fullpath );]]>
+</method>
+<method name="GetExtension">
+<param name="filename" type="string" />
+<![CDATA[//@cmember GetExtension
+//@param string | filename |
+//@version Nick.Gomm | 17-09-02 14:10 |
+//@i
+
+// replace forward slash
+filename = filename.replace("/","\\");
+
+// find last backslash
+int lastbackslash = filename.lastindexof("\\");
+
+// get last dot
+int lastdot = filename.lastindexof(".");
+
+// if lastdot before last backslash then it is not part of extension
+if (lastdot<lastbackslash) return "";
+else return filename.substring(lastdot+1);]]>
+</method>
+</static>
+<return>
+<rmeth name="Path_To_FullRef" cls="string" />
+<rmeth name="Ref_To_FullRef" cls="string" />
+<rmeth name="strip_Extension" cls="string" />
+<rmeth name="Get_File_Attributes" cls="FileFinder" />
+<rmeth name="Exist" cls="int" />
+<rmeth name="Create_Path" cls="int" />
+</return>
+</class>

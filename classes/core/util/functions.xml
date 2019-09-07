@@ -1,0 +1,495 @@
+<form name="Functions" description="Utility Functions" hidden="1" fauthor="$Author: Simon.c $" fdate="$Date: 28/11/01 13:29 $" frevision="$Revision: 4 $">
+<members />
+<static>
+<List name="CallTypeList" cls="classes::client::calltype" />
+<String name="Area" />
+<method name="GetCallTypeList">
+<![CDATA[//@version Simon Carroll | 27-11-01 16:53 |
+
+return(classes::client::calltype::GetDocTypeList(0));]]>
+</method>
+<method name="GetCallTypeListPt2">
+<param name="X" type="object" />
+<![CDATA[//@cmember GetCallTypeListPt2
+//@param object | X |
+//@version Andrew.Broad | 05-11-01 14:04 | Now calls calltype::SetTo()
+for(int n=0;;n++)
+{
+
+    XML Z = &X.Element(n);
+    if (Z==null)
+        return(1);
+
+    if (Z.Tag()=="Area")
+    {
+
+        Area=Z.GetAttr("name");
+        GetCallTypeListPt2(Z);
+    }
+
+    else if (Z.Tag()=="CallType")
+    {
+        Object newType = &CallTypeList.CreateRow();
+        newType.SetTo( Z ); // Sets call type attributes from XML object
+    }
+}]]>
+</method>
+<method name="SelectTab">
+<param name="TabGrid" />
+<param name="Control" />
+<![CDATA[
+// Flip the tab selection
+
+// Params
+
+// TabGrid - Grid Containing the tab buttons (labels)
+// Control - The selected tab button
+
+// Set the images for all tabs to unselected initially
+for(int n=0;;n++)
+{
+    Object C = TabGrid.GetCell( 0, n );
+
+    // Finished ?
+    if (C == Null) break;
+
+    // Has control ?
+    if (C.Control == Null) continue;
+
+    // Set the cell image and font colour
+    C.SetBkImg("classes::workers::util::tab_blue.bmp");
+    C.Control.SetTxColor(0xFFFFFF);
+    C.Control.SetHighlightColor( 0xFFFF00 );
+}
+
+// Select the tab (image and font colour)
+Control.SetCellBkImg("classes::workers::util::tab_sel.bmp");
+Control.SetTxColor(0);
+Control.SetHighlightColor(0);]]>
+</method>
+<method name="IsClass">
+<param name="F" />
+<param name="ClassName" />
+<![CDATA[
+// This method checks if F (Control, Form etc) is
+// of the class type passed as a param
+
+// Get the length of the class name
+int l = ClassName.length();
+
+// Compare
+return (F.ClassName().Right(l).Upper() == ClassName.Upper());]]>
+</method>
+<method name="HasParentClass">
+<param name="F" />
+<param name="ClassName" />
+<![CDATA[
+// Params
+
+// F            - Control, Form etc
+// ClassName    - Parent Class Name
+
+// Determines if the passed class is a parent of the object
+
+// Get the parents
+Object P = F.GetParent();
+
+while (P != NULL)
+{
+    // Is the parent of this class
+    if (IsClass(P, ClassName)) return 1;
+
+    // Get next level
+    P = P.GetParent();
+}
+
+// Not found
+return 0;]]>
+</method>
+<method name="BroadCast">
+<param name="Message" />
+<param name="P1" />
+<param name="P2" />
+<param name="P3" />
+<param name="P4" />
+<param name="P5" />
+<![CDATA[
+// Get all open windows
+int i;
+
+while (1)
+{
+    // Get next window
+    Object F = Sys::GetOpenWindow(i);
+    if (F == NULL) break;
+
+    // Check if this window has the required method
+    if (F.HasMethod(Message))
+    {
+        // Execute the method passing the parameters
+        F.ExecMethod(Message, P1, P2, P3, P4, P5);
+    }
+
+    // Now check for components and multipanes - They may also have the method in their class
+    for (int j=0;j<F.ControlCount();j++)
+    {
+        Object C = F.GetControl(j);
+        Traverse(C, Message, P1, P2, P3, P4, P5);
+    }
+
+    // Next window
+    i++;
+}]]>
+</method>
+<method name="Traverse">
+<param name="F" />
+<param name="Message" />
+<param name="P1" />
+<param name="P2" />
+<param name="P3" />
+<param name="P4" />
+<param name="P5" />
+<![CDATA[
+// Check control type
+if (F.isType("MultiPane"))
+{
+    // Multipane control - Check all panes for method name
+    int i = 0;
+    while (1)
+    {
+        // Get the next pane
+        Object P = F.GetPane(i);
+        if (P == NULL) break;
+
+        // Has the pane got the required method
+        if (P.HasMethod(Message))
+        {
+            // Execute the method passing the parameters
+            P.ExecMethod(Message, P1, P2, P3, P4, P5);
+        }
+
+        // Traverse all the controls - Some may be components or other multipanes
+        // Now check for sub-components etc
+        int j = 0;
+        Object C = P.GetControl(i);
+        while (C != NULL)
+        {
+           Traverse(C, Message, P1, P2, P3, P4, P5);
+           i++;
+           C = P.GetControl(i);
+        }
+
+        // Get next pane
+        i++;
+    }
+}
+else if (F.isType("Component"))
+{
+    // Check that the component is loaded
+    if (F.CompClass() != "")
+    {
+        // Has the component class got the required method
+        if (F.HasMethod(Message))
+        {
+            // Execute the method passing the parameters
+            F.ExecMethod(Message, P1, P2, P3, P4, P5);
+        }
+
+        // Now check for sub-components etc
+        int i = 0;
+        Object C = F.GetControl(i);
+        while (C != NULL)
+        {
+           Traverse(C, Message, P1, P2, P3, P4, P5);
+           i++;
+           C = F.GetControl(i);
+        }
+    }
+}]]>
+</method>
+<method name="ChooseFile">
+<param name="Mode" />
+<param name="Folder" />
+<param name="FileTypes" />
+<![CDATA[
+// Opens a file chooser dialog
+
+// Params
+
+// Folder - Start Folder for search
+// File Types - File Types in format - Type|*.ext
+
+// Set the search path
+File::SetCurrentDirectory(Folder);
+
+// Open a form for the dialog to use
+Object O = CreateInstance();
+
+String FileName;
+
+// Check mode
+if ((mode.lower() == "open") || (Mode == ""))
+{
+    // Open up the open dialog
+    FileName =  O.GetOpenFileName("Open File",FileTypes,"");
+}
+else
+{
+    // Open up the save dialog
+    FileName = O.GetSaveFileName("Open File",FileTypes,"");
+}
+
+// Close Form
+O.Close();
+
+// Return File Name
+return FileName;]]>
+</method>
+<method name="DecryptFilestring">
+<param name="Filename" />
+<![CDATA[// Document number compression algorithm for use with OCR integration
+
+// Inputs - Filename
+
+// This is the encoding string
+string CharString = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+// This is the encoding base (62 if using the string above)
+int Base = CharString.length();
+
+string ResString = Filename.left(8);
+string Char;
+int idx;
+int mult;
+
+int batchno = 0;
+int batchindex = 0;
+
+for (int i=0;i<=(ResString.length()-3);i++)
+{
+    // Get the character
+    //Char = Mid$(ResString, len(ResString)-i-3, 1);
+    Char = ResString.substring(ResString.length()-i-3, ResString.length()-i-2);
+
+    //idx = FindSubString(CharString, Char, 0);
+    idx = CharString.indexOf( Char, 0, 0 );
+
+    mult = 1;
+    for(int j=1;j<=i;j++)
+    {
+        mult = mult * Base;
+    }
+
+    batchno = batchno + (mult*idx);
+}
+
+for (i=0;i<=1;i++)
+{
+    // Get the character
+    //Char = Mid$(ResString, len(ResString)-i-1, 1)
+    Char = ResString.substring(ResString.length()-i-1, ResString.length()-i);
+
+    //idx = FindSubString(CharString, Char, 0);
+    idx = CharString.indexOf( Char, 0, 0 );
+
+    mult = 1;
+    for(int j=1;j<=i;j++)
+    {
+        mult = mult * Base;
+    }
+
+    batchindex = batchindex + (mult*idx);
+}
+
+string batchnoSTR = "000000000" + batchno;
+string batchindexSTR = "00000" + batchindex;
+
+return (batchnoSTR.right(9) + batchindexSTR.right(5));]]>
+</method>
+<method name="GetTopParent">
+<param name="CallingClass" />
+<![CDATA[// Find the top level form that the calling form is on
+
+Object Child = CallingClass;
+Object Par;
+
+while(1)
+{
+    Par = Child.GetParent();
+    if (Par == NULL)
+    {
+        return Child;
+    }
+    else
+    {
+        Child = Par;
+    }
+}]]>
+</method>
+<method name="InitialiseForm">
+<param name="F" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+// Broadcast the 'SetLabels' message to all members of a the passed form
+SetLabels(F);
+
+// Broadcast the 'Init' message to all members of a the passed form
+FormInit(F);]]>
+</method>
+<method name="SetLabels">
+<param name="F" />
+<![CDATA[//@cmember SetLabels
+//@param
+//@return
+//@version 1.0
+//@i       Broadcasts a 'SetLabels' message to all members of current form
+
+// Broadcast the 'SetLabels' message on the passed form
+if (F.HasMethod("SetLabels")) F.SetLabels();
+
+for (int j = 0; j < F.ControlCount(); j++)
+{
+    // Get the controls
+    Object C = F.GetControl(j);
+    Traverse(C, "SetLabels");
+}]]>
+</method>
+<method name="FormInit">
+<param name="F" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+// Broadcast the 'Init' message to all members of a the passed form
+if (F.HasMethod("Init")) F.Init();
+
+for (int j = 0; j < F.ControlCount(); j++)
+{
+    // Get the controls
+    Object C = F.GetControl(j);
+    Traverse(C, "Init");
+}]]>
+</method>
+<method name="SetLabelsAll">
+<![CDATA[//@cmember SetLabels
+//@param
+//@return
+//@version $Revision: 4 $
+//@i       Broadcasts a 'SetLabels' message to all open forms
+
+// Broadcast the 'SetLabels' message to all forms
+Broadcast("SetLabels");]]>
+</method>
+<method name="GetMemberValue">
+<param name="Name" />
+<param name="KeyObj" />
+<![CDATA[//@cmember  GetMember
+//@param    String | Name | Member Name
+//@param    Object | KeyObj | Object from which to extract member
+//@return   String | String Value of Member
+//@version  Jon Wright | v1.00 19/04/2001 | Initial version
+//@i        Returns the FIRST member value of the name
+//@i        specfied in the key object
+
+// Get a count of the members
+int c = KeyObj.MemberCount();
+
+// Loop over the members
+for (int i = 0; i < c; i++)
+{
+    // Check if this member is itself a class
+    if (KeyObj.GetMember(i).ClassName().indexOf("classes", 0) > 0)
+    {
+        // Traverse into this class
+        String Result = GetMemberValue(Name, KeyObj.GetMember(i));
+        if (Result != "") return Result;
+    }
+    else
+    {
+        if (KeyObj.GetMember(i).Name().Lower() == Name.lower())
+        {
+            return "" + KeyObj.GetMember(i);
+        }
+    }
+}
+
+// Not found
+return "";]]>
+</method>
+<method name="GetSubMember">
+<param name="Name" />
+<param name="KeyObj" />
+<![CDATA[//@cmember  GetSubMember
+//@param    String | Name | Member Name
+//@param    Object | KeyObj | Object from which to extract member
+//@return   Object | Member Required (Null if not found)
+//@version  Jon Wright | v1.00 19/04/2001 | Initial version
+//@i        Returns the FIRST member value of the name
+//@i        specfied in the key object
+
+// Get a count of the members
+int c = KeyObj.MemberCount();
+
+// Loop over the members
+for (int i = 0; i < c; i++)
+{
+    if (KeyObj.GetMember(i).Name().Lower() == Name.lower())
+    {
+            return KeyObj.GetMember(i);
+    }
+}
+
+// Not found
+return NULL;]]>
+</method>
+<method name="FormatPostcode">
+<param name="PostCode" />
+<![CDATA[//@cmember  FormatPostcode
+//@param    String | Postcode | Postcode to be reformatted
+//@return   String | Reformatted Postcode
+//@version  Jon Wright | v1.00 20/04/2001 | Initial version
+//@i        Reformats the passed postcode
+//@i        YO8     -> YO08
+//@i        YO8 9QD -> YO08 9QD
+//@         This is used for the allocation functions
+
+// Loop counter
+int i;
+
+String NewPC = "";
+int Test = 1;
+
+for (i = 0; i < PostCode.length(); i++)
+{
+    if (PostCode.SubString(i, i+1) >= "0" && PostCode.SubString(i, i+1) <= "9" && Test == 1)
+    {
+        // If this is the last character or the next character is not numeric then add in a zero
+        if (i == PostCode.Length()-1)
+        {
+            NewPC += "0";
+        }
+        else if (PostCode.SubString(i+1, i+2) < "0" || PostCode.SubString(i+1, i+2) > "9")
+        {
+            NewPC += "0";
+        }
+        Test = 0;
+    }
+    NewPC += PostCode.SubString(i, i+1);
+}
+
+// Return result
+return NewPC;]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+</row>
+</grid>
+</form>

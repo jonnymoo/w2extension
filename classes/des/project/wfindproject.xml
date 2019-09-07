@@ -1,0 +1,139 @@
+<form name="wFindProject" caption="Find Relevent Project Files" savepos="wFindProjLoc" bk="CCCCCC" closeondeactivate="1" esccancel="1" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:40 $" frevision="$Revision: 2 $">
+<members>
+<List name="Projs" cls="classes::CPickS" />
+<String name="findCls" />
+<method name="StartSearch">
+<param name="cls" type="string" />
+<param name="par" type="form" />
+<![CDATA[//@cmember StartSearch
+//@param string | cls | The class to search for
+//@version Andrew Griffin | v1.0 | initial Version
+//@i Searches through the classes::project directory hierarchy for
+//@i projects containing the class 'cls'
+
+Dialog( par );
+
+findCls = cls;
+cls = cls.subString( ::AdvSearch::preRootPath.length() );
+
+string pth = ::AdvSearch::rootPath + "projects";
+
+Projs.reset();
+doSearch( cls, pth );
+
+fitRecursive();
+]]>
+</method>
+<method name="doSearch">
+<param name="cls" type="string" />
+<param name="pth" type="string" />
+<![CDATA[
+FileFinder FF = &Sys::NewFileFinder();
+
+// Find the first matching file.
+int ok = FF.FindFirst( pth + "\\*.xpj", "" );
+
+while( ok ) {
+
+    // Check through Project
+    //message( FF.Filename );
+    string full = pth + "\\" + FF.Filename;
+
+    if (testClass( full, cls )) {
+        classes::CPickS newP = &Projs.createRow();
+        newP.code = full.subString( full.lastIndexOf("\\")+1 );
+        newP.code = newP.code.left(newP.code.lastIndexOf("."));
+        newP.desc = full;
+    }
+  
+  ok = FF.FindNext();
+}
+
+ok = FF.FindFirst( pth + "\\*.*", "D" );
+while( ok ) {
+
+  if (FF.FileName=="." || FF.FileName=="..")
+  {
+    // do nothing
+  } else if (FF.IsDir) {
+    doSearch( cls, pth + "\\" + FF.FileName );
+  }  
+  ok = FF.FindNext();
+}
+]]>
+</method>
+<method name="testClass" return="int">
+<param name="filename" type="string" />
+<param name="findCls" type="string" />
+<![CDATA[//@cmember 
+//@param
+//@return
+//@version
+//@i
+
+File afile;
+if (!afile.Open(fileName, "r")) {
+    message("Can't open Project file " + filename);
+    return 0;
+}
+
+Blob B = afile.readBlob();
+afile.close();
+if (B==null)  {
+    message("Can't read from Project file " + filename);
+    return 0;
+}
+String myXML = B.toString();
+
+return (myXML.indexOf( "Path=\"" + findCls + "\"", 0, 1 )>=0);]]>
+</method>
+<method name="openProject">
+<![CDATA[//@cmember openProject
+//@i Makes the selected project the current project
+
+WProject P = &::Browse::ClsBrowser::openProject;
+
+P.openFile(
+    Projs.currentRow().Desc
+);
+
+P.bringToFront();
+P.selectClass( findCls );
+]]>
+</method>
+</members>
+<static />
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col align="WH" bk="255,255,255">
+<ListBox name="idFoundList" IsList="Y" list="Projs" onDoubleClick="openProject">
+<row>
+<col lpad="4" tpad="3" rpad="8" bpad="4" align="WV" bk="0,0,128" header="1">
+<Label text="Project Name:" tx="255,255,255" style="b" />
+</col>
+</row>
+<row>
+<col lpad="4" tpad="3" rpad="4">
+<Label name="idProjList" text="&lt;Name&gt;" w="100" bind="code" />
+</col>
+</row>
+</ListBox>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col align="W" bk="255,255,255" />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="testClass" cls="int" />
+</return>
+</form>

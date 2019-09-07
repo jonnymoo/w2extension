@@ -1,0 +1,1003 @@
+<class name="Form" description="W2 Script Reference" base="ObjectRoot">
+
+<members sub="Controls">
+
+<method name="addControl">
+<param name="name" type="string" />
+<param name="type" type="string" />
+<![CDATA[//@cmember Control addControl( string name, string type );
+//@param string | name | control Name (i.e. "idOK")
+//@param string | type | control Type (i.e. "Label")
+//@return Control | the new control
+//@i 
+]]>
+ />
+</method>
+<method name="flash">
+<param name="count" type="int" />
+<![CDATA[//@cmember void flash( int count);
+//@param int | count | The number of times to flash the title (Default 3)
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="ControlCount">
+<![CDATA[//@cmember int ControlCount(  );
+//@return int | number of controls on the form
+//@i 
+]]>
+ />
+</method>
+<method name="EnableGroup">
+<param name="grp" type="String" />
+<param name="en" type="int" />
+<![CDATA[//@cmember void EnableGroup( String grp, int en );
+//@param String | grp | Group name
+//@param int | en | 1 to enable controls, 0 to disable
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetControl">
+<param name="idx" type="int" />
+<param name="name" type="string" />
+<![CDATA[//@cmember Control GetControl( {int idx} or {string name} );
+//@param int | idx | index or name of control to find
+//@param string | name | index or name of control to find
+//@return Control | The found control or null
+//@i Returns a control on the form located by index or name.
+]]>
+ />
+</method>
+<method name="ShowGroup">
+<param name="grp" type="String" />
+<param name="en" type="int" />
+<![CDATA[//@cmember void ShowGroup( String grp, int en );
+//@param String | grp | Name of Group
+//@param int | en | 1 to show controls, 0 to hide
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetWindowScreenshotBitmap">
+<param name="paddingTop" type="int" />
+<param name="paddingLeft" type="int" />
+<param name="paddingBottom" type="int" />
+<param name="paddingRight" type="int" />
+<![CDATA[//@cmember Control GetWindowScreenshotBitmap( {int paddingTop, int paddingLeft, int paddingBottom, int paddingRight} );
+//@param int | paddingTop | Top Padding
+//@param int | paddingLeft | left Padding
+//@param int | paddingBottom | Bottom Padding
+//@param int | paddingRight | Right Padding
+//@return Blob | Blob containing a bitmap of the current window.
+//@i Returns a bitmap of the current window.
+]]>
+ />
+</method>
+<method name="GetScreenshotBitmap">
+<param name="paddingTop" type="int" />
+<param name="paddingLeft" type="int" />
+<param name="paddingBottom" type="int" />
+<param name="paddingRight" type="int" />
+<![CDATA[//@cmember Control GetScreenshotBitmap( {int paddingTop, int paddingLeft, int paddingBottom, int paddingRight} );
+//@param int | paddingTop | Top Padding
+//@param int | paddingLeft | left Padding
+//@param int | paddingBottom | Bottom Padding
+//@param int | paddingRight | Right Padding
+//@return Blob | Blob containing a bitmap of the current screen.
+//@i Returns a bitmap of the current screen.
+]]>
+ />
+</method>
+ 
+</members>
+
+<members sub="Information">
+<method name="DesktopH">
+<![CDATA[//@cmember int DesktopH(  );
+//@return int | Height of the desktop in pixels
+//@i Returns the height of the 'desktop' in pixels
+]]>
+ />
+</method>
+<method name="DesktopW">
+<![CDATA[//@cmember int DesktopW(  );
+//@return int | Width of the desktop in pixels
+//@i Returns the width of the 'desktop' in pixels
+]]>
+ />
+</method>
+<method name="GetHWND">
+<![CDATA[//@cmember int GetHWND(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetOuterControl">
+<![CDATA[//@cmember Control GetOuterControl(  );
+//@return Control | The component control this form is held within or null.
+//@i null if this form is not a component within another form
+]]>
+ />
+</method>
+<method name="GetParent">
+<![CDATA[//@cmember Form GetParent(  );
+//@return Form | The Parent form or null
+//@i null if this form is a top-level form
+]]>
+ />
+</method>
+<method name="GetPopup">
+<param name="wname" type="String" />
+<param1 name="index" type="int" />
+<![CDATA[//@cmember Form GetPopup( {String wname} or {int index} );
+//@param String | wname | Name or index of window
+//@param int | index | Name or index of window
+//@return Form | The found form or null
+//@i 
+]]>
+ />
+</method>
+<method name="GetProcessID">
+<![CDATA[//@cmember int GetProcessID(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="getText">
+<![CDATA[//@cmember String getText(  );
+//@return String | Caption of window
+//@i 
+]]>
+ />
+</method>
+<method name="GetThreadID">
+<![CDATA[//@cmember int GetThreadID(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetWindowName">
+<![CDATA[//@cmember String GetWindowName(  );
+//@return String | Name of window (not caption)
+//@i 
+]]>
+ />
+</method>
+<object name="grid" cls="Grid" desc="The Base Grid of a form" />
+<method name="IsChild">
+<![CDATA[//@cmember int IsChild(  );
+//@return int | 1 if this is a child
+//@i 
+]]>
+ />
+</method>
+<method name="IsPopup">
+<![CDATA[//@cmember int IsPopup(  );
+//@return int | 1 if this is a popup
+//@i 
+]]>
+ />
+</method>
+<method name="isTopLevel">
+<![CDATA[//@cmember int isTopLevel(  );
+//@return int | 1 if this is a toplevel form
+//@i 
+]]>
+ />
+</method>
+<method name="isVisible">
+<![CDATA[//@cmember int isVisible(  );
+//@return int | 1 if the window is visible
+//@i calls IsWindowVisible() api function
+]]>
+ />
+</method>
+<method name="isVisibleReally">
+<![CDATA[//@cmember int isVisibleReally(  );
+//@return int | 1 if visible on the parent form or desktop
+//@i 
+]]>
+ />
+</method>
+<method name="IsWindow">
+<![CDATA[//@cmember int IsWindow(  );
+//@return int | 1 if this is a window
+//@i always returns 1 for windows
+]]>
+ />
+</method>
+<method name="SetProp">
+<param name="pName" type="string" />
+<param name="pVal" type="int" />
+<![CDATA[//@cmember int SetProp( string pName, int pVal );
+//@param string | pName | Name of parameter to set
+//@param int | pVal | Number to assign to parameter
+//@return int | 1 if property set successfully
+//@i Form Properties for HWND searching?
+//@Exam W.SetProp("BA",333);]]>
+ />
+</method>
+<method name="XPos">
+<![CDATA[//@cmember int XPos(  );
+//@return int | the horizontal location in pixels
+//@i 
+]]>
+ />
+</method>
+<method name="XSize">
+<![CDATA[//@cmember int XSize(  );
+//@return int | Width of the window in pixels
+//@i Returns the width of the 'window' in pixels
+]]>
+ />
+</method>
+<method name="YPos">
+<![CDATA[//@cmember int YPos(  );
+//@return int | the vertical location in pixels
+//@i 
+]]>
+ />
+</method>
+<method name="YSize">
+<![CDATA[//@cmember int YSize(  );
+//@return int | Height of the 'window' in pixels
+//@i Returns the height of the 'window' in pixels
+]]>
+ />
+</method>
+<method name="GetScrollHorz">
+<![CDATA[//@cmember int GetScrollHorz(  );
+//@return int | The horizontal scroll bar position for the form (pixels)
+//@i Gets the horizontal scroll bar position for the form (pixels)
+]]>
+ />
+</method>
+<method name="GetVertHorz">
+<![CDATA[//@cmember int GetVertHorz(  );
+//@return int | The vertical scroll bar position for the form (pixels)
+//@i Gets the vertical scroll bar position for the form (pixels)
+]]>
+ />
+</method>
+<method name="HasHorzScroll">
+<![CDATA[//@cmember int HasHorzScroll(  );
+//@return int | 1 if a horizontal scroll bar is visible
+//@i Returns the visible state of the horizonal scroll bar
+]]>
+ />
+</method>
+<method name="HasVertScroll">
+<![CDATA[//@cmember int HasVertScroll(  );
+//@return int | 1 if a vertical scroll bar is visible
+//@i Returns the visible state of the vertical scroll bar
+]]>
+ />
+</method>
+
+
+</members>
+
+<members sub="Manipulation">
+<method name="close">
+<![CDATA[//@cmember void close(  );
+//@return void | 
+//@i call this during the OnClose() method
+]]>
+ />
+</method>
+<method name="CreateRegion">
+<![CDATA[//@cmember Region CreateRegion(  );
+//@return Region | 
+//@i Creates a new window region.
+//@Exam Object Z = CreateRegion();
+//@Exam 
+//@Exam Z.AddEllipse(0,0,300,300, 2);
+//@Exam Z.AddEllipse(50,50,250,250, 3);
+//@Exam Z.AddRoundRect(0,500,160,560, 40, 40, 2 );
+//@Exam 
+//@Exam SetWindowRegion( Z );]]>
+ />
+</method>
+
+<method name="EnableForm">
+<param name="enable" type="int" />
+<![CDATA[//@cmember void EnableForm( int enable );
+//@param int | enable | 1 to enable, 0 to disable
+//@return void | Enable ot disable the form
+//@i 
+]]>
+ />
+</method>
+<method name="open">
+<![CDATA[//@cmember void open(  );
+//@return void | 
+//@i open a top-level form
+]]>
+ />
+</method>
+<method name="RemoveHook">
+<![CDATA[//@cmember int RemoveHook( );
+//@return int | 
+//@i Removes the hook for the window
+]]>
+ />
+</method>
+<method name="RestoreForm">
+<![CDATA[//@cmember void RestoreForm(  );
+//@return void | Restores the windows size
+//@i Restores the windows size
+]]>
+ />
+</method>
+<method name="SetFocus">
+<![CDATA[//@cmember void SetFocus(  );
+//@return void | 
+//@i keyboard focus
+]]>
+ />
+</method>
+<method name="SetForeground">
+<![CDATA[//@cmember void SetForeground(  );
+//@return void | 
+//@i bring to front
+]]>
+ />
+</method>
+<method name="SetHook">
+<![CDATA[//@cmember int SetHook( );
+//@return int | 
+//@i Sets the hook for the window
+]]>
+ />
+</method>
+
+<method name="SetIcon">
+<param name="name" type="String" />
+<param name="path" type="String" />
+<![CDATA[//@cmember void SetIcon( String name, String path );
+//@param String | name | 
+//@param String | path | 
+//@return void | 
+//@i Sets the icon for the form window. This method needs to be called after Open
+]]>
+ />
+</method>
+<method name="SetParent">
+<param name="par" type="Form" />
+<![CDATA[//@cmember void SetParent( Form par );
+//@param Form | par | form to assign as parent
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="setText">
+<param name="caption" type="String" />
+<![CDATA[//@cmember void setText( String caption );
+//@param String | caption | Text to have as window caption
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetTopMost">
+<param name="onTop" type="int" />
+<![CDATA[//@cmember void SetTopMost( int onTop );
+//@param int | onTop | 1 = set as topmost form
+//@return void | 
+//@i When onTop = 1 the form will stay infront of all normal windows.
+]]>
+ />
+</method>
+<method name="SetWindowName">
+<param name="name" type="string" />
+<![CDATA[//@cmember void SetWindowName( string name );
+//@param string | name | Name to assign to this window (not caption)
+//@return void | 
+//@i Not the window caption.  Search on this name within multipanes, etc...
+]]>
+ />
+</method>
+<method name="setwindowregion">
+<param name="Region" type="object" />
+<![CDATA[//@cmember void setwindowregion( object Region );
+//@param object | Region | 
+//@return void | 
+//@i Sets the window region on the form.
+This shapes a window to an arbitary shape.
+//@Exam Object Z = CreateRegion();
+//@Exam 
+//@Exam Z.AddEllipse(0,0,300,300, 2);
+//@Exam Z.AddEllipse(50,50,250,250, 3);
+//@Exam Z.AddRoundRect(0,500,160,560, 40, 40, 2 );
+//@Exam 
+//@Exam SetWindowRegion( Z );]]>
+ />
+</method>
+<method name="Show">
+<param name="bool" type="int" />
+<![CDATA[//@cmember void Show( int bool );
+//@param int | bool | 1 = make visible, 0 = hide form
+//@return void | 
+//@i visibility
+]]>
+ />
+</method>
+<method name="UpdateWindow">
+<![CDATA[//@cmember void UpdateWindow(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="waitOnClose">
+<![CDATA[//@cmember void waitOnClose(  );
+//@return void | Pauses execution of thread until this form is closed.
+//@i Pauses execution of thread until this form is closed.
+]]>
+ />
+</method>
+</members>
+<members sub="Menu">
+<method name="AddMenuItem">
+<param name="text" type="string" />
+<param name="id" type="string" />
+<param name="method]" type="[string" />
+<param name="hMenu]" type="[int"/>
+<![CDATA[//@cmember void AddMenuItem( string text, string id, [string method], [int hMenu] );
+//@param string | text | 
+//@param string | id | 
+//@param [string | method] | 
+//@param [int | hMenu] | Menu Handle for sub menus
+//@return void | 
+//@i calls OnMenu() by default
+]]>
+ />
+</method>
+<method name="AddMenuPopup">
+<param name="text" type="String" />
+<param name="pos" type="int" />
+<![CDATA[//@cmember void AddMenuPopup( String text, int pos );
+//@param String | text | 
+//@param int | pos | 
+//@return void | 
+//@i pos is optional
+]]>
+ />
+</method>
+<method name="Addsubmenu">
+<param name="text" type="String" />
+<param name="hMenu]" type="[int" />
+<![CDATA[//@cmember int AddSubMenu( String text, [int hMenu] );
+//@param String | text | 
+//@param [int | hMenu] | Menu Handle for sub menus 
+//@return int | This returns the hMenu handle as an int (so you can pass it back into other methods)
+//@i Adds a slide off sub menu to a menu (or submenu)
+]]>
+ />
+</method>
+<method name="AddMenuSeparator">
+<param name="hMenu]" type="[int"/>
+<![CDATA[//@cmember void AddMenuSeparator( [int hMenu] );
+//@param [int | hMenu] | Menu Handle for sub menus
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="CheckMenuItem">
+<param name="id" type="String" />
+<param name="bcheck" type="int" />
+<![CDATA[//@cmember void CheckMenuItem( String id, int bcheck );
+//@param String | id | 
+//@param int | bcheck | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="EnableMenuItem">
+<param name="id" type="String" />
+<param name="benable" type="int" />
+<![CDATA[//@cmember void EnableMenuItem( String id, int benable );
+//@param String | id | 
+//@param int | benable | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="IsMenuItemChecked">
+<param name="MenuItem" type="string" />
+<![CDATA[//@cmember int IsMenuItemChecked( string MenuItem );
+//@param string | MenuItem | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="MenuCount">
+<![CDATA[//@cmember int MenuCount(  );
+//@return int | 
+//@i count top level items (-1 for no menu)
+]]>
+ />
+</method>
+<method name="MenuID">
+<![CDATA[//@cmember String MenuID(  );
+//@return String | 
+//@i current id
+]]>
+ />
+</method>
+<method name="ResetMenu">
+<![CDATA[//@cmember void ResetMenu(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Messages">
+<method name="GetMultipleFileNames">
+<param name="caption" type="String" />
+<param name="filter" type="String" />
+<param name="filename" type="String" />
+<![CDATA[//@cmember StringArray GetOpenFileName( String caption, String filter, String filename );
+//@param String | caption | i.e "Select Files"
+//@param String | filter | i.e. "Image Files|*.bmp;*.ico|All Files|*.*"
+//@param String | filename | i.e. "c:\\images\\"
+//@return StringArray | the selected filename or ""
+//@i Opens a File dialog box.It returns a StringArray path + filenames combination.
+]]>
+ />
+</method>
+<method name="GetOpenFileName">
+<param name="caption" type="String" />
+<param name="filter" type="String" />
+<param name="filename" type="String" />
+<![CDATA[//@cmember String GetOpenFileName( String caption, String filter, String filename );
+//@param String | caption | i.e "Select Image"
+//@param String | filter | i.e. "Image Files|*.bmp;*.ico|All Files|*.*"
+//@param String | filename | i.e. "c:\\images\\"
+//@return String | the selected filename or ""
+//@i Spawns an Opens File dialog box.
+It returns a string path + filename combination.
+//@Exam string filename =
+//@Exam   GetOpenFileName(
+//@Exam     "Select Image",
+//@Exam     "Image Files|*.bmp;*.ico;|All Files|*.*",
+//@Exam     "c:\\images\\");]]>
+ />
+</method>
+<method name="GetSaveFileName">
+<param name="caption" type="String" />
+<param name="filter" type="String" />
+<param name="filename" type="String" />
+<![CDATA[//@cmember String GetSaveFileName( String caption, String filter, String filename );
+//@param String | caption | i.e "Save Image As"
+//@param String | filter | i.e. "Image Files|*.bmp;*.ico|All Files|*.*"
+//@param String | filename | i.e. "c:\\images\\"
+//@return String | the selected filename or ""
+//@i Spawns a Save File dialog box.
+It returns a string path + filename combination.
+//@Exam string filename =
+//@Exam   GetSaveFileName(
+//@Exam     "Save Image As",
+//@Exam     "Image Files|*.bmp;*.ico;|All Files|*.*",
+//@Exam     "c:\\images\\");]]>
+ />
+</method>
+
+<method name="Message">
+<param name="text" type="string" />
+<param name="caption]" type="[string" />
+<param name="flags]" type="[int" />
+<![CDATA[//@cmember int Message( string text, [string caption], [int flags] );
+//@param string | text | Message text
+//@param [string | caption] | Dialog Caption
+//@param [int | flags] | Dialog Flags (ccw# constants seperated by ' | ')
+//@return int | user responce (ccw# constant)
+//@i Pops up a message box to the user.  This will require user input.
+//@Exam // flags can be found in classes::core::windows
+//@Exam 
+//@Exam if (message(
+//@Exam     "Answer Yes or No",
+//@Exam     "A User Prompt",
+//@Exam     classes::core::windows::MB_YESNO ) == classes::core::windows::IDYES) {
+//@Exam 
+//@Exam     message("You answered YES!!");
+//@Exam } else {
+//@Exam     message("You answered No.");
+//@Exam }
+//@Exam ]]>
+ />
+</method>
+<method name="MessageBox">
+<param name="text" type="string" />
+<param name="caption]" type="[string" />
+<param name="flags]" type="[int" />
+<![CDATA[//@cmember int Message( string text, [string caption], [int flags] );
+//@param string | text | Message text
+//@param [string | caption] | Dialog Caption
+//@param [int | flags] | Dialog Flags (ccw# constants seperated by ' | ')
+//@return int | user responce (ccw# constant)
+//@i Pops up a message box to the user.  This will require user input.
+]]> 
+/>
+</method>
+
+</members>
+<members sub="Positioning">
+
+<method name="CenterForm">
+<![CDATA[//@cmember void CenterForm(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+
+<method name="FitContentToForm">
+<![CDATA[//@cmember void FitContentToForm(  );
+//@return void | Resizes all grids to fit the current form size.  Window size will not change.
+//@i no window resize
+]]>
+ />
+</method>
+<method name="FitRecursive">
+<![CDATA[//@cmember void FitRecursive(  );
+//@return void | Resizes all grids to fit the current form size.  Window size will not change.
+//@i no window resize
+]]>
+ />
+</method>
+<method name="FitToSize">
+<![CDATA[//@cmember void FitToSize(  );
+//@return void | Resizes all grids to fit the current form size.  Window size will not change.
+//@i no window resize
+]]>
+ />
+</method>
+
+<method name="MaximizeForm">
+<![CDATA[//@cmember void MaximizeForm(  );
+//@return void | Maximizes the window
+//@i Maximizes the window
+]]>
+ />
+</method>
+<method name="MinimizeForm">
+<![CDATA[//@cmember void MinimizeForm(  );
+//@return void | Minimizes the windows size
+//@i Minimizes the windows size
+]]>
+ />
+</method>
+
+<method name="SetPos">
+<param name="x" type="int" />
+<param name="y" type="int" />
+<![CDATA[//@cmember void SetPos( int x, int y );
+//@param int | x | Horizontal location in pixels
+//@param int | y | Vertical location in pixels
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetSize">
+<param name="width" type="int" />
+<param name="height" type="int" />
+<![CDATA[//@cmember  void SetSize( int width, int height );
+//@param int | width | Width of the window in pixels
+//@param int | height | Height of the window in pixels
+//@return void | 
+//@i Sets the size of the 'window' in pixels
+]]>
+ />
+</method>
+
+<method name="SizeAdjust">
+<![CDATA[//@cmember void SizeAdjust(  );
+//@return void | Shrinks window to fit form, but does not resize the grids
+//@i size form after controls shown / hidden
+]]>
+ />
+</method>
+<method name="SizeFormToContent">
+<![CDATA[//@cmember void SizeFormToContent(  );
+//@return void | Shrinks all stretchable grids to there minimum size and fits the window to fit the new sized contents.
+//@i size form
+]]>
+ />
+</method>
+<method name="SizeFormToContent_Title">
+<![CDATA[//@cmember void SizeFormToContent_Title(  );
+//@return void | 
+//@i Sizes a window to content and to be wide enough to display all of the title bar text
+]]>
+ />
+</method>
+<method name="SizeToFit">
+<![CDATA[//@cmember void SizeToFit(  );
+//@return void | Shrinks all stretchable grids to there minimum size and fits the window to fit the new sized contents. It changes the size of the window
+]]>
+ />
+</method>
+<method name="SizeToFitIntoView">
+<![CDATA[//@cmember void SizeToFitIntoView(  );
+//@return void | Shrinks all stretchable grids to there minimum size and fits the window to fit the new sized contents bounded only by the desktop dimensions.
+//@i Shrinks all stretchable grids to there minimum size and fits the window to fit the new sized contents bounded only by the desktop dimensions.
+]]>
+ />
+</method>
+<method name="MoveIntoView">
+<![CDATA[//@cmember void MoveIntoView(  );
+//@return void | Fit the form to  bounded only by the desktop dimensions.
+//@i 
+]]>
+ />
+</method>
+
+<method name="SnapToCell">
+<param name="gcell" type="GridCell" />
+<![CDATA[//@cmember void SnapToCell( GridCell gcell );
+//@param GridCell | gcell | Cell to snap top left of window to
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SnapToCursor">
+<param name="x]" type="[int" />
+<param name="y]" type="[int" />
+<![CDATA[//@cmember void SnapToCursor( [int x], [int y] );
+//@param [int | x] | 
+//@param [int | y] | 
+//@return void | 
+//@i Parameters are optional.
+]]>
+ />
+</method>
+<method name="ToTop">
+<![CDATA[//@cmember void ToTop(  );
+//@return void | 
+//@i Move window to the front of all windows in the current xrunapp session
+]]>
+ />
+</method>
+
+</members>
+<members sub="Spawn">
+<method name="ComponentEvent">
+<param name="name" type="String" />
+<param name="param1]" type="[String" />
+<param name="param1]" type="[String" />
+<param name="" type="[...]" />
+<![CDATA[//@cmember void ComponentEvent( String name, [String param1], [String param1], [...] );
+//@param String | name | 
+//@param [String | param1] | 
+//@param [String | param1] | 
+//@param [...] |  | 
+//@return void | 
+//@i calls method "name" on parent
+]]>
+ />
+</method>
+<method name="dialog">
+<param name="Parent" type="Form" />
+<![CDATA[//@cmember void dialog( Form Parent );
+//@param Form | Parent | 
+//@return void | 
+//@i open a popup form
+]]>
+ />
+</method>
+<method name="SetWaitCursor">
+<![CDATA[//@cmember void SetWaitCursor(  );
+//@return void | 
+//@i Displays the cursor as a hourglass
+]]>
+ />
+</method>
+<method name="ShowAllPopups">
+<![CDATA[//@cmember void ShowAllPopups(  );
+//@return void | 
+//@i shows all hidden popups
+]]>
+ />
+</method>
+<method name="TargetMethod">
+<param name="name" type="String" />
+<param name="param1]" type="[String" />
+<param name="param1]" type="[String" />
+<param name="" type="[...]" />
+<![CDATA[//@cmember var TargetMethod( String name, [String param1], [String param1], [...] );
+//@param String | name | 
+//@param [String | param1] | 
+//@param [String | param1] | 
+//@param [...] |  | 
+//@return var | 
+//@i Call a method in the thread context of the window.
+var X = TargetMethod("FuncName",params....);
+]]>
+ />
+</method>
+</members>
+<members sub="Taskbar">
+<method name="DeleteTaskBarIcon">
+<![CDATA[//@cmember void DeleteTaskBarIcon(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetTaskBarIcon">
+<param name="ico" type="String" />
+<param name="tooltip" type="String" />
+<![CDATA[//@cmember void SetTaskBarIcon( String ico, String tooltip );
+//@param String | ico | Icon Filename
+//@param String | tooltip | Tooltip text for toolbar icon
+//@return void | 
+//@i calls OnTaskBar_xxx() events
+]]>
+ />
+</method>
+
+<method name="SetTaskBarInfo">
+<param name="Title" type="String" />
+<param name="Info" type="String" />
+<param name="IconType" type="int" />
+<param name="Timeoutms" type="int" />
+<![CDATA[//@cmember void SetTaskBarInt( String Title, String Info, int IconType, int Timeoutms );
+//@param String | Title | Balloon Title
+//@param String | Info | Balloon Info
+//@param int | IconType | (Optional) 0 = No Icon, 1 = Information, 2 = Warning, 3 = Error default = 1
+//@param int | Timeout | (Optional) Timeout in ms.  Default 20000 (Timeout will depend on system defaults)
+//@return void | 
+//@i calls OnTaskBarInfoClick() event
+]]>
+ />
+</method>
+
+
+</members>
+<members sub="Timer">
+<method name="KillTimer">
+<![CDATA[//@cmember void KillTimer(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetTimer">
+<param name="ms" type="int" />
+<![CDATA[//@cmember void SetTimer( int ms );
+//@param int | ms | Milliseconds until exec 'onTimer'
+//@return void | 
+//@i calls OnTimer() ever 'ms' milliseconds.
+]]>
+ />
+</method>
+</members>
+<members sub="Utility">
+<method name="AttachToThread">
+<param name="aForm" type="Form" />
+<![CDATA[//@cmember void AttachToThread( Form aForm );
+//@param Form | aForm | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="GridDebugOut">
+<![CDATA[//@cmember void GridDebugOut(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="addControl" cls="Control" />
+<rmeth name="flash" cls="Form" />
+<rmeth name="ControlCount" cls="int" />
+<rmeth name="EnableGroup" cls="void" />
+<rmeth name="GetControl" cls="Control" />
+<rmeth name="ShowGroup" cls="void" />
+<rmeth name="CenterForm" cls="void" />
+<rmeth name="close" cls="void" />
+<rmeth name="CreateRegion" cls="Region" />
+<rmeth name="EnableForm" cls="void" />
+<rmeth name="FitContentToForm" cls="void" />
+<rmeth name="FitRecursive" cls="void" />
+<rmeth name="MaximizeForm" cls="void" />
+<rmeth name="MinimizeForm" cls="void" />
+<rmeth name="open" cls="void" />
+<rmeth name="RestoreForm" cls="void" />
+<rmeth name="SetFocus" cls="void" />
+<rmeth name="SetForeground" cls="void" />
+<rmeth name="SetIcon" cls="void" />
+<rmeth name="SetParent" cls="void" />
+<rmeth name="SetPos" cls="void" />
+<rmeth name="setText" cls="void" />
+<rmeth name="SetTopMost" cls="void" />
+<rmeth name="SetWindowName" cls="void" />
+<rmeth name="SetWaitCursor" cls="void" />
+<rmeth name="setwindowregion" cls="void" />
+<rmeth name="Show" cls="void" />
+<rmeth name="SizeAdjust" cls="void" />
+<rmeth name="SizeFormToContent" cls="void" />
+<rmeth name="SizeToFitIntoView" cls="void" />
+<rmeth name="SnapToCell" cls="void" />
+<rmeth name="SnapToCursor" cls="void" />
+<rmeth name="ToTop" cls="void" />
+<rmeth name="UpdateWindow" cls="void" />
+<rmeth name="waitOnClose" cls="void" />
+<rmeth name="DesktopH" cls="int" />
+<rmeth name="DesktopW" cls="int" />
+<rmeth name="GetHWND" cls="int" />
+<rmeth name="GetOuterControl" cls="Control" />
+<rmeth name="GetParent" cls="Form" />
+<rmeth name="GetPopup" cls="Form" />
+<rmeth name="GetProcessID" cls="int" />
+<rmeth name="getText" cls="String" />
+<rmeth name="GetThreadID" cls="int" />
+<rmeth name="GetWindowName" cls="String" />
+<rmeth name="IsChild" cls="int" />
+<rmeth name="IsPopup" cls="int" />
+<rmeth name="isTopLevel" cls="int" />
+<rmeth name="isVisible" cls="int" />
+<rmeth name="isVisibleReally" cls="int" />
+<rmeth name="IsWindow" cls="int" />
+<rmeth name="SetProp" cls="int" />
+<rmeth name="XPos" cls="int" />
+<rmeth name="XSize" cls="int" />
+<rmeth name="YPos" cls="int" />
+<rmeth name="YSize" cls="int" />
+<rmeth name="AddMenuItem" cls="void" />
+<rmeth name="AddMenuPopup" cls="void" />
+<rmeth name="AddMenuSeparator" cls="void" />
+<rmeth name="CheckMenuItem" cls="void" />
+<rmeth name="EnableMenuItem" cls="void" />
+<rmeth name="IsMenuItemChecked" cls="int" />
+<rmeth name="MenuCount" cls="int" />
+<rmeth name="MenuID" cls="String" />
+<rmeth name="ResetMenu" cls="void" />
+<rmeth name="ComponentEvent" cls="void" />
+<rmeth name="dialog" cls="void" />
+<rmeth name="GetOpenFileName" cls="String" />
+<rmeth name="GetSaveFileName" cls="String" />
+<rmeth name="Message" cls="int" />
+<rmeth name="MessageBox" cls="int" />
+<rmeth name="ShowAllPopups" cls="void" />
+<rmeth name="TargetMethod" cls="var" />
+<rmeth name="DeleteTaskBarIcon" cls="void" />
+<rmeth name="SetTaskBarIcon" cls="void" />
+<rmeth name="KillTimer" cls="void" />
+<rmeth name="SetTimer" cls="void" />
+<rmeth name="AttachToThread" cls="void" />
+<rmeth name="GridDebugOut" cls="void" />
+<rmeth name="FitToSize" cls="void" />
+<rmeth name="SizeFormToContent_Title" cls="void" />
+<rmeth name="SizeToFit" cls="void" />
+<rmeth name="SetSize" cls="void" />
+<rmeth name="GetMultipleFileNames" cls="StringArray" />
+<rmeth name="SetHook" cls="int" />
+<rmeth name="RemoveHook" cls="int" />
+<rmeth name="AddSubMenu" cls="int" />
+<rmeth name="GetScrollHorz" cls="int" />
+<rmeth name="GetVertHorz" cls="int" />
+<rmeth name="HasHorzScroll" cls="int" />
+<rmeth name="HasVertScroll" cls="int" />
+</return>
+</class>

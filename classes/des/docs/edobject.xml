@@ -1,0 +1,68 @@
+<class name="EdObject" description="W2 Script Reference" base="Control">
+<members>
+<method name="AddXMLContent">
+<param name="X" type="XML" />
+<![CDATA[//@cmember void AddXMLContent( XML X );
+//@param XML | X | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="AttrName">
+<param name="idx" type="int" />
+<![CDATA[//@cmember String AttrName( int idx );
+//@param int | idx | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="AttrValue">
+<param name="idx" type="int" />
+<![CDATA[//@cmember String AttrValue( int idx );
+//@param int | idx | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetAttr">
+<param name="attr" type="String" />
+<![CDATA[//@cmember String GetAttr( String attr );
+//@param String | attr | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetAttr">
+<param name="name" type="String" />
+<param name="val" type="String" />
+<![CDATA[//@cmember void SetAttr( String name, String val );
+//@param String | name | 
+//@param String | val | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="XMLContent">
+<param name="idx" type="int" />
+<![CDATA[//@cmember XMLObject XMLContent( int idx );
+//@param int | idx | 
+//@return XMLObject | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddXMLContent" cls="void" />
+<rmeth name="AttrName" cls="String" />
+<rmeth name="AttrValue" cls="String" />
+<rmeth name="GetAttr" cls="String" />
+<rmeth name="SetAttr" cls="void" />
+<rmeth name="XMLContent" cls="XMLObject" />
+</return>
+</class>

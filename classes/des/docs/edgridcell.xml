@@ -1,0 +1,100 @@
+<class name="EdGridCell" description="W2 Script Reference" base="Control">
+<members>
+<method name="AddObject">
+<param name="type" type="String" />
+<![CDATA[//@cmember EdObject AddObject( String type );
+//@param String | type | 
+//@return EdObject | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetGrid">
+<![CDATA[//@cmember EdGrid GetGrid(  );
+//@return EdGrid | 
+//@i ret null if not an EdGrid
+]]>
+ />
+</method>
+<method name="GetObject">
+<![CDATA[//@cmember EdObject GetObject(  );
+//@return EdObject | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetParentCell">
+<![CDATA[//@cmember EdGridCell GetParentCell(  );
+//@return EdGridCell | Returns the parent grid cell
+//@i Returns the parent grid cell
+]]>
+ />
+</method>
+<method name="IsSelected">
+<![CDATA[//@cmember int IsSelected(  );
+//@return int | 
+//@i 1 if selected in editor
+]]>
+ />
+</method>
+<method name="SetAttr">
+<param name="name" type="String" />
+<param name="val" type="String" />
+<![CDATA[//@cmember void SetAttr( String name, String val );
+//@param String | name | 
+//@param String | val | 
+//@return void | 
+//@i any attr, inc RowSpan + Colspan
+]]>
+ />
+</method>
+<method name="SetBottomPad">
+<param name="p" type="int" />
+<![CDATA[//@cmember void SetBottomPad( int p );
+//@param int | p | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetLeftPad">
+<param name="p" type="int" />
+<![CDATA[//@cmember void SetLeftPad( int p );
+//@param int | p | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetRightPad">
+<param name="p" type="int" />
+<![CDATA[//@cmember void SetRightPad( int p );
+//@param int | p | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetTopPad">
+<param name="p" type="int" />
+<![CDATA[//@cmember void SetTopPad( int p );
+//@param int | p | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddObject" cls="EdObject" />
+<rmeth name="GetGrid" cls="EdGrid" />
+<rmeth name="GetObject" cls="EdObject" />
+<rmeth name="GetParentCell" cls="EdGridCell" />
+<rmeth name="IsSelected" cls="int" />
+<rmeth name="SetAttr" cls="void" />
+<rmeth name="SetBottomPad" cls="void" />
+<rmeth name="SetLeftPad" cls="void" />
+<rmeth name="SetRightPad" cls="void" />
+<rmeth name="SetTopPad" cls="void" />
+</return>
+</class>

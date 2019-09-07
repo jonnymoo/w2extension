@@ -1,0 +1,436 @@
+<form name="cwCellProperties" bk="E0E0E0" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members>
+<method name="init">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+Object Z = &Sys::GetFontFamilies();
+for(int c=0;c<Z.Count();c++)
+{
+    Object AFont = &Fonts.CreateRow();
+    AFont.code = Z[c];
+    AFont.Desc = Z[c];
+}
+
+Fonts.OrderBy( "code" );
+Fonts.OrderList();]]>
+</method>
+<method name="OnChange">
+<param name="Con" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 08-01-02 16:36 |
+//@i
+
+// Pass themodified event on to the parent.
+String szAttribute;
+
+if ( Con == idFont )
+    szAttribute="Font";
+else if ( Con == idFontSize )
+    szAttribute="FontSize";
+else if ( Con == idFontStyle )
+    szAttribute = "FontStyle";
+else if ( Con == idAlign )
+    szAttribute = "align";
+else if ( Con == idLeftPad )
+    szAttribute = "lpad";
+else if ( Con == idTopPad )
+    szAttribute = "tpad";
+else if ( Con == idRightPad )
+    szAttribute = "rpad";
+else if ( Con == idBottomPad )
+    szAttribute = "bpad";
+else if ( Con == idListMember )
+    szAttribute = "List";
+
+
+GetParent().AttributeModified( szAttribute, Con.GetText() );]]>
+</method>
+<method name="SetFont">
+<param name="strFont" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+idFont.SetText( strFont );]]>
+</method>
+<method name="SetFontSize">
+<param name="strSize" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+idFontSize.SetText( strSize );]]>
+</method>
+<method name="SetFontStyle">
+<param name="strStyle" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+idFontStyle.SetText( strStyle );]]>
+</method>
+<method name="DoColor">
+<param name="Con" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+int nBackColor = Sys::GetColor();
+if ( Con == idBackColor )
+{
+    idBackColor.Setbkcolor(nBackColor);
+    GetParent().AttributeModified( "BackColor", nBackColor.toString("08X").subString(2) );
+}
+else
+{
+    idForeColor.Setbkcolor(nBackColor);
+    GetParent().AttributeModified( "ForeColor", nBackColor.toString("08X").subString(2) );
+}]]>
+</method>
+<method name="OnListClick">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 08-01-02 16:36 |
+//@i
+
+/* Redundant
+GetParent().AttributeModified( "List", idList.GetValue() );]]>
+</method>
+<method name="SetPadding">
+<param name="szType" />
+<param name="nPadding" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+szType = szType.toLower();
+
+String strPadding = ""+nPadding;
+if ( strPadding == "0" )
+    strPadding = "";
+
+if ( szType == "t" )
+    idTopPad.SetText( strPadding );
+else if ( szType == "b" )
+    idBottomPad.SetText( strPadding );
+else if ( szType == "l" )
+    idLeftPad.SetText( strPadding );
+else if ( szType == "r" )
+    idRightPad.SetText( strPadding );]]>
+</method>
+<method name="SetColor">
+<param name="szColor" />
+<param name="nColor" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+if ( nColor == "" )
+{
+    if ( szColor == "bk" )
+    {
+        idBackColor.SetBKColor(Sys::RGB( 192, 192, 192 ));
+    }
+    else if ( szColor == "fg" )
+    {
+        idForeColor.SetBKColor(Sys::RGB( 192, 192, 192 ));
+    }
+}
+else
+{
+    int TheColor = ColortoInt(nColor );
+    if ( szColor == "bk" )
+        idBackColor.SetBKColor( TheColor );
+    else if ( szColor == "fg" )
+        idForeColor.SetBKColor( TheColor );
+}]]>
+</method>
+<method name="SetAlign">
+<param name="szAlign" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+idAlign.SetText( szAlign );]]>
+</method>
+<method name="SetIsList">
+<param name="szList" type="object" />
+<![CDATA[//@cmember
+//@param object | szList |
+//@version Andrew Griffin | 08-01-02 16:36 |
+//@i
+
+idListMember.settext( szList );
+//idList.SetState( szList.val() );]]>
+</method>
+</members>
+<static>
+<List name="FontSizes" cls="classes::cpicks" lsrc="classes::des::calcdes::FontSizes.txt" />
+<List name="Fonts" cls="classes::cpicks" />
+<List name="FontStyles" cls="classes::cpicks">
+<item code="b" desc="Bold" />
+<item code="i" desc="Italic" />
+</List>
+<List name="AlignTypes" cls="classes::cpicks">
+<item code="l" desc="Left" />
+<item code="C" desc="Center" />
+<item code="R" desc="Right" />
+</List>
+<method name="ColorToInt" return="int">
+<param name="col" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+if (col=="") return -1;
+
+if (col.indexOf(",")==-1) return HexToInt( col );
+
+return (col.getToken(0).val()*256 + col.getToken(1).val())*256 + col.getToken(2).val();]]>
+</method>
+<method name="HexToInt" return="int">
+<param name="hex" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+int t, c;
+hex = hex.trim().upper();
+
+for (int i=0; i<hex.length(); i++) {
+
+    c = hex[i];
+    t = t * 16 + ( c<'A' ? c-'0' : (c-'A')+10 );
+
+}
+
+return t;]]>
+</method>
+</static>
+<grid>
+<row>
+<col colspan="2" tpad="1" bpad="1" bk="226,185,88">
+<Label text="Cell" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col rpad="10" align="V">
+<Label text="Font" />
+</col>
+<col w="100" align="X">
+<Edit name="idFont" combo="2" pick="Fonts" onChange="OnChange" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col rpad="10" align="V">
+<Label text="Size" />
+</col>
+<col>
+<Edit name="idFontSize" combo="2" pick="FontSizes" onChange="OnChange" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col rpad="10" align="V">
+<Label text="Style" />
+</col>
+<col>
+<Edit name="idFontStyle" combo="2" pick="FontStyles" onChange="OnChange" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col rpad="10" align="V">
+<Label text="Bk Colour" />
+</col>
+<col>
+<grid>
+<row>
+<col />
+<col w="20" h="20" align="V" bk="255,0,0">
+<Button name="idBackColor" w="20" h="20" onClick="DoColor" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col rpad="10" align="V">
+<Label text="Text Colour" />
+</col>
+<col>
+<grid>
+<row>
+<col />
+<col w="20" h="20" align="V" bk="255,0,0">
+<Button name="idForeColor" w="20" h="20" onClick="DoColor" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col align="V">
+<Label text="Alignment" />
+</col>
+<col>
+<Edit name="idAlign" combo="2" pick="AlignTypes" onChange="OnChange" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col align="V">
+<Label text="List Member" />
+</col>
+<col align="X">
+<Edit name="idListMember" onChange="OnChange" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col colspan="2" tpad="1" bpad="1" bk="226,185,88">
+<Label text="Padding" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col align="V">
+<Label text="Left" />
+</col>
+<col>
+<Edit name="idLeftPad" onChange="OnChange" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col align="V">
+<Label text="Top" />
+</col>
+<col>
+<Edit name="idTopPad" onChange="OnChange" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col align="V">
+<Label text="Right" />
+</col>
+<col>
+<Edit name="idRightPad" onChange="OnChange" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col align="V">
+<Label text="Bottom" />
+</col>
+<col>
+<Edit name="idBottomPad" onChange="OnChange" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="ColorToInt" cls="int" />
+<rmeth name="HexToInt" cls="int" />
+</return>
+</form>

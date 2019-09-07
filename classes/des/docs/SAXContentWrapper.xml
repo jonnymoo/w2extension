@@ -1,0 +1,207 @@
+<class name="SAXContentWrapper" description="Content wrapper for MSXML4 Sax parse content">
+<members>
+<method name="GetContentType">
+<![CDATA[//@cmember int GetContentType( );
+//@return int | Content type (see classes::core::sax::constants)
+//@i Reports on the type of content received.
+//@i Content codes are the constants classes::core::sax::constants
+//@i See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/xmlsdk/html/isaxcontenthandler_interface.asp for more info
+//@i 1 = StartDocument
+//@i 2 = EndDocument
+//@i 3 = StartPrefixMapping (Data1 = Prefix, Data2 = URI)
+//@i 4 = endPrefixMapping (Data1 = Prefix)
+//@i 5 = StartElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName, Attributes populated)
+//@i 6 = EndElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName)
+//@i 7 = Characters (Data1 = Chars)
+//@i 8 = ProcessingInstruction (Data1 = Target, Data2 = Data)
+//@i 9 = SkippedEntity (Data1 = Name)
+]]>
+ />
+</method>
+<method name="GetData1">
+<![CDATA[//@cmember string GetData1( );
+//@return string | Data1
+//@i The contents of the data depends on which content type is received
+//@i 3 = StartPrefixMapping (Data1 = Prefix, Data2 = URI)
+//@i 4 = endPrefixMapping (Data1 = Prefix)
+//@i 5 = StartElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName, Attributes populated)
+//@i 6 = EndElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName)
+//@i 7 = Characters (Data1 = Chars)
+//@i 8 = ProcessingInstruction (Data1 = Target, Data2 = Data)
+//@i 9 = SkippedEntity (Data1 = Name)
+]]>
+ />
+</method>
+<method name="GetDataBlob1">
+<![CDATA[//@cmember blob GetDataBlob1( );
+//@return blob | Data
+//@i The contents of the data (returned as wchar blob) depends on which content type is received
+//@i 3 = StartPrefixMapping (Data1 = Prefix, Data2 = URI)
+//@i 4 = endPrefixMapping (Data1 = Prefix)
+//@i 5 = StartElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName, Attributes populated)
+//@i 6 = EndElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName)
+//@i 7 = Characters (Data1 = Chars)
+//@i 8 = ProcessingInstruction (Data1 = Target, Data2 = Data)
+//@i 9 = SkippedEntity (Data1 = Name)
+]]>
+ />
+</method>
+<method name="GetData2">
+<![CDATA[//@cmember string GetData2( );
+//@return string | Data2
+//@i The contents of the data depends on which content type is received
+//@i 3 = StartPrefixMapping (Data1 = Prefix, Data2 = URI)
+//@i 5 = StartElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName, Attributes populated)
+//@i 6 = EndElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName)
+//@i 8 = ProcessingInstruction (Data1 = Target, Data2 = Data)
+]]>
+ />
+</method>
+<method name="GetDataBlob2">
+<![CDATA[//@cmember blob GetDataBlob2( );
+//@return blob | Data2
+//@i The contents of the data (returned as wchar blob) depends on which content type is received
+//@i 3 = StartPrefixMapping (Data1 = Prefix, Data2 = URI)
+//@i 5 = StartElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName, Attributes populated)
+//@i 6 = EndElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName)
+//@i 8 = ProcessingInstruction (Data1 = Target, Data2 = Data)
+]]>
+ />
+</method>
+<method name="GetData3">
+<![CDATA[//@cmember string GetData3( );
+//@return string | Data3
+//@i The contents of the data depends on which content type is received
+//@i 5 = StartElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName, Attributes populated)
+]]>
+ />
+</method>
+<method name="GetDataBlob3">
+<![CDATA[//@cmember blob GetDataBlob3( );
+//@return blob | Data3
+//@i The contents of the data (returned as wchar blob) depends on which content type is received
+//@i 5 = StartElement (Data1 = NamespaceUri, Data2 = LocalName, Data3 = QName, Attributes populated)
+]]>
+ />
+</method>
+<method name="GetAttrCount">
+<![CDATA[//@cmember int GetAttr( );
+//@return int | count
+//@i if content type = 5(StartElement) then this returns the number of attributes for this element
+]]>
+ />
+</method>
+<method name="GetAttrURI">
+<param name="AttrNo" type="int" />
+<![CDATA[//@cmember string GetAttrURI( int AttrNo );
+//@param int | AttrNo
+//@return string | URI
+//@i Returns the URI for the attribute
+]]>
+ />
+</method>
+<method name="GetAttrURIBlob">
+<param name="AttrNo" type="int" />
+<![CDATA[//@cmember blob GetAttrURI( int AttrNo );
+//@param int | AttrNo
+//@return blob | URI
+//@i Returns the URI for the attribute
+]]>
+ />
+</method>
+<method name="GetAttrLocalName">
+<param name="AttrNo" type="int" />
+<![CDATA[//@cmember string GetAttrLocalName( int AttrNo );
+//@param int | AttrNo
+//@return string | LocalName
+//@i Returns the LocalName for the attribute
+]]>
+ />
+</method>
+<method name="GetAttrLocalNameBlob">
+<param name="AttrNo" type="int" />
+<![CDATA[//@cmember blob GetAttrLocalName( int AttrNo );
+//@param int | AttrNo
+//@return blob | LocalName
+//@i Returns the LocalName for the attribute
+]]>
+ />
+</method>
+<method name="GetAttrQName">
+<param name="AttrNo" type="int" />
+<![CDATA[//@cmember string GetAttrQName( int AttrNo );
+//@param int | AttrNo
+//@return string | QName
+//@i Returns the Qualified Name for the attribute
+]]>
+ />
+</method>
+<method name="GetAttrURIQName">
+<param name="AttrNo" type="int" />
+<![CDATA[//@cmember blob GetAttrQName( int AttrNo );
+//@param int | AttrNo
+//@return blob | QName
+//@i Returns the Qualified Name for the attribute
+]]>
+ />
+</method>
+<method name="GetAttrValue">
+<param name="AttrNo" type="int" />
+<![CDATA[//@cmember string GetAttrValue( int AttrNo );
+//@param int | AttrNo
+//@return string | Value
+//@i Returns the value for the attribute
+]]>
+ />
+</method>
+<method name="GetAttrValueBlob">
+<param name="AttrNo" type="int" />
+<![CDATA[//@cmember blob GetAttrValue( int AttrNo );
+//@param int | AttrNo
+//@return blob | Value
+//@i Returns the Value for the attribute
+]]>
+ />
+</method>
+<method name="GetAttrIndexFromName">
+<param name="URI" type="String" />
+<param name="LocalName" type="String" />
+<![CDATA[//@cmember int GetAttrIndexFromName( string URI, string localName );
+//@param string | URI | The namespace URI or, if the name has no namespace URI, an empty string. 
+//@param string | LocalName | The attributes local name. 
+//@return int | IndexNo
+//@i Finds the index number of an attribute by name
+]]>
+ />
+</method>
+<method name="GetAttrIndexFromName">
+<param name="QName" type="String" />
+<![CDATA[//@cmember int GetAttrIndexFromQName( string QName );
+//@param string | QName | The qualified name for the attribute.
+//@return int | IndexNo
+//@i Finds the index number of an attribute by qualified name
+]]>
+ />
+</method>
+
+<return>
+<rmeth name="GetContentType" cls="int" />
+<rmeth name="GetData1" cls="string" />
+<rmeth name="GetDataBlob1" cls="blob" />
+<rmeth name="GetData2" cls="string" />
+<rmeth name="GetDataBlob2" cls="blob" />
+<rmeth name="GetData3" cls="string" />
+<rmeth name="GetDataBlob3" cls="blob" />
+<rmeth name="GetAttrCount" cls="int" />
+<rmeth name="GetAttrURI" cls="string" />
+<rmeth name="GetAttrURIBlob" cls="blob" />
+<rmeth name="GetAttrLocalName" cls="string" />
+<rmeth name="GetAttrLocalNameBlob" cls="blob" />
+<rmeth name="GetAttrQName" cls="string" />
+<rmeth name="GetAttrQNameBlob" cls="blob" />
+<rmeth name="GetAttrValue" cls="string" />
+<rmeth name="GetAttrValueBlob" cls="blob" />
+<rmeth name="GetAttrIndexFromName" cls="int" />
+<rmeth name="GetAttrIndexFromQName" cls="int" />
+</return>
+</class>

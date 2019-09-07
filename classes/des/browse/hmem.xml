@@ -1,0 +1,612 @@
+<class name="Hmem" description="A method or member in the browser hierarchy" HierImage="..\htag.bmp" HierImageField="Icon" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:37$" frevision="$Revision: 2$">
+<members>
+<String name="Icon" />
+<String name="name" />
+<String name="padding" />
+<String name="justName" />
+<String name="classFilename" />
+<String name="hierStr" />
+<String name="hierStrNxt" />
+<String name="rType" />
+<String name="prePend" />
+<String name="parentFilename" desc="not used, but nessasary" />
+<List name="Lmem" cls="Hsub" />
+<List name="Lbase" cls="Hmem" />
+<Integer name="isObj" />
+<method name="setTo">
+<param name="X" type="XML" />
+<param name="aPath" type="string" />
+<param name="openIt" type="int" />
+<param name="hstr" type="string" />
+<param name="nonstatic" type="int" />
+<![CDATA[//@version Andrew Griffin | 23-11-01 11:56 |
+// This must be a member class...
+
+Name = X.GetAttr("name");
+
+justName = Name;
+if (!hStr) hierStr = Name; else {
+    if (nonStatic==null || nonStatic) prePend = ".";
+    else {
+        prePend = "::";
+    }
+    hierStr = hStr + prePend + Name;
+}
+hierStrNxt = hierStr;
+
+string cnames;
+string s = X.Tag().lower();
+
+switch (s) {
+
+  // Build a Method type entry
+  case "method" :
+    Icon = "..\\hmethod.bmp";
+    rType = X.getAttr("return");
+    if (rType) {
+
+        classFilename = ::AdvSearch::classToPath(rType, aPath, 0);
+
+        if (justName.eq("getparent")) {
+
+            object o = &ownerList().ownerRow();
+            if (o.parentFileName.indexOf("des\\docs\\form")>=0) {
+              o = &o.ownerList().ownerRow().ownerList().ownerRow();
+              if (o.getMemberDef( "classFilename" ) != null)
+                if (o.classFilename.indexOf("des\\docs\\")==-1) {
+                    ::Project::aClass l[] = &ClsBrowser::openProject.getFormParent( o.classFilename );
+                    if (l.count()>0) {
+                      classFilename = l[0].Path;    // got parent form from Project File
+                      rType = classFilename;
+                      rType = rType.subString( rType.lastIndexOf("\\")+1, rType.lastIndexOf("."));
+                    }
+                }
+            }
+        } else
+        if (justName.eq("findRow") ||
+            justName.eq("CreateRow") ||
+            justName.eq("CurrentRow")
+        ) {
+            object o = &ownerList().ownerRow();
+            if (o.parentFileName.indexOf("des\\docs\\list")>=0) {
+              o = &o.ownerList().ownerRow().ownerList().ownerRow();
+              if (o.getMemberDef( "classFilename" ) != null) {
+                classFilename = o.classFilename;
+                rType = classFilename;
+                rType = rType.subString( rType.lastIndexOf("\\")+1, rType.lastIndexOf("."));
+              }
+            }
+        }
+
+//
+
+        rType = formatRType( rType );
+    }
+    string atr = "";
+    int pps=0;
+    int braces = X.FindElement("param1") != null;
+    string paramS = "param";
+    if (braces) atr += " {";
+
+    for(int e=0;;e++) {
+        XML EX = &X.Element(e);
+        if (EX==null) break;
+        if (EX.Tag().beginswith("param")) {
+            if (EX.Tag()!= paramS) {
+                paramS = EX.Tag();
+                atr += " } or {";
+                pps = 0;
+            }
+            if (pps) Atr+=", "; else Atr+=" ";
+            pps++;
+            string tmps = Ex.GetAttr("type");
+            string tmps2 = EX.GetAttr("name");
+            if (tmps && tmps2) tmps+=" ";
+            Atr+=tmps+tmps2;
+        }
+    }
+    if (braces) atr += " }";
+    Atr = "(" + Atr;
+    if (pps) Atr += " )"; else Atr += ")";
+    Name += Atr;
+    hierStr += Atr;
+    hierStrNxt = hierStr;
+    setQueried(1);
+    break;
+
+  // Build Base Member type entrys
+
+  case "integer", "int" :
+    rType = formatRType( s );
+    Icon = "..\\h123.bmp";
+    //Name = "Integer " + Name;
+    classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+    setQueried(1);
+    break;
+
+  case "string", "label", "edit", "hierarchy", "listbox":
+    rType = formatRType( s );
+    Icon = "..\\habc.bmp";
+//    Name = X.Tag() + " " + Name;
+    classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+    setQueried(1);
+    break;
+
+  case "float", "date", "double" :
+    rType = formatRType( s );
+    Icon = "..\\hfloat.bmp";
+//    Name = X.Tag() + " " + Name;
+    classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+    setQueried(1);
+    break;
+
+  // Build Member Objects
+
+  case "list", "object" :
+    isObj = 1;
+    if (s=="list") Icon = "..\\hlist.bmp"; else Icon = "..\\hobject.bmp";
+    classFilename = X.GetAttr("cls");
+    rType = s.lower();
+    if (classFilename) rType += " " + classFilename;
+    rType = formatRType( rType );
+
+    if (s.eq("list")) hierStrNxt += "[]";
+
+    if (classFilename)
+        classFilename = ::AdvSearch::classToPath(classFilename, aPath, 0);
+    else {
+        classFilename = ::AdvSearch::classToPath(s, aPath, 0);  // plain object or list
+        setQueried(1);
+    }
+    break;
+
+  case "w2class", "search" :
+    isObj = 1;
+    Icon = "";
+    classFilename = X.GetAttr("cls");
+    Name = classFilename;
+
+    hierStr = X.GetAttr("name");
+    hierStrNxt = X.GetAttr("name");
+
+    if (classFilename)
+        classFilename = ::AdvSearch::classToPath(classFilename, aPath, 0);
+    else {
+        classFilename="";
+        setQueried(1);
+    }
+    break;
+
+  // Form Members
+  /*
+  case "hierarchy":
+    rType = formatRType( s );
+    isObj = 1;
+    Icon = "..\\hobject.bmp";
+    classFilename = X.GetAttr("bind");
+//    Name = "Hierarchy " + Name;
+    if (classFilename) {
+        object ob = findVarType(classFilename);
+        if (ob==null) { classFilename = ""; break; }
+        Name += "   [ " + ob.name + " ]";
+        classFilename = ob.classFilename;
+        hierStrNxt = ob.hierStr;
+    }
+    if (!classFilename) {
+        classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+        setQueried(1);
+    }
+    break;
+
+  case "listbox":
+    rType = formatRType( s );
+    isObj = 1;
+    Icon = "..\\hobject.bmp";
+    classFilename = X.GetAttr("list");
+//    Name = "ListBox " + Name;
+    if (classFilename) {
+        object ob = findVarType(classFilename);
+        if (ob==null) { classFilename = ""; break; }
+        Name += "   [ " + ob.name + " ]";
+        classFilename = ob.classFilename;
+        hierStrNxt = ob.hierStr;
+        if (!ob.classFilename) setQueried(1);
+    }
+    if (!classFilename) {
+        classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+        setQueried(1);
+    }
+    break;*/
+
+  case "component":
+    rType = formatRType( s );
+    isObj = 1;
+    Icon = "..\\hobject.bmp";
+    classFilename = X.GetAttr("cls");
+    classFilename = ::AdvSearch::classToPath(classFilename, aPath, 0);
+    // PROJECT OVERRIDE - if a project is open check there is no component override
+    cnames = ::browse::ClsBrowser::openProject.getFormComps(
+                 ownerList().ownerRow().parentFileName,
+                 justName );
+    if (cnames)
+        classFilename = cnames.gettoken(0);
+    if (classFilename)
+        name += " [ " + sys::MakeRelativeName( aPath, classFilename ) + " ] ";
+    else {
+        classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+        setQueried(1);
+    }
+    break;
+
+  case "multipane":
+    rType = formatRType( s );
+    isObj = 1;
+    Icon = "..\\hobject.bmp";
+    classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+
+    // PROJECT OVERRIDE - if a project is open check there is no multipane override
+    cnames = ::browse::ClsBrowser::openProject.getFormComps(
+                 ownerList().ownerRow().parentFileName,
+                 justName );
+
+    if (cnames)
+        classFilename = cnames.gettoken(0);
+    if (classFilename)
+        name += " [ " + sys::MakeRelativeName( aPath, classFilename ) + " ] ";
+    else {
+        classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+        setQueried(1);
+    }
+
+    break;
+
+  // Menu Members
+/*
+  case "item" :
+    rType = formatRType( s );
+    Icon = "..\\hMenuI.bmp";
+    classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+    setQueried(1);
+    break;
+
+  case "popup" :
+    rType = formatRType( s );
+    Icon = "..\\hMenuH.bmp";
+    classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+    setQueried(1);
+    break;
+*/
+  // Any other elements
+
+  default:
+    rType = formatRType( s );
+    Icon = "..\\htag.bmp";
+    classFilename = ::AdvSearch::classToPath(s, aPath, 0);
+    setQueried(1);
+    break;
+}
+
+
+// Open first members
+if (classFilename && openIt) {
+    EventHierQuery( null );
+    setOpen(1);
+}]]>
+</method>
+<method name="Init">
+<![CDATA[Icon = "..\\htag.bmp";
+Name = "uninstatiated...";]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 01-10-01 12:24 |
+Hier.getParent().idLocation.setText(hierStr);
+Hier.getParent().selected.setMagicPointer( this );
+
+int addInfo = 0;
+
+object m = &this.ownerList();
+if (m!=null) {
+    m = &m.ownerrow();
+    if (m!=null && m.parentFilename) {
+        string s = rType.trim();
+        if (s) s+=" ";
+        if (Hier.getParent().openHelpDoc( m.parentFilename, justname, s + name, 0 )==2) return;
+        addInfo = 1;
+    }
+}
+
+if (classFilename) Hier.getParent().openHelpDoc( classFilename, "", "", addInfo );]]>
+</method>
+<method name="GetParameterDesc" return="string">
+<param name="Hier" type="object" />
+<![CDATA[//@cmember GetParameterDesc
+//@param object | Hier |
+//@return string |
+//@version Andrew Griffin | 01-10-01 12:24 |
+
+object m = &this.ownerList();
+if (m!=null) {
+    m = &m.ownerrow();
+    if (m!=null && m.parentFilename) {
+        string s = rType.trim();
+        if (s) s+=" ";
+        return Hier.getParent().openHelpParams( m.parentFilename, justname );
+    }
+}
+
+return "";]]>
+</method>
+<method name="EventHierQuery">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 02-08-01 09:40 |
+// Opening a new class hierarchy
+//
+
+if (Lmem.count() || LBase.count()) return;  // already opened
+
+loadAndParse( Hier, classFilename, "" );]]>
+</method>
+<method name="EventHierDoubleClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 12-12-01 11:15 |
+
+object m = &this.ownerList();
+if (m!=null) {
+    m = &m.ownerrow();
+    if (m!=null && m.parentFilename) {
+        OpenClass( m.parentFilename, justname, Hier );
+        return;
+    }
+}
+
+if (isObj && classFilename) {
+    if (OpenClass( classFilename, "", Hier )) return;
+}]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:07 |
+classes::core::wpopupmenu P;
+
+object m = &this.ownerList();
+
+if (classFilename && Lmem.count()==0) {
+    if (rType)  P.Add("Expand Return Class", "SR");
+            else    P.Add("Expand Member Class", "SR");
+}
+
+if (m!=null) {
+    m = &m.ownerrow();
+    if (m!=null && m.parentFilename) P.Add("Open Method/Member \"" + justname + "\"", "MM");
+}
+
+if (classFilename) P.Add("Open Class \"" + classFilename + "\"", "OC");
+
+if (classFilename) P.Add("Browse from here", "BR");
+
+String s = P.Track(1);
+
+if (s=="SR") {
+    EventHierQuery( null );
+    setOpen(1);
+} else
+if (s=="MM") OpenClass( m.parentFilename, justname, Hier ); else
+if (s=="OC") OpenClass( classFilename, "", Hier );
+if (s=="BR") {
+    object o = ClsBrowser::OpenAtCursor();
+    int i = rType.indexOf(" ");
+    if (i==-1) i=rType.length();
+//        i2 = name.indexOf(" ", i+1);
+//    o.openVar(name.left(i), justName, name.substring(i+1, i2), classFilename.left(classFilename.lastIndexOf("\\")+1));
+    o.openVar(rType.left(i), justName, rType.substring(i+1), classFilename.left(classFilename.lastIndexOf("\\")+1));
+}]]>
+</method>
+<method name="loadAndParse">
+<param name="Hier" type="object" />
+<param name="Filename" type="string" />
+<param name="AppendTxt" type="object" />
+<![CDATA[//@version Andrew Griffin | 30-11-01 13:46 |
+
+int lstp = Filename.indexOf("[]");   // List types
+if (lstp>=0) Filename = Filename.left( lstp ) + Filename.substring( lstp+2 );
+
+string pth = Filename;
+pth = pth.left(pth.lastIndexOf("\\")+1);
+
+// Check if class is open in a designer window first...
+
+XML myXML;
+::wclassview wc = &::wclassview::getOpenClass( Filename );
+
+if (wc==null) {
+
+    // Try to load the new class XML file
+
+    myXML = &classes::des::globalxml::LoadXML( filename );
+    if (myXML.tag() == "error") {
+        Lmem.createRow().setError("Can't browse file " + Filename);
+        return 0;
+    }
+
+    myXML = &myXML.getElement(0);
+    ::WClassView::TransformXMLReturns(&myXML);
+
+} else {
+    wc.XFile.GetXML( myXML, wc );
+}
+
+
+// Parse the file
+
+int ret=0;
+if (myXML==null) return;
+
+for (int i=0;; i++) {
+    XML sXML = &myXML.getElement(i);
+    if (sXML==null) break;
+
+    switch (sXML.Tag().lower()) {
+      case "members", "static":
+        ret = Lmem.createRow().setTo(sXML.Tag().lower() + appendTxt, sXML, pth, Filename, hierStrNxt);
+        break;
+
+      case "grid":
+        ret = Lmem.createRow().setStrucTo("Form Template", sXML.Tag().lower() + appendTxt, sXML, pth, Filename, hierStrNxt);
+        break;
+
+      //case "menu":
+      //  ret = Lmem.createRow().setStrucTo("Menu", sXML.Tag().toLower() + appendTxt, sXML, pth, Filename, hierStrNxt);
+      //  break;
+
+      default:
+        ret=1;  // don't delete if nothing created
+    }
+
+    // If there are no members or methods in this section then remove it again.
+    if (ret==0) Lmem.deleteRow(Lmem.count()-1);
+}
+
+string bcl=myXML.getAttr("base");
+if (bcl) {
+
+    string nf = ::AdvSearch::classToPath(bcl, pth, 0);
+    if (nf.eq(Filename)) return;   // Arrgghh - don't allow self reference.
+
+    Hmem tmp = &Lbase.createRow();
+    tmp.Icon = "hbobject.bmp";
+    tmp.name = "Base Class [" + bcl + "]";
+    tmp.hierStr = hierStr;
+    tmp.hierStrNxt = hierStrNxt;
+    tmp.loadAndParse( Hier, nf, "" );
+    tmp.setQueried(1);
+}
+
+// Docs don't have inherent classes so exit if this is a doc...
+if (pth.indexOf("des\\docs", 0, 1)>=0) return;
+
+string s  = rType,
+       s2 = myXML.tag();
+int pl = s.indexOf(" ");
+if (pl>=0) s = s.left(pl);
+
+if (!s2.eq("form") && !s2.eq("class")) return;
+
+if (lstp>=0) s = "list";
+
+if (s.eq("list") || s.eq("hierarchy") || s.eq("listbox") || s.eq("component") || s.eq("multipane")) {
+
+    string nf = ::AdvSearch::classToPath(s, pth, 0);
+    if (nf.eq(Filename)) return;   // Arrgghh - don't allow self reference.
+
+    Hmem tmp = &Lbase.createRow();
+    tmp.Icon = "hbobject.bmp";
+    tmp.name = "Inherent Class [" + s + "]";
+    tmp.hierStr = hierStr;
+    if (s.eq("list")) tmp.hierStrNxt = hierStrNxt; else tmp.hierStrNxt = hierStr;
+    tmp.loadAndParse( Hier, nf, "" );
+    tmp.setQueried(1);
+}
+
+//if (s.eq("object") || s.eq("form")) return;
+
+s = myXML.tag();
+
+if (s2.eq("form") || s2.eq("class")) {
+    if (s2.eq("class")) s2="Object";
+
+    string nf = ::AdvSearch::classToPath(s2, pth, 0);
+
+    Hmem tmp = &Lbase.createRow();
+    tmp.Icon = "hbobject.bmp";
+    tmp.name = "Inherent Class [" + s2 + "]";
+    tmp.hierStr = hierStr;
+    tmp.hierStrNxt = hierStr;
+    tmp.loadAndParse( Hier, nf, "" );
+    tmp.setQueried(1);
+}]]>
+</method>
+<method name="findVarType" return="object">
+<param name="vname" type="string" />
+<![CDATA[//@version Andrew Griffin | 01-10-01 12:01 |
+// Find a variable in current class level.
+
+object m = &this.ownerList();
+if (m==null) return null;
+m = &m.ownerrow().ownerList();
+if (m==null) return null;
+if (m.count()==0) return null;
+
+for (int j=0; j<m.count(); j++) {
+    object m2 = &m[j].Lmem;
+
+    for (int i=0; i<m2.count(); i++)
+        if (m2[i].justname.eq(vname))
+            return m2[i];
+}
+
+return null;  // not found]]>
+</method>
+<method name="OpenClass">
+<param name="filename" type="string" />
+<param name="name" type="string" />
+<param name="Hier" type="object" />
+<![CDATA[//@cmember OpenClass
+//@param string | filename |
+//@param string | name |
+//@param object | Hier |
+//@version Jonathan.Muir | 26-02-10 13:41 |
+if (filename.indexOf("des\\doc")==-1)
+{
+
+    object win = ::AdvSearch::OpenClassFilePath( filename, name );
+    if(win!=null) win.show(1);
+    return 1;
+}
+
+return 0;
+
+// Open a documentation view in browser
+//Hier.getParent().openHelpDoc( filename, name );]]>
+</method>
+<method name="formatRType" return="string">
+<param name="rType" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+switch (rType.Lower()) {
+  case "int", "integer" :
+                  rType = "int"; padding = "                "; break;
+  case "string" : rType = "string"; padding = "           "; break;
+  case "object" : rType = "object"; padding = "          "; break;
+  case "bool" :   rType = "bool"; padding = "             "; break;
+  case "void" :   rType = "void"; padding = "             "; break;
+  case "double" : rType = "double"; padding = "         "; break;
+  case "date" :   rType = "date"; padding = "             "; break;
+  case "list" :   rType = "list"; padding = "               "; break;
+  case "date" :   rType = "date"; padding = "             "; break;
+  case "class" :  rType = "class"; padding = "           "; break;
+  default:
+    padding = " ";
+    for (int r=10-rType.length(); r>0; r--)
+        padding += "  ";
+}
+
+return rType;]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="rType" />
+<e f="padding" />
+<e f="name" />
+</disp>
+<return>
+<rmeth name="GetParameterDesc" cls="string" />
+<rmeth name="findVarType" cls="object" />
+<rmeth name="formatRType" cls="string" />
+</return>
+</class>

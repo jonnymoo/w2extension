@@ -1,0 +1,165 @@
+<form name="WInputBox" savepos="winputBoxPos" sizeable="0" esccancel="1" minsize="1" fauthor="$Author: Scott.goodwin $" fdate="$Date: 29/10/03 13:36 $" frevision="$Revision: 11 $">
+<members>
+<String name="Prompt" />
+<String name="Inp" />
+<String name="ret" />
+<String name="CallBack" />
+<Integer name="size" />
+<method name="DoAction">
+<![CDATA[//@cmember DoAction
+//@version Andrew Griffin | 07-08-02 10:24 |
+//@i Do not use - called by form when OK is pressed
+
+ret = inp;
+
+if (callback)
+    GetParent().ExecMethod( Callback, Inp );
+
+onClose();]]>
+</method>
+<method name="OnDefaultKey">
+<![CDATA[//@cmember OnDefaultKey
+//@version Andrew Griffin | 07-08-02 09:46 |
+//cmember OnDefaultKey
+//@i Do not use - called by form when the default key is pressed
+
+DoAction();]]>
+</method>
+<method name="onClose">
+<![CDATA[//@cmember onClose
+//@param
+//@return
+//@version Andrew Griffin | 07-08-02 10:24 |
+//@i
+
+getParent().EnableForm(1);
+close();]]>
+</method>
+<method name="CheckSize">
+<param name="ctrl" type="edit" />
+<![CDATA[//@cmember CheckSize
+//@param edit | ctrl |
+//@version Simon Carroll | 22-07-03 13:12 |
+//@i
+
+if (size == 0) return;
+
+if (inp.length()>size)
+    inp = inp.left(size);]]>
+</method>
+</members>
+<static>
+<method name="Open" return="void">
+<param name="Par" type="form" />
+<param name="Callback" type="string" />
+<param name="Prompt" type="string" />
+<param name="Cap" type="string" />
+<param name="Inp" type="string" />
+<param name="size" type="object" />
+<![CDATA[//@cmember Open
+//@param form | Par |
+//@param string | Callback |
+//@param string | Prompt | Message prompting for user input
+//@param string | Cap | Input box caption
+//@param string | Inp | Default input box string
+//@param object | size |
+//@return void |
+//@version Andrew Griffin | 09-08-02 10:06 |
+//@version Simon Carroll | 22-07-03 13:11 |
+//@i Opens a user input dialog box.
+//@i On the user pressing OK the specified call back method is
+//@i called in the parent form.
+
+WInputBox X = &CreateInstance();
+X.Callback = Callback;
+X.Prompt = Prompt;
+X.Inp = Inp;
+X.SetText(Cap);
+X.dialog(Par);
+if (size != null)
+    X.size = size;]]>
+</method>
+<method name="GetInput" return="string">
+<param name="Par" type="form" />
+<param name="Prompt" type="string" />
+<param name="Cap" type="string" />
+<param name="Inp" type="string" />
+<![CDATA[//@cmember GetInput
+//@param form | Par | Parent form
+//@param string | Prompt | Message prompting for user input
+//@param string | Cap | Input box caption
+//@param string | Inp | Default input box string
+//@return string | The users responce or "" if cancelled
+//@version Andrew Griffin | 09-08-02 10:06 |
+//@i Opens a user input dialog box.
+//@i On the user pressing OK the specified call back method is
+//@i called in the parent form.
+
+WInputBox X = &CreateInstance();
+X.Callback = "";
+X.Prompt = Prompt;
+X.Inp = Inp;
+X.SetText(Cap);
+X.dialog(Par);
+X.CenterForm();
+
+par.EnableForm(0);
+X.waitOnClose();
+par.SetForeground();
+par.SetFocus();
+
+return X.ret;]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col bpad="2">
+<Label text="Prompt" bind="Prompt" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col align="W">
+<Edit w="200" bind="Inp" onchange="CheckSize" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col tpad="8" align="R">
+<grid>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="  OK  " onClick="DoAction" txsel="FFFF00" style="b" />
+</col>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Cancel" onClick="onClose" txsel="FFFF00" style="b" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+</row>
+</grid>
+<return>
+<rmeth name="Open" cls="void" />
+<rmeth name="GetInput" cls="string" />
+</return>
+</form>

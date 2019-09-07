@@ -1,0 +1,112 @@
+<class name="MemberDef" description="W2 Script Reference">
+<members sub="XML Attributes">
+<method name="AttrName">
+<param name="index" type="int" />
+<![CDATA[//@cmember String AttrName( int index );
+//@param int | index | 
+//@return String | 
+//@i returns "" if out of range
+]]>
+ />
+</method>
+<method name="AttrVal">
+<param name="index" type="int" />
+<![CDATA[//@cmember String AttrVal( int index );
+//@param int | index | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetAttr">
+<param name="name" type="String" />
+<![CDATA[//@cmember String GetAttr( String name );
+//@param String | name | 
+//@return String | 
+//@i ie: String s = X.FolderNo.GetAttr( "MyAttr" );
+]]>
+ />
+</method>
+<method name="XMLContent">
+<![CDATA[//@cmember void XMLContent(  );
+//@return void | 
+//@i Pops up message
+]]>
+ />
+</method>
+</members>
+<members sub="Type Information">
+<method name="ClassName">
+<![CDATA[//@cmember String ClassName(  );
+//@return String | 
+//@i ie: "Integer", "String" or "http://.../classes/MyClass"
+]]>
+ />
+</method>
+<method name="islist">
+<![CDATA[//@cmember int islist(  );
+//@return int | 
+//@i 1 if a list (0 for anything else)
+]]>
+ />
+</method>
+<method name="IsObject">
+<![CDATA[//@cmember int IsObject(  );
+//@return int | 
+//@i 1 if an object (0 for anything else)
+]]>
+ />
+</method>
+<method name="MemberClass">
+<![CDATA[//@cmember Object MemberClass(  );
+//@return Object | 
+//@i reference to class or null for primitive types
+]]>
+ />
+</method>
+</members>
+<members sub="Info">
+<method name="Description">
+<![CDATA[//@cmember String Description(  );
+//@return String | 
+//@i Folder No
+]]>
+ />
+</method>
+<method name="GetPickList">
+<![CDATA[//@cmember Object GetPickList(  );
+//@return Object | 
+//@i returns the pick list used for the member, or null
+]]>
+ />
+</method>
+<method name="Name">
+<![CDATA[//@cmember String Name(  );
+//@return String | 
+//@i Fldr_No
+]]>
+ />
+</method>
+<method name="SQLName">
+<![CDATA[//@cmember String SQLName(  );
+//@return String | 
+//@i sql name as defined for the member
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AttrName" cls="String" />
+<rmeth name="AttrVal" cls="String" />
+<rmeth name="GetAttr" cls="String" />
+<rmeth name="XMLContent" cls="void" />
+<rmeth name="ClassName" cls="String" />
+<rmeth name="islist" cls="int" />
+<rmeth name="IsObject" cls="int" />
+<rmeth name="MemberClass" cls="Object" />
+<rmeth name="Description" cls="String" />
+<rmeth name="GetPickList" cls="Object" />
+<rmeth name="Name" cls="String" />
+<rmeth name="SQLName" cls="String" />
+</return>
+</class>

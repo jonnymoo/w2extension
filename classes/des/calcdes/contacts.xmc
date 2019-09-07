@@ -1,0 +1,124 @@
+<grid>
+<row>
+<col bk="0,128,128">
+<Label text="Users" tx="255,255,255" style="b" size="20" font="Arial" />
+</col>
+<col bk="0,128,128">
+<Label />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col>
+<Label text="User ID" CalcList="0" style="b" />
+</col>
+<col>
+<Label text="User Name" CalcList="0" style="b" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col bk="255,255,255">
+<Label text="Forename" source="SetContent( &quot;&quot;+TheList.User_ID);" CalcList="1" />
+</col>
+<col bk="255,255,255">
+<Label text="Surname" CalcList="1" source="SetContent( &quot;&quot;+TheList.User_Name);" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+</grid>

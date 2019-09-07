@@ -1,0 +1,233 @@
+<form name="CButt" base="CtrlBase" caption="Button" bk="Face" margin="0" sizeable="0" toolwindow="1" fauthor="$Author: Andrew.g $" fdate="$Date: 11/04/01 14:40 $" frevision="$Revision: 3 $">
+<members>
+<method name="SetYesNo">
+<param name="C" />
+<![CDATA[
+C.AddOption("Yes");
+C.AddOption("No");
+]]>
+</method>
+<method name="Init">
+<![CDATA[
+SetWindowName("ButtonEditor");
+SetYesNo(idTabStop);
+SetYesNo(idEnabled);
+SetYesNo(idVisible);
+
+super.Init();]]>
+</method>
+<method name="ShowCtrl">
+<param name="Ctrl" />
+<![CDATA[
+// THIS IS CALLED FROM THE GRID EDITOR
+idText.setText( Ctrl.Text );
+idName.setText( Ctrl.Name );
+idEventClick.setText( Ctrl.GetAttr("onClick") );
+
+super.ShowCtrl(Ctrl);]]>
+</method>
+<method name="DoText">
+<![CDATA[
+GetParent().SetCtrlAttr("text",idText.getText());
+]]>
+</method>
+<method name="DoName">
+<![CDATA[
+GetParent().SetCtrlAttr("name",idName.getText());
+]]>
+</method>
+<method name="DoEventClick">
+<![CDATA[
+GetParent().SetCtrlAttr("onClick",idEventClick.getText());
+]]>
+</method>
+<method name="builtInAttrib" return="int">
+<param name="attrName" type="string" />
+<![CDATA[return (attrName.eq("onclick"));
+]]>
+</method>
+</members>
+<static />
+<grid rpad="2" bpad="1" bk="224,224,192">
+<row>
+<col align="V">
+<Label text="Name" />
+</col>
+<col align="W">
+<Edit name="idName" w="120" onChange="DoName" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" align="V">
+<grid>
+<row>
+<col align="V">
+<Label text="Tab:" />
+</col>
+<col>
+<Edit name="idTabStop" w="32" combo="2" border="0" />
+</col>
+<col lpad="8" align="V">
+<Label text="Enabled:" />
+</col>
+<col>
+<Edit name="idEnabled" w="32" combo="2" border="0" />
+</col>
+<col lpad="8" align="V">
+<Label text="Visible:" />
+</col>
+<col>
+<Edit name="idVisible" w="32" combo="2" border="0" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Groups" />
+</col>
+<col align="W">
+<Edit name="idGroups" w="120" onChange="DoGroups" border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" bk="224,192,128">
+<Label text="Behaviour" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="EventPush" />
+</col>
+<col align="W">
+<Edit name="idEventClick" w="120" onChange="DoEventClick" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="DefaultButton" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="HelpText" />
+</col>
+<col align="W">
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="FocusClick" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" bk="224,192,128">
+<Label text="Display" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Text" />
+</col>
+<col align="W">
+<Edit name="idText" w="120" onChange="DoText" border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Font" />
+</col>
+<col align="W">
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Position" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="TextFX" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="BkColor" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="BevelEdge" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col colspan="2" bk="224,192,128">
+<Label text="Picture" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Source" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Layers" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="MaskLayer" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="Position" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+<row>
+<col align="V">
+<Label text="ColorAdjust" />
+</col>
+<col>
+<Edit border="0" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="builtInAttrib" cls="int" />
+</return>
+</form>

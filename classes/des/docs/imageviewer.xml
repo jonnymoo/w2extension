@@ -1,0 +1,172 @@
+<class name="ImageViewer" description="W2 Script Reference" base="Control">
+<members>
+<method name="AddNote">
+<param name="ImageNote" type="object" />
+<![CDATA[//@cmember int AddNote( object ImageNote );
+//@param object | ImageNote | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetCurrentNote">
+<![CDATA[//@cmember object ImageNote GetCurrentNote(  );
+//@return object ImageNote | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetImage">
+<![CDATA[//@cmember object Image GetImage(  );
+//@return object Image | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetMenuNote">
+<![CDATA[//@cmember object MenuNote GetMenuNote(  );
+//@return object MenuNote | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetNote">
+<param name="idx" type="int" />
+<![CDATA[//@cmember object ImageNote GetNote( int idx );
+//@param int | idx | 
+//@return object ImageNote | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetNoteCount">
+<![CDATA[//@cmember int GetNoteCount(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Invalidate">
+<![CDATA[//@cmember int Invalidate(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="OnPrintObject">
+<param name="DC" type="int" />
+<param name="FitToPage" type="int" />
+<param name="DrawBorder" type="int" />
+<![CDATA[//@cmember void OnPrintObject( int DC, int FitToPage, int DrawBorder );
+//@param int | DC | 
+//@param int | FitToPage | 
+//@param int | DrawBorder | 
+//@return void | 
+//@i This method is not finished.
+]]>
+ />
+</method>
+<method name="RemoveNote">
+<param name="idx" type="int" />
+<param1 name="" type="imgenote" />
+<![CDATA[//@cmember int RemoveNote( {int idx} or {imgenote} );
+//@param int | idx | 
+//@param imgenote |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="Reset">
+<![CDATA[//@cmember void Reset(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Rotate">
+<param name="i" type="int" />
+<![CDATA[//@cmember int Rotate( int i );
+//@param int | i | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetCurrentNote">
+<param name="idx" type="int" />
+<param1 name="imgenote" type="object" />
+<![CDATA[//@cmember int SetCurrentNote( {int idx} or {object imgenote} );
+//@param int | idx | 
+//@param object | imgenote | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetImage">
+<param name="b" type="blob" />
+<param1 name="i" type="image" />
+<param2 name="i" type="imagefile" />
+<param3 name="s" type="string" />
+<![CDATA[//@cmember int SetImage( {blob b} or {image i} or {imagefile i} or {string s} );
+//@param blob | b | 
+//@param image | i | 
+//@param imagefile | i | 
+//@param string | s | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetViewMode">
+<param name="Mode" type="sring" />
+<![CDATA[//@cmember int SetViewMode( sring Mode );
+//@param sring | Mode | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ZoomOnRect">
+<param name="Left" type="int" />
+<param name="Right" type="int" />
+<param name="Top" type="int" />
+<param name="Bottom" type="int" />
+<![CDATA[//@cmember int ZoomOnRect( int Left, int Right, int Top, int Bottom );
+//@param int | Left | 
+//@param int | Right | 
+//@param int | Top | 
+//@param int | Bottom | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ZoomOut">
+<![CDATA[//@cmember void ZoomOut(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="AddNote" cls="int" />
+<rmeth name="GetCurrentNote" cls="object ImageNote" />
+<rmeth name="GetImage" cls="object Image" />
+<rmeth name="GetMenuNote" cls="object MenuNote" />
+<rmeth name="GetNote" cls="object ImageNote" />
+<rmeth name="GetNoteCount" cls="int" />
+<rmeth name="Invalidate" cls="int" />
+<rmeth name="OnPrintObject" cls="void" />
+<rmeth name="RemoveNote" cls="int" />
+<rmeth name="Reset" cls="void" />
+<rmeth name="Rotate" cls="int" />
+<rmeth name="SetCurrentNote" cls="int" />
+<rmeth name="SetImage" cls="int" />
+<rmeth name="SetViewMode" cls="int" />
+<rmeth name="ZoomOnRect" cls="int" />
+<rmeth name="ZoomOut" cls="void" />
+</return>
+</class>

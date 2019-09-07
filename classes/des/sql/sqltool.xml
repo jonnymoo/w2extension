@@ -1,0 +1,462 @@
+<form name="SQLTool" caption="W2 SQL Query Tool" savepos="sqlToolPos" bk="D4D0C8" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
+<members>
+<List name="tmpList" cls="classes::cpicks" />
+<Integer name="maxRows" />
+<String name="selDB" />
+<List name="recList" cls="classes::cpicks" />
+<List name="dataSourcesNames" cls="classes::cpicks" />
+<List name="dataSourcesCodes" cls="classes::cpicks" />
+<List name="tableNames" cls="classes::cpicks" />
+<List name="colNames" cls="classes::cpicks" />
+<Integer name="lastIns" />
+<List name="tabDefList" cls="classes::cpicks" />
+<method name="init">
+<![CDATA[//@cmember init
+//@version Andrew Griffin | 08-11-01 15:47 |
+//@i
+
+maxRows = 1000;
+
+// Get Possible Data Sources...
+
+string Sdatasources = classes::core::SrvSQLInfo::GetDataSources();
+
+classes::cpicks rec;
+
+for (int i=0;; i++) {
+    string s = Sdatasources.gettoken( i );
+    if (!s) break;
+    int j = s.indexof( "=" );
+    rec.code = s.subString( j+1 );
+    rec.desc = s.left( j );
+    dataSourcesCodes.AddRow( rec );
+    rec.code = i.tostring();
+    dataSourcesNames.AddRow( rec );
+}
+
+setFocusSQL();]]>
+</method>
+<method name="doSelectRow">
+<![CDATA[//@cmember doSelectRow
+//@version Andrew Griffin | 07-09-01 13:52 |
+//@i
+
+recList.reset();
+
+object s = idResults.CurrentRow();
+
+for (int i=0; i<s.MemberCount(); i++) {
+    classes::cpicks mb = &recList.CreateRow();
+
+    mb.code = s.GetMemberDef( i ).Name();
+    mb.desc = s.GetMember( i ).toString();
+}]]>
+</method>
+<method name="setFocusSQL">
+<![CDATA[//@cmember setFocusSQL
+//@version Andrew Griffin | 07-09-01 13:59 |
+//@i
+
+idSQL.SetFocus();]]>
+</method>
+<method name="doDataSourceChange">
+<![CDATA[//@cmember doDataSourceChange
+//@version Andrew Griffin | 08-11-01 15:48 |
+//@i
+
+// Get Tables...
+
+int num = idDataSource.getText().val();
+string user = dataSourcesCodes[num].code;
+selDB = dataSourcesCodes[num].desc;
+string dbname = classes::core::SrvSQLInfo::GetDBName( selDB );
+
+int n = user.indexof( "UID=" );
+if (n==-1) {
+    message("Can not determine database user");
+    return;
+}
+n+=4;
+int n2 = user.indexof( ";", n );
+if (n2==-1) n2 = user.length();
+
+user = user.subString( n, n2 );
+string sqlForTables;
+
+if (dbName.eq("Oracle"))
+    sqlForTables = "select tname as Id, tname as name from tab";
+else
+if (dbName.eq("SQLServer"))
+    sqlForTables = "select table_name as Id, table_name as name from information_schema.tables where table_type='base table'";
+else {
+    message("Unknown Database." + dbname);
+    return;
+}
+
+list lTabs = &classes::core::global::ListFromSQL( selDB, sqlForTables, 1000 );
+
+classes::cpicks tval;
+
+tableNames.reset();
+for (int i=0; i<lTabs.Count(); i++) {
+    tval.code = lTabs[i].id;
+    tval.desc = lTabs[i].name;
+    tableNames.AddRow( tval );
+}
+
+//idTableChoice.SetPickList( tableNames );
+
+setFocusSQL();]]>
+</method>
+<method name="doPickTable">
+<![CDATA[//@cmember doPickTable
+//@version Andrew Griffin | 10-09-01 10:25 |
+//@i
+
+/*
+idSQL.insertText( idTableChoice.getText() );
+idSQL.SetFocus();
+*/
+
+//
+
+::popups::popForm P;
+P.dialog( this );
+
+P.addTitle( "Tables on " + selDB );
+
+for (int i=0; i<tableNames.Count(); i++)
+    P.addMember( "", tableNames[i].desc, tableNames[i].desc );
+
+int cp = sys::getCursorPos();
+int x = cp.loword(),
+    y = cp.hiword();
+
+P.go(x,y);]]>
+</method>
+<method name="listMethodCallback">
+<param name="sel" type="string" />
+<![CDATA[//@cmember listMethodCallback
+//@param string | sel |
+//@version Andrew Griffin | 10-09-01 15:01 |
+//@i
+
+// get table def...?
+
+string tabName = sel;
+idTableChoice.setText( sel );
+
+List L = &classes::core::global::ListFromSQL( selDB, "@columns " + tabName, 1000 );
+
+classes::cpicks tmp;
+
+colNames.reset();
+
+//tmp.code = tabName;
+//tmp.desc = "<TABLE>";
+//colNames.AddRow( tmp );
+
+int mcol = classes::core::globalObject::getMemberIndex( L, "length" );
+if (mcol==-1) mcol = classes::core::globalObject::getMemberIndex( L, "column_size" );
+
+for (int i=0; i<L.Count(); i++) {
+
+    tmp.code = L[i].column_name;
+    tmp.desc = L[i].type_name + "(" + L[i].GetMember(mcol) + ")";
+    colNames.AddRow( tmp );
+
+}
+
+FitRecursive();]]>
+</method>
+<method name="doMod">
+<![CDATA[//@cmember doMod
+//@version Andrew Griffin | 10-09-01 10:29 |
+//@i
+
+lastIns = 0;]]>
+</method>
+<method name="doColSelect">
+<param name="lbox" type="listbox" />
+<![CDATA[//@cmember doColSelect
+//@param listbox | lbox |
+//@version Andrew Griffin | 10-09-01 14:25 |
+//@i
+
+string ins = lbox.CurrentRow().code;
+
+if (lastIns) ins = ", " + ins;
+
+idSQL.insertText( ins );
+idSQL.SetFocus();
+
+lastIns = 1;]]>
+</method>
+<method name="doColRightClick">
+<param name="lbox" type="listbox" />
+<![CDATA[//@cmember doColRightClick
+//@param listbox | lbox |
+//@version Andrew Griffin | 24-05-02 16:10 |
+//@i
+
+string ins = lbox.CurrentRow().code;
+string desc = lbox.CurrentRow().desc;
+
+classes::core::wpopupmenu p;
+
+if (desc=="<TABLE>") {
+    p.Add( "Select * from " + ins, "sel1" );
+} else {
+    p.Add( "> " + ins, "i" );
+}
+
+string s = p.Track(1);
+
+if (s=="i") {
+    if (lastIns) ins = ", " + ins;
+
+    idSQL.insertText( ins );
+    idSQL.SetFocus();
+
+    lastIns = 1;
+} else
+
+if (s=="sel1") {
+    idSQL.setText( "Select * from " + ins );
+    lastIns = 0;
+}
+
+idSQL.SetFocus();]]>
+</method>
+<method name="doTableRight">
+<param name="con" type="edit" />
+<![CDATA[//@cmember doTableRight
+//@param edit | con |
+//@version Andrew Griffin | 24-05-02 16:10 |
+//@i
+
+string ins = con.getText();
+
+classes::core::wpopupmenu p;
+
+p.Add( "Select * from " + ins, "sel1" );
+
+string s = p.Track(1);
+
+if (s=="sel1") {
+    idSQL.setText( "Select * from " + ins );
+    lastIns = 0;
+    idSQL.SetSelection( 7, 8 );
+}
+
+idSQL.SetFocus();]]>
+</method>
+<method name="doExecute">
+<![CDATA[//@cmember doExecute
+//@version Andrew Griffin | 10-09-01 14:54 |
+//@i
+
+string sql = idSQL.getText().trim();
+idSQL.setText( sql );
+
+if (!sql) return;
+if (maxRows==0) maxRows = 10000;
+
+list l = &classes::core::global::ListFromSQL(
+            selDB,
+            sql,
+            maxRows
+         );
+
+idResults.setList( &l );
+idResults.MakeGrid( 1 );
+
+//
+
+tabDefList.reset();
+if (l==null) return 0;
+
+object s = idResults.getlist().class();
+
+for (int i=0; i<s.MemberCount(); i++) {
+    classes::cpicks mb = &tabDefList.CreateRow();
+
+    mb.code = s.GetMemberDef( i ).Name();
+    mb.desc = s.GetMemberDef( i ).Name();
+}
+
+//
+
+FitRecursive();]]>
+</method>
+<method name="doSortResults">
+<param name="con" type="edit" />
+<![CDATA[//@cmember doSortResults
+//@param edit | con |
+//@version Andrew Griffin | 10-09-01 14:57 |
+//@i
+
+list l = &idResults.GetList();
+
+l.ResetOrder();
+l.orderby( con.getText() );
+l.OrderList();]]>
+</method>
+</members>
+<static>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 07-09-01 12:04 |
+//@i
+
+SQLTool me;
+me.open();
+me.init();]]>
+</method>
+</static>
+<grid>
+<row>
+<col />
+<col h="170" align="WH">
+<grid>
+<row>
+<col bpad="4" align="X">
+<grid>
+<row>
+<col rpad="8" align="V">
+<Label text="DataSource:" style="b" />
+</col>
+<col rpad="24" w="160" align="X">
+<Edit name="idDataSource" combo="2" onChange="doDataSourceChange" pick="dataSourcesNames" />
+</col>
+<col rpad="8" align="V">
+<Label text="Max Rows:" style="b" />
+</col>
+<col rpad="24" w="80" align="X">
+<Edit bind="maxRows" numeric="1" />
+</col>
+<col rpad="12" align="WV" />
+<col align="V">
+<Label text="Tables:" style="b" />
+</col>
+</row>
+</grid>
+</col>
+<col w="8" align="XY">
+<SizeBar text="SizeBar" otherway="1" />
+</col>
+<col bpad="4" align="XV">
+<grid>
+<row>
+<col lpad="2" tpad="2" rpad="2" bpad="2" w="120" align="WV" bk="255,255,255">
+<Label name="idTableChoice" text="&lt; Pick a Table &gt;" onClick="doPickTable" OnRightClick="doTableRight" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col>
+<Label text="Enter SQL Below:" style="b" />
+</col>
+<col align="XY">
+<SizeBar text="SizeBar" otherway="1" />
+</col>
+<col align="X">
+<Label text="Table Columns:" style="b" />
+</col>
+</row>
+<row>
+<col align="WH">
+<SourceEditor name="idSQL" text="SourceEditor" onChange="doMod" />
+</col>
+<col align="XY">
+<SizeBar text="SizeBar" otherway="1" />
+</col>
+<col w="180" align="XH">
+<ListBox name="idTableCols" lpad="2" tpad="2" rpad="2" IsList="Y" multi="1" list="colNames" onDoubleClick="doColSelect" onRightClick="doColRightClick">
+<row>
+<col rpad="12">
+<Label text="name" bind="code" />
+</col>
+<col>
+<Label text="typ" tx="0,128,128" bind="desc" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+<col />
+<col />
+</row>
+<row>
+<col />
+<col h="8" align="XY">
+<SizeBar text="SizeBar" vert="1" />
+</col>
+<col />
+<col />
+</row>
+<row>
+<col />
+<col lpad="8" tpad="2" rpad="8" bpad="2" bk="0,128,128">
+<grid>
+<row>
+<col lpad="12" rpad="12" h="20" align="CV" bkimg="classes::resource::standard::rb_20blue.bmp" imgtile="32">
+<Label text="Query" tx="255,255,255" txsel="FFFF00" style="b" onClick="doExecute" />
+</col>
+<col lpad="16" rpad="4" align="V">
+<Label text="Sort results by" tx="255,255,255" />
+</col>
+<col w="90" align="XV" imgtile="32">
+<Edit combo="2" pick="tabDefList" onChange="doSortResults" />
+</col>
+<col />
+<col />
+</row>
+</grid>
+</col>
+<col />
+<col />
+</row>
+<row>
+<col />
+<col align="WH">
+<grid>
+<row>
+<col tpad="8" w="480" align="WH">
+<ListBox name="idResults" lpad="2" tpad="2" rpad="2" IsList="Y" multi="1" list="tmpList" onSelect="doSelectRow" />
+</col>
+<col w="8" align="XY">
+<SizeBar text="SizeBar" otherway="1" />
+</col>
+<col tpad="8" w="180" align="XH">
+<ListBox name="idRecord" lpad="2" tpad="2" rpad="2" IsList="Y" multi="1" list="recList">
+<row>
+<col rpad="12">
+<Label text="name" tx="0,128,128" bind="code" />
+</col>
+<col>
+<Label text="val" bind="desc" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

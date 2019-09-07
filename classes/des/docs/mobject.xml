@@ -1,0 +1,107 @@
+<class name="MObject" base="MObjectRoot">
+<members>
+<method name="isselected">
+<![CDATA[// bool isselected(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="OwnerList">
+<![CDATA[// List OwnerList(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="RemoveFromList">
+<![CDATA[// void RemoveFromList(  );
+//
+// Comments :  if owned by a list
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="Reset">
+<![CDATA[// void Reset(  );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="SetContentIndicator">
+<param name="b" type="bool" />
+<![CDATA[// void SetContentIndicator( bool b );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="SetOpen">
+<param name="b" type="bool" />
+<![CDATA[// void SetOpen( bool b );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+<method name="SetQueried">
+<param name="b" type="bool" />
+<![CDATA[// void SetQueried( bool b );
+//
+// Comments : 
+//
+
+// Example :
+
+
+
+
+]]> />
+</method>
+</members>
+<return>
+<rmeth name="isselected" cls="bool" />
+<rmeth name="OwnerList" cls="List" />
+<rmeth name="RemoveFromList" cls="void" />
+<rmeth name="Reset" cls="void" />
+<rmeth name="SetContentIndicator" cls="void" />
+<rmeth name="SetOpen" cls="void" />
+<rmeth name="SetQueried" cls="void" />
+</return>
+</class>

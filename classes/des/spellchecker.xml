@@ -1,0 +1,131 @@
+<class name="spellChecker" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
+<members>
+<Object name="wordApp" cls="classes::com::ComObject" />
+<Object name="customDict" cls="xml" />
+<String name="customDictFilename" />
+<Integer name="ok" />
+<method name="open" return="int">
+<param name="customDictFile" type="string" />
+<![CDATA[//@cmember open
+//@param string | customDictFile | optional filename of a custom w2 dictionary
+//@return int | 1 successfully opened, 0 failed to open
+//@version Andrew Griffin | 08-08-01 10:57 | 
+//@i
+
+if (!ok) {  // Don't open if already open
+
+    if (WordApp.connectEx( "Word.Application" ) < 0) {
+        message("Failed COM Connection to Word.Application");
+        return 0;
+    }
+    
+    WordApp.getProperty("Documents").Add();  // Hack to get it to not crash on close!!! :S
+
+}
+
+// Load custom Dictionary...
+
+if (customDictFile==null || !customDictFile) {
+    customDictFilename = "";
+} else {
+    customDictFilename = customDictFile;
+    
+    xml X = &globalXML::LoadXML( customDictFile, path() );
+    if (X.tag()=="error") {
+        customDict.reset();
+        customDict.setTag( "Dictionary" );
+    } else
+        customDict = X[0];
+}
+
+ok = 1;
+return 1;]]>
+</method>
+<method name="checkSpelling" return="int">
+<param name="sentance" type="string" />
+<![CDATA[//@cmember checkSpelling
+//@param string | sentance | Sentance to be checked
+//@return int | 1 if sentance has no errors
+//@version Andrew Griffin | 07-08-01 13:52 | 
+//@i
+
+if (!ok && !open()) return -1;  // Try to open connection if not yet open
+
+if (customDict.FindElement( sentance )!=null) return 1; // In custom Dictionary
+
+return WordApp.CheckSpelling( sentance );   // Check Words dictionary
+]]>
+</method>
+<method name="getSuggestions" return="string[]">
+<param name="word" type="string" />
+<![CDATA[//@cmember getSuggestions
+//@param string | word | Sentance to be checked
+//@return string[] | 1 if sentance has no errors
+//@version Andrew Griffin | 08-08-01 11:05 | 
+//@i
+
+stringArray sa = &sys::NewStringArray();
+
+// Try to open connection if not yet open
+if (!ok && !open()) return sa;
+
+classes::com::comObject sugList = null;
+
+sugList = &WordApp.GetSpellingSuggestions( word );   // Get Suggestions
+
+for (int i=0; i<sugList.getProperty("count"); i++) {
+//    sa.Add( sugList.item(i).getProperty("Name") );
+    classes::com::comObject sugItem = &sugList.item(i+1);
+    sa.Add( sugItem.getProperty("Name") );
+}
+
+return sa;]]>
+</method>
+<method name="addCustomWord" return="int">
+<param name="newWord" type="string" />
+<![CDATA[//@cmember addCustomWord
+//@param string | newWord | Word to add to custom dictionary
+//@return int | 1 if word added successfully
+//@version Andrew Griffin | 07-08-01 13:11 | 
+//@i
+
+if (!ok || !customDictFilename) return 0;  // Can't add
+
+if (customDict.FindElement( newWord )!=null) return 1;
+
+customDict.CreateElement( newWord );
+
+// Save XML custom dict
+
+if (!globalXML::SaveXML( customDict, customDictFilename, path() )) {
+    message("Failed to save custom Dictionary: '" + customDictFilename + "'",
+            "Custom Dictionary",
+            classes::core::windows::MB_ICONEXCLAMATION);
+    return 0;
+}
+
+return 1;]]>
+</method>
+<method name="close">
+<![CDATA[//@cmember close
+//@param
+//@return
+//@version Andrew Griffin | 07-08-01 15:14 | 
+//@i
+
+if (!ok) return;
+
+WordApp.Quit();
+WordApp.disconnect();
+
+ok = 0;]]>
+</method>
+</members>
+<static />
+<return>
+<rmeth name="open" cls="int" />
+<rmeth name="checkSpelling" cls="int" />
+<rmeth name="getSuggestions" cls="string[]" />
+<rmeth name="addCustomWord" cls="int" />
+</return>
+</class>

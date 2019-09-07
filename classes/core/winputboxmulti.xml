@@ -1,0 +1,51 @@
+<form name="winputboxMulti" base="winputbox" savepos="winputBoxPos" sizeable="1" esccancel="1" minsize="1" fauthor="$Author: Simon.c $" fdate="$Date: 22/07/03 15:35 $" frevision="$Revision: 2 $">
+<members />
+<static />
+<grid>
+<row>
+<col />
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col />
+<col bpad="2">
+<Label text="Prompt" bind="Prompt" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col align="WH">
+<Edit w="200" h="80" bind="Inp" multi="1" onchange="checksize" />
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col tpad="8" align="R">
+<grid>
+<row>
+<col lpad="12" rpad="12" bpad="3" w="60" h="22" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="8">
+<Label text="  OK  " tx="255,255,255" onClick="DoAction" style="b" txsel="FFFF00" />
+</col>
+<col lpad="12" rpad="12" bpad="3" w="60" h="22" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="8">
+<Label text="Cancel" tx="255,255,255" onClick="onClose" style="b" txsel="FFFF00" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col />
+<col />
+<col />
+</row>
+</grid>
+</form>

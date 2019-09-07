@@ -1,0 +1,325 @@
+<class name="Hmem" HierImage="..\htag.bmp" HierImageField="Icon">
+<members>
+<String name="Icon" />
+<String name="name" />
+<String name="justName" />
+<String name="classFilename" />
+<String name="hierStr" />
+<String name="hierStrNxt" />
+<String name="rType" />
+<List name="Lmem" cls="Hsub" />
+<method name="setTo">
+<param name="X" />
+<param name="aPath" type="string" />
+<param name="openIt" type="int" />
+<param name="hstr" type="string" />
+<![CDATA[// This must be a member class...
+
+Name = X.GetAttr("name");
+justName = Name;
+if (hStr=="") hierStr = Name; else hierStr = hStr+"."+Name;
+hierStrNxt = hierStr;
+
+string s = X.Tag().toLower();
+switch (s) {
+
+  // Build a Method type entry
+  case "method" :
+    Icon = "..\\hmethod.bmp";
+    rType = X.getAttr("return");
+    if (rType!="") {
+        switch (rType.Lower()) {
+          case "int" :    rType = "int                "; break;
+          case "string" : rType = "string           "; break;
+          case "object" : rType = "object          "; break;
+          case "bool" :   rType = "bool             "; break;
+          case "void" :   rType = "void             "; break;
+          case "double" : rType = "double         "; break;
+          case "date" :   rType = "date             "; break;
+          case "list" :   rType = "list               "; break;
+          case "date" :   rType = "date             "; break;
+          case "class" :  rType = "class           "; break;
+          default:
+            rType += " ";
+            for (int r=10-rType.length(); r>0; r--)
+                rType += "  ";
+        }
+    }
+    string atr = "( ";
+    int pps=0;
+
+    for(int e=0;;e++) {
+        Object EX = &X.Element(e);
+        if (EX==null) break;
+        if (EX.Tag()=="param"){
+            if (pps) Atr+=", ";
+            pps++;
+            string tmps = Ex.GetAttr("type");
+            if (tmps!="") Atr+=tmps + " ";
+            Atr+=EX.GetAttr("name");
+        }
+    }
+    Atr += " )";
+    Name += Atr;
+    hierStr += Atr;
+    setQueried(1);
+    break;
+
+  // Build Base Member type entys
+  
+  case "integer" :
+    Icon = "..\\h123.bmp";
+    Name = "Integer " + Name;
+    setQueried(1);
+    break;
+
+  case "string", "label", "edit" :
+    Icon = "..\\habc.bmp";
+    Name = X.Tag() + " " + Name;
+    setQueried(1);
+    break;
+
+  case "float", "date", "double" :
+    Icon = "..\\hfloat.bmp";
+    Name = X.Tag() + " " + Name;
+    setQueried(1);
+    break;
+
+  // Build Member Objects
+
+  case "list", "object":
+    Icon = "..\\hobject.bmp";
+    classFilename = X.GetAttr("cls");
+    Name = classFilename + " " + Name;
+    if (s=="list")
+        Name = "List " + Name;
+    else Name = "Object " + Name;
+
+    if (s.eq("list")) hierStrNxt += "[]";
+
+    if (classFilename!="")
+        classFilename = ::AdvSearch::classToPath(classFilename, aPath, 0);
+    else {
+        classFilename="";
+        setQueried(1);
+    }
+    break;
+
+  // Form Members
+
+  case "hierarchy":
+    Icon = "..\\hobject.bmp";
+    classFilename = X.GetAttr("bind");
+    Name = "Hierarchy " + Name;
+    if (classFilename!="") {
+        object ob = findVarType(classFilename);
+        Name += "   ( " + ob.name + " )";
+        classFilename = ob.classFilename;
+        hierStrNxt = ob.hierStr;
+    }
+    break;
+
+  case "listbox":
+    Icon = "..\\hobject.bmp";
+    classFilename = X.GetAttr("list");
+    Name = "ListBox " + Name;
+    if (classFilename!="") {
+        object ob = findVarType(classFilename);
+        Name += "   ( " + ob.name + " )";
+        classFilename = ob.classFilename;
+        hierStrNxt = ob.hierStr;
+        if (ob.classFilename=="") setQueried(1);
+    }
+    break;
+
+  case "component":
+    Icon = "..\\hobject.bmp";
+    classFilename = X.GetAttr("cls");
+    name = "Component " + name + " ( " + classFilename + " ) ";
+    classFilename = ::AdvSearch::classToPath(classFilename, aPath, 0);
+    break;
+
+  // Menu Members
+
+  case "item" :
+    Icon = "..\\hMenuI.bmp";
+    Name = "Item " + Name;
+    setQueried(1);
+    break;
+
+  case "popup" :
+    Icon = "..\\hMenuH.bmp";
+    Name = "Popup " + Name;
+    setQueried(1);
+    break;
+
+  // Any other elements
+
+  default:
+    Icon = "..\\htag.bmp";
+    Name = X.Tag() + " " + Name;
+    setQueried(1);
+    break;
+}
+
+
+// Open first members
+if (classFilename!="" && openIt) {
+    //setQueried(1);
+    EventHierQuery( null );
+    setOpen(1);
+}
+]]>
+</method>
+<method name="Init">
+<![CDATA[Icon = "..\\htag.bmp";
+Name = "uninstatiated...";]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" />
+<![CDATA[Hier.getParent().idLocation.setText(hierStr);]]>
+</method>
+<method name="EventHierQuery">
+<param name="Hier" />
+<![CDATA[// Opening a new class hierarchy
+//
+
+loadAndParse( Hier, classFilename, "" );
+
+]]>
+</method>
+<method name="EventHierDoubleClick">
+<param name="Hier" />
+<![CDATA[
+object m = &this.ownerList();
+if (m!=null) {
+    m = &m.ownerrow();
+    if (m.parentFilename!="") {
+        ::AdvSearch::OpenClassFilePath( m.parentFilename, justname );
+        return;
+    }
+}
+
+if (classFilename!="") ::AdvSearch::OpenClassFilePath( classFilename, "" );
+]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" />
+<![CDATA[PopupMenu P;
+
+object m = &this.ownerList();
+if (m!=null) {
+    m = &m.ownerrow();
+    if (m!=null && m.parentFilename!="") P.Add("Open Method/Member \"" + justname + "\"", "MM");
+}
+
+if (classFilename!="") P.Add("Open Class \"" + classFilename + "\"", "OC");
+
+if (classFilename!="") P.Add("Browse from here", "BR");
+
+String s = P.Track(1);
+
+if (s=="MM") ::AdvSearch::OpenClassFilePath( m.parentFilename, justname ); else
+if (s=="OC") ::AdvSearch::OpenClassFilePath( classFilename, "" );
+if (s=="BR") {
+    object o = ClsBrowser::OpenAtCursor();
+    int i = name.indexOf(" "),         
+        i2 = name.indexOf(" ", i+1);
+    o.openVar(name.left(i), justName, name.substring(i+1, i2), classFilename.left(classFilename.lastIndexOf("\\")+1));
+}
+]]>
+</method>
+<method name="loadAndParse">
+<param name="Hier" />
+<param name="Filename" type="string" />
+<param name="AppendTxt" />
+<![CDATA[string pth = Filename;
+
+
+pth = pth.left(pth.lastIndexOf("\\")+1);
+
+
+// Try to load the new class XML file
+
+File afile;
+if (!afile.Open(Filename, "r")) {
+    Lmem.createRow().setError("Can't open file " + Filename);
+    return 0;
+}
+Blob B = afile.readBlob();
+afile.close();
+if (B==null)  {
+    Lmem.createRow().setError("Can't read from file " + Filename);
+    return 0;
+}
+XML myXML = B.GetXMLObject();
+if (myXML==null)  {
+    Lmem.createRow().setError("Can't parse the file " + Filename);
+    return 0;
+}
+
+// Parse the file
+
+myXML = myXML.getElement(0);
+::WClassView::TransformXMLReturns(&myXML);
+
+int ret=0;
+if (myXML==null) return;
+
+for (int i=0;; i++) {
+    XML sXML = &myXML.getElement(i);
+    if (sXML==null) break;
+
+    switch (sXML.Tag().toLower()) {
+      case "members", "static":
+        ret = Lmem.createRow().setTo(sXML.Tag().toLower() + appendTxt, sXML, pth, Filename, hierStrNxt);
+        break;
+        
+      case "grid":
+        ret = Lmem.createRow().setStrucTo("Form Template", sXML.Tag().toLower() + appendTxt, sXML, pth, Filename, hierStrNxt);
+        break;
+
+      case "menu":
+        ret = Lmem.createRow().setStrucTo("Menu", sXML.Tag().toLower() + appendTxt, sXML, pth, Filename, hierStrNxt);
+        break;
+
+      default:
+        ret=1;  // don't delete if nothing created
+    }
+
+    // If there are no members or methods in this section then remove it again.
+    if (ret==0) Lmem.deleteRow(Lmem.count()-1);
+}
+
+string bcl=myXML.getAttr("base");
+if (bcl=="") return;
+
+string nf = ::AdvSearch::classToPath(bcl, pth, 0);
+if (nf.eq(Filename)) return;   // Arrgghh - don't allow self reference.
+
+loadAndParse( Hier, nf, "   ( base: " + bcl + " )" );]]>
+</method>
+<method name="findVarType">
+<param name="vname" type="string" />
+<![CDATA[// Find a variable in current class level.
+
+object m = &this.ownerList();
+if (m==null) return null;
+m = &m.ownerrow().ownerList();
+if (m==null) return null;
+if (m.count()==0) return null;
+m = m[0].Lmem;
+
+for (int i=0; i<m.count(); i++)
+    if (m[i].justname.eq(vname))
+        return m[i];
+
+return null;  // not found]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="rType" />
+<e f="name" />
+</disp>
+</class>

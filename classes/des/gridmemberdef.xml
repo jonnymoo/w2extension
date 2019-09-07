@@ -1,0 +1,111 @@
+<class name="gridMemberDef" HierImageField="icon" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:39 $" frevision="$Revision: 2 $">
+<members>
+<String name="Disp" />
+<String name="name" />
+<String name="icon" />
+<Integer name="group" />
+<Integer name="counter" />
+<Integer name="countSel" />
+<method name="initControl">
+<param name="typ" type="string" />
+<param name="nam" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+Disp = nam + " (" + typ + ")";
+name = nam;
+
+switch (typ.lower()) {
+
+  case "edit", "label" :
+    icon = "habc.bmp";
+    break;
+
+  default :
+    icon = "hobject.bmp";
+    break;
+
+}]]>
+</method>
+<method name="initGroup">
+<param name="nam" type="string" />
+<![CDATA[//@cmember initGroup
+//@param string | nam |
+//@version Andrew Griffin | 24-07-02 11:36 |
+//@i
+
+Disp = nam;
+name = nam;
+icon = "hlist";
+group = 1;
+counter = 1;]]>
+</method>
+<method name="EventHierMouseSelect">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 24-07-02 10:38 |
+//@i
+
+WClassView wC = &Hier.GetParent();
+
+Grid g = &ownerList().ownerRow();
+g.EventHierMouseSelect( Hier );
+grid::wgridEdit oZ = &wC.idMulti.FindPane("GridEdit");
+if (oZ == null) return;
+
+
+AdvSearch::searchName = name;
+edGridCell eG = &AdvSearch::findInGrid( oZ.idGridEdit.theGrid );
+
+if (sys::Version()>2081) {
+    oZ.idGridEdit.select( eG );
+    oZ.GridClicked();
+} else {
+    message("Form Control selection not implemented before W2 v2082", "W2 Designer", classes::core::windows::MB_ICONASTERISK);
+}
+
+Hier.SelectRow( this );]]>
+</method>
+<method name="EventHierRightClick">
+<param name="Hier" type="hierarchy" />
+<![CDATA[//@cmember EventHierRightClick
+//@param hierarchy | Hier |
+//@version Andrew Griffin | 24-05-02 16:02 |
+//@i
+
+classes::core::wpopupmenu P;
+
+P.Add("Find References","FREF");
+P.Add("Find Refs in Files","FREF2");
+
+String s = P.Track(1);
+
+if (s=="FREF") {  // Edit Parameters
+    Object Z = Hier.GetParent().idMulti.FindPane("MethodEdit");
+    if (Z==null)
+    {
+        Z = &Hier.GetParent().XFile.Classes[0].Sections[0].Functions[0];
+        if (Z==null)
+            Z = &Hier.GetParent().XFile.Classes[0].Sections[1].Functions[0];
+        if (Z==null) return;
+        Z = &Hier.GetParent().editMethod( Z );
+    }
+    Z.idSearch.setText( name );
+    Z.doBIGSearch( null );
+} else
+
+if (s=="FREF2") {  // Find References in Files
+    search::wSearchinFiles::init( Hier.GetParent().filename, 1, name );
+}]]>
+</method>
+</members>
+<static />
+<disp>
+<e f="Disp" />
+</disp>
+</class>

@@ -1,0 +1,3193 @@
+<form name="WFuncEdit" description="Method Editor" caption="Function Editor" bk="FFFFFF" margin="0" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:42$" frevision="$Revision: 2$" testclass="1">
+<members>
+<Object name="Magic" />
+<Integer name="nowt" />
+<String name="partPath" />
+<String name="oldName" />
+<Object name="tipXML" cls="XML" desc="xml structure holding context tip" />
+<Integer name="lastTipX" />
+<Integer name="bcpos" />
+<Integer name="cbStaticTmp" />
+<String name="paramDescs" desc="Description of a parameter" />
+<String name="autoComplete" />
+<Integer name="lastChar" />
+<Object name="localParse" cls="browse::w2parser" />
+<Integer name="browseMode" />
+<Integer name="lastLength" />
+<Integer name="openForParse" />
+<Integer name="lastPeriod" />
+<Integer name="inTimer" />
+<Integer name="SearchStar" />
+<String name="fileName" />
+<Integer name="CurrentLine" />
+<method name="Setup">
+<param name="M" type="object" />
+<![CDATA[//@cmember Setup
+//@param object | M |
+//@version Andrew Griffin | 17-01-02 11:50 |
+//@version Andrew | 24-01-02 16:51 |
+//@version Andrew Griffin | 20-03-02 11:10 |
+//@version Nick Gomm | 25-06-08 15:52 |
+//@version Jonathan.Muir | 26-02-10 14:32 |
+
+browseMode = 0;
+inTimer = 0;
+
+if (Magic!=null){
+    // remember positions
+    Magic.Caret = idSource.GetCaretPos();
+    }
+
+Magic.SetMagicPointer( M );
+
+if (!openForParse) {
+    idFuncName.BindTo( &M.FuncName );
+    idSource.BindTo( &M.Script );
+
+    idSource.SetSelection( M.Caret, M.Caret );
+
+    idSource.setFocus();
+    SourceTip::hideTip();
+
+    oldName = M.funcname;
+
+    localParse.setMod();
+    SetTimer( parseDelay );   // calc local variable scopes...
+
+    lastLength = magic.script.length();
+
+    SetUpUnitTest(M);
+}
+
+// Any search windows open?
+
+if(!openForParse)
+{
+
+    search::wSearch aWin = &sys::FindPopup("FindReplace");
+    if (aWin!=null) {
+        if (!aWin.allMethods) aWin.startSearch();
+    }
+
+    PlaceBreakPoints();
+}]]>
+</method>
+<method name="Init">
+<![CDATA[//@version Andrew Griffin | 31-01-02 16:55 |
+//@version Nick Gomm | 25-06-08 15:52 |
+
+// idSource.SetFixedFont();
+
+browseMode = 0;]]>
+</method>
+<method name="OnSourceChange">
+<param name="con" type="control" />
+<param name="flushClasses" type="int" />
+<![CDATA[//@cmember OnSourceChange
+//@param control | con |
+//@param int | flushClasses |
+//@version Andrew Griffin | 16-11-01 11:16 |
+//@version Andrew | 24-01-02 12:33 |
+//@version Andrew Griffin | 01-02-02 09:56 |
+//@version Darren Ball | 01-09-06 09:47 |
+//@version Nick Gomm | 25-06-08 14:10 |
+//@version Jonathan.Muir | 11-03-10 11:30 |
+
+if(GetParent().getthreadguid())
+{
+    return;
+}
+
+
+localParse.setMod();
+browseMode = 0;
+SetTimer( parseDelay );   // recalc local variable scopes...
+
+if(GetParent().idResults.CurrentRow().GetMember("Mod")!=NULL)
+{
+    GetParent().idResults.CurrentRow().Mod = "*";
+    GetParent().SetMod(null, flushClasses);
+    GetParent().makeFuncHist( Magic.funcName, "*", oldName );
+
+    oldName = Magic.funcName;
+
+    // Update any error locations in methods as you type...
+
+    int newLength = idSource.getText().length();
+    int charDiff = newLength - lastLength;
+    int pos = idSource.GetCaretPos() - charDiff;
+
+    if (charDiff!=0) {
+        getParent().moveErrors( magic.funcname, pos, charDiff );
+        lastLength = newLength;
+    }
+
+}]]>
+</method>
+<method name="EditParams">
+<param name="ctrl" type="control" />
+<param name="param" type="object" />
+<![CDATA[//@cmember EditParams
+//@param control | ctrl |
+//@param object | param |
+//@version Andrew Griffin | 30-01-02 11:56 |
+
+Object L = &GetParent().idResults.CurrentRow();
+
+WFuncParams Q;
+Q.DoIt( L, this, param );]]>
+</method>
+<method name="DoParseTest">
+<![CDATA[//@version Andrew Griffin | 15-11-01 15:56 |
+
+Func fnc = &GetParent().idResults.CurrentRow();
+GetParent().resetErrors();
+int errline = Fnc.ParseTest( this );]]>
+</method>
+<method name="onChar">
+<param name="TheKey" type="int" />
+<param name="TheState" type="int" />
+<param name="TheCtrl" type="control" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 16-11-01 14:47 |
+//@version Andrew | 24-01-02 12:21 |
+//@version Andrew Griffin | 28-06-02 11:23 |
+//@version Darren Ball | 10-01-06 12:58 |
+//@version Jonathan.Muir | 26-02-10 15:59 |
+//@version Darren.Ball | 18-03-10 11:52 |
+//@version ashley.gibbs | 24-09-13 16:28 |
+//@version ashley.gibbs | 08-01-14 09:53 |
+//@version andrew.banyard | 20-05-15 17:02 |
+//@i
+
+UpdateLinenumber();
+
+//sys::debugout("WFuncEdit TheKey: "+TheKey.tostring()+
+//              ", TheState: "+TheState.ToString());
+
+Object LX = &magic.OwnerList();
+if (LX!=null) LX = &LX.OwnerRow().OwnerList();
+
+if (TheCtrl==idSearch && TheKey == 13 ) {   // Enter
+    string str = idSearch.getText();
+
+    if (str[0]=='#') {
+        int ln = str.subString(1).Val();
+        if (ln>0) {
+            gotoLine( ln );
+            return;
+        }
+    }
+
+    DoBIGSearch( idSearch.getCell() );
+} else
+if (((TheKey == 114)||(TheKey==70&&TheState==2)) && LX!=null) {            // F3 (or Ctrl F) - Search
+    search::wSearch::newSearch(&getParent().XFile, "", null, getParent() );
+} else
+if (TheKey == 116 && LX!=null) {            // F5 - Continue
+    getParent().onChar( TheKey, TheState, TheCtrl );
+} else
+if (TheKey == 118 && LX!=null) {            // F7 - Parse
+    browseMode = 102;
+    SetTimer( 10 );
+} else
+if (TheKey == 119 && LX!=null) {            // F8 - Spell Check
+    browseMode = 103;
+    SetTimer( 10 );
+} else
+if (TheCtrl==idSource) {
+    if (TheKey == 112 ) {  // F1 - Browse
+        bcpos = idSource.GetCaretPos();
+        browseMode = 1;
+        SetTimer( 10 );
+    } else
+    if (TheKey == 113 ) {  // F2 - List Methods & Members
+        Caret_Fix();
+        browse::clsbrowser::debug = (TheState==1);
+        bcpos = idSource.GetCaretPos();
+        sourceTip::hideTip();
+        browseMode = 3;
+        SetTimer( 10 );
+    } else
+    if (autoList && (TheKey == 190 || TheKey == 186)) {   // check if we are within a comment?
+        String s = idSource.GetText();
+
+        bcpos = idSource.GetCaretPos();
+        int inStr = 0;
+        for (int p=bcpos-1; (p>0 && s[p]!='\n'); p--) if (s[p]=='"') inStr = !inStr;
+        if (TheKey==190 && s[bcpos-1]!='.') inStr=1;
+        else
+        if (TheKey==186 && (bcpos<2 || s[bcpos-1]!=':' || s[bcpos-2]!=':')) inStr=1;
+
+        if (bcpos>1 && s[bcpos-2]!=' ' && !inStr)
+        {
+            Caret_Fix();
+            browse::clsbrowser::debug = (TheState==1);
+            //bcpos = idSource.GetCaretPos();
+            sourceTip::hideTip();
+            browseMode = 3;
+            SetTimer( 10 );
+        }
+    } else
+    if (TheKey == 115 ) {  // F4 - Source Hint
+
+        browse::clsbrowser::debug = (TheState==3);
+
+        if (lastChar==TheKey && sourceTip::tip.opened) {    // Press F4 again...
+            bcpos = lastTipX-1;
+            tryBrowseLeft( idSource.getText(), -99 );
+            browseMode = 1004;
+        } else {                                            // First F4 key press
+            bcpos = idSource.GetCaretPos();
+            browseMode = 4;
+        }
+        SourceTip::hideTip();
+        SetTimer( 10 );
+    } else
+    if (TheKey == 117 ) {  // F6 - Match Brackets
+        browseMode = 101;
+        SetTimer( 10 );
+    } else
+    if (TheKey == 122 || TheKey==121) {  // F10, F11 - Step
+        getParent().onChar( TheKey, TheState, TheCtrl );
+    } else
+    if ((TheKey==189&&TheState==2)||(TheKey==187&&TheState==2)) // Ctrl - and Ctrl +
+    {
+        getParent().onChar( TheKey, TheState, TheCtrl );
+    }
+    if (TheKey == 123 ) {  // F12 - Open under cursor
+        bcpos = idSource.GetCaretPos();
+        browseMode = 5;
+        SetTimer( 10 );
+    } else
+    if (TheKey==106 && TheState == 2)
+    {
+        GetParent().DoJumpPrevious();
+    } else
+    if (TheKey == 27) {    // Escape
+        if (SourceTip::tip.opened)
+            SourceTip::hideTip();
+        else
+        if (getParent().errors.count())
+            getParent().resetErrors();
+        else {
+            idSource.SetSelection( idSource.GetCaretPos(), idSource.GetCaretPos() );
+        }
+    } else
+    if (TheKey == 57 && autoTips) { // Open Bracket AutoTips
+        String s = idSource.GetText();
+        bcpos = idSource.GetCaretPos();
+        int inStr;
+        for (int p=bcpos; (p>0 && s[p]!='\n'); p--) if (s[p]=='"') inStr = !inStr;
+
+        if (
+            (bcpos>4 && s.subString( bcpos-4, bcpos ).eq("for(") && (s[bcpos-5] == ' ' || s[bcpos-5] == '\n')) ||
+            (inStr)
+           ) {
+            inStr=1;// do nothing
+        } else
+        if (bcpos>1 && s[bcpos-1] == '(' && smpParse::varNamOk( s[bcpos-2] ) ) {
+            SourceTip::hideTip();
+            browseMode = 4;
+            SetTimer(10);
+        }
+    } else
+    if (TheKey == 222 && !TheState) {    // # AutoCorrect shortcut strings
+        String s = idSource.GetText();
+        int cpos = idSource.GetCaretPos()-1;
+
+        for (int i=0; i<shortcuts.count(); i++) {
+          string sc = shortcuts[i].code;
+          int stp = cpos-sc.length();
+          if (stp>0) // cpos>sc.length())
+            if (s.subString( stp, cpos).eq(sc) &&
+             (stp==0 || !smpParse::varNamOk(s[stp-1]))) {
+              doReplaceStr( cpos-sc.length(), sc+"#", shortcuts[i].desc);
+              if (shortcuts[i].desc.endsWith( "::" ))
+                onChar( 186, 1, idSource );
+              break;
+            }
+        }
+    }
+    else if (TheKey == 83) // CTRL-S Save
+    {
+        getParent().onChar( TheKey, TheState, TheCtrl );
+    }
+    else
+    {
+        if (sourcetip::tip.opened && (!TheState || TheKey<37 || TheKey>40)) {
+            showSourceDefTip( tipXML, 32000, idSource.GetCaretPos() );
+        }
+    }
+}
+
+lastChar = TheKey;
+//this.idSearch.setText( thekey.tostring() + " : " + theState );]]>
+</method>
+<method name="onTimer">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 12-02-02 13:32 |
+//@version Jonathan.Muir | 23-02-10 11:05 |
+//@i
+
+KillTimer();
+
+if (intimer) {
+    setTimer( parseDelay );
+    return;
+}
+inTimer = 1;
+
+//sys::debugOut( "+ wfuncedit:onTimer (bMode = " + browseMode + ")" );
+
+if (browseMode == 6) {  // look for paths for a class
+    browseMode = 0;
+    doFindPosClsPaths();
+    inTimer = 0;
+    return;
+}
+
+if (localParse.getMod()) {
+    //sys::debugOut( " + wfuncedit:onTimer newThread" );
+
+    /*criticallock lock = &localParse.CI.TryEnter();
+    if (lock!=null) {
+        localParse.open();
+        SetFocus();*/
+        //localParse.NewThread( "getLocals", idSource.GetText(), this/*, lock*/ );
+        localParse.getLocals( idSource.GetText(), this);
+    //}
+
+    //sys::debugOut( " - wfuncedit:onTimer newThread" );
+}
+
+if (browseMode>100) {
+
+    if (browseMode==101) matchBrackets();
+    if (browseMode==102) DoParseTest();
+    if (browseMode==103) DoSpellCheck();
+
+    if (browseMode==1004) {
+        browseMode = 4;
+        doContext( 1, 1 );
+    }
+
+    inTimer = 0;
+    return;
+}
+
+if (browseMode>0) doContext( 1 );
+
+if (localParse.getMod()) {
+    browseMode = 0;
+    setTimer( parseDelay );
+}
+
+//sys::debugOut( "- wfuncedit:onTimer" );
+inTimer = 0;]]>
+</method>
+<method name="doContext">
+<param name="browse" type="int" />
+<param name="tryingLeft" type="int" />
+<![CDATA[//@cmember doContext
+//@param int | browse |
+//@param int | tryingLeft |
+//@version Andrew Griffin | 03-10-01 15:33 |
+//@version Andrew | 26-01-02 17:46 |
+//@version Andrew Griffin | 01-07-02 15:39 |
+//@version Jonathan.Muir | 26-02-10 13:33 |
+//@version andrew.banyard | 05-09-16 16:05 |
+// Retrieve the string under the text caret is
+
+//sys::debugOut( " + wfuncedit:doContext" );
+
+classsection cs = &Magic.OwnerList().OwnerRow();
+int inStatic =  cs.SectionType.eq("static");
+string meTitle = inStatic ? "Static" : "this";
+
+String s = idSource.GetText();
+int cpos = bcpos;       // char pos at time of key press
+int cbStatic = 0;       // Can Be Static (1 if next bit can follow a '::'
+int max = s.length();
+int eSearch;
+WClassView CV = &getParent();
+string thisClass = CV.XFile.Classes[0].ClassName;
+string thisPath = CV.FileName;
+if (!thisPath) {
+    thispath = classes::cpicks::classname();
+    thisPath = thisPath.left( thisPath.lastindexof("\\")+1 );
+}
+
+XML brX = null, brSaveX;
+
+string vName, vType, vCls, oStr;    // for F1 browsing...
+
+//
+// Trace left until reach a char like ' ', go over ':' & '.', skip over '[]' and '()'
+
+int pstart = cpos, pend = cpos, listEnd, c, lastB = -1, lastDot = -1, firstDot;
+while (pstart>0) {
+    pstart--;
+    c = s[pstart];   // get char under caret
+
+    if (c==')' || c==']') {       // method/list indicator
+        if (c==']') listEnd = pStart + 1;
+        int depth = 1;
+        for (pstart--; pstart>0; pstart--) {
+          switch (s[pstart]) {
+            case '(', '[' : depth--; break;
+            case ')', ']' : depth++; break;
+          }
+          if (depth<=0) break;
+        }
+        lastB = pStart; continue;
+    }
+
+    if (c=='.')
+    {
+        lastB = pStart;
+        lastDot = pStart;
+        listEnd = 0;
+        if (!firstDot) firstDot = pStart+1;
+        continue;
+    }
+
+    if (c==':')
+    {
+        if (!firstDot) firstDot = pStart+1;
+        continue;
+    }
+
+    if (c<'0' || c>':' && c<'A' || c>'Z' && c<'_' || c>'z') {
+        pStart++;
+        break;  // illegal charactors
+    }
+}
+
+//
+// Trace right until we hit a char like ' ' or '.' or ':' or '(' or '['
+
+while (pend<max) {
+    c = s[pend];   // get char under caret
+    if (c<'0' || c>'9' && c<'A' || c>'Z' && c<'_' || c>'z') break;  // illegal charactors
+    pend++;
+}
+
+//if (c == '[') isList = 1;
+if (lastB==-1) lastB = pEnd;    // last bracket (for finding ::'s)
+if (lastDot==-1) lastDot = pEnd;    // last Dot
+if (!firstDot) firstDot = pStart;
+
+//
+// Work out what we actually have to our left...
+
+string wholeStr = s.subString( pstart, pend );
+string leftStr = s.subString( pstart, lastB );
+
+
+//
+// Find out how much of this string is a class name (i.e. classes::des::wclassview::draw )
+nowt = wholeStr=="";
+
+int lastCollon = leftStr.lastIndexOf( "::" );
+int isStatic = lastCollon>=0;
+
+browse::avar lV = null;
+FuncParam fP = null;
+
+while (!isStatic)  // Does not include any '::'s (one time only loop)
+{
+    int fDot = leftStr.indexOf( "." );
+    if (fDot>=0) {
+        leftStr = leftStr.left( fDot ); // The first part of str before any '.''s & no '::''s
+    }
+
+
+    //
+    // Special case key words...
+    if (leftStr.eq("this") && !inStatic) {
+        brX = &browse2::browser::browseBase(
+            "This", "object", thisClass, s.subString( lastDot+1, pend ), thisPath, listEnd );
+        if (brX!=null) { vName = "This"; vType = "object"; vCls = thisClass; oStr = s.subString( lastDot+1, pend ); }
+        break;
+    }
+
+    if (leftStr.eq("super")) {
+        brX = &browse2::browser::browseBase(
+            "Super", "object", CV.XFile.Classes[0].baseclass, s.subString( lastDot+1, pend ), thisPath, listEnd );
+        if (brX!=null) { vName = "Super"; vType = "object"; vCls = CV.XFile.Classes[0].baseclass; oStr = s.subString( lastDot+1, pend ); }
+        break;
+    }
+
+
+    //
+    // Is it a local Variable?
+    lV = &getLocalVar( leftStr );
+    if (lV!=null)
+    {
+        brX = &browse2::browser::browseBase(
+            lV.name, (lV.isList ? "list" : "object") , lV.type, s.subString( lastDot+1, pend ), thisPath, listEnd );
+        if (brX!=null) { vName = lV.name; vType = (lV.isList ? "list" : "object"); vCls = lV.type; oStr = s.subString( lastDot+1, pend ); }
+        break;
+    }
+
+
+    //
+    // Is it a Method Parameter?
+    fP = &getParameter( leftStr );
+    if (fP!=null)
+    {
+        brX = &browse2::browser::browseBase(
+            fP.ParamName, "object" , fP.ParamType, s.subString( lastDot+1, pend ), thisPath, listEnd );
+        if (brX!=null) { vName = fP.ParamName; vType = "object"; vCls = fP.ParamType; oStr = s.subString( lastDot+1, pend ); }
+        break;
+    }
+
+
+    //
+    // Well can we trace the variable name by browsing the current class?
+    if (browseMode==3 || wholeStr) {
+        brX = &browse2::browser::browse(
+            Metitle, "object", thisClass, wholeStr, thisPath );
+        if (brX==null || !brX.GetAttr( "clsName" ))
+            isStatic = 1;   // this will NEVER HAPPEN :(
+        else if (brX.tag() != "Found")  // Not found, but could be partial member name
+        {
+            brSaveX = brX;
+            brX = null;
+            isStatic = 1;
+            //message( "Not quite right... try some static stuff..." );
+        }
+        if (brX!=null) { vName = Metitle; vType = "object"; vCls = thisClass; oStr = wholeStr; }
+    }
+
+    break;  // must break out of one time only loop...
+}
+
+//sys::debugOut( "  1 wfuncedit:doContext" );
+
+if (isStatic)
+{
+    //
+    //Two possibilities for STATIC type references... Try them both:
+    if (lastCollon>=0)
+    {
+        string cls = leftStr.left( lastCollon );
+        string rest = wholeStr.subString( lastCollon+2 );
+        string filename = AdvSearch::classToPath(cls, thisPath, 0);
+        if (browse2::browser::loadXML( filename ) != null)
+        {
+            brX = &browse2::browser::browse(
+                "static", "object", cls, rest, thisPath );
+            if (brX==null || brX.getAttr("fileNotFound")) brX = null; else cbStatic = 1;
+            if (brX!=null) { vName = "static"; vType = "object"; vCls = cls; oStr = rest; }
+        }
+    }
+
+    if (brX==null)
+    {
+        int fDot = leftStr.indexOf( "." );
+        if (fDot>=0)
+            leftStr = leftStr.left( fDot ); // The first part of str before any '.''s & no '::''s
+        else fDot = leftStr.length();
+
+        string filename = AdvSearch::classToPath(leftStr, thisPath, 0);
+        if (browse2::browser::loadXML( filename ) != null)
+        {
+            brX = &browse2::browser::browse(
+                "static", "object", leftStr, wholeStr.subString( fDot+1 ), thisPath );
+            if (brX==null || brX.getAttr("fileNotFound")) brX = null; else cbStatic = 1;
+            if (brX!=null) { vName = "static"; vType = "object"; vCls = leftStr; oStr = wholeStr.subString( fDot+1 ); }
+        }
+    }
+}
+
+if (brX==null && brSaveX.tag())
+{
+    brX = &brSaveX; // recover old var search...
+    isStatic = 0;
+    //message( "back to old..." );
+}
+
+//sys::debugOut( "  2 wfuncedit:doContext" );
+
+if (browse==0) {
+    //
+    // Right click style browse...
+
+    eSearch = idSource.GetSelectionEnd();
+    string search = s.subString(idSource.GetSelectionStart(), eSearch);
+    if (!search) {
+        search = wholestr.substring( firstDot - pStart );
+        eSearch = pend;
+    }
+
+    classes::core::wpopupmenu p;
+
+    if (search) p.add( "Copy", "COPY", "classes::resource::standard::clipboard_copy.ico" );
+    P.Add("Paste", "PASTE", "classes::resource::standard::clipboard_paste.ico" );
+    P.Add("Paste with escaped quotes", "PASTEX", "classes::resource::standard::clipboard_paste.ico" );
+    P.AddSeparator();
+
+
+    classes::des::browse::clsBrowser browser = &classes::des::browse::clsBrowser::myBrowser;
+    if(browser.listener.IsOpen())
+    {
+
+        // Is there a breakpoint on this line?
+
+        int currentline = idSource.GetCaretY();
+        int bBreakpointAtLine = 0;
+        for(int i=0;i<idSource.GetBreakpointCount();i++)
+        {
+            if(idSource.GetBreakpoint(i)==currentline)
+            {
+                P.Add("Remove Breakpoint","REMBREAK");
+                bBreakpointAtLine = 1;
+            }
+
+        }
+
+
+        if(!bBreakpointAtLine) P.Add("Set Breakpoint","BREAK");
+    }
+
+    if (brx!=null && brX.tag() == "Found") {
+        P.AddSeparator();
+        classes::core::wpopupmenu P3;
+
+        int singleWrd = !s.subString( lastDot+1, pend );
+        if (singleWrd && lV!=null) {     // Local Variable...
+            P.Add( P3, lv.type + " " + lv.name + (lv.isList ? "[]" : "") + ";      (local variable)", "classes::des::res::object.ico");
+            P3.Add( "Show Tip", "BROWSE4");
+            P3.Add( "Show Scope", "SCOPE");
+        } else
+        if (singleWrd && fP!=null) {     // Method Parameter...
+            P.Add( P3, fP.ParamType + " " + fP.ParamName + ";      (method parameter)", "classes::des::res::object.ico");
+            P3.Add( "Show Tip", "BROWSE4");
+        } else {
+            if (brX.count() && brX[0].tag()=="method") {
+                P.add( P3, brX.GetAttr( "clsName" ) + " " + brX.getAttr( "varName" ) + "( ... );      (method)", "classes::des::res::object.ico");
+                P3.Add( "Show Tip", "BROWSE4");
+            }
+            else {
+                string varName = brX.getAttr( "varName" );
+                if (varName.eq("static"))
+                {
+                    P.add( P3, "<" + brX.GetAttr( "clsName" ) + ">      (static class)", "classes::des::res::object.ico");
+                }
+                else
+                {
+                    if (brX.GetAttr( "varType" ).eq("list")) varName += "[]";
+                    P.add( P3, brX.GetAttr( "clsName" ) + " " + varName + ";", "classes::des::res::object.ico");
+                }
+                P3.Add( "Show Tip", "BROWSE4");
+            }
+        }
+
+        P3.add( "Jump to Declaration", "BROWSE5" );
+    }
+
+    if (search) {
+        P.AddSeparator();
+
+        string smin;
+        if (search.length()>16)
+            smin = search.left( 14 ) + "...";
+        else
+            smin = search;
+
+        classes::core::wpopupmenu p2;
+        P2.Add("Find in this method", "SEARCHMETHOD", "classes::des::res::method.ico" );
+        P2.Add("Find in this class", "SEARCH", "classes::des::designer.ico" );
+        P2.AddSeparator();
+        P2.Add("Find in this folder", "SEARCHFILES", classes::core::icons::filing_directory );
+        P2.Add("Find in all files", "SEARCHALLFILES", classes::core::icons::filing_computer );
+        P2.AddSeparator();
+        P2.Add("Find full class path", "SEARCHFULLPATH");
+
+        P.Add( p2, "Search for '" + smin + "'", "classes::resource::standard::callfinder.ico" );
+        P.Add( "Highlight '" + smin + "'", "HIGHLIGHT", "classes::resource::standard::highlight.ico");
+    }
+
+    string pck = P.Track( 1 );
+
+    if (pck=="COPY") {
+        sys::CopyToClipboard( search );
+        return;
+    } else
+    if (pck=="PASTE") {
+        search = sys::GetFromClipboard();
+        idSource.insertText( search );
+        return;
+    } else
+    if (pck=="PASTEX") {
+        search = sys::GetFromClipboard();
+        idSource.insertText( search.replace("\"","\\\""));
+        return;
+    } else
+    if (pck=="BREAK")
+    {
+        idSource.AddBreakPoint(idSource.GetCaretY());
+        SetBreakPoints();
+        idSource.UpdateWindow();
+        //message("break: "+idSource.GetCaretPos()+","+idSource.GetBreakpointCount().ToString());
+        return;
+    }
+    if (pck=="REMBREAK")
+    {
+        // Get all break points but this one
+        classes::CPickN currentBPs[];
+        int currentline = idSource.GetCaretY();
+
+
+        for(int i=0;i<idSource.GetBreakpointCount();i++)
+        {
+            if(idSource.GetBreakpoint(i)!=currentline)
+            {
+                object x = currentBPs.createrow();
+                x.code = idSource.GetBreakpoint(i);
+            }
+        }
+
+        // Reset them and add all but this one
+
+        idSource.ResetBreakpoints();
+
+        for(i=0;i<currentBPs.Count();i++)
+        {
+            idSource.AddBreakpoint(currentBPs[i].code);
+        }
+
+
+        SetBreakPoints();
+
+        return;
+
+
+
+    }
+    if (pck=="SCOPE") {
+        idSource.SetSelection( lV.defp, lV.outp );
+        return;
+    } else
+    if (pck=="SEARCHMETHOD") {
+        idSearch.setText( search );
+        sourceTip::hideTip();
+        DoBIGSearch( null, 1 );
+        return;
+    } else
+    if (pck=="SEARCH") {
+        idSearch.setText( search );
+        sourceTip::hideTip();
+        DoBIGSearch( null, 0 );
+        return;
+    } else
+    if (pck=="HIGHLIGHT") {
+        idSearch.setText( search );
+        sourceTip::hideTip();
+        doChangeSearch();
+        return;
+    } else
+    if (pck=="SEARCHFILES") {
+        sourceTip::hideTip();
+        search::wSearchinFiles::init( GetParent().filename, 1, search );
+        return;
+    } else
+    if (pck=="SEARCHALLFILES") {
+        sourceTip::hideTip();
+        search::wSearchinFiles::init( "", 1, search );
+        return;
+    } else
+    if (pck=="SEARCHFULLPATH") {
+        sourceTip::hideTip();
+        idSource.SetSelection( eSearch, eSearch );
+        bcPos = eSearch;
+        doFindPosClsPaths();
+        return;
+    } else
+    if (pck.beginsWith( "BROWSE" )) {
+        sourceTip::hideTip();
+        browseMode = pck.substring( 6 ).val();
+        // and continue...
+    }
+    else return;
+
+}
+
+//sys::debugOut( "  3 wfuncedit:doContext" );
+
+if (brX!=null)
+{
+    switch (browseMode)
+    {
+      case 1 :  // F1   - Browse... oops...
+      {
+        if (brX.tag() != "Found") return;
+        browse::clsBrowser myBrowser = &browse::clsBrowser::openAtCursor(0);
+        myBrowser.OpenVarNew( vType, vName, vCls, thisPath);
+        myBrowser.openUsingString( oStr );
+
+//string vName, vType, vCls, oStr;
+
+        break;
+      }
+      case 3 :  // F2   - Context Method/Member List
+
+        doListPopupFast( brX, pEnd, cbStatic );
+        break;
+
+      case 4 :  // F4   - Context Tips
+
+        if (brX.tag() != "Found") { tryBrowseLeft( s, browse );  return; }
+        formTip( brX, firstDot );
+        //sys::debugOut( "   + wfuncedit:showSourceDefTip" );
+        showSourceDefTip( tipXML, 60000, idSource.GetCaretPos() );
+        //sys::debugOut( "   - wfuncedit:showSourceDefTip" );
+        break;
+
+      case 5 :  // F12  - Jump to Context definition
+
+        if (brX.tag() != "Found") return;
+
+        if (!s.subString( lastDot+1, pend )) {
+            if (lV!=null) {     // Local Variable...
+                idSource.SetSelection( lV.defp, lV.defp+leftStr.length() );
+                break;
+            }
+            if (fP!=null) {     // Method Parameter...
+                EditParams( null, fP );
+                break;
+            }
+        }
+
+        string varName = brX.getAttr( "varName" );
+        wclassview wc = null;
+
+        string methName = magic.funcName;
+
+        if (varName.eq("static"))
+            wc = &advSearch::OpenClassFile( brX.GetAttr( "clsName" ), thisPath, "" );
+        else
+            wc = &advSearch::OpenClassFilePath( brX.getAttr( "execPath" ),
+                                                varName
+                                              );
+        if (wc!=null)
+        {     // have we been affected?
+            wc.show(1);
+
+            if (wc==getParent()) {
+                WFuncEdit Z = &wc.idMulti.GetPane( 0 );
+                if (Z.GetWindowName() == "MethodEdit" && Z.Magic.funcName == methName)
+                    message( "Jumpped to same class/member" );
+            }
+        }
+        break;
+    }
+
+}
+else
+{
+    if (browseMode == 4) { tryBrowseLeft( s, browse );  return; }
+    else doBrowsePaths( AdvSearch::classToPath(leftStr, thisPath, 1) );
+}
+
+//sys::debugOut( " - wfuncedit:doContext" );]]>
+</method>
+<method name="doListPopupFast">
+<param name="bx" type="xml" />
+<param name="cend" type="int" />
+<param name="cbStatic" type="int" />
+<![CDATA[//@cmember doListPopupFast
+//@param xml | bx |
+//@param int | cend |
+//@param int | cbStatic |
+//@version Andrew | 24-01-02 16:09 |
+//@version Andrew Griffin | 12-02-02 13:28 |
+//@version Ricky LEE | 31-03-06 09:13 |
+//@i
+
+//         doListPopupFast( cls, styp, styp2, aMMStr, tPath );
+
+//sys::debugOut( "  + wfuncedit:doListPopupFast" );
+
+browseMode = 0;
+
+if (bx==null || !bx.GetAttr( "clsName" )) return; // failed completly...
+
+popups::popform pForm;
+//sys::debugOut( "   -1 wfuncedit:doListPopupFast:dialog pre-open" );
+pForm.dialog(this);
+
+//sys::debugOut( "   0 wfuncedit:doListPopupFast:dialog open" );
+
+if ( bx.getAttr("varName") == "this" ||
+     bx.getAttr("varName") == "Static" ) {    // if this is a root browse (no left hand side)
+
+    //sys::debugOut( "   1 wfuncedit:doListPopupFast:lock(CS)" );
+    // Add local variables...
+    criticallock lock = &localParse.CS.enter();
+
+    pForm.addTitle( "locals..." ); // Add section title
+
+    for (int i=0; i<localParse.vars.Count(); i++) {
+        browse::avar v = &localParse.vars[i];
+        if (bcpos>=v.defp && bcpos<=v.outp+1)
+            pForm.addMember( v.type, v.name, v.name + "¬" + v.type + "¬" );
+    }
+    lock.unlock();
+    //sys::debugOut( "   2 wfuncedit:doListPopupFast:unlock(CS)" );
+    pForm.wasTitleUsed();
+
+    // Add local parameters
+    pForm.addTitle( "parameters..." ); // Add section title
+    for (i=0; i<Magic.Parameters.count(); i++) {
+        funcParam fP = &Magic.Parameters[i];
+        pForm.addMember( fP.ParamType, fp.ParamName, fp.ParamName + "¬" + fp.ParamType + "¬" );
+    }
+    pForm.wasTitleUsed();
+}
+
+//sys::debugOut( "   + browser:browseObj2" );
+autocomplete = browse2::browser::browseObj2( bx, pForm ,fileName);
+//sys::debugOut( "   - browser:browseObj2" );
+
+if (autocomplete=="*failed*") {
+    //message( "Failed trace");
+    pForm.close();
+    return;
+}
+
+//sys::debugOut( "   3 wfuncedit:doListPopupFast" );
+
+pForm.typed = autocomplete;
+pForm.typedR = pForm.typed;
+pForm.typedFlash = pForm.typed;
+
+int x=0, y=0, f=0;
+bcpos = cend;
+cbStaticTmp = cbStatic;
+
+x = idSource.getCaretX();
+y = idSource.getCaretY()+1;
+
+int vx = idSource.GetViewX(),
+    vy = idSource.GetViewY();
+
+x = (x-vx) * idSource.getCharW();
+y = (y-vy) * idSource.getCharH();
+
+int cp = sys::getCursorPos();
+x += XPos() + 24;
+y += YPos() + 28;
+int xx = x - cp.loword(),
+    yy = y - cp.hiword();
+
+pForm.go( x, y );
+
+//sys::debugOut( "  - wfuncedit:doListPopupFast" );
+
+return;]]>
+</method>
+<method name="listMethodCallback">
+<param name="sel" type="string" />
+<param name="lastKey" type="int" />
+<![CDATA[//@cmember listMethodCallback
+//@param string | sel |
+//@param int | lastKey |
+//@version Andrew Griffin | 03-10-01 15:33 |
+//@version Andrew | 26-01-02 17:23 |
+//@version Andrew Griffin | 19-06-02 10:17 |
+
+int c=bcpos;
+string t=idSource.GetText();
+string z = sel;
+
+if (autoComplete) {
+    int nc = t.lastIndexOf( autoComplete, c, 1 );
+    if (nc>=0) {
+        idSource.SetSelection( nc, c );
+        c = nc;
+        nowt = 1;
+    }
+}
+
+if (sel) {
+
+    string tip = sel.getToken(2,"¬");
+    string ppend = cbStaticTmp ? sel.getToken(3,"¬") : ".";
+    sel = sel.getToken(0,"¬");
+
+    if (!nowt && (c>0 && t[c-1]!='.' && t[c-1]!=':')) sel = ppend + sel;
+
+    if (lastKey=='9' && sel.endsWith( ")" )) sel = sel.left( sel.length()-1 );
+
+    if (c!=idSource.GetCaretPos()) idSource.SetCaretPos( c );
+    idSource.InsertText( sel );
+
+    c = idSource.GetCaretPos();
+    bcpos = c-2;
+
+    if (!sel.endsWith("(") && (lastKey==190 || lastKey==186))
+    {
+        if (lastKey==190)
+        {
+            idSource.InsertText( "." );
+            onChar( '.', 0, idSource );
+        }
+        else
+        {
+            idSource.InsertText( ":" );
+            onChar( ':', 0, idSource );
+        }
+    }
+    else
+    if (autoTips) {
+        browseMode = 4;
+        setTimer( 10 );
+        //doContext( 1 );
+    }
+
+    return;
+}]]>
+</method>
+<method name="formTip">
+<param name="fndxml" type="xml" />
+<param name="firstDot" type="int" />
+<![CDATA[//@cmember formTip
+//@param xml | fndxml |
+//@param int | firstDot |
+//@version Andrew Griffin | 07-05-02 15:15 |
+//@version andrew.banyard | 17-08-16 11:12 |
+//@i
+
+//sys::debugOut( "   + wfuncedit:formTip" );
+
+lastTipX = firstDot;
+
+tipXML.Reset();
+
+if (fndxml.tag()!="Found") {
+    return;
+}
+
+//
+// Get fully quantified return path
+
+string retPath = fndxml.GetAttr( "execPath" );
+string retCls = makeFullClass( fndxml.GetAttr( "clsName" ), retPath );
+
+tipXML.SetTag( "Tip" );
+
+//
+// Parse Object for tip info.
+
+if (fndxml.count() && fndxml[0].tag()=="method") {
+
+    // Tip for a 'method' named 'varName'
+    tipXML.AddAttr( "type", "method" );
+    tipXML.AddAttr( "name", fndxml.GetAttr( "varName" ) );
+
+    // Get Method Script
+    xml fnd = &fndxml[0];
+    string s = fnd.FindElement( "CDATA" ).Content();
+
+    // Return type...
+    xml px = &tipXML.CreateElement( "p" );
+    xml dx = &px.CreateElement( "d" );
+    dx.addAttr( "show", fndxml.GetAttr( "clsName" ) );
+
+    int p = s.indexOf( "//@return" );
+    if (p>=0) {
+        int pe = s.indexOf("\r", p );
+        if (pe==-1) pe = s.length();
+        string sp = s.subString( p+10, pe );
+        px.AddAttr( "desc", sp.getToken( 1, "|" ).trim() );
+        dx.AddAttr( "cls", retCls );
+        tipXML.AddAttr("return",sp.getToken( 1, "|" ).trim());
+    }
+
+    // Method description
+    p = s.indexOf( "//@i" );
+    if (p>=0)
+    {
+      string theDesc = s.substring(p+4, s.indexof("\r", p)).trim();
+      if(theDesc!="")
+      {
+         tipXML.AddAttr("desc",theDesc);
+      }
+    }
+
+
+    // Method Parameters...
+    string paTag = "param";
+
+    //xml xdata = &tipXML.CreateElement( "params" );
+    //xml pset = &xdata.CreateElement( "pset" );
+    //pset.AddAttr( "p", varName );
+    int pno=0;
+
+    classes::cpicks parl[];
+    p = 0;
+    while (1) {
+        p = s.indexOf( "//@param", p );
+        if (p==-1) break;
+        p += 9;
+        int pe = s.indexOf("\r", p );
+        if (pe==-1) pe = s.length();
+        string sp = s.subString( p, pe );
+        string desc = sp.getToken( 2, "|" ).trim();
+        parl.CreateRow().setTo( sp.gettoken( 1, "|" ).trim().lower(),
+                                sp.getToken( 2, "|" ).trim()
+                              );
+    }
+
+    int prmSet = 0;
+
+    for (int i=0;; i++) {
+
+        xml prmx = &fnd[i];
+
+        if (prmx==null) break;
+
+        if (prmx.tag().eq( paTag )) {
+            string pname = prmx.GetAttr("name");
+            string ptype = prmx.GetAttr("type");
+            string pdef  = ptype + " " + pname;
+            if (ptype.beginsWith( "[" )) ptype = ptype.substring(1);
+
+            pno++;
+            if (tipXML.count()<=pno) {
+                px = &tipXML.CreateElement( "p" );
+                // First time round for this param, so get description from method script...
+
+                classes::cpicks fp = &parl.FindRow( pname.lower() );
+                if (fp!=null) {
+                    px.AddAttr( "desc", fp.desc );
+                    if (fp.desc.indexOf( "optional",0,1 )>=0) pdef = "[" + pdef + "]";
+                }
+            } else
+                px = &tipXML[pno];
+
+            while (px.Count() < prmSet) px.CreateElement( "d" );    // fill unset parameters with blanks
+
+            dx = &px.CreateElement( "d" );
+            dx.addAttr( "show", pdef );
+
+            pType = makeFullClass( pType, retPath );
+            dx.AddAttr( "cls", ptype );
+
+            continue;   // Go round again...
+        }
+        else
+        {
+            if (!prmx.tag().beginsWith( "param" )) continue;
+            paTag = prmx.tag();
+            pno = 0;
+            prmSet++;
+            i--;    // try again for next parameter set...
+        }
+    }
+
+    //
+    // That's it...
+
+     //classes::core::xml::globalxml::BrowseXML( tipXML );
+
+} else {
+    string vType = fndxml.GetAttr( "clsName" );
+    string vName = fndxml.GetAttr( "varName" );
+    if (fndxml.getAttr( "varType" ).eq("list")) vName += "[]";
+
+    if (vName != "static")  // i.e. "int i"
+    {
+        // Tip for a 'normal variable' named 'varName'
+        tipXML.AddAttr( "type", "variable" );
+        tipXML.AddAttr( "name", vName );
+
+        // Data Type...
+        xml px = &tipXML.CreateElement( "p" );
+        xml dx = &px.CreateElement( "d" );
+        dx.addAttr( "show", vType );
+        dx.AddAttr( "cls", retCls );
+
+        if (fndXML.count()) {
+            string desc = fndXML[0].GetAttr( "desc" );                  // Description
+            desc.addtoken( fndXML[0].GetAttr( "comment" ), "\r\n" );    // Comment
+            // Pick List...?
+            string pList = getPickListStr( fndXML );
+            if (pList!=null && pList)
+                desc.addtoken( pList, "\r\n" );    // Comment
+            // Add to tip
+            px.addAttr( "desc", desc );
+        }
+    }
+    else                    // i.e  "classes::core::global"
+    {
+        tipXML.AddAttr( "type", "static" );
+        tipXML.AddAttr( "name", "<" + vType + ">" );
+    }
+
+}
+
+//sys::debugOut( "   - wfuncedit:formTip" );]]>
+</method>
+<method name="showSourceDefTip">
+<param name="tipXML" type="xml" />
+<param name="wait" type="int" />
+<param name="cpos" type="int" />
+<![CDATA[//@cmember showSourceDefTip
+//@param xml | tipXML |
+//@param int | wait |
+//@param int | cpos |
+//@version Andrew Griffin | 12-02-02 09:38 |
+//@version andrew.banyard | 17-08-16 11:06 |
+//@i
+
+
+int param = -1, y;
+
+string t=idSource.GetText();
+string tiptxt = tipXML.name;
+string mode = tipXML.type;
+
+if (mode=="method") {
+    tiptxt += "(";
+    if (!tipXML.count())
+    {
+        sourceTip::hideTip();
+        return;
+    }
+    y = idSource.GetCaretY();
+}
+else
+{
+    if (mode=="variable")
+    {
+        string tTxt = tipTxt;
+        if (tTxt.endsWith( "[]" )) tTxt = tTxt.left( tTxt.length()-2 );
+        if (!t.substring( lastTipX, lastTipX+tTxt.length() ).eq(tTxt)) {
+            sourceTip::hideTip();
+            return;
+        }
+    }
+
+    int f;
+    while (1) {
+        int f2 = t.indexOf( "\n", f );
+        if (f2==-1 || f2>lastTipX) break;
+        y++;
+        f=f2+1;
+    }
+}
+
+//
+// Get caret location relative to designer window & mouse cursor
+
+int x = lastTipX - (t.lastindexof( "\n", lastTipX ) + 1);
+
+x = (x - idSource.GetViewX()) * idSource.getCharW() + XPos() + 24;
+y = (y - idSource.GetViewY()) * idSource.getCharH() + YPos() + 28;
+
+
+//
+// Plain text style tips:
+
+if (mode!="method") {
+    sourceTip::setTip(
+        this,
+        tipXML,
+        -1,
+        x-16,
+        y+idSource.getCharH()+50,
+        wait
+    );
+    return;
+}
+
+
+//
+// Method style tips:
+
+int cend  = lastTipX+tiptxt.length();    // just after first bracket?
+
+//
+// Has method name changed? - then tip no longer relevent...
+
+if (!t.substring( lastTipX, cend ).eq(tiptxt)) {
+    sourceTip::hideTip();
+    return;
+}
+
+//
+// What parameter location are we at?
+
+if (cpos<cend) {
+    param = 0;
+    if (cpos<lastTipX) {
+        sourceTip::hideTip();   // done with tip if further left than method name start
+        return;
+    }
+} else {
+
+    int p = cend,   // current index into source code
+        lv = 0,     // current bracket depth
+        cm;         // 1 = in comment, 0 = not in comment
+
+    int max = t.length();
+    if (cpos<max) max = cpos;
+    param = 1;
+
+    while (lv>=0 && p<max) {
+        switch (t[p]) {
+          case ',' :
+            if (lv==0) param++;
+            break;
+          case '(', '{', '[' :
+            lv++;
+            break;
+          case ')', '}', ']' :
+            lv--;
+            if (lv<0) {
+                if (p<max-1) {
+                    sourceTip::hideTip();   // done with tip
+                    return;
+                } else
+                    param = 0;
+            }
+            break;
+          case '/':
+            if (p>=max-1) break;
+            if (t[p+1] == '/') {
+              p+=2;
+              while (p<max && t[p]!='\n') p++;
+            } else
+            if (t[p+1] == '*') {
+              p+=2;
+              while (p<max-1 && (t[p]!='*' || t[p+1]!='/')) p++;
+            }
+            break;
+          case '"':
+            p++; cm=0;
+            while (p<max && (cm || t[p]!='"')) {
+              p++;
+              if (!cm) cm = t[p] == '\\'; else cm=0;
+            }
+            break;
+          case '\'':
+            p++; cm=0;
+            while (p<max && (cm || t[p]!='\'')) {
+              p++;
+              if (!cm) cm = t[p] == '\\'; else cm=0;
+            }
+            break;
+        }
+
+        p++;
+    }
+}
+
+//
+// Now we know what parameter to look at lets display it...
+
+sourceTip::setTip(
+    this,
+    tipXML,
+    param,
+    x-16,
+    y+idSource.getCharH()+50,
+    wait
+);]]>
+</method>
+<method name="matchBrackets">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 20-03-02 14:31 |
+//@i
+
+if (sys::Version() < 2083) return;
+
+string t=idSource.GetText();
+int c = idSource.GetCaretPos(), oc, x=0, y=0, f=0, brc=0,
+        loft = t.length(), err=0, pcom=0, br, dir;
+
+if (c==0) return;
+
+braces alst[], tbrc = null;
+
+c--; br = t[c]; oc = c;
+
+switch (br) {
+  case '(', '{', '[' : dir = 1; break;
+  case ')', '}', ']' : dir = -1; break;
+  default: dir = 0;
+}
+
+if (dir==0) {
+    c++; br = t[c]; oc = c;
+    switch (br) {
+      case '(', '{', '[' : dir = 1; break;
+      case ')', '}', ']' : dir = -1; break;
+      default: return;
+    }
+}
+
+tbrc = &alst.CreateRow(); tbrc.br = br; tbrc.pos = c; brc++;
+
+while (brc>0 && err==0 && c+dir>=0 && c+dir<loft) {
+
+    c+=dir;
+    br = t[c];
+
+    switch (br) {
+      case '(', '{', '[':
+        if (dir==1) {
+            tbrc = &alst.CreateRow(); tbrc.br = br; tbrc.pos = c; brc++;
+        } else {
+            if (br=='(') br=')'; else if (br=='{') br='}'; else br=']';
+            if (alst[brc-1].br == br) { brc--; alst.DeleteRow(brc); } else err = 1;
+        }
+        break;
+
+      case ')', '}', ']':
+        if (dir==-1) {
+            tbrc = &alst.CreateRow(); tbrc.br = br; tbrc.pos = c; brc++;
+        } else {
+            if (br==')') br='('; else if (br=='}') br='{'; else br='[';
+            if (alst[brc-1].br == br) { brc--; alst.DeleteRow(brc); } else err = 1;
+        }
+        break;
+
+      case 34, 39:  // ' or "
+        while (c+dir>=0 && c+dir<loft) {
+          c+=dir;
+          if (br==t[c]) break;
+        }
+        break;
+
+      case '*': // /*  */ comment
+        if (pcom) {
+          pcom = 0;
+          while (c+dir>=0 && c+dir<loft) {
+            c+=dir; br = t[c];
+            if (pcom && br=='/') break;
+            pcom = (br=='*');
+          }
+          br = ' ';
+        }
+        break;
+
+      case '/':
+        if (pcom) {
+          while (c+dir>=0 && c+dir<loft) {
+            c+=dir; br = t[c];
+            if (br=='\n') break;
+          }
+          br = ' ';
+        }
+        break;
+
+      case '\n':    // new line so check for line comments
+        if (dir==1) break;
+        int nc=c; pcom = 0;
+        while (nc+dir>=0 && nc+dir<loft) {
+          nc--; br = t[nc];
+          if (br=='\n') break;
+          if (br=='/') {
+            if (pcom) { c = nc; break; }
+            pcom = 1;
+          } else pcom = 0;
+        }
+        br = ' ';
+        break;
+    }
+
+    pcom = (br=='/');
+}
+
+if (err==1)
+    oc = alst[brc-1].pos;
+else if (brc>0) {
+    int tmp = c;    // swap on no end bracket found...
+    c = oc;
+    oc = tmp;
+}
+
+
+while (1) { // get original line number
+    int f2 = t.indexOf( "\n", f );
+    if (f2==-1 || f2>oc) break;
+    y++;
+    f=f2+1;
+}
+
+idSource.SetSelection(c,c+1);
+
+int vx = idSource.GetViewX(),
+    vy = idSource.GetViewY();
+
+x = ((oc - f) - vx) * idSource.getCharW();
+y = (y - vy) * idSource.getCharH();
+
+x += XPos() + 17;
+y += YPos() + 29;
+
+xml xt;
+xt.setTag( "tip" );
+xt.AddAttr( "text", "^" );
+sourceTip::setTip( this, xt, -1, x, y+idSource.getCharH(), 5000);
+
+if (err) {
+    message("Bracket mismatch here...", "Error Matching Brackets", classes::core::windows::MB_ICONQUESTION);
+} else if (brc>0) {
+    message("Bracket never closed...", "Error Matching Brackets", classes::core::windows::MB_ICONQUESTION);
+}]]>
+</method>
+<method name="DoFindBack">
+<param name="Con" type="object" />
+<param name="typ" type="int" />
+<![CDATA[//@cmember DoFindBack
+//@param object | Con |
+//@param int | typ |
+//@version Andrew Griffin | 05-12-01 14:13 |
+
+String q = idSearch.GetText(); if (!q) return;
+
+String s = idSource.GetText();
+
+int cpos = idSource.GetCaretPos();
+
+int pos = s.lastIndexOf( q, cpos-q.length()-1, 1 );
+
+if (pos>=0){
+    idSource.SetSelection(pos,pos+q.length());
+    return;
+    }
+
+if (typ!=null) TraverseBack(Magic,q);]]>
+</method>
+<method name="DoFindBack2">
+<param name="Con" type="object" />
+<![CDATA[//@cmember DoFindBack2
+//@param object | Con |
+//@version Andrew Griffin | 05-12-01 14:13 |
+
+DoFindBack( Con, 1 );]]>
+</method>
+<method name="DoFindNext">
+<param name="Con" type="control" />
+<param name="typ" type="int" />
+<![CDATA[//@cmember DoFindNext
+//@param control | Con |
+//@param int | typ |
+//@version Andrew Griffin | 05-12-01 14:13 |
+
+String q = idSearch.GetText(); if (!q) return;
+
+String s = idSource.GetText();
+
+int cpos = idSource.GetCaretPos();
+
+int pos = s.indexOf( q, cpos+1, 1 );
+
+if (pos>=0){
+    idSource.SetSelection(pos,pos+q.length());
+    return;
+    }
+
+if (typ!=null) TraverseNext( Magic, q );]]>
+</method>
+<method name="DoFindNext2">
+<param name="Con" type="object" />
+<![CDATA[//@cmember DoFindNext2
+//@param object | Con |
+//@version Andrew Griffin | 05-12-01 14:13 |
+
+DoFindNext( Con, 1 );]]>
+</method>
+<method name="TraverseNext">
+<param name="RX" type="object" />
+<param name="q" type="object" />
+<![CDATA[
+List LX = &RX.OwnerList();
+if (LX==null) return;
+
+int idx = LX.FindIndex(RX);
+
+idx++;
+
+while (1){
+    while (idx>=LX.Count()) {
+        List CLSX = &LX.OwnerRow().ownerList();
+        int idx2 = CLSX.FindIndex( LX.OwnerRow() ) + 1;
+        if (idx2>=CLSX.count()) return 0;
+
+        LX = &CLSX[idx2].functions;
+        idx = 0;
+    }
+
+    Object FX = &LX[idx];
+
+    Object M = &FX.GetMember("Script");
+
+    if (M!=null){
+        int pos = FX.Script.indexOf( q, 0, 1 );
+        if (pos>=0){ // found
+            GetParent().idResults.SelectRow(FX);
+            Setup(FX);
+            idSource.SetSelection(pos,pos+q.length());
+            return;
+            }
+        }
+    else{ // not a Function
+        }
+
+    idx++;
+}
+
+// not found
+// LX.OwnerRow is a Section
+// classes::Debug::ShowObj( LX.OwnerRow() );]]>
+</method>
+<method name="TraverseBack">
+<param name="RX" type="object" />
+<param name="q" type="object" />
+<![CDATA[
+List LX = &RX.OwnerList();
+if (LX==null) return;
+
+int idx = LX.FindIndex(RX);
+
+idx--;
+
+while (1){
+    while (idx<0) {
+        List CLSX = &LX.OwnerRow().ownerList();
+        int idx2 = CLSX.FindIndex( LX.OwnerRow() ) - 1;
+        if (idx2<0) return 0;
+
+        LX = &CLSX[idx2].functions;
+        idx = LX.count()-1;
+    }
+
+    Object FX = &LX[idx];
+
+    Object M = &FX.GetMember("Script");
+
+    if (M!=null){
+        int pos = FX.Script.lastIndexOf( q, 100000, 1 );
+        if (pos>=0){ // found
+            GetParent().idResults.SelectRow(FX);
+            Setup(FX);
+            idSource.SetSelection(pos,pos+q.length());
+            return;
+            }
+        }
+    else{ // not a Function
+        }
+
+    idx--;
+    }
+
+// not found
+// LX.OwnerRow is a Section
+// classes::Debug::ShowObj( LX.OwnerRow() );]]>
+</method>
+<method name="gotoLine">
+<param name="ln" type="int" />
+<param name="setCaretOnly" type="int" />
+<![CDATA[//@cmember gotoLine
+//@param int | ln | The Line number
+//@param int | setCaretOnly |
+//@version Jonathan.Muir | 23-02-10 13:28 |
+//@i
+
+int cpos=0;
+while (ln>0) {
+    cpos = Magic.script.indexOf("\r\n", cpos)+2;
+    if (cpos==1) return;
+    ln--;
+}
+
+int cpos2 = Magic.script.indexOf("\r\n", cpos)+2;
+if (cpos2==1) cpos2 = Magic.script.length();
+
+
+if(SetCaretOnly==NULL||SetCaretOnly==0)
+{
+    idSource.SetSelection(cpos, cpos2);
+}
+else
+{
+    idSource.SetCaretPos(cpos);
+}]]>
+</method>
+<method name="OnRightClick">
+<![CDATA[//@version Andrew Griffin | 30-01-02 10:56 |
+//@version Ashley.Gibbs | 08-01-14 09:50 |
+
+UpdateLinenumber();
+
+browseMode = 0;
+bcpos = idSource.GetCaretPos();
+doContext(0);]]>
+</method>
+<method name="OnLeftClick">
+<![CDATA[//@cmember OnLeftClick
+//@version Andrew Griffin | 30-01-02 13:53 |
+//@version Ashley.Gibbs | 08-01-14 09:50 |
+
+UpdateLinenumber();
+
+lastChar = 0;   // so F4 can't cause left-browsing...
+
+if (sourcetip::tip.opened) {
+    showSourceDefTip( tipXML, 32000, idSource.GetCaretPos() );
+}]]>
+</method>
+<method name="DoBIGSearch">
+<param name="aCell" type="gridCell" />
+<param name="curMethod" type="int" />
+<![CDATA[//@cmember
+//@param gridCell | aCell |
+//@param int | curMethod |
+//@version Andrew Griffin | 31-01-02 14:32 |
+//@version andrew.banyard | 20-05-15 17:03 |
+//@i
+
+String q = idSearch.GetText(); if (!q) return;
+
+List LX = &magic.OwnerList();
+if (LX==null) return;
+LX = &LX.OwnerRow().OwnerList();
+if (LX==null) return;
+
+search::wSearch::newSearch( &getParent().XFile, q, aCell, getParent(), null, curMethod );]]>
+</method>
+<method name="doChangeSearch">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 21-03-02 16:44 |
+//@i
+
+if (sys::Version()>=2119)
+    idSource.setKeyword( 0, idSearch.getText(), SearchStar );
+
+wSearch aWin = &sys::FindPopup("FindReplace");
+if (aWin==null) return;
+
+aWin.close();]]>
+</method>
+<method name="doReplaceStr">
+<param name="pos" type="int" />
+<param name="get" type="string" />
+<param name="rep" type="string" />
+<![CDATA[//@cmember doReplaceStr
+//@param int | pos |
+//@param string | get |
+//@param string | rep |
+//@version Andrew Griffin | 20-09-01 13:43 |
+
+if (sys::Version() >= 2083) {
+
+    idSource.SetSelection( pos, pos + get.length() );
+    idSource.insertText( rep );
+
+} else {
+
+    string t=idSource.GetText();
+
+    int vx = idSource.GetViewX(),
+        vy = idSource.GetViewY();
+
+    Magic.Script = Magic.Script.left(pos) + rep + Magic.Script.subString(pos + get.length());
+    int c = pos + rep.length();
+    Magic.Caret = c;
+
+    idSource.setText(Magic.Script);
+    idSource.SetView( vx, vy );
+    idSource.setSelection( c, c );
+
+}]]>
+</method>
+<method name="Caret_Fix">
+<![CDATA[//@cmember Caret_Fix
+//@param
+//@return
+//@version Andrew Griffin | 18-09-01 14:01 |
+//@i
+
+string t = idSource.GetText();
+int cp = idSource.GetCaretPos();
+int np = 0, cx, cy, ccx = idSource.GetCaretX(), ccy = idSource.GetCaretY();
+string insTxt;
+
+while (1) {
+    int np2 = t.indexOf("\n", np)+1;
+    if (np2==0 || np2>cp) break;
+    np = np2;
+    cy++;
+}
+
+cx = cp-np;
+cy = ccy - cy;
+if (cy>0) cx = ccx; else cx = ccx - cx;
+
+for (int i=0; i<cy; i++)
+  insTxt += "\r\n";
+
+for (i=0; i<cx; i++)
+  insTxt += " ";
+
+if (insTxt) {
+    idSource.SetCaretPos( cp );
+    idSource.InsertText( insTxt );
+}]]>
+</method>
+<method name="changeName">
+<![CDATA[//@cmember changeName
+//@version Andrew Griffin | 01-02-02 11:34 |
+//@version Nick Gomm | 25-06-08 14:10 |
+//@version G | 10-04-15 10:50 |
+
+int vx = idSource.GetViewX(),
+    vy = idSource.GetViewY();
+
+string nam = idFuncName.getText().replace(" ","_");
+String s = idSource.GetText();
+int c = idSource.GetCaretPos();
+int oldLen = s.length();
+
+string nl = "//@cmember " + nam + "\r\n";
+
+int cpos = s.indexOf("//@cmember",0,1);
+
+if (cpos==-1) { // no name yet so add
+    s = nl + s;
+    idSource.SetCaretPos( 0 );
+    idSource.insertText( nl );
+    c += nl.length();
+
+} else {        // name present so modify
+
+    int epos = s.indexOf("\r\n",cpos)+2;
+    if (epos==1) epos = s.length();
+    c += cpos - epos;
+    idSource.SetSelection( cpos, epos );
+    idSource.InsertText( nl );
+    //s = s.left( cpos ) + nl + s.subString(epos);
+    c += nl.length();
+
+}
+
+
+//Magic.Script = s;
+//Magic.Caret = c;
+//idSource.setText( s );
+
+idSource.SetSelection( c, c );  // put caret back
+idSource.SetView( vx, vy );
+
+OnSourceChange(null,1);
+
+Magic.setIcon();
+
+// now reset the text
+idFuncName.setText(nam);]]>
+</method>
+<method name="DoUndo">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 20-07-01 12:33 |
+//@i
+
+idSource.undo();]]>
+</method>
+<method name="DoRedo">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 20-07-01 12:34 |
+//@i
+
+idSource.Redo();]]>
+</method>
+<method name="DoSpellCheck">
+<![CDATA[//@cmember DoSpellCheck
+//@version Andrew Griffin | 09-08-01 09:39 |
+//@i
+
+SetWaitCursor();
+
+int i, i2, eFound;
+string txt = idSource.GetText();
+
+// Open word spell checker
+
+spellchecker spellChk;
+
+if (!spellChk.open("customDictionary.ini")) return;   // Stop if can't open COM to Word Application
+
+while (1) {
+
+    i = txt.indexof( "\"", i );
+    if (i==-1) break;
+
+    if (i>0 && txt[i-1]=='\'') {
+        i++;
+        continue;
+    }
+
+    int st = txt.lastIndexOf("\r\n", i-1);
+    if (st==-1) st=0; else st+=2;
+
+    int en = txt.IndexOf("\r\n", i+1);
+    if (en==-1) en=txt.length();
+
+    string ln = txt.substring( st, i );
+    if (ln.indexOf( "//" )>=0) {
+        i=en+2;
+        continue;   // in comment go to next line
+    }
+
+    int c;
+    for (i2=i+1;;i2++) {  // find closing bracket
+        if (i2>=en) {
+            i = en+2;
+            break;
+        }
+        c = txt[i2];
+        if (c=='"') break;  // found
+        if (c=='\\') i2++;
+    }
+    if (i>en) continue;
+
+
+    string words = txt.substring( i+1, i2+1 );
+
+    int ok = spellChk.checkSpelling(words);
+    int j = 0, inStr = 0;
+
+    if (!ok)
+        for (int k=j; k<words.length(); k++) {
+            c = words[k];
+            if (c>='A' && c<='Z' || c>='a' && c<='z') {
+                inStr = 1;
+                continue;
+            } else {
+                if (inStr) {
+                    string word = words.substring( j, k );
+                    ok = spellChk.checkSpelling(word);
+                    if (!ok) {
+                        eFound = 1;
+                        idSource.SetCaretPos( i );  // get all on screen...
+                        sys::wait(1);
+                        idSource.SetSelection( i+1 + j, i+1 + k );
+                        positionCodeView();
+
+                        string ans = getSpellSuggestions( spellChk, word );
+                        if (!ans) { spellChk.close(); return; } else
+                        if (ans==">Add") spellChk.addCustomWord( word ); else
+                        if (ans!=">Ignore") {   // Replace Word
+                            words = words.left(j) + ans + words.subString( k );
+                            k += ans.length() - word.length();
+                            doReplaceStr( i+1+j, word, ans);
+                            txt = idSource.GetText();
+                            i2 += ans.length() - word.length();
+                        }
+                        sys::wait( 1 );
+                        setWaitCursor();
+                    }
+
+                    inStr = 0;
+                }
+                if (c=='\\') k++;
+                j = k+1;
+            }
+        }
+
+    // end of test
+    i = i2+1;
+}
+
+spellChk.close();
+
+if (!eFound)
+    message("No Spellings Errors Found", "Spell Check", classes::core::windows::MB_ICONINFORMATION);
+else
+    message("No More Spellings Errors Found", "Spell Check", classes::core::windows::MB_ICONINFORMATION);]]>
+</method>
+<method name="getSpellSuggestions" return="int">
+<param name="SpellChk" type="SpellChecker" />
+<param name="word" type="string" />
+<![CDATA[//@cmember getSpellSuggestions
+//@param SpellChecker | SpellChk |
+//@param string | word |
+//@return int |
+//@version Andrew Griffin | 24-05-02 16:06 |
+//@i
+
+stringArray sList = &SpellChk.getSuggestions( word );
+
+classes::core::wpopupmenu p;
+
+for (int i=0; i<sList.Count(); i++)
+    p.Add( sList[i] );
+
+p.AddSeparator();
+p.Add( "Add to Custom", ">Add" );
+p.Add( "Ignore", ">Ignore" );
+
+
+int x = idSource.getCaretX() - word.length();
+int y = idSource.getCaretY() + 1;
+int vx = idSource.GetViewX(),
+    vy = idSource.GetViewY();
+x = (x-vx) * idSource.getCharW();
+y = (y-vy) * idSource.getCharH();
+
+int cp = sys::getCursorPos();
+x += XPos() + 24;
+y += YPos() + 28;
+int xx = x - cp.loword(),
+    yy = y - cp.hiword();
+
+return p.Track( 0, idFuncName, xx,yy );]]>
+</method>
+<method name="positionCodeView">
+<![CDATA[//@cmember positionCodeView
+//@version Andrew Griffin | 24-04-02 09:38 |
+//@i Offsets the source pane to position the text caret around <20,10>
+
+sys::wait(1);
+
+int x = idSource.GetCaretX(),
+    y = idSource.GetCaretY(),
+    vx = idSource.GetViewX(),
+    vy = idSource.GetViewY(),
+    ch = 0;
+
+int mx = idSource.getCharsX()-20,
+    my = idSource.getCharsY()-5;
+
+if (x-vx>mx) { vx = x-mx; ch = 1; }
+if (x-vx<20) { vx = x-20; if (vx<0) vx=0; ch = 1; }
+
+if (y-vy>my) { vy = y-my; ch = 1; }
+if (y-vy<5) { vy = y-5; if (vy<0) vy=0; ch = 1; }
+
+if (ch) {
+    idSource.SetView( vx, vy );
+    sys::wait(1);
+}]]>
+</method>
+<method name="tryBrowseLeft">
+<param name="s" type="string" />
+<param name="browse" type="int" />
+<![CDATA[//@cmember tryBrowseLeft
+//@param string | s |
+//@param int | browse |
+//@version Andrew Griffin | 17-05-02 15:48 |
+//@i
+
+// find left bracket and try again...
+int cpos = bcpos-1;
+int brk=1, inSt=0;
+while (cpos>0 && brk>0) {
+    int c = s[cpos];
+    switch (c) {
+      case '(' : if (!inSt) brk--; break;
+      case ')' : if (!inSt) brk++; break;
+      case '"' : if (cpos==0 || s[cpos-1]!='\\') inSt = !inST; break;
+      case '\'' : if (!inSt)
+                    cpos = s.lastIndexOf("'", cpos-2);
+                  break;
+      case '\n' :
+        int nc = s.lastindexof("\n", cpos-1);
+        if (nc==0) break;
+        int cc = s.lastindexOf("\\", cpos-1);
+        if (cc>nc) cpos = cc;
+        break;
+      case ';' : if (!inSt) brk=-1; break;
+    }
+    cpos--;
+}
+
+if (brk==0) {
+    bcpos = cpos;
+    if (browse==null || browse!=-99) doContext( browse, 1 );
+    return 1;
+}
+
+return 0;]]>
+</method>
+<method name="StoreState" return="string">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 28-09-01 11:22 |
+//@i
+
+return "wfuncedit," + idSource.GetViewX() + "," + idSource.GetViewY() +
+       "," + idSource.GetCaretX() + "," + idSource.GetCaretY();]]>
+</method>
+<method name="RestoreState">
+<param name="state" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 03-10-01 15:33 |
+//@i
+
+if ( !state.gettoken(0).eq("wfuncedit") ) return;
+int x = state.gettoken(3).val();
+int y = state.gettoken(4).val();
+
+// Find where this means...
+int c = 0;
+while (y>0) {
+    c = magic.script.indexOf( "\n", c )+1;
+    if (c==-1) { c = magic.script.length(); break; }
+    y--;
+}
+
+int cc = magic.script.indexOf( "\r\n", c );
+if (cc==-1) cc = magic.script.length();
+
+c+=x;
+if (c>cc) c = cc;   // bound to end of line...
+
+Magic.caret = c;
+idSource.SetText( Magic.Script );
+idSource.SetSelection( magic.caret, magic.caret );
+
+idSource.SetView( state.gettoken(1).val(), state.gettoken(2).val() );
+
+idSource.setFocus();
+browseMode = 0;
+sys::Wait( 0 );]]>
+</method>
+<method name="getParameter" return="funcParam">
+<param name="varName" type="string" />
+<![CDATA[//@cmember getParameter
+//@param string | varName |
+//@return funcParam |
+//@version Andrew | 24-01-02 15:55 |
+//@i
+
+// Local Parameters
+
+for (int i=0; i<Magic.Parameters.count(); i++) {
+    funcParam fP = &Magic.Parameters[i];
+    if (fp.ParamName.eq( varName )) return fP;
+}
+
+return null;]]>
+</method>
+<method name="getLocalVar" return="browse::avar">
+<param name="varName" type="string" />
+<![CDATA[//@cmember getLocalVar
+//@param string | varName |
+//@return browse::avar |
+//@version Andrew Griffin | 12-02-02 13:26 |
+//@i
+
+//sys::debugOut( "   + wfuncedit:getLocalVar" );
+
+criticallock lock = &localParse.CS.enter();
+
+// Local Variables
+
+for (int i=0; i<localParse.vars.Count(); i++) {
+    browse::avar v = &localParse.vars[i];
+    if (bcpos>=v.defp && bcpos<=v.outp+1 && v.name.eq( varName )) {
+        lock.unlock();
+        return v;
+    }
+}
+lock.unlock();
+
+//sys::debugOut( "   - wfuncedit:getLocalVar" );
+
+return null;]]>
+</method>
+<method name="DoExecuteMethod">
+<param name="cntrl" type="control" />
+<param name="error" type="blob" />
+<![CDATA[//@cmember DoExecuteMethod
+//@param control | cntrl |
+//@param blob | error |
+//@version Andrew Griffin | 31-01-02 09:53 |
+//@version Nick Gomm | 01-07-08 11:39 |
+//@version Jonathan.Muir | 07-08-13 16:05 |
+//@version andrew.banyard | 08-10-13 14:46 |
+//@version Jonathan.Muir | 12-12-13 13:59 |
+//@version andrew.banyard | 26-06-14 10:49 |
+//@version david.salter | 10-09-14 15:57 |
+//@version Jonathan.Muir | 17-08-15 16:06 |
+//@i
+
+// is it a test method
+if (Magic.isTestMethod)
+{
+    if (GetParent().Modified)
+      GetParent().DoSave();
+
+    // build up scripts xrunapp.exe from class name
+    Object theClass = &Magic.OwnerList().OwnerRow().OwnerList().OwnerRow();
+    String classpath = theClass.classpath;
+
+    string rootDir = classpath.substring(0, classpath.indexof("classes"));
+    string RunIn = "scripts";
+    string exe = rootDir + RunIn+"\\xrunapp.exe";
+
+    File exeFile;
+    if(!exeFile.Open(exe,"r"))
+    {
+
+        exe = rootDir+"bin\\xrunapp.exe";
+    }
+
+    if(Magic.RunDirectory)
+    {
+        RunIn = Magic.RunDirectory;
+        exe = rootDir+RunIn+"\\xrunapp.exe";
+    }
+
+    // If executable doesn't exist - traverse up directory until it does
+    while(1)
+    {
+        if(exeFile.Open(exe,"r"))
+        {
+            break;
+        }
+
+
+        rootDir = rootDir.left(rootDir.length()-1);
+        int pos = rootDir.lastindexof("\\");
+        if(pos==-1) {
+            message("Error - cannot find "+RunIn+" directory to run the unit test in");
+            return;
+        }
+
+        rootDir = rootDir.substring(0, pos+1);
+        exe = rootDir + RunIn+"\\xrunapp.exe";
+    }
+
+
+    String classname = classpath.substring(classpath.indexof("classes"), classpath.length()-4).replace("\\", "::");
+
+    int repeat = magic.repeat;
+    if(repeat == 0) repeat = 1;
+    int ret = 1;
+
+    classes::core::dialog::wprogressbar progress;
+    progress.OpenProgressBar("Running unit tests",this);
+
+    // Get a temp file to send messages back
+    string tempFile = sys::GetTempFileName("w2ut");
+
+    for(int i=0;i<repeat;i++)
+    {
+        progress.SetProgressBar(i,repeat);
+
+
+       sys::ExecuteAndWait(exe + " "+ classpath.substring(0, classpath.indexof("classes")) + "classes\\W2UnitTest\\framework\\GlobalSetup.xml;" + classname+"." + Magic.FuncName + "|" + tempFile,0,1);
+       // Get the error
+       File f;
+       f.Open(tempFile);
+       blob resultStream = &f.readblob();
+       if(resultStream==null)
+       {
+            if(error!=null) error.write("Test failed\r\n");
+            else message("Test failed");
+            ret = 0;
+            break;
+       }
+
+       string result = resultStream.tostring();
+       f.Close();
+       if(result!="1")
+       {
+            logTestStatus(0);
+            if(result.substring(1))
+            {
+                if(error!=null) error.write(result.substring(1));
+                else message(result.substring(1));
+            }
+            else
+            {
+                if(error!=null) error.write("Test failed\r\n");
+                else message("Test failed");
+            }
+            ret = 0;
+            break;
+       }
+    }
+
+    progress.CloseProgressBar();
+    // Remove the temp file
+    File f;
+    f.DeleteFile(tempFile);
+    if(ret==1)
+    {
+        if(error==null) {
+            logTestStatus(1);
+            message("Test successful");
+        }
+    }
+    return;
+}
+
+
+getParent().doRun( null, idFuncName.getText() );]]>
+</method>
+<method name="DoExecuteMethodAll">
+<param name="cntrl" type="control" />
+<![CDATA[//@cmember DoExecuteMethodAll
+//@param control | cntrl |
+//@version Andrew Griffin | 31-01-02 09:53 |
+//@version Nick Gomm | 01-07-08 11:39 |
+//@version Jonathan.Muir | 07-08-13 16:05 |
+//@version andrew.banyard | 08-10-13 14:46 |
+//@version Jonathan.Muir | 23-10-13 08:34 |
+//@version david.salter | 10-09-14 15:48 |
+//@version andrew.banyard | 17-11-15 14:40 |
+//@i
+
+// is it a test method
+if (GetParent().Modified)
+{
+    GetParent().DoSave();
+}
+
+blob result;
+
+for (int s=0; s<GetParent().XFile.Classes[0].Sections.count(); s++) {
+  for (int m=0; m<GetParent().XFile.Classes[0].Sections[s].Functions.count(); m++) {
+    func f = &GetParent().XFile.Classes[0].Sections[s].Functions[m];
+    if(f.isTestMethod){
+      advSearch::openMethodMember( GetParent(), f.FuncName );
+      //GetParent().EditMethod(f,0);
+      DoExecuteMethod(cntrl,result);
+      if(result.length()>0) {
+        message(result.toString());
+        // Do bother with any other tests
+        logTestStatus(0);
+        return;
+      }
+    }
+  }
+}
+
+logTestStatus(1);
+message("All tests passed");]]>
+</method>
+<method name="doFindPosClsPaths">
+<![CDATA[//@cmember doFindPosClsPaths
+//@version Andrew Griffin | 06-02-02 10:17 |
+//@i
+
+String s = idSource.GetText();
+int cpos = bcpos - 1;
+int pend = bcpos;
+int max = s.length();
+int c;
+
+//
+// Trace left until reach a char like ' ', go over ':' & '.', skip over '[]' and '()'
+
+while (cpos>0) {
+    c = s[cpos];   // get char under caret
+    if (c!='*' && (c<'0' || c>'9' && c<'A' || c>'Z' && c<'_' || c>'z')) {
+        cpos++;
+        break;  // illegal charactors
+    }
+    cpos--;
+}
+
+while (pend<max) {
+    c = s[pend];   // get char under caret
+    if (c=='*' || c<'0' || c>'9' && c<'A' || c>'Z' && c<'_' || c>'z') break;  // illegal charactors
+    pend++;
+}
+
+string clsName = s.substring( cpos, pend );
+int x = idSource.getCaretX();
+int y = idSource.getCaretY()+1;
+
+int vx = idSource.GetViewX(),
+    vy = idSource.GetViewY();
+
+x = (x-vx) * idSource.getCharW();
+y = (y-vy) * idSource.getCharH();
+
+int cp = sys::getCursorPos();
+x += XPos() + 24;
+y += YPos() + 28;
+int xx = x - cp.loword(),
+    yy = y - cp.hiword();
+
+search::findClass::FindClasses( clsName, this, x,y, cpos, pend );]]>
+</method>
+<method name="pathChosen">
+<param name="cls" type="string" />
+<param name="cpos" type="int" />
+<param name="cend" type="int" />
+<![CDATA[//@cmember pathChosen
+//@param string | cls |
+//@param int | cpos |
+//@param int | cend |
+//@version Andrew Griffin | 04-02-02 16:21 |
+//@i
+
+idSource.SetSelection( cpos, cend );
+
+string full = sys::MakeFullName( getparent().filename, cls );
+string rel = sys::MakeRelativeName( getparent().filename, full );
+
+idSource.InsertText( rel );]]>
+</method>
+<method name="backUpCaretZZZ">
+<param name="s" type="string" />
+<param name="cpos" type="int" />
+<![CDATA[//@cmember backUpCaretZZZ
+//@version Andrew | 22-11-01 20:33 |
+//@version Andrew Griffin | 08-02-02 09:08 |
+lastPeriod = -1;
+cpos--;
+int c;
+
+while (cpos>0) {
+    c = s[cpos];
+
+    if (c==')' || c==']') {       // method/list indicator
+        int depth = 1;
+        cpos--;
+        for (; cpos>=0 && depth>0; cpos--) {
+          switch (s[cpos]) {
+            case ')', ']' : depth++; break;
+            case '(', '[' : depth--; break;
+          }
+        }
+    } else
+
+    if (!(c>='.' && c<';' || c>='A' && c<='Z' || c>='_' && c<='z' || c=='~')) {
+        cpos++;
+        break;
+    } else
+    if (c=='.') lastPeriod = cpos;
+
+    cpos--;
+}
+
+return cpos;]]>
+</method>
+<method name="highlightText">
+<param name="str" type="string" />
+<![CDATA[//@cmember highlightText
+//@param string | str |
+//@version Andrew Griffin | 21-03-02 16:44 |
+
+if (sys::Version()>=2119)
+    idSource.setKeyword( 0, str, 0 );]]>
+</method>
+<method name="onRedraw">
+<![CDATA[//@cmember onRedraw
+//@param
+//@return
+//@version Andrew Griffin | 20-03-02 14:25 |
+//@i
+
+if (sourcetip::tip.opened) {
+    showSourceDefTip( tipXML, 32000, idSource.GetCaretPos() );
+}]]>
+</method>
+<method name="debugBreak" return="int">
+<param name="pos" type="int" />
+<![CDATA[//@cmember debugBreak
+//@param int | pos |
+//@return int |
+//@version Andrew Griffin | 22-04-02 10:49 |
+//@version jonathan.muir | 18-02-10 09:51 |
+//@version Jonathan.Muir | 25-02-10 10:25 |
+//@i
+
+PlaceBreakPoints();
+
+string src = idSource.GetText();
+
+int eSec = src.indexof( "\r\n", pos );
+if (eSec==-1) eSec = src.length();
+
+idSource.SetSelection( pos, eSec );
+idSource.SetCaretPos( pos );
+idSource.SetReadOnly(1);
+
+positionCodeView();
+
+
+idSource.SetCurrentLine(idSource.GetCaretY());
+CurrentLine = idSource.GetCaretY();
+
+
+return eSec;]]>
+</method>
+<method name="doBrowsePaths">
+<param name="filename" type="string" />
+<![CDATA[//@cmember doBrowsePaths
+//@param string | filename | i.e. "classes::co"
+//@version Andrew Griffin | 20-05-02 09:28 |
+
+string tpath = filename;
+string part;
+
+filefinder ff = &sys::NewFileFinder();
+int ok = ff.FindFirst( tpath, "D" );
+if (!ok)
+{
+    int i = tpath.lastindexof( "\\" );
+    if (i<0) return;
+    part = tpath.substring( i+1 );
+    tpath = tpath.left( i+1 );
+}
+else
+    tpath += "\\";
+
+popups::popform pForm;
+pForm.dialog(this);
+
+//
+// Classes...
+
+pForm.addTitle( "classes" );
+
+ok = ff.FindFirst( tpath+"*.xml" , "" );
+while (ok)
+{
+    if (!FF.IsDir)
+    {
+        string fn = ff.FileName.gettoken(0,".");
+        pForm.addMember( "", fn, fn+"¬¬¬::" );
+    }
+
+    ok = FF.FindNext();
+}
+
+pForm.wasTitleUsed();
+
+//
+// And paths...
+
+pForm.addTitle( "paths" );
+
+ok = ff.FindFirst( tpath+"*.*" , "D" );
+while (ok)
+{
+    if (FF.IsDir && FF.FileName[0]!='.')
+    {
+        string fn = ff.FileName;
+        pForm.addMember( "", fn, fn+"¬¬¬::" );
+    }
+
+    ok = FF.FindNext();
+}
+
+pForm.wasTitleUsed();
+
+int x=0, y=0, f=0;
+//bcpos = cend;
+//cbStaticTmp = cbStatic;
+
+x = idSource.getCaretX();
+y = idSource.getCaretY()+1;
+
+int vx = idSource.GetViewX(),
+    vy = idSource.GetViewY();
+
+x = (x-vx) * idSource.getCharW();
+y = (y-vy) * idSource.getCharH();
+
+int cp = sys::getCursorPos();
+x += XPos() + 24;
+y += YPos() + 28;
+int xx = x - cp.loword(),
+    yy = y - cp.hiword();
+
+cbStaticTmp = 1;
+pForm.go( x, y, part );]]>
+</method>
+<method name="showChanges">
+<param name="f" type="func" />
+<![CDATA[//@cmember showChanges
+//@param func | f |
+//@version Andrew Griffin | 28-06-02 11:28 |
+//@version Darren.Ball | 18-03-10 12:05 |
+//@i
+
+// want to clear bookmarks first...
+search::compare c;
+
+c.doCompare( f.ScriptOld, f.Script );
+
+for (int i=0; i<c.hash2.Count(); i++)
+    if (!c.hash2[i].extra)
+    {
+        idSource.AddBookmark( c.hash2[i].val-1 );
+    }]]>
+</method>
+<method name="SetupUnitTest">
+<param name="M" type="object" />
+<![CDATA[//@cmember SetupUnitTest
+//@param object | M |
+//@version Nick Gomm | 26-06-08 15:18 |
+//@version Jonathan.Muir | 06-08-13 15:33 |
+//@version andrew.banyard | 08-10-13 12:41 |
+//@version Jonathan.Muir | 10-12-13 09:05 |
+//@version andrew.banyard | 16-03-16 10:10 |
+
+// set test attributes
+
+chksetup.BindTo(&M.isTestSetupMethod);
+chkteardown.BindTo(&M.isTestTearDownMethod);
+chkmethod.BindTo(&M.isTestMethod);
+chkintegration.BindTo(&M.isIntegrationTest);
+txtrepeat.BindTo(&M.repeat);
+chkignoremsg.BindTo(&M.IgnoreMessages);
+edRunDirectory.BindTo(&M.RunDirectory);
+
+chksetup.setVisible(&M.IsStatic());
+chkteardown.setVisible(&M.IsStatic());
+
+chkcheckassert.BindTo(&M.CheckHasAsserts);
+int showTestOptions = M.isTestMethod && !M.isTestSetupMethod && ! M.isTestTearDownMethod;
+chkcheckassert.setVisible(showTestOptions);
+chkintegration.setVisible(showTestOptions);
+
+// get owning class
+Object theClass = &M.OwnerList().OwnerRow().OwnerList().OwnerRow();
+grdTest.setVisible( theClass.testClass );
+grdTestConfig.setVisible( theClass.testClass );]]>
+</method>
+<method name="SetTestMethod">
+<param name="ctrl" type="checkbox" />
+<![CDATA[//@cmember SetTestMethod
+//@param checkbox | ctrl |
+//@version Nick Gomm | 26-06-08 15:18 |
+//@version andrew.banyard | 16-03-16 10:07 |
+//@i
+
+if (ctrl.getState())
+{
+
+    Object Sections = Magic.OwnerList().OwnerRow().OwnerList();
+
+    if (ctrl == chksetup)
+    {
+        // reset any other set up method in this class
+        for (int i=0;i<Sections.Count();i++)
+        {
+            for (int j=0;j<Sections[i].Functions.Count();j++)
+            {
+                // skip this function
+                if (Sections[i].Functions[j].MemoryAddress() == Magic.MemoryAddress() ) continue;
+
+                Sections[i].Functions[j].isTestSetupMethod = 0;
+            }
+        }
+
+        // remove test method
+        Magic.isTestMethod = 0;
+        Magic.isTestTearDownMethod=0;
+        Magic.CheckHasAsserts = 0;
+        Magic.isIntegrationTest = 0;
+        chkintegration.setVisible(0);
+        chkcheckassert.setVisible(0);
+    }
+    else if (ctrl == chkteardown)
+    {
+        // reset any other tear down method in this class
+        for (int i=0;i<Sections.Count();i++)
+        {
+            for (int j=0;j<Sections[i].Functions.Count();j++)
+            {
+                // skip this function
+                if (Sections[i].Functions[j].MemoryAddress() == Magic.MemoryAddress() ) continue;
+
+                Sections[i].Functions[j].isTestTearDownMethod = 0;
+            }
+        }
+
+        // remove test method
+        Magic.isTestMethod = 0;
+        Magic.isTestSetupMethod = 0;
+        Magic.isIntegrationTest = 0;
+        Magic.CheckHasAsserts = 0;
+        chkintegration.setVisible(0);
+        chkcheckassert.setVisible(0);
+    }
+    else if (ctrl == chkmethod)
+    {
+        // remove setup and teardown
+        Magic.isTestSetupMethod = 0;
+        Magic.isTestTearDownMethod=0;
+        chkintegration.setVisible(1);
+        chkcheckassert.setVisible(1);
+        FitTosize();
+    } else if(ctrl == chkcheckassert){
+       Magic.CheckHasAsserts = 1;
+    } else if (ctrl == chkintegration){
+        Magic.isIntegrationTest = 1;
+    }
+} else if (ctrl == chkmethod){
+    Magic.CheckHasAsserts = 0;
+    Magic.isIntegrationTest = 0;
+    chkintegration.setVisible(0);
+    chkcheckassert.setVisible(0);
+    FitTosize();
+}
+
+
+
+
+OnSourceChange();]]>
+</method>
+<method name="SetBreakPoints">
+<![CDATA[//@cmember SetBreakPoints
+//@version Jonathan.Muir | 25-02-10 12:23 |
+//@i
+
+// Remove and add breakpoints from main class
+
+int lineno = idSource.GetCaretY();
+
+classes::des::browse::clsbrowser browser = &classes::des::browse::clsbrowser::myBrowser;
+
+string className = GetClassName();
+
+if(browser!=null)
+{
+
+    // Delete them all
+    browser.DeleteBreakPoints(className,idFuncName.GetText());
+
+    //Sys::debugout("Breakpointcount: "+idSource.GetBreakPointCount());
+
+    for(int i=0;i<idSource.GetBreakPointCount();i++)
+    {
+        // Add them
+
+        GoToLine(idSource.GetBreakpoint(i),1);
+
+        browser.SetBreakPoint(className,idFuncName.GetText(),idSource.GetCaretPos(),0);
+    }
+
+}
+
+GoToLine(lineno,1);
+
+// Broadcast to other windows with this function open
+
+for(int i=0;;i++)
+{
+    form f = &sys::getopenwindow(i);
+    if(f==null) break;
+
+    MultiPane m = &f.GetControl("idMulti");
+    if(m!=null)
+    {
+        for(int j=0;;j++)
+        {
+
+            Form c = &m.GetPane(j);
+            if(c==null) break;
+
+            if(c.HasMethod("PlaceBreakPoints")&&
+               c.GetClassName()==GetClassName()&&
+               c.idFuncName.GetText()==idFuncName.getText())
+            {
+                c.PlaceBreakPoints();
+
+            }
+        }
+    }
+
+
+}]]>
+</method>
+<method name="GetClassName">
+<![CDATA[//@cmember GetClassName
+//@version Jonathan.Muir | 23-02-10 11:12 |
+//@i
+
+string className = filename.replace("/","::");
+className = className.replace("\\\\","\\");
+className = className.replace("\\","::").lower();
+className = className.SubString(className.lastindexof("::classes")+2);
+className = className.left(className.length()-4);
+
+
+return className;]]>
+</method>
+<method name="PlaceBreakPoints">
+<![CDATA[//@cmember PlaceBreakPoints
+//@version Jonathan.Muir | 25-02-10 12:23 |
+//@i
+
+int origpos = idSource.GetCaretPos();
+
+idSource.ResetBreakPoints();
+
+classes::des::browse::clsBrowser browser = &classes::des::browse::clsBrowser::myBrowser;
+
+classes::des::browse::breakpoint bps[] = &browser.GetBreakPoints(GetClassName(),idFuncName.GetText());
+
+//sys::debugout("BP COUNT: "+bps.Count());
+
+for(int i=0;i<bps.Count();i++)
+{
+    idSource.SetCaretPos(bps[i].CPos);
+    idSource.AddBreakPoint(idSource.GetCaretY());
+    //sys::debugout("Adding breakpoint: "+idSource.GetCaretY());
+}
+
+idSource.SetCaretPos(origpos);]]>
+</method>
+<method name="UpdateLinenumber">
+<![CDATA[//@cmember UpdateLinenumber
+//@version ashley.gibbs | 08-01-14 09:52 |
+//@i
+
+//Linenumbers are 0 based to match goto and error handling (I think error handling is 0 based)
+lblLineInfo.setText("Line: " + (idSource.GetCaretY()) + " Col: " + (idSource.GetCaretX()));]]>
+</method>
+<method name="logTestStatus">
+<param name="status" type="object" />
+<![CDATA[//@cmember logTestStatus
+//@param object | status |
+//@version david.salter | 11-09-14 15:18 |
+//@i
+
+if (status == 0) {
+    lblStatus.GetCell().setBK("FF0000");
+    lblStatus.SetText("Test run failed.");
+} else {
+    lblStatus.GetCell().setBK("00CC00");
+    lblStatus.SetText("Test run succeeded.");
+}
+
+FitToSize();]]>
+</method>
+</members>
+<static>
+<Integer name="autoTips" />
+<Integer name="autoList" />
+<List name="shortcuts" cls="classes::cpicks" lsrc="shortcuts.ini" />
+<Integer name="parseDelay" constval="500" />
+<List name="pkTest" cls="classes::cpicks">
+<item code="Fish" desc="A Fish Face" PickType="" />
+<item code="Cat" desc="A Cat Nose" PickType="" />
+<item code="Donkey" desc="A Smart Cookie" PickType="" />
+</List>
+<String name="testObject" pick="classes::worktray::process::procStatusFg" />
+<List name="RunInPL" cls="classes::cpicks">
+<item code="" desc="Default" PickType="" />
+<item code="Scripts" desc="Scripts" PickType="" />
+<item code="Bin" desc="Bin" PickType="" />
+<item code="Services" desc="Services" PickType="" />
+<item code="CominoXML" desc="CominoXML" PickType="" />
+</List>
+<method name="isStrObject" return="int">
+<param name="rType" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+switch (rType.Lower()) {
+  case "int", "integer", "string", "object", "double",
+       "date", "list" : return 0;
+}
+
+return 1;]]>
+</method>
+<method name="splitParams" return="stringArray">
+<param name="name" type="string" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+// name == "func( { int i, float n } or { string s } )";
+
+StringArray sa = &sys::NewStringArray();
+
+int fbr = name.indexOf("(");
+if (fbr==-1 || name.indexof("{")==-1 ) {
+    sa.Add( name );
+    return sa;
+}
+
+string title = name.left( fbr+1 );
+
+while (1) {
+
+    int cb = name.indexOf("{", fbr);
+    if (cb==-1) return sa;
+    fbr = name.indexOf("}", cb);
+
+    sa.Add( title + name.subString( cb+1, fbr ) + ")" );
+
+}]]>
+</method>
+<method name="makeFullClass">
+<param name="cls" type="string" />
+<param name="path" type="string" />
+<![CDATA[//@cmember makeFullClass
+//@param string | cls |
+//@param string | path |
+//@version Andrew Griffin | 11-02-02 15:28 |
+//@i
+
+if (cls.endsWith( "[]" )) cls = cls.left( cls.length()-2 );
+
+if (!cls || cls.eq("void")) return "";
+
+cls = advsearch::classToPath( cls, path, 0 );
+cls = "classes::" + sys::MakeRelativeName( classes::cpicks::classname(), cls );
+cls = cls.left( cls.indexof( ".xml", 0, 1 ) );
+
+if (cls.indexOf("des::docs")>=0) {
+    cls = cls.subString( cls.lastindexof( ":" )+1 );
+}
+
+return cls;]]>
+</method>
+<method name="getPickListStr" return="string">
+<param name="x" type="xml" />
+<![CDATA[//@cmember getPickListStr
+//@param xml | x |
+//@return string |
+//@version Andrew Griffin | 21-03-02 16:17 |
+
+string pkl = x.pickList;
+if (!pkl) return "";
+
+//
+// Has a picklist... is it a memeber of this class?
+
+string cls = x.execPath;
+if (!cls) return "";
+
+int istatic = pkl.lastIndexof( "::" );  // not in 'this' class
+if (istatic>=0)
+{
+    cls = sys::MakeFullName( cls, pkl.left(istatic) + ".xml" );
+    pkl = pkl.substring( istatic+2 );
+}
+
+//
+// Load class in question
+
+xml cx = &globalXML::LoadXML( cls, classname(), 1 );
+if (cx.tag()=="error") return "";
+cx = &cx[0];    // class
+
+//
+// Search for member
+
+for (int si=0;; si++)
+{
+    xml sx = &cx[si];
+    if (sx==null) return "<Can't find pick list contents>";
+    if (sx.tag()!="members" && sx.tag()!="static") continue;
+
+    for (int mi=0;; mi++)
+    {
+        xml mx = &sx[mi];
+        if (mx==null) break;
+
+        if (mx.GetAttr( "name" ).eq( pkl ))
+            return getPickListRows( mx );
+    }
+}]]>
+</method>
+<method name="getPickListRows" return="string">
+<param name="x" type="xml" />
+<![CDATA[//@cmember getPickListRows
+//@param xml | x |
+//@return string |
+//@version Andrew Griffin | 21-03-02 16:12 |
+
+string lst;
+
+for (int i=0; i<8; i++)
+{
+    xml row = &x[i];
+    if (row==null) return lst;
+
+    lst.addtoken( row.AttrVal( 0 ) + " --> " + row.AttrVal( 1 ), "\r\n" );
+}]]>
+</method>
+</static>
+<grid>
+<row>
+<col align="W" bk="212,208,200">
+<grid>
+<row>
+<col h="1" bk="255,255,255" />
+</row>
+<row>
+<col lpad="8" tpad="1" rpad="1" bpad="4" bk="212,208,200">
+<grid name="grdTest" rpad="10">
+<row>
+<col align="V">
+<Label text="Unit Testing" style="b" />
+</col>
+<col lpad="5" align="V">
+<Image text="Image" img="res::toolbar::exectest.bmp" onclick="DoExecuteMethod" help="Run unit test" />
+</col>
+<col lpad="5" rpad="28" align="V">
+<Label text="All" onClick="DoExecuteMethodAll" help="Run all unit tests" style="b" />
+</col>
+<col align="V">
+<Label text="Repeat" help="Enter a reason to temporaily ignore this test so it will show up in the test reports" />
+</col>
+<col align="V">
+<Edit name="txtRepeat" w="40" />
+</col>
+<col tpad="3" rpad="8" bpad="2">
+<Label text="Run In" />
+</col>
+<col>
+<Edit name="EdRunDirectory" w="80" pick="RunInPL" onchange="OnSourceChange" />
+</col>
+<col lpad="7" w="150" align="V">
+<Label name="lblStatus" tx="255,255,255" style="b" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="8" tpad="1" rpad="1" bpad="1" bk="212,208,200">
+<grid name="grdTestConfig">
+<row>
+<col lpad="8" tpad="3" rpad="8" bpad="2" align="V">
+<CheckBox name="chkmethod" text="Test Method" v0="0" v1="1" onclick="SetTestMethod" />
+</col>
+<col lpad="8" tpad="3" rpad="8" bpad="2" align="V">
+<CheckBox name="chksetup" text="Set Up Method" v0="0" v1="1" onclick="SetTestMethod" help="This method will be called once for the class before any test methods" />
+</col>
+<col lpad="8" tpad="3" rpad="8" bpad="2" align="V">
+<CheckBox name="chkteardown" text="Tear Down Method" v0="0" v1="1" onclick="SetTestMethod" help="This method will be called after all tests have be run" />
+</col>
+<col lpad="8" tpad="3" rpad="8" bpad="2" align="V">
+<CheckBox name="chkintegration" text="Slow / Long running test" v0="0" v1="1" onclick="SetTestMethod" help="This method will be called when processing the integration tests not on a normal build" />
+</col>
+<col lpad="8" tpad="3" rpad="8" bpad="2" align="V">
+<CheckBox name="chkcheckassert" text="Ensure Test Performs Assertions" v0="0" v1="1" onclick="SetTestMethod" help="This method will be called after all tests have be run" />
+</col>
+<col lpad="8" tpad="3" rpad="8" bpad="2" align="V">
+<CheckBox name="chkignoremsg" text="Ignore Messages" v0="0" v1="1" onclick="OnSourceChange" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="1" align="W" bk="128,128,128" />
+</row>
+<row>
+<col h="1" bk="255,255,255" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="8" tpad="3" rpad="1" bpad="2" bk="212,208,200">
+<grid lpad="2" rpad="2">
+<row>
+<col bpad="1" align="B">
+<Image text="Image" img="res::toolbar::script.bmp" />
+</col>
+<col>
+<Edit name="idFuncName" w="352" onChange="changeName" help="Method Name" />
+</col>
+<col lpad="4" align="V">
+<Image text="Image" img="res::toolbar::param.bmp" onClick="EditParams" help="Edit Method Parameters" />
+</col>
+<col w="12" align="CV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" />
+</col>
+<col>
+<Image name="idUndo" text="Image" img="grid::undo.bmp" onClick="DoUndo" onRightClick="DoConHelp" help="Undo action" />
+</col>
+<col>
+<Image name="idRedo" text="Image" img="grid::redo.bmp" onClick="DoRedo" onRightClick="DoConHelp" help="Redo Action" />
+</col>
+<col w="12" align="CV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" />
+</col>
+<col align="V">
+<Edit name="idSearch" w="90" onChange="doChangeSearch" help="Enter a search string" />
+</col>
+<col align="V">
+<CheckBox bind="SearchStar" onclick="doChangeSearch" v0="0" v1="1" help="Enable/Disable search partial string matches" />
+</col>
+<col align="V">
+<Image text="Image" img="res::toolbar::searchback.bmp" onclick="DoFindBack" onrightclick="DoFindBack2" help="Search back..." />
+</col>
+<col align="V">
+<Image text="Image" img="res::toolbar::searchfwd.bmp" onclick="DoFindNext" onrightclick="DoFindNext2" help="Search forward..." />
+</col>
+<col w="12" align="CV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" />
+</col>
+<col align="V">
+<Image text="Image" img="res::toolbar::parsemethod.bmp" onclick="DoParseTest" help="Parse this method" />
+</col>
+<col align="V">
+<Image text="Image" img="res::toolbar::spellchk.bmp" onclick="DoSpellCheck" help="Spell Check this method" />
+</col>
+<col w="12" align="CV">
+<Image text="Image" img="res::toolbar::vbarsep.bmp" />
+</col>
+<col align="V" />
+<col lpad="8" align="V" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" align="WH">
+<SourceEditor name="idSource" multi="1" scroll="3" border="1" onChange="OnSourceChange" onRightClick="OnRightClick" onleftclick="onLeftClick" onredraw="onRedraw" />
+</col>
+</row>
+<row>
+<col lpad="2" tpad="0" rpad="0" bpad="0" h="15" align="V" bk="212,208,200">
+<Label name="lblLineInfo" text="Line: 1 Col: 1" />
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="getSpellSuggestions" cls="int" />
+<rmeth name="StoreState" cls="string" />
+<rmeth name="getParameter" cls="funcParam" />
+<rmeth name="getLocalVar" cls="browse::avar" />
+<rmeth name="debugBreak" cls="int" />
+<rmeth name="isStrObject" cls="int" />
+<rmeth name="splitParams" cls="stringArray" />
+<rmeth name="getPickListStr" cls="string" />
+<rmeth name="getPickListRows" cls="string" />
+</return>
+</form>

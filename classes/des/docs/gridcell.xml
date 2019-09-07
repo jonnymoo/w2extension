@@ -1,0 +1,160 @@
+<class name="GridCell" description="W2 Script Reference">
+<members>
+<object name="Control" cls="Control" desc="The control within the GridCell or null." comment="@e gridcell gCell = &amp;idGrid.getCell(0,0);&#13;&#10;gCell.setcontrol(&quot;label&quot;);  // Create a new label control&#13;&#10;gCell.control.setText(&quot;fish&quot;);&#13;&#10;" />
+<method name="getHeight">
+<![CDATA[//@cmember int getHeight(  );
+//@return int | Returns the current height of the displayed cell in pixels.
+//@i Returns the current height of the displayed cell in pixels.
+]]>
+ />
+</method>
+<method name="getWidth">
+<![CDATA[//@cmember int getWidth(  );
+//@return int | Returns the current width of the displayed cell in pixels.
+//@i Returns the current width of the displayed cell in pixels.
+]]>
+ />
+</method>
+<method name="getX">
+<![CDATA[//@cmember int getX(  );
+//@return int | Returns the number of pixels from the left of the parent grid
+//@i Returns the number of pixels from the left of the parent grid
+]]>
+ />
+</method>
+<method name="getY">
+<![CDATA[//@cmember int getY(  );
+//@return int | Returns the number of pixels from the top of the parent grid
+//@i Returns the number of pixels from the top of the parent grid
+]]>
+ />
+</method>
+<method name="ScrollIntoView">
+<![CDATA[//@cmember void ScrollIntoView(  );
+//@return void | Scrolls the parent form to fully reveal this GridCell
+//@i Scrolls the parent form to fully reveal this GridCell
+]]>
+ />
+</method>
+<method name="setAlign">
+<param name="alignStr" type="string" />
+<![CDATA[//@cmember void setAlign( string alignStr );
+//@param string | alignStr | Horizontal: W=Stretch, C=Centre, R=Right, X=Fit; Vertical: H=Stretch, V=Centre, B=Bottom, Y=Fit
+//@return void | Sets the cell content alignment
+//@i 
+]]>
+ />
+</method>
+<method name="setBK">
+<param name="Colour" type="string" />
+<![CDATA[//@cmember void setBK( string Colour );
+//@param string | Colour | A colour string. i.e. "128,192,192"
+//@return void | Sets the cells background Colour
+//@i 
+]]>
+ />
+</method>
+<method name="setBKImg">
+<param name="filename" type="string" />
+<![CDATA[//@cmember void setBKImg( string filename );
+//@param string | filename | An image filename i.e. "classes::resource::standard::tab_sel.bmp"
+//@return void | Sets the cells background Image
+//@i 
+]]>
+ />
+</method>
+<method name="setBKSel">
+<param name="Colour" type="string" />
+<![CDATA[//@cmember void setBKSel( string Colour );
+//@param string | Colour | A colour string. i.e. "128,192,192"
+//@return void | Sets the cells selected background Colour
+//@i 
+]]>
+ />
+</method>
+<method name="setBPad">
+<param name="pixels" type="int" />
+<![CDATA[//@cmember void setBPad( int pixels );
+//@param int | pixels | The cells bottom padding in pixels
+//@return void | Sets the cells bottom padding
+//@i 
+]]>
+ />
+</method>
+<method name="setControl">
+<param name="Control_Type" type="string" />
+<![CDATA[//@cmember Control setControl( string Control_Type );
+//@param string | Control_Type | 
+//@return Control | 
+//@i Sets the control in a Grid Cell (doesn't instantiate it)
+//@Exam gridcell gCell = &idGrid.getCell(0,0);
+//@Exam control gC = &gCell.setcontrol("label");  // Create a new label control
+//@Exam gC.setText("fish");
+//@Exam ]]>
+ />
+</method>
+<method name="setH">
+<param name="pixels" type="int" />
+<![CDATA[//@cmember void setH( int pixels );
+//@param int | pixels | The cells height in pixels
+//@return void | Sets the cells height in pixels
+//@i 
+]]>
+ />
+</method>
+<method name="setLPad">
+<param name="pixels" type="int" />
+<![CDATA[//@cmember void setLPad( int pixels );
+//@param int | pixels | The cells left padding in pixels
+//@return void | Sets the cells left padding
+//@i 
+]]>
+ />
+</method>
+<method name="setRPad">
+<param name="pixels" type="int" />
+<![CDATA[//@cmember void setRPad( int pixels );
+//@param int | pixels | The cells right padding in pixels
+//@return void | Sets the cells right padding
+//@i 
+]]>
+ />
+</method>
+<method name="setTPad">
+<param name="pixels" type="int" />
+<![CDATA[//@cmember void setTPad( int pixels );
+//@param int | pixels | The cells top padding in pixels
+//@return void | Sets the cells top padding
+//@i 
+]]>
+ />
+</method>
+<method name="setW">
+<param name="pixels" type="int" />
+<![CDATA[//@cmember void setW( int pixels );
+//@param int | pixels | The cells width in pixels
+//@return void | Sets the cells width in pixels
+//@i 
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="getHeight" cls="int" />
+<rmeth name="getWidth" cls="int" />
+<rmeth name="getX" cls="int" />
+<rmeth name="getY" cls="int" />
+<rmeth name="ScrollIntoView" cls="void" />
+<rmeth name="setAlign" cls="void" />
+<rmeth name="setBK" cls="void" />
+<rmeth name="setBKImg" cls="void" />
+<rmeth name="setBKSel" cls="void" />
+<rmeth name="setBPad" cls="void" />
+<rmeth name="setControl" cls="Control" />
+<rmeth name="setH" cls="void" />
+<rmeth name="setLPad" cls="void" />
+<rmeth name="setRPad" cls="void" />
+<rmeth name="setTPad" cls="void" />
+<rmeth name="setW" cls="void" />
+</return>
+</class>

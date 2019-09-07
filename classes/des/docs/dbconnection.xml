@@ -1,0 +1,433 @@
+<class name="DBConnection" description="W2 Script Reference">
+<members sub="Connection">
+<method name="Connect">
+<![CDATA[//@cmember int Connect(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ConnectTo">
+<param name="odbcname" type="string" />
+<param name="user" type="string" />
+<param name="password" type="string" />
+<![CDATA[//@cmember int ConnectTo( string odbcname, string user, string password );
+//@param string | odbcname | 
+//@param string | user | 
+//@param string | password | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ConnectWith">
+<param name="dsninfo" type="String" />
+<![CDATA[//@cmember void ConnectWith( String dsninfo );
+//@param String | dsninfo | 
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="Disconnect">
+<![CDATA[//@cmember void Disconnect(  );
+//@return void | 
+//@i 
+]]>
+ />
+</method>
+<method name="SetAsyncMode">
+<param name="async" type="int" />
+<![CDATA[//@cmember int SetAsyncMode( int async );
+//@param int | async | 
+//@return int | 
+//@i set asynchronous mode
+]]>
+ />
+</method>
+<method name="SetPooling">
+<param name="pool" type="int" />
+<![CDATA[//@cmember void SetPooling( int pool );
+//@param int | pool | 
+//@return void | 
+//@i set connection pooling
+]]>
+ />
+</method>
+</members>
+<members sub="Queries">
+<method name="ListFromSQL">
+<param name="sql" type="String" />
+<param name="max" type="int" />
+<param name="lower" type="int" />
+<![CDATA[//@cmember List ListFromSQL( String sql, int max, int lower );
+//@param String | sql | 
+//@param int | max | Maximum number of rows to fetch 
+//@param int | lower | Lower limit (e.g row to start at)
+//@return List | 
+//@i returns null on error, creates an ad-hoc list of objects
+]]>
+ />
+</method>
+<method name="QuerySQLToStream">
+<param name="name" type="String" />
+<param name="sql" type="String" />
+<param name="max" type="int" />
+<param name="D" type="Stream" />
+<![CDATA[//@cmember int QuerySQLToStream( String name, String sql, int max, Stream D );
+//@param String | name | 
+//@param String | sql | 
+//@param int | max | 
+//@param Stream | D | 
+//@return int | 
+//@i Sends output to data stream as serialized XML to retrieve a single object, set max to 0
+]]>
+ />
+</method>
+<method name="QueryToStream">
+<param name="C" type="Class" />
+<param name="where" type="String" />
+<param name="max" type="int" />
+<param name="D" type="Stream" />
+<param name="Quick" type="int" />
+<![CDATA[//@cmember int QueryToStream( Class C, String where, int max, Stream D, int Quick );
+//@param Class | C | 
+//@param String | where | 
+//@param int | max | 
+//@param Stream | D | 
+//@param int | Quick | 
+//@return int | 
+//@i Sends output to data steam (D) as serialized XML.
+Set Quick to 1 to rename all column headings to '1', '2', '3', ...
+]]>
+ />
+</method>
+<method name="SimpleQuery">
+<param name="sql" type="String" />
+<![CDATA[//@cmember String SimpleQuery( String sql );
+//@param String | sql | 
+//@return String | 
+//@i returns a single string result
+]]>
+ />
+</method>
+<method name="StartFetch">
+<param name="sql" type="String" />
+<![CDATA[//@cmember DBQuery StartFetch( String sql );
+//@param String | sql | 
+//@return DBQuery | 
+//@i returns a DBQuery object
+]]>
+ />
+</method>
+</members>
+<members sub="Execution">
+<method name="GetRowCount">
+<![CDATA[//@cmember int GetRowCount(  );
+//@return int | 
+//@i ret no. of rows modified by execution methods -1 for unknown
+]]>
+ />
+</method>
+<method name="SQLExec">
+<param name="sql" type="String" />
+<param name="CheckRowCount" type="int" />
+<![CDATA[//@cmember int SQLExec( String sql, int CheckRowCount );
+//@param String | sql | 
+//@param int | CheckRowCount | 
+//@return int | 
+//@i 1 for success
+]]>
+ />
+</method>
+</members>
+<members sub="Objects">
+<method name="DeleteList">
+<param name="L" type="List" />
+<param name="CheckRowCount" type="int" />
+<![CDATA[//@cmember int DeleteList( List L, int CheckRowCount );
+//@param List | L | 
+//@param int | CheckRowCount | 
+//@return int | 
+//@i delete, using prime keys
+]]>
+ />
+</method>
+<method name="DeleteObject">
+<param name="R" type="Object" />
+<param name="CheckRowCount" type="int" />
+<![CDATA[//@cmember int DeleteObject( Object R, int CheckRowCount );
+//@param Object | R | 
+//@param int | CheckRowCount | 
+//@return int | 
+//@i delete, using prime keys
+]]>
+ />
+</method>
+<method name="InsertList">
+<param name="" type="list" />
+<![CDATA[//@cmember int InsertList( list );
+//@param list |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="InsertObject">
+<param name="R" type="Object" />
+<![CDATA[//@cmember int InsertObject( Object R );
+//@param Object | R | 
+//@return int | 
+//@i insert statement
+]]>
+ />
+</method>
+<method name="RefreshObject">
+<param name="R" type="Object" />
+<![CDATA[//@cmember int RefreshObject( Object R );
+//@param Object | R | 
+//@return int | 
+//@i query and refresh, using prime keys - if not found returns 0 with LastError of 0 (no error)
+]]>
+ />
+</method>
+<method name="UpdateList">
+<param name="" type="list" />
+<param name="" type="wantrowcount" />
+<![CDATA[//@cmember int UpdateList( list, wantrowcount );
+//@param list |  | 
+//@param wantrowcount |  | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="UpdateObject">
+<param name="R" type="Object" />
+<param name="CheckRowCount" type="int" />
+<![CDATA[//@cmember int UpdateObject( Object R, int CheckRowCount );
+//@param Object | R | 
+//@param int | CheckRowCount | 
+//@return int | 
+//@i update, using prime keys
+]]>
+ />
+</method>
+</members>
+<members sub="Information">
+<method name="DBMSName">
+<![CDATA[//@cmember String DBMSName(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="DSNName">
+<![CDATA[//@cmember String DSNName(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetModState">
+<![CDATA[//@cmember Int GetModState(  );
+//@return Int | 
+//@i 
+]]>
+ />
+</method>
+<method name="GetPoolInfo">
+<![CDATA[//@cmember string GetPoolInfo(  );
+//@return string | 
+//@i 
+]]>
+ />
+</method>
+<method name="ServerName">
+<![CDATA[//@cmember String ServerName(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="UserName">
+<![CDATA[//@cmember String UserName(  );
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="Valid">
+<![CDATA[//@cmember int Valid(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Error Handling">
+<method name="GetError">
+<![CDATA[//@cmember String GetError(  );
+//@return String | 
+//@i description of error
+]]>
+ />
+</method>
+<method name="LastError">
+<![CDATA[//@cmember int LastError(  );
+//@return int | 
+//@i see "Error Codes" below
+]]>
+ />
+</method>
+<method name="LastSQL">
+<![CDATA[//@cmember String LastSQL(  );
+//@return String | 
+//@i last SQL statement
+]]>
+ />
+</method>
+</members>
+<members sub="SQL">
+<method name="GetQuerySQL">
+<param name="" type="Class" />
+<param name="where" type="String" />
+<![CDATA[//@cmember String GetQuerySQL( Class, String where );
+//@param Class |  | 
+//@param String | where | 
+//@return String | 
+//@i 
+]]>
+ />
+</method>
+<method name="ListQuery">
+<param name="L" type="List" />
+<param name="where" type="String" />
+<param name="max" type="int" />
+<param name="from" type="int" />
+<param name="to" type="int" />
+<param name="findTotalRows" type="int" />
+<![CDATA[//@cmember int ListQuery( List L, String where, int max, int from, int to, int findTotalRows);
+//@param List | L | 
+//@param String | where | 
+//@param int | max | 
+//@param int | from | 
+//@param int | to | 
+//@param int | findTotalRows | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="ObjectQuery">
+<param name="R" type="Object" />
+<param name="where" type="String" />
+<![CDATA[//@cmember int ObjectQuery( Object R, String where );
+//@param Object | R | 
+//@param String | where | 
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Transaction">
+<method name="Commit">
+<![CDATA[//@cmember int Commit(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+<method name="DoNotCommit">
+<![CDATA[//@cmember Void DoNotCommit(  );
+//@return Void | 
+//@i prevent auto-commit at the end of an event
+]]>
+ />
+</method>
+<method name="Rollback">
+<![CDATA[//@cmember int Rollback(  );
+//@return int | 
+//@i 
+]]>
+ />
+</method>
+</members>
+<members sub="Bind Variables">
+<method name="SetUseBindVars">
+<param name="i" type="int" />
+<![CDATA[//@cmember SetUseBindVars( int i );
+//@iparam int | i | 1 for use bind vars, 0 for don't use bind vars
+//@i This will allow SQL transaction on this DBConnection to
+//@i use bind variables.
+//@i Bind variables are referenced in the SQL string
+//@i as ? place holders and are
+//@i set using the AddBindVars and ResetBindVars methods.
+//@i Commands where you pass in the data structure (e.g. UpdateObject)
+//@i will automatically use bind variables where possible.
+//@i Bind variable help the database reuse compilations and therefore
+//@i can decrease the load on the database for commonly used SQL statements
+]]>
+ />
+</method>
+<method name="ResetBindVars">
+<![CDATA[//@cmember ResetBindVars( );
+//@i Clear down the bind variable list from the dbconnection
+//@i You should call this before doing addbindvars
+]]>
+ />
+</method>
+<method name="AddBindVars">
+<param name="v" type="variable" />
+<![CDATA[//@cmember AddBindVars( variable v [,variable v] );
+//@i You should call this before doing addbindvars
+//@iparam variable | v | A double, string, date or integer
+//@i Add a variable to the bind variable list.  The order you add them
+//@i matches up to the ? place holders (left to right) in your SQL
+//@i Note: Be careful using this on dates and doubles as the
+//@i conversions to the database type may not behave exactly as
+//@i you would expect.
+]]>
+ />
+</method>
+</members>
+<return>
+<rmeth name="Connect" cls="int" />
+<rmeth name="ConnectTo" cls="int" />
+<rmeth name="ConnectWith" cls="void" />
+<rmeth name="Disconnect" cls="void" />
+<rmeth name="SetAsyncMode" cls="int" />
+<rmeth name="SetPooling" cls="void" />
+<rmeth name="ListFromSQL" cls="List" />
+<rmeth name="QuerySQLToStream" cls="int" />
+<rmeth name="QueryToStream" cls="int" />
+<rmeth name="SimpleQuery" cls="String" />
+<rmeth name="StartFetch" cls="DBQuery" />
+<rmeth name="GetRowCount" cls="int" />
+<rmeth name="SQLExec" cls="int" />
+<rmeth name="DeleteList" cls="int" />
+<rmeth name="DeleteObject" cls="int" />
+<rmeth name="InsertList" cls="int" />
+<rmeth name="InsertObject" cls="int" />
+<rmeth name="RefreshObject" cls="int" />
+<rmeth name="UpdateList" cls="int" />
+<rmeth name="UpdateObject" cls="int" />
+<rmeth name="DBMSName" cls="String" />
+<rmeth name="DSNName" cls="String" />
+<rmeth name="GetModState" cls="Int" />
+<rmeth name="GetPoolInfo" cls="string" />
+<rmeth name="ServerName" cls="String" />
+<rmeth name="UserName" cls="String" />
+<rmeth name="Valid" cls="int" />
+<rmeth name="GetError" cls="String" />
+<rmeth name="LastError" cls="int" />
+<rmeth name="LastSQL" cls="String" />
+<rmeth name="GetQuerySQL" cls="String" />
+<rmeth name="ListQuery" cls="int" />
+<rmeth name="ObjectQuery" cls="int" />
+<rmeth name="Commit" cls="int" />
+<rmeth name="DoNotCommit" cls="Void" />
+<rmeth name="Rollback" cls="int" />
+</return>
+</class>

@@ -1,0 +1,406 @@
+<class name="History" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:39$" frevision="$Revision: 2$">
+<members />
+<static>
+<Object name="clsHist" cls="XML" />
+<Integer name="TimeNow" />
+<Integer name="noWrite" />
+<method name="makeHistory">
+<param name="clsName" type="String" />
+<param name="debug" type="int" />
+<param name="savedebug" type="int" />
+<![CDATA[//@cmember makeHistory
+//@param String | clsName |
+//@param int | debug |
+//@param int | savedebug |
+//@version Andrew Griffin | 14-02-02 09:48 |
+//@version Ashley.Gibbs | 13-12-13 16:12 |
+//@version andrew.banyard | 16-02-15 11:34 |
+// Make some History - ie. Record a user change of windows in the designer
+
+// Must end in .xml
+if (clsName.indexOf(".xml",0,1) != clsName.length()-4) return;
+if (noWrite) return;
+
+if (!savedebug && debug)
+{
+    return; //Temp debug class, ignore
+}
+
+// Convert class to relative path
+string nam, rel = classes::core::globalString::MakeFullClassRef( clsName );
+
+if (rel.left(8) != "classes:") {
+    rel = classes::core::globalString::stripExtension( clsName );
+    nam = rel.subString( rel.lastindexof( "\\" )+1 );
+} else {
+   nam = rel.subString( rel.lastindexof( ":" )+1 );
+   // Only save the path if it actually exists - When debugging it doesn't
+   string location = sys::GetClassPath() + nam.replace("::", "\\") + ".xml";
+   File f;
+   int exists = f.Open(location);
+   f.Close();
+   if(!exists){
+     return;
+   }
+}
+
+// Is class already in history list?
+for (int i=0;; i++) {
+    xml fx = &clsHist[i];
+    if (fx==null) break;
+    if (fx.cls.eq( rel )) {
+        // Found; so reorder to top.
+        if (i==clsHist.Count()-1) return;   // already at the top...
+        clsHist.RemoveElement( fx );
+        clsHist.AddElement( fx );
+        saveHistoryFile();
+        return;
+    }
+}
+
+// Create new item in History
+
+xml nx = &clsHist.CreateElement( "class" );
+nx.AddAttr( "cls", rel );
+nx.AddAttr( "name", nam );
+
+// Make sure history doesn't exceed 32 rows
+
+for (i=clsHist.Count()-32; i>0; i--)
+    clsHist.RemoveElement( clsHist[i] );
+
+saveHistoryFile();]]>
+</method>
+<method name="removeClassView">
+<param name="who" type="string" />
+<![CDATA[//@cmember removeClassView
+//@param string | who |
+//@version Andrew Griffin | 05-02-02 12:20 |
+
+// Is class already in history list?
+for (int i=0;; i++) {
+    xml fx = &clsHist[i];
+    if (fx==null) break;
+    if (fx.cls.eq( who )) {
+        // Found; so delete...
+        clsHist.RemoveElement( fx );
+        saveHistoryFile();
+        return;
+    }
+}
+
+// Not found...]]>
+</method>
+<method name="chooseClass">
+<param name="curName" type="string" />
+<param name="ctrl" type="control" />
+<param name="par" type="wclassview" />
+<param name="simpleView" type="int" />
+<![CDATA[//@cmember chooseClass
+//@param string | curName |
+//@param control | ctrl |
+//@param wclassview | par |
+//@param int | simpleView |
+//@version Andrew Griffin | 06-08-02 11:34 |
+
+classes::core::wpopupmenu P = &getPopup( curName, simpleView );
+
+//
+// Add Current Session classes...
+
+addPopup_Session( P, par );
+
+
+//
+// Add Class Dependancies/Links...
+
+if (simpleView!=null && simpleView)
+    addPopup_ClassIndexer( P, par );
+
+
+//
+// Track the popupmenu
+
+String pck = P.Track(1, ctrl, NULL,NULL,1);
+
+sys::Wait( 10 );
+if (par!=null) par.SetFocus();
+
+if (pck) restoreClass( pck.subString(4), curName );]]>
+</method>
+<method name="getPopup">
+<param name="curName" type="string" />
+<param name="simpleView" type="int" />
+<![CDATA[//@cmember getPopup
+//@param string | curName |
+//@param int | simpleView |
+//@version Andrew Griffin | 06-08-02 10:46 |
+
+// Convert class to relative path
+string rel = classes::core::globalString::MakeFullClassRef( curName );
+if (!rel.left(8).eq( "classes:" )) rel = classes::core::globalString::stripExtension( curName );
+
+classes::core::wpopupmenu P;
+
+if (simpleView==null || !simpleView)
+{
+    int stop = clsHist.Count() - 12;
+    if (stop<0) stop = 0;
+
+    for (int i=clsHist.count()-1; i>=stop; i--) {
+        xml x = &clsHist[i];
+        if (!x.cls.eq(rel)) {
+            string pth = x.cls;
+            if (pth.length()>32) pth = "..." + pth.right( 31 );
+            P.Add( x.name + "\t(" + pth + ")", "CLS:" + x.cls);
+        }
+    }
+}
+
+P.addSeparator();
+
+classes::core::wpopupmenu p2;
+
+for (int i=clsHist.count()-1; i>=0; i--) {
+    xml x = &clsHist[i];
+    if (!x.cls.eq(rel)) {
+        string pth = x.cls;
+        if (pth.length()>32) pth = "..." + pth.right( 31 );
+        P2.Add( x.name + "\t(" + pth + ")", "CLS:" + x.cls);
+    }
+}
+
+p2.orderList();
+
+P.add( p2, "Previous 32..." );
+
+return P;]]>
+</method>
+<method name="restoreClass">
+<param name="clsName" type="string" />
+<param name="curName" type="string" />
+<![CDATA[//@cmember restoreClass
+//@param string | clsName |
+//@param string | curName |
+//@version Andrew Griffin | 06-08-02 11:50 |
+
+string rel, relEnd;
+if (curName!=null)
+{
+    rel = classes::core::globalString::MakeFullClassRef( curName );
+    if (!rel.left(8).eq( "classes:" )) rel = classes::core::globalString::stripExtension( curName );
+    relEnd = rel.substring( rel.lastindexof(":")+1);
+    relEnd.tolower();
+}
+
+WClassView Win = null;
+
+string cls = clsName.gettoken(0);
+string code = clsName.gettoken(1);
+
+if (cls.left(8).eq("classes:"))
+    Win = &AdvSearch::OpenClassFile( cls, classname(), "" );
+else
+    Win = &AdvSearch::OpenClassFilePath( cls+".xml", "" );
+
+if (win==null) {
+    message("Error: Class File in History no longer exists \"" + cls + "\"");
+    removeClassView( cls );
+    return 0;
+}
+
+Win.setForeground();
+Win.show(1);
+
+if (code)
+{
+    if (code[0]=='S')   // Referenced from a method script
+    {
+        int methNo = code.substring(1).val();
+        //
+        // Open method...
+
+        func f = NULL;
+        int membs = win.XFile.Classes[0].Sections[0].Functions.Count();
+        int stats = win.XFile.Classes[0].Sections[1].Functions.Count();
+        if (methNo<membs)
+            f = &win.XFile.Classes[0].Sections[0].Functions[methNo];
+        else if (methNo-membs<stats)
+            f = &win.XFile.Classes[0].Sections[1].Functions[methNo - membs];
+
+        if (f!=null)
+        {
+            win.idResults.SelectRow( f );
+            win.EditMethod( f );
+            win.SearchReplace( NULL, relEnd );
+        }
+    }
+    else
+    if (code[0]=='M')   // Instanced as a member variable
+    {
+        for (int s=0; s<=1; s++)
+        {
+            classsection cs = &win.XFile.Classes[0].Sections[s];
+            for (int i=0; i<cs.MemberDefs.Count(); i++)
+                if (cs.MemberDefs[i].MemberClass.lower().endsWith( relEnd ))    // found
+                {
+                    win.idResults.SelectRow( cs.MemberDefs[i] );
+                    win.EditMember( cs.MemberDefs[i] );
+                    return;
+                }
+        }
+    }
+}]]>
+</method>
+<method name="addPopup_Session">
+<param name="P" type="popupmenu" />
+<param name="par" type="wclassview" />
+<![CDATA[//@cmember addPopup_Session
+//@param popupmenu | P |
+//@param wclassview | par |
+//@version Andrew Griffin | 06-08-02 10:46 |
+//@version Jonathan.Muir | 18-11-04 10:24 |
+
+//
+// Get Current session...
+return;
+if (par==null || par.readonly) return;
+
+sessions::assafetrans stra = &sessions::aSSafeTrans::getTransaction( par.filename );
+if (stra==null) return;
+
+
+//
+// Get other classes in this session (tick if checked out)
+
+string sql = "sesId=" + stra.sesId.sql() + " order by transDate DESC";
+sessions::assafetrans trans[];
+dbconnection db = &classes::core::srvglobal::GetDB( sessions::asession::sessionDB );
+if (!db.ListQuery( trans, sql, 1000 )) return;
+
+classes::core::wpopupmenu p2;
+
+
+//
+// Create Popup & remove duplicates
+
+for (int i=0; i<trans.Count(); i++)
+{
+    sessions::assafetrans r = &trans[i];
+    for (int j=i+1; j<trans.Count(); j++)
+    {
+        if (trans[j].clsname.eq( r.clsname ))
+        {
+            trans[j].RemoveFromList();
+            j--;
+        }
+    }
+
+    string pth = r.clsname;
+    if (pth.length()>32) pth = "..." + pth.right( 31 );
+    p2.Add(
+        (r.mode<2 ? "+" : "") +
+        r.clsname.substring( r.clsname.lastindexof(":")+1 ) +
+        (r.mode==0 ? "(+)" : "") +
+
+        "\t(" + pth + ")",
+
+        "CLS:" + r.clsname
+    );
+}
+
+p2.orderList();
+p.add( p2, "Current Session\t(" + sessions::aSession::getSession( stra.sesId ).sname + ")" );]]>
+</method>
+<method name="addPopup_ClassIndexer">
+<param name="P" type="popupmenu" />
+<param name="par" type="wclassview" />
+<![CDATA[//@cmember addPopup_ClassIndexer
+//@param popupmenu | P |
+//@param wclassview | par |
+//@version Andrew Griffin | 06-08-02 11:18 |
+
+//
+// Get Current session...
+
+if (par==null) return;
+
+p.AddSeparator();
+
+string classname = classes::core::globalString::MakeFullClassRef( par.filename );
+
+xml X = &search::classrec::aclassrec::tellMeAbout( classname );
+if (X==null) return;
+
+
+//
+// Find Internal & External References...
+
+for (int si=1; si<=2; si++)
+{
+    xml XX = &X[si];
+
+    classes::core::wpopupmenu p1;
+
+    for (int i=0; i<3; i++)
+    {
+        string icon;
+        if (i==0)       icon="classes::des::res::object.ico";
+        else if (i==1)  icon="classes::des::res::grid.ico";
+        else if (i==2)  icon="classes::des::res::method.ico";
+
+        xml sec = &XX[i];
+        for (int j=sec.Count()-1; j>=0; j--)
+        {
+            string clsName = sec[j].Tag();
+            string pth = clsname;
+            if (pth.length()>32) pth = "..." + pth.right( 31 );
+            string code = "CLS:" + clsName + "," + sec[j].code;
+
+            p1.Add(
+                clsName.substring( clsName.lastindexof(":")+1 ) +
+                "\t(" + pth + ")",
+                code,
+                icon
+            );
+        }
+    }
+
+    p1.orderlist();
+    p.Add( p1, XX.Tag() );
+}]]>
+</method>
+<method name="saveHistoryFile">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 05-02-02 11:46 |
+//@i
+
+classes::core::xml::globalxml::SaveXML( clsHist, "FileHistory.ini", path() );]]>
+</method>
+<method name="loadHistoryFile">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version Andrew Griffin | 05-02-02 12:02 |
+//@i
+
+clsHist.setTag( "FileHistory2" );
+
+xml X = &classes::core::xml::globalxml::LoadXML( "FileHistory.ini", path() );
+
+if (X.tag()=="error") {    // Check for errors
+     message("Error loading class history file...");
+     return;
+}
+
+// Only load it if it's in the correct format...
+if (X[0].tag().eq("FileHistory2"))
+    clsHist = X[0];
+else
+    message( "Class history file structure has changed in this new version of the designer.\r\n" +
+             "Starting a new class history..." );]]>
+</method>
+</static>
+</class>

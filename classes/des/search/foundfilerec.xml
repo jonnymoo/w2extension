@@ -1,0 +1,13 @@
+<class name="foundFileRec" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
+<members>
+<String name="filename" />
+<String name="fileshow" />
+<String name="typ" />
+<String name="context" />
+<String name="contextBig" />
+<String name="findCode" />
+<Integer name="pos" />
+<Date name="fdate" />
+</members>
+<static />
+</class>

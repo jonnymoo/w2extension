@@ -1,0 +1,154 @@
+<class name="aRange" fauthor="$Author: Andrew.g $" fdate="$Date: 13/09/02 16:30 $" frevision="$Revision: 1 $">
+<members>
+<Integer name="typ" pick="pk_types" />
+<Date name="minDate" />
+<Date name="maxDate" />
+<Double name="minVal" />
+<Double name="maxVal" />
+<method name="setDataRange" return="aRange">
+<param name="dataList" type="object[]" />
+<param name="idx" type="int" />
+<param name="mode" type="int" />
+<![CDATA[//@cmember setDataRange
+//@param object[] | dataList |
+//@param int | idx |
+//@param int | mode | 1 = currency, 2 = bar chart
+//@return aRange |
+//@version Andrew Griffin | 13-09-02 14:27 |
+
+int count = dataList.Count();
+
+switch (dataList.class().MemberDef( idx ).ClassName().lower())
+{
+    case "int", "integer" : typ = 1; break;
+    case "double" : typ = 2; break;
+    case "date" : typ = 4; break;
+    default:
+        typ = 0;
+        maxVal = count-1;
+        return this;
+}
+
+if (mode!=null && mode==1) typ = 3;
+
+if (typ==4)
+{
+    minDate = dataList[0][idx];
+    maxDate = minDate;
+    for (int i=1; i<count; i++)
+    {
+        date d = dataList[i][idx];
+        if (minDate > d) minDate = d;
+        if (maxDate < d) maxDate = d;
+    }
+    maxVal = maxDate.DaysSince( minDate );
+
+    if (mode!=null && mode==2) maxDate.AddDays(1); // bar chart needs one extra
+}
+else
+{
+    minVal = dataList[0][idx];
+    maxVal = minVal;
+    for (int i=1; i<count; i++)
+    {
+        double d = dataList[i][idx];
+        if (minVal > d) minVal = d;
+        if (maxVal < d) maxVal = d;
+    }
+}
+
+if (mode!=null && mode==2) maxVal = maxVal + 1; // bar chart needs one extra
+
+return this;]]>
+</method>
+<method name="setDataLimit" return="aRange">
+<param name="dataList" type="object[]" />
+<param name="idx" type="int" />
+<![CDATA[//@cmember setDataLimit
+//@param object[] | dataList |
+//@param int | idx |
+//@return aRange |
+//@version Andrew Griffin | 13-09-02 15:11 |
+
+int count = dataList.Count();
+minVal=0;
+maxVal=0;
+
+for (int i=0; i<count; i++)
+    maxVal = maxVal + dataList[i][idx];
+
+return this;]]>
+</method>
+<method name="includeZero" return="aRange">
+<![CDATA[//@cmember includeZero
+//@return aRange |
+//@version Andrew Griffin | 12-09-02 12:14 |
+
+if (minVal>0) minVal = 0;
+if (maxVal<0) maxVal = 0;
+
+return this;]]>
+</method>
+<method name="getLabel">
+<param name="pos" type="double" />
+<![CDATA[//@cmember getLabel
+//@param double | pos |
+//@version Andrew Griffin | 12-09-02 16:31 |
+
+if (typ==0) return pos.tostring();
+if (typ==1) return pos.round().tostring();
+if (typ==2 || typ==3)
+{
+    pos = pos * 100;
+    pos = pos.round();
+    return (typ==3 ? "£" : "") + pos / 100;
+}
+if (typ==4)
+{
+    // Date
+    date d = minDate;
+    d.AddDays( pos );
+    return d.toString( "d mmm yy" );
+}]]>
+</method>
+<method name="getVal">
+<param name="val" type="object" />
+<![CDATA[//@cmember getVal
+//@param object | val |
+//@version Andrew Griffin | 12-09-02 16:46 |
+
+if (typ<4) return val;
+
+//
+// A Date
+
+return val.daysSince( minDate );]]>
+</method>
+</members>
+<static>
+<List name="pk_types" cls="classes::cpickn">
+<item code="0" desc="String" PickType="" />
+<item code="1" desc="Integer" PickType="" />
+<item code="2" desc="Double" PickType="" />
+<item code="3" desc="Currency" PickType="£" />
+<item code="4" desc="Date" PickType="" />
+</List>
+<method name="getDataRange" return="aRange">
+<param name="dataList" type="object[]" />
+<param name="idx" type="int" />
+<![CDATA[//@cmember getDataRange
+//@param object[] | dataList |
+//@param int | idx |
+//@return aRange |
+//@version Andrew Griffin | 12-09-02 12:14 |
+
+return CreateInstance().setDataRange( dataList, idx );]]>
+</method>
+</static>
+<return>
+<rmeth name="setDataRange" cls="aRange" />
+<rmeth name="setDataLimit" cls="aRange" />
+<rmeth name="includeZero" cls="aRange" />
+<rmeth name="getDataRange" cls="aRange" />
+</return>
+</class>

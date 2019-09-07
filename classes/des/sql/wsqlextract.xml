@@ -1,0 +1,698 @@
+<form name="wSQLExtract" caption="SQL Extractor" savepos="sqlExtractPos" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:41$" frevision="$Revision: 2$">
+<members>
+<List name="clsList" cls="aClassRec" />
+<List name="tabList" cls="atabrec" />
+<List name="clsNames" cls="classes::cpicks" />
+<String name="progressChar" />
+<Integer name="progressCnt" />
+<Integer name="stop" />
+<Integer name="dbTyp" />
+<Object name="tableXml" cls="XML" />
+<Object name="lastXml" cls="XML" />
+<String name="include" cls="xml" />
+<String name="startFile" />
+<method name="doSearchClasses">
+<![CDATA[//@cmember doSearchClasses
+//@version Andrew Griffin | 05-02-02 16:15 |
+//@version Nick Gomm | 17-06-08 17:28 |
+//@i
+
+
+if (stop!=0) {
+    stop=1;
+    return;
+}
+
+stop = -1;
+clsList.reset();
+tabList.reset();
+idTableName.setText( ">>" );
+idClassName.setText( "" );
+clsNames.reset();
+
+String startPath = "classes::" + idinclude.getText();
+if (!startPath.endsWith("::")) startPath+="::";
+String pathS= sys::MakeFullName( path(), startPath);
+
+if (startFile)
+{
+    int i1 = startFile.indexof("classes");
+    int i2 = pathS.indexof("classes");
+
+    pathS = startFile.subString(0,i1) + pathS.subString(i2);
+
+}
+
+doSearch( pathS );
+
+setText( "SQL Extractor - Tracing Base Classes" );
+sys::Wait(1);
+
+while (!traceBaseClasses()) {}
+
+setText( "SQL Extractor - Cleaning Class List" );
+sys::Wait(1);
+
+// now delete classes with table names of "~"
+for (int i=clsList.count()-1; i>=0; i--) {
+    if (clsList[i].tableName=="~")
+        clsList[i].RemoveFromList();
+}
+
+clsList.OrderBy( "tableName" );
+clsList.OrderBy( "clsName" );
+clsList.OrderList();
+
+atabRec tab = null;
+
+string tabname = "";
+for (i=0; i<clsList.Count(); i++) {
+    if (tabname!=clsList[i].tableName) {
+        tabname = clsList[i].tableName;
+        tab = &tabList.CreateRow();
+        tab.tabName = tabname;
+        tab.classPath = clsList[i].clsName;
+        tab.colour.rgb( 0, 0, 0 );
+        tab.colbk.rgb( 255,255,255 );
+        tab.info = "*";
+    } else
+    if (tab!=null) tab.classPath = "";
+}
+
+tableXml.reset();
+createTableXml( tableXml );
+
+setText( "SQL Extractor - Done" );
+stop = 0;]]>
+</method>
+<method name="doSearch">
+<param name="pathS" type="string" />
+<![CDATA[//@cmember doSearch
+//@param string | pathS |
+//@version Andrew Griffin | 06-11-01 11:53 |
+//@version Nick Gomm | 20-03-06 15:48 |
+//@i
+
+// are we including this
+for (int i=0;;i++)
+{
+    String tok = include.getToken(i,"\\");
+    String pathSTok = pathS.getToken(i,"\\");
+
+    if (!tok && !pathSTok && !pathS.beginsWith(include))return 0;
+
+    if (!tok) break;
+    if (!pathSTok) break;
+
+}
+
+if (exclude.findtoken( pathS.lower() )>=0) return 0;
+
+//message("Path: " + pathS);
+FileFinder FF = &sys::NewFileFinder();
+int ok = FF.FindFirst( pathS+"*.xml" , "" );    // look in sub folders too
+
+while (ok && stop!=1) {
+
+  if (!FF.IsDir) {
+
+    string fname = pathS + FF.FileName;
+
+    file f;
+    f.Open( fname, 0 );  // open file for read
+    blob b = &f.ReadBlob();
+    f.close();
+    if (b!=null) {
+        string s = b.toString();
+        int p = s.indexof( " sqlname=\"" );
+        int q = s.indexof( " base=\"" );
+
+        if (p>=0 || q>=0) {
+            foundClass( fname, s, p, q );
+        }
+
+        progresscnt--;
+        if (progresscnt<0) {
+            progresscnt = 15;
+
+            setText( "SQL Extractor - Searching " + progressChar );
+            sys::wait( 1 );
+
+            switch (progressChar) {
+              case "\\" : progressChar = "|"; break;
+              case "|" :  progressChar = "/"; break;
+              case "/" :  progressChar = "-"; break;
+              default:    progressChar = "\\"; break;
+            }
+        }
+    }
+  }
+
+  ok = FF.FindNext();
+}
+
+
+ok = FF.FindFirst( pathS+"*.*" , "D" );    // look in sub folders too
+
+while (ok && stop!=1) {
+
+    if (FF.IsDir && FF.FileName[0]!='.') {
+        doSearch( pathS + FF.FileName + "\\" );
+    }
+
+    ok = FF.FindNext();
+}]]>
+</method>
+<method name="foundClass">
+<param name="filename" type="string" />
+<param name="clstxt" type="string" />
+<param name="sqlp" type="int" />
+<param name="basep" type="int" />
+<![CDATA[//@cmember foundClass
+//@param string | filename |
+//@param string | clstxt |
+//@param int | sqlp |
+//@param int | basep |
+//@version Andrew Griffin | 06-11-01 13:05 |
+//@i
+
+aClassRec cp;
+
+cp.filename = filename;
+
+cp.clsName = sys::MakeRelativeName( classes::cpicks::path(), filename );
+cp.clsName = cp.clsName.left( cp.clsName.length()-4 ).lower();
+
+cp.justName = filename.subString( filename.lastindexof( "\\" )+1 );
+cp.justName = cp.justName.left( cp.justName.length()-4 );
+
+if (sqlp>=0) {
+    cp.tableName = clstxt.substring( sqlp+10, clstxt.indexOf( "\"", sqlp+10 ) );
+    if (cp.tableName.indexof( " " )>=0) return 0;   // don't allow spaces in name
+}
+
+if (basep>=0) {
+    cp.baseClass = clstxt.substring( basep+7, clstxt.indexOf( "\"", basep+7 ) );
+    cp.baseClass = sys::MakefullName( filename, cp.baseclass );
+    cp.baseClass = sys::MakerelativeName( classes::cpicks::path(), cp.baseclass ).lower();
+}
+
+clsList.addRow( cp );]]>
+</method>
+<method name="traceBaseClasses" return="int">
+<![CDATA[//@cmember traceBaseClasses
+//@return int | true if no modifications...
+//@version Andrew Griffin | 06-11-01 11:15 |
+//@i
+
+int ok = 1;
+
+for (int i=0; i<clsList.Count(); i++) {
+
+    aClassRec r = &clsList[i];
+    if (!r.tableName && r.baseClass) {
+        aClassRec cls = &clsList.FindRow( r.baseclass, 1 );
+        if (cls!=null) {
+            r.tableName = cls.tableName;
+        } else {
+            r.tableName = "~";
+        }
+        ok = 0;
+    }
+
+}
+
+return ok;]]>
+</method>
+<method name="doTableSelect">
+<![CDATA[//@cmember doTableSelect
+//@version Andrew Griffin | 06-11-01 13:48 |
+//@i
+
+atabRec sel = &idTabList.CurrentRow();
+idTableName.setText( sel.tabName );
+
+clsNames.reset();
+
+for (int i=0; i<clsList.Count(); i++)
+  if (clsList[i].tableName == sel.tabName) {
+    classes::cpicks cp = &clsNames.CreateRow();
+    cp.code = clsList[i].clsName;
+    cp.desc = clsList[i].clsName;
+  }
+
+idClassName.setText( sel.classPath );]]>
+</method>
+<method name="doClassChange">
+<![CDATA[//@cmember doClassChange
+//@version Andrew Griffin | 05-02-02 15:01 |
+//@i
+
+atabRec sel = &idTabList.CurrentRow();
+
+sel.classPath = idClassName.getText();
+sel.colour.rgb( 255, 0, 0 );
+sel.colbk.rgb( 255,192,192 );
+
+xml xt = &tableXml.FindElement( sel.tabName );
+xt.AddAttr( "chosen", sel.classPath );]]>
+</method>
+<method name="doDoubleClick">
+<![CDATA[//@cmember doDoubleClick
+//@param
+//@return
+//@version Andrew Griffin | 06-11-01 14:12 |
+//@version Jonathan.Muir | 26-02-10 13:46 |
+//@i
+
+atabRec sel = &idTabList.CurrentRow();
+if (sel==null || !sel.classPath) return;
+
+::WClassView par = &::AdvSearch::OpenClassFilePath( sys::MakeFullName( classes::cpicks::path(), sel.classPath ) + ".xml", "" );
+if(par!=null) par.show(1);]]>
+</method>
+<method name="doExtractSQL">
+<![CDATA[//@cmember doExtractSQL
+//@version Andrew Griffin | 06-11-01 15:21 |
+//@i
+
+SetWaitCursor();
+string sql;
+
+for (int i=0; i<tabList.Count(); i++) {
+
+    string clsName = tabList[i].classPath;
+    if (clsName) {
+        sql += getSQL( sys::MakeFullName( classes::cpicks::path(), clsName ) + ".xml", tabList[i].tabName );
+    }
+
+}
+
+idSQLView.setText( sql );]]>
+</method>
+<method name="getSQL">
+<param name="filename" type="string" />
+<param name="tabName" type="string" />
+<![CDATA[//@cmember getSQL
+//@param string | filename |
+//@param string | tabName |
+//@version Andrew Griffin | 06-11-01 15:24 |
+//@i
+
+string fname = filename;
+string clsName = sys::MakeRelativeName( classes::cpicks::path(), fname );
+clsName = clsName.left( clsName.lastIndexOf( "." ) );
+
+string sql, sql2, sql3;
+string cm = (dbTyp == 0 ? "--" : "--");   // comments
+
+// What about member tables?
+string mtabs = ::browse::SQLutils::getListOfMemberTabs( fname );
+
+// do we want a DCH?
+sql2 = ::browse::SQLutils::getCreateTable( fname, dbTyp, 1, 0 );
+
+if (sql2 == "Error: Missing SQLName") {
+    return "Error in " + clsName + ": No SQL Table name specified in class definition.\r\n\r\n\r\n";
+}
+
+// Show tables
+
+sql = "****** SQL for table " + tabName.sql() + ", class: " + clsName.sql() + " ******";
+string nst;
+for (int i=0; i<sql.length(); i++) nst+="*";
+sql = cm + nst + "\r\n" + cm + sql + "\r\n\r\n";
+
+sql3 = ::browse::SQLutils::getCreateTable( fname, dbTyp, 0, 0 );
+
+if (!sql3) {
+    return "Error in " + clsName + ": Unable to create SQL from this class.\r\n\r\n\r\n";
+}
+
+sql += sql3;
+
+if (sql2) {
+    sql += sql2;
+}
+
+//if (mtabs) sql += "\r\n" + cm + " Comma Delimeted Tables linked to '" + clsName + "'\r\n";
+
+for (i=0;; i++) {
+    string t = mtabs.gettoken( i );
+    if (!t) break;
+    sql += "\r\n" + ::WMembEdit::getCreateTableS( t, dbTyp, 0, 0 );
+    sql += ::WMembEdit::getCreateTableS( t, dbTyp, 1, 0 );
+}
+
+//sql += cm + "*** End of Table Creation SQL for '" + clsName + "' ***\r\n\r\n";
+
+
+if (sql2) {      // Triggers
+
+//    sql = cm + "*** Trigger Creation SQL for class '" + clsName + "' ***\r\n\r\n";
+
+    //sql += ::browse::SQLutils::getDropTriggers( fname, dbTyp, 0 );
+    sql += ::browse::SQLutils::getCreateTriggers( fname, dbTyp, 0 );
+
+//    if (mtabs) sql += "\r\n" + cm + " Comma Delimeted Triggers linked to '" + clsName + "'\r\n";
+
+    for (i=0;; i++) {
+        string t = mtabs.gettoken( i );
+        if (!t) break;
+        sql += "\r\n" + ::WMembEdit::getDropTriggersS( t, dbTyp, 0 );
+        sql += ::WMembEdit::getCreateTriggersS( t, dbTyp, 1, 0 );
+    }
+
+//    sql += cm + "*** End of Trigger Creation SQL for class '" + clsName + "' ***\r\n\r\n\r\n";
+}
+
+return sql;]]>
+</method>
+<method name="createTableXml">
+<param name="x" type="xml" />
+<![CDATA[//@cmember createTableXml
+//@param xml | x |
+//@version Andrew Griffin | 05-02-02 14:48 |
+
+x.setTag( "ExtractorFile" );
+x.AddAttr( "created", sys::time().toString() );
+
+for (int i=0; i<clsList.Count(); i++) {
+
+    aClassRec cr = &clsList[i];
+    string tableName = cr.tableName;
+
+    xml xt = &x.FindElement( tableName );               // Exists already
+    if (xt==null) xt = &x.CreateElement( tableName );   // otherwise Create New Table
+
+    xml xc = &xt.CreateElement( "class" );
+    xc.AddAttr( "name", cr.clsName );
+
+}
+
+for (i=0; i<tabList.Count(); i++) {
+    atabrec tb = &tabList[i];
+    if (tb.classPath) {
+        xml xt = &x.FindElement( tb.tabName );
+        xt.AddAttr( "chosen", tb.classPath );
+    }
+}]]>
+</method>
+<method name="chooseClass">
+<![CDATA[//@cmember chooseClass
+//@version Andrew Griffin | 24-05-02 16:10 |
+//@i
+
+classes::core::wpopupmenu p;
+
+for (int i=0; i<clsNames.Count(); i++)
+    p.Add( clsNames[i].desc, clsNames[i].code );
+
+p.AddSeparator();
+p.Add( "* No Class *", "#" );
+
+string pck = p.Track( 1 );
+
+if (!pck) return;
+if (pck=="#") pck="";
+
+idClassName.setText( pck );
+doClassChange();]]>
+</method>
+<method name="doLoadConfig">
+<![CDATA[//@cmember doLoadConfig
+//@version Andrew Griffin | 05-02-02 15:16 |
+//@i
+
+string pth = path();
+pth = pth.left( pth.lastindexof( "\\" )+1 );
+
+string filename = GetOpenFileName( "Select a config file to open", "SQL Extractor Configs|*.xsq", pth );
+if (!filename) return;  // no file selected...
+
+xml x = classes::core::xml::globalxml::LoadXML( filename );
+if (x.tag()=="error") {    // Check for errors
+     message("XML Load Error: " + X.getAttr("desc"));
+     return;
+}
+
+lastXml = x[0];
+
+findDifferences();]]>
+</method>
+<method name="findDifferences">
+<![CDATA[//@cmember findDifferences
+//@version Andrew Griffin | 05-02-02 16:07 |
+
+// look for differences between the old & current table specs...
+
+// 1) completly new tables...
+//      mark with 'N'
+// 2) tables with new classes
+//      mark with '*'
+
+for (int i=0; i<tableXml.Count(); i++)
+{
+
+    xml tX = &tableXml[i];
+    string tabName = tX.tag();
+    atabrec tr = &tabList.FindRow( tabName );
+
+    xml lX = &lastXml.FindElement( tabName );
+
+    if (lX==null)   // a new table!
+    {
+        tr.info = "N";
+        tr.colour.rgb( 0, 0, 255 );
+        tr.colbk.rgb( 255,255,255 );
+    }
+    else            // an existing table...
+    {
+        // compare tables classes...
+
+        tX.addAttr( "chosen", lX.chosen );
+        tr.classPath = lX.chosen;
+        tr.colour.rgb( 0, 0, 0 );
+        tr.colbk.rgb( 255,255,255 );
+        tr.info = "";
+
+        int ok=1;
+        if (tX.count() != lX.count())
+            ok=0;
+        else
+            for (int j=0; j<tX.count(); j++)
+            {
+                if ( !tX[j].name.eq(lX[j].name) )
+                {
+                    ok=0; break;
+                }
+            }
+        if (!ok)
+        {
+            tr.info = "*";
+            tr.colour.rgb( 0, 128, 128 );
+            tr.colbk.rgb( 255,255,255 );
+        }
+    }
+}]]>
+</method>
+<method name="doSaveConfig">
+<![CDATA[//@cmember doSaveConfig
+//@version Andrew Griffin | 05-02-02 16:30 |
+//@i
+
+string filename = idVersion.getText();
+if (!filename) {
+    idVersion.SetFocus();
+    message( "Please enter a release version number..." );
+    return;
+}
+
+filename = "Release" + filename;
+
+classes::core::xml::globalxml::SaveXML( tableXml, filename + ".xsq", path() );]]>
+</method>
+</members>
+<static>
+<String name="exclude" cls="xml" />
+<List name="dbTypes" cls="classes::CPickN">
+<item code="0" desc="Microsoft SQL Server" />
+<item code="1" desc="Oracle" />
+</List>
+<method name="Main">
+<param name="cmd" type="string" />
+<![CDATA[//@cmember Main
+//@param string | cmd |
+//@version Andrew Griffin | 06-11-01 15:35 |
+//@version Nick Gomm | 17-06-08 17:26 |
+//@i
+
+XML exc = &classes::core::xml::globalxml::LoadXML( "excludeList.txt", path() );
+
+if (exc.Tag()!="error") {
+    exc = &exc[0];
+    for (int i=0; i<exc.Count(); i++) {
+        string name = exc[i].name.lower() + "::";
+        name = sys::MakeFullName( classes::cpicks::path(), name );
+        exclude.addtoken( name );
+    }
+}
+
+
+wSQLExtract w;
+w.startFile=cmd;
+w.open();
+
+w.dbTyp = 0;]]>
+</method>
+</static>
+<grid>
+<row>
+<col align="WH">
+<grid>
+<row>
+<col imgtile="32">
+<grid>
+<row>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Search Classes" tx="255,255,255" txsel="FFFF00" style="b" onclick="doSearchClasses" />
+</col>
+<col lpad="16" rpad="4" align="V" imgtile="32">
+<Label text="Path to include" />
+</col>
+<col align="WV" imgtile="32">
+<Edit name="idinclude" w="150" />
+</col>
+<col lpad="16" rpad="4" align="V" imgtile="32">
+<Label text="Release Version" />
+</col>
+<col rpad="16" w="74" align="WV" imgtile="32">
+<Edit name="idVersion" />
+</col>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Load Config" tx="255,255,255" txsel="FFFF00" style="b" onclick="doLoadConfig" />
+</col>
+<col w="8" align="CV" imgtile="32" />
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Save Config" tx="255,255,255" txsel="FFFF00" style="b" onclick="doSaveConfig" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col h="8" imgtile="32" />
+</row>
+<row>
+<col h="1" bk="0,0,0" imgtile="32" />
+</row>
+<row>
+<col tpad="4" imgtile="32">
+<grid>
+<row>
+<col lpad="4" tpad="2" rpad="4" bpad="2">
+<Label text="&apos;  &apos; - Same" />
+</col>
+<col lpad="4" tpad="2" rpad="4" bpad="2">
+<Label text="N - New Table" tx="0,0,255" />
+</col>
+<col lpad="4" tpad="2" rpad="4" bpad="2">
+<Label text="* - New Class" tx="0,128,128" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col tpad="4" align="WH">
+<ListBox name="idTabList" IsList="Y" list="tabList" onselect="doTableSelect" ondoubleclick="doDoubleClick">
+<row>
+<col lpad="8" rpad="8" bpad="8" />
+<col lpad="8" rpad="8" bpad="8">
+<Label text="Database Table" tx="0,0,128" style="b" header="1" />
+</col>
+<col lpad="8" rpad="8" bpad="8">
+<Label text="Selected Class" tx="0,0,128" style="b" header="1" />
+</col>
+</row>
+<row>
+<col bpad="2" w="20" align="C">
+<Label text="&gt;&gt;" tx="255,0,0" bind="info" bksel="FFFF80" />
+</col>
+<col lpad="8" rpad="8" bpad="2">
+<Label text="&gt;&gt;" tx="128,0,0" bind="tabName" txfield="colour" bksel="FFFF80" />
+</col>
+<col lpad="8" rpad="8" bpad="2">
+<Label text="&gt;&gt;" tx="128,0,0" bind="classPath" txfield="colour" bksel="FFFF80" onrightclick="chooseClass" />
+</col>
+</row>
+</ListBox>
+</col>
+</row>
+</grid>
+</col>
+<col w="12" align="XY">
+<SizeBar text="SizeBar" />
+</col>
+<col align="WH">
+<grid>
+<row>
+<col />
+<col />
+<col />
+</row>
+<row>
+<col />
+<col align="W">
+<grid>
+<row>
+<col rpad="8" bpad="8">
+<Label text="Table Name" />
+</col>
+<col>
+<Label name="idTableName" text="&gt;&gt;" tx="128,0,0" />
+</col>
+</row>
+<row>
+<col rpad="8" align="V">
+<Label text="W2 Class" />
+</col>
+<col w="180" align="W">
+<Edit name="idClassName" combo="2" pick="clsNames" onchange="doClassChange" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col tpad="16" align="WH">
+<grid>
+<row>
+<col rpad="16" align="W">
+<Edit combo="2" bind="dbTyp" pick="dbTypes" />
+</col>
+<col lpad="12" tpad="3" rpad="12" bpad="6" align="CV" bkimg="classes::resource::standard::button.bmp" imgtile="32">
+<Label text="Generate SQL" tx="255,255,255" txsel="FFFF00" style="b" onclick="doExtractSQL" />
+</col>
+</row>
+</grid>
+</col>
+<col />
+</row>
+<row>
+<col />
+<col tpad="4" align="WH">
+<SourceEditor name="idSQLView" text="SourceEditor" />
+</col>
+<col />
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<return>
+<rmeth name="traceBaseClasses" cls="int" />
+</return>
+</form>

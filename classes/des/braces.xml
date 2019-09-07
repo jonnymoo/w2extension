@@ -1,0 +1,7 @@
+<class name="braces" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 2 $">
+<members>
+<Integer name="br" />
+<Integer name="pos" />
+</members>
+<static />
+</class>

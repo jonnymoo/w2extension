@@ -1,0 +1,1126 @@
+<form name="WCalcView" caption="Calculation Builder" icon="classes::resource::standard::2034.ico" bk="FFFFFF" margin="0" acceptfiles="1" fauthor="$Author: Chris Moran$" fdate="$Date: 8 12 03 11:37$" frevision="$Revision: 2$">
+<members>
+<Object name="FileXML" cls="XML" />
+<String name="FileName" />
+<Integer name="Modified" />
+<Object name="XX_Cls" cls="ClassDef" />
+<String name="strCellText" />
+<method name="Init">
+<![CDATA[
+open();
+
+AddDefaultGrid(1);
+
+
+idCellProperties.Init();]]>
+</method>
+<method name="DoNew">
+<![CDATA[
+if (!OptionalSave("Create New Calculation")) return;
+FileXML.reset();
+
+AddDefaultGrid(1);]]>
+</method>
+<method name="OnDropFiles">
+<param name="Files" type="object" />
+<![CDATA[
+String fn = Files[0];
+if (!fn.lower().endsWith(".xmc")) return;
+SetForeground();
+if (!OptionalSave("Load File: "+fn)) return;
+// Message("Open File :"+fn);
+ReadFile(fn);]]>
+</method>
+<method name="ReadFile">
+<param name="fn" type="object" />
+<![CDATA[Object B;
+if (fn.beginsWith("http"))
+    {
+    HTTPConnection Con;
+    B = Con.GetFile(fn);
+    }
+else{
+    File F;
+    if (!F.Open(fn,0)) return 0;
+
+    int i = fn.lastindexof("\\",9999);
+    String path = fn.left(i);
+    File::SetCurrentDirectory(path);
+
+    B = F.ReadBlob();
+    }
+
+// got anything?
+if (B==null) return 0;
+Object X = B.toXMLObject();
+if (X==null) return 0;
+Object EX = &X.Element(0);
+if (EX==null) return 0;
+
+// Transform XML moving Return Types to their methods
+
+TransformXMLReturns(EX);
+
+return;
+// close GridEdit if open...
+int vug;
+Object Z = idMulti.FindPane("GridEdit");
+if (Z!=null){
+    if (Z.isVisible()) vug = 1;
+    Z.Close();
+    }
+
+if (EX.Tag()=="class" || EX.Tag()=="form")
+    {
+    XFile.resetContent();
+    Object Cls = XFile.Classes.CreateRow();
+    Cls.SetTo(EX);
+    Cls.ClassPath = fn;
+    EditClassDef(Cls);
+    }
+else{ // junk
+    XFile.SetTo(EX);
+    idResults.SetObject( XFile );
+    setText( "File: " + fn.lower() );
+    }
+
+// done
+FileName = fn;
+Modified = 0;
+SetCaption();
+
+// if grid was open, open the new one
+if (vug){
+    if (XFile.Classes.Count()){
+        Object Cls = XFile.Classes[0];
+        if (Cls.Grids.Count()){
+            Object G = Cls.Grids[0];
+            if (G.GridData!=null){
+                if (G.GridData.Count())
+                    EditGrid( G.GridData );
+                }
+            }
+        }
+    }
+
+return 1;]]>
+</method>
+<method name="DoOpen">
+<![CDATA[
+String fn = GetOpenFileName("Open XMC","XMC Files|*.xmc|All|*.*","");
+FileName = fn;
+if (!fn) return;
+File F;
+if (!F.Open(fn,0)) return;
+Object B = F.ReadBlob();
+Object X = B.toXMLObject();  // XML
+FileXML = X;
+idGridEdit.Reset();
+
+//Object GX = X.Element(0);
+//LoadGrid( idGridEdit, GX );
+idGridEdit.SetPath(fn);
+FindGrid(X);
+idGridEdit.CalcSizes();
+
+setText(fn.toLower());]]>
+</method>
+<method name="EditSection">
+<param name="M" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("SectionEdit");
+if (Z==null)
+{
+WSectionEdit X;
+idMulti.AddPane(X);
+X.SetWindowName("SectionEdit");
+X.Init();
+Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);]]>
+</method>
+<method name="EditGrid">
+<param name="GXML" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("GridEdit");
+if (Z==null)
+{
+grid::WGridEdit X;
+idMulti.AddPane(X);
+X.SetWindowName("GridEdit");
+X.Init();
+Z = &X;
+Z.SetGridXML(GXML,FileName);
+}
+Z.openingView();
+idMulti.ShowPane(Z,"max");
+
+ourHist.makeHistory(&this.Filename, "GridEdit", "", "Grid");]]>
+</method>
+<method name="EditClassDef">
+<param name="CD" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("ClsEdit");
+if (Z==null)
+{
+WClsDef X;
+idMulti.AddPane(X);
+X.SetWindowName("ClsEdit");
+X.Init();
+Z = &X;
+}
+Z.Setup(CD);
+idMulti.ShowPane(Z,"max");
+
+ourHist.makeHistory(&CD.classpath, "ClsEdit", "", "ClassDef");]]>
+</method>
+<method name="EditMenu">
+<param name="M" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("MenuEdit");
+if (Z==null) {
+    WMenuEdit X;
+    idMulti.AddPane(X);
+    X.SetWindowName("MenuEdit");
+    X.Init();
+    Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);]]>
+</method>
+<method name="EditDisp">
+<param name="M" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("DispEdit");
+if (Z==null) {
+    WDispEdit X;
+    idMulti.AddPane(X);
+    X.SetWindowName("DispEdit");
+    X.Init();
+    Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);]]>
+</method>
+<method name="EditXMLObj">
+<param name="M" type="object" />
+<![CDATA[
+Object Z = idMulti.FindPane("ItemEdit");
+if (Z==null)
+{
+WItemEdit X;
+idMulti.AddPane(X);
+X.SetWindowName("ItemEdit");
+X.Init();
+Z = &X;
+}
+idMulti.ShowPane(Z,"max");
+Z.Setup(M);]]>
+</method>
+<method name="GetVarName">
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:08 |
+
+/* classes::core::wpopupmenu P;
+XFile.Classes[0].GetMemberPop(P,FileName,"");
+String s = P.Track();
+if (s) Message(s); */
+
+if (XFile.Classes.Count()==0) return;
+Object M = &Sys::TrackObjMenu( XFile.Classes[0] );
+
+if (M==null) return "";
+
+return M.Selection();]]>
+</method>
+<method name="SetCaption">
+<![CDATA[
+String cap;
+int i = FileName.lastIndexOf("\\",9999);
+if (i<0) i = FileName.lastIndexOf("/",9999);
+if (i>0) cap = FileName.substring(i+1,9999);
+else     cap = "New Class";
+if (Modified) cap += " *";
+if (FileName) cap += "  (" + FileName + ")";
+SetText(cap);]]>
+</method>
+<method name="SetMod">
+<![CDATA[
+if (Modified) return;
+Modified = 1;
+SetCaption(); // SetText( "Class: " + FileName + " *" );]]>
+</method>
+<method name="OnClose">
+<![CDATA[
+if (!OptionalSave("Closing Class Editor")) return;
+
+Close();]]>
+</method>
+<method name="OptionalSave">
+<param name="cap" type="object" />
+<![CDATA[
+if (!Modified) return 1;
+String q = "This class has been modified\n"
+           "Do you want to save it?";
+int r = MessageBox(q,cap,3); // yesnocancel
+if (r==2) return 0; // CANCEL
+if (r==6){ // YES
+   if (DoSave()==0) return 0;
+   }
+return 1;]]>
+</method>
+<method name="DoSaveAs">
+<![CDATA[
+String fn = GetSaveFileName("Save XMC","XMC Files|*.xmc",FileName);
+if (!fn) return 0;
+
+/*if (fn.indexOf(".")<0)
+    fn += ".xml";
+
+int e = fn.lastIndexOf(".");
+int s = fn.lastIndexOf("\\");
+
+String cnm = fn.substring(s+1,e);
+
+if (FileXML.Classes.count()==0) {
+    message("Error:  First create a new class to save!");
+    return 0;
+}
+
+Object CD = &XFile.Classes[0];
+
+if (!CD.ClassName.eq(cnm)){
+    CD.ClassName = cnm;
+    }
+
+CD.ClassPath = fn;
+*/
+return SaveTheFile(fn);]]>
+</method>
+<method name="DoSave">
+<![CDATA[
+if (FileName=="")
+    return DoSaveAs();
+return SaveTheFile(FileName);]]>
+</method>
+<method name="SaveTheFile">
+<param name="fn" type="object" />
+<![CDATA[SetWaitCursor();
+
+// If no file name specified return.
+if (!fn)
+    return;
+
+// Get the XML.
+idGridEdit.SetPath( fn );
+XML X;
+GetXML(X,idGridEdit);
+int rep = ReplaceGrid( FileXML, X );
+
+// Now save the file.
+File F;
+if (!F.Create(fn))
+    return;
+
+if (rep)
+    F.WriteXML(FileXML.Element(0));
+else
+     F.WriteXML(X);
+
+SetText(fn.toLower());
+
+// Remember what we saved it as.
+FileName = fn;
+
+return;]]>
+</method>
+<method name="OnMenu">
+<![CDATA[
+String s = MenuID();
+
+if (s=="IE")
+    Sys::ShellExecute("","iexplore.exe","","");
+else if (s=="MapEdit"){
+    classes::core::maps::WMapDesign::OpenWin();
+    }
+else if (s=="MN_HELP_FORMS")
+    DoHelp("forms_frames.htm");
+else if (s=="MN_HELP_SCRIPT")
+    DoHelp("script_frames.htm");
+else if (s=="MN_CONSOLE"){
+    Sys::ShellExecute( "", Sys::GetModulePath() + "xrunapp.exe", "", "" );
+    // Sys::OpenConsole();
+    }
+else if (s=="MN_CONFIG")
+    WConfig::OpenWin();
+else if (s=="MN_ABOUT"){
+    Message("W2 Class Designer\n\n"
+            "Copyright (C) Comino PLC 2000\n\n"
+            "Version: " + Sys::Version() + "   " + Sys::VersionDate() );
+    }
+else if (s=="MN_USEHTTP"){
+    int i = IsMenuItemChecked(s);
+    CheckMenuItem( s, !i );
+    String ini = Sys::MakeFullName(Path(),"des.ini");
+    Sys::WritePrivateProfileString("run","FromHTTP",""+!i, ini);
+
+    }
+else if (s=="MN_SYNC"){
+    int i = IsMenuItemChecked(s);
+    CheckMenuItem( s, !i );
+    }
+else if (s=="UTIL"){
+    Browse::Utilities::DoPop(this,XFile.Classes[0]);
+    }
+else if (s=="GotoLine"){
+    Object Z = idMulti.FindPane("MethodEdit");
+    if (Z==null) return;
+    classes::core::WinputBox::Open(this, "gotoLine", "Enter a line number", "Goto Line", "");
+    }
+else if (s=="SearchReplace"){
+    Object Z = idMulti.FindPane("MethodEdit");
+    if (Z==null) return;
+    classes::core::WinputBox::Open(this, "searchReplace", "Enter a Search String", "Search / Replace", Z.idSearch.getText() );
+    }
+else if ( s == "ABOUT" )
+{
+    wAbout::OpenWin();
+}
+else Message("Menu Command " + s + " TBD");]]>
+</method>
+<method name="DoHelp">
+<param name="htm" type="object" />
+<![CDATA[
+String ini = Sys::MakeFullName(Path(),"des.ini");
+String root = Sys::GetPrivateProfileString("help","root",ini);
+if (!root)
+    WConfig::OpenWin();
+else
+    Sys::ShellExecute("",root + htm,"","");]]>
+</method>
+<method name="DoConHelp">
+<param name="Con" type="object" />
+<![CDATA[//@version Andrew Griffin | 24-05-02 16:08 |
+
+String s = Con.GetControlAttr("help");
+if (!s) return;
+
+classes::core::wpopupmenu P;
+P.Add(s);
+
+P.Track(1,null,0,20);]]>
+</method>
+<method name="GetClassDef">
+<![CDATA[// to allow popups owned by the designer to access a class def
+
+if (!XFile.Classes.Count()) return null;
+
+return XFile.Classes[0];]]>
+</method>
+<method name="AddDefaultGrid">
+<param name="bReset" type="object" />
+<![CDATA[//@cmember AddDefaultGrid
+//@param integer | bReset | Flag indicating whether the grid is reset or not.
+//@version David Salter | v1.0 23-03-2001 | Initial Version
+//@iCreates the initial grid for specifying calculations.
+if (bReset)
+{
+    idGridEdit.Reset();
+    idGridEdit.NewGrid(10, 10);
+}
+else
+    idGridEdit.AddSubGrid(10, 10);  //y,x]]>
+</method>
+<method name="GridClicked">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+Object X = &idGridEdit.CurrentCell();
+Object Con;
+
+if (X!=null)
+{
+    Con = &X.GetObject();
+
+    if ( Con == null )
+    {
+        idGridEdit.AddObject( "Label", "" );
+        idSource.SetText( "" );
+        strCellText = "";
+        // Blank out the font, size and style.
+        idCellProperties.SetFont( "" );
+        idCellProperties.SetFontSize( "" );
+        idCellProperties.SetFontStyle( "" );
+
+        idCellProperties.SetAlign( "" );
+
+        idCellProperties.SetIsList( "" );
+
+        idCellProperties.SetPadding( "t", 0 );
+        idCellProperties.SetPadding( "b", 0 );
+        idCellProperties.SetPadding( "t", 0 );
+        idCellProperties.SetPadding( "t", 0 );
+
+        idCellProperties.SetColor( "bk", "" );
+        idCellProperties.SetColor( "fg", "" );
+    }
+    else
+    {
+        strCellText = Con.Text;
+        idSource.SetText( Con.GetAttr( "source" ) );
+
+        idCellProperties.SetFont( Con.GetAttr( "Font" ) );
+        idCellProperties.SetFontSize( Con.GetAttr( "size" ) );
+        idCellProperties.SetFontStyle( Con.GetAttr( "Style" ) );
+
+        idCellProperties.SetAlign( Con.GetAttr( "halign" ) );
+
+        idCellProperties.SetIsList( Con.GetAttr( "CalcList" ) );
+
+        idCellProperties.SetPadding( "t", Con.GetAttr( "tpad" ) );
+        idCellProperties.SetPadding( "b", Con.GetAttr( "bpad" ) );
+        idCellProperties.SetPadding( "l", Con.GetAttr( "lpad" ) );
+        idCellProperties.SetPadding( "r", Con.GetAttr( "rpad" ) );
+        idCellProperties.SetColor( "bk", Con.GetAttr("bkc") );
+        idCellProperties.SetColor( "fg", Con.GetAttr( "txc" ) );
+    }
+}]]>
+</method>
+<method name="GridMod">
+<![CDATA[//@cmember GridMod
+//@version David Salter | v1.00 23-03-2001 | Initial Version
+//@i Puts an asterisk in the title bar of the application
+//@i if the grid is modified.
+
+String strTitle = GetText();
+if ( strTitle.Right(1) != "*" )
+{
+    strTitle += " *";
+    SetText( strTitle );
+}]]>
+</method>
+<method name="GetXML">
+<param name="X" type="object" />
+<param name="Grid" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+
+int isList;
+if (Grid.GetAttr("IsList")=="Y"){
+    X.SetTag("ListBox");
+    isList = 1;
+    }
+else
+    X.SetTag("grid");
+
+if (Grid.Name)      X.AddAttr("name", Grid.Name );
+if (Grid.LeftPad)   X.AddAttr("lpad",""+Grid.LeftPad);
+if (Grid.TopPad)    X.AddAttr("tpad",""+Grid.TopPad);
+if (Grid.RightPad)  X.AddAttr("rpad",""+Grid.RightPad);
+if (Grid.BottomPad) X.AddAttr("bpad",""+Grid.BottomPad);
+if (Grid.BkColor!=-1) X.AddAttr("bk",XMLColor(Grid.BkColor));
+String bki = Grid.BkImg; if (bki) X.AddAttr("bkimg",bki);
+if (Grid.ImgTile)   X.AddAttr("imgtile",""+Grid.ImgTile);
+
+if (isList){
+    if (Grid.MinWidth)  X.AddAttr("w",""+Grid.MinWidth);
+    if (Grid.MinHeight) X.AddAttr("h",""+Grid.MinHeight);
+    }
+
+// other grid attrs
+for(int n=0;;n++){
+    String attr = Grid.AttrName(n); if (!attr) break;
+    String aval = Grid.AttrValue(n); if (!aval) continue;
+    X.AddAttr(attr,aval);
+    }
+
+for(int r=0;r<Grid.Rows();r++){
+    XML RX;
+    RX.SetTag("row");
+    X.AddElement(RX);
+    for(int c=0;c<Grid.Columns();c++){
+        Object Col = &Grid.GetCell(r,c);
+        if (Col.ColSpan<=0 || Col.RowSpan<=0) continue;
+        XML CX;
+        CX.SetTag("col");
+        RX.AddElement(CX);
+        if (Col.ColSpan>1) CX.AddAttr("colspan",""+Col.ColSpan);
+        if (Col.RowSpan>1) CX.AddAttr("rowspan",""+Col.RowSpan);
+        if (Col.LeftPad>=0) CX.AddAttr("lpad",""+Col.LeftPad);
+        if (Col.TopPad>=0) CX.AddAttr("tpad",""+Col.TopPad);
+        if (Col.RightPad>=0) CX.AddAttr("rpad",""+Col.RightPad);
+        if (Col.BottomPad>=0) CX.AddAttr("bpad",""+Col.BottomPad);
+        if (Col.MinWidth) CX.AddAttr("w",""+Col.MinWidth);
+        if (Col.MinHeight) CX.AddAttr("h",""+Col.MinHeight);
+        if (Col.Align) CX.AddAttr("align",Col.AlignXML);
+        if (Col.BkColor!=-1)   CX.AddAttr("bk",Col.BkColorXML);
+        if (Col.BkSel!=-1)     CX.AddAttr("bksel",Col.BkSelXML);
+        if (Col.BkImage)       CX.AddAttr("bkimg",Col.BkImage);
+        if (Col.BkImageDisp)   CX.AddAttr("imgtile",Col.BkImageDisp);
+        if (Col.Header)        CX.AddAttr("header",Col.Header);
+        if (Col.GetGrid()!=null){
+            XML GX;
+            CX.AddElement(GX);
+            GetXML( GX, Col.GetGrid() );
+            }
+        else if (Col.Object!=null){
+            XML ZX;
+            CX.AddElement(ZX);
+            GetObjectXML( ZX, Col.Object );
+            }
+        }
+    }]]>
+</method>
+<method name="GetObjectXML">
+<param name="X" type="object" />
+<param name="Obj" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+
+// params
+// X    XMLObject for output
+// Obj  EdObject from GridEditor
+
+X.SetTag( Obj.TypeName );
+if (Obj.Name) X.AddAttr( "name", Obj.Name );
+if (Obj.Text) X.AddAttr( "text", Obj.Text );
+if (Obj.MinWidth)  X.AddAttr("w",""+Obj.MinWidth);
+if (Obj.MinHeight) X.AddAttr("h",""+Obj.MinHeight);
+if (Obj.TextColor) X.AddAttr("tx",""+Obj.TextColorXML);
+if (Obj.Img)       X.AddAttr("img",Obj.Img);
+// text fx
+if (Obj.tlc!=-1) X.AddAttr("tlc",XMLColor(Obj.tlc));
+if (Obj.brc!=-1) X.AddAttr("brc",XMLColor(Obj.brc));
+if (Obj.shadc!=-1) X.AddAttr("shadc",XMLColor(Obj.shadc));
+if (Obj.shadx) X.AddAttr("shadx",Obj.shadx);
+if (Obj.shady) X.AddAttr("shady",Obj.shady);
+if (Obj.shadt) X.AddAttr("shadt",Obj.shadt);
+// other attrs
+for(int n=0;;n++){
+    String attr = Obj.AttrName(n); if (!attr) break;
+    String aval = Obj.AttrValue(n); if (!aval) continue;
+    X.AddAttr(attr,aval);
+    }
+for(n=0;;n++){
+    Object XMLC = &Obj.XMLContent(n); if (XMLC==null) break;
+    X.AddElement(XMLC);
+    }]]>
+</method>
+<method name="ReplaceGrid">
+<param name="X" type="object" />
+<param name="NewGX" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+
+for(int n=0;n<X.Count();n++){  // elements
+    Object GX = &X.Element(n);
+    if (GX.Tag()=="grid"){
+        X.RemoveElement( GX );
+        X.AddElement( NewGX );
+        return 1;
+        }
+    int r = ReplaceGrid(GX,NewGX);
+    if (r) return 1;
+    }
+return 0;
+// *****]]>
+</method>
+<method name="FindGrid">
+<param name="X" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+// GO THROUGH XML TIL WE FIND A 'grid'
+for(int n=0;n<X.Count();n++){  // elements
+    Object GX = &X.Element(n);
+    if (GX.Tag()=="grid"){
+        LoadGrid( idGridEdit, GX );
+        return 1;
+        }
+    int r = FindGrid(GX);
+    if (r) return 1;
+    }
+return 0;
+//]]>
+</method>
+<method name="LoadGrid">
+<param name="Grid" type="object" />
+<param name="GX" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+for(int i=0;i<GX.AttrCount();i++){
+    Grid.SetAttr( GX.AttrName(i), GX.AttrVal(i) );
+    }
+for(int n=0;n<GX.Count();n++){
+    Object RX = &GX.Element(n);
+    if (RX.Tag()!="row") continue; // not a "<row>" tag
+    Grid.AddRow();
+    for(int cn=0;cn<RX.Count();cn++){
+        Object CX = &RX.Element(cn);
+        if (CX.Tag()!="col") continue; // not a "<col>"
+        Object Cell = &Grid.AddCell();
+        for(int a=0;a<CX.AttrCount();a++){
+            Cell.SetAttr( CX.AttrName(a), CX.AttrVal(a) );
+            }
+        for(a=0;a<CX.Count();a++){  // elements
+            Object CtrlX = &CX.Element(0);
+            String tag = CtrlX.Tag();
+            // hack
+            if (tag=="EditM") tag = "Edit";
+            // ? ListBox
+            int isList;
+            if (tag=="ListBox"){
+                tag = "grid";
+                isList = 1;
+                }
+            // add the control
+            Object Ctrl = &Cell.AddObject( tag );
+            if (tag=="grid"){
+                if (isList) Ctrl.SetAttr("IsList","Y");
+                LoadGrid( Ctrl, CtrlX );
+                }
+            else
+                LoadControl( Ctrl, CtrlX );
+            }
+        }
+    }
+Grid.FixSpans();
+//]]>
+</method>
+<method name="LoadControl">
+<param name="Ctrl" type="object" />
+<param name="CX" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+for(int a=0;a<CX.AttrCount();a++){
+    Ctrl.SetAttr( CX.AttrName(a), CX.AttrVal(a) );
+    }
+for(a=0;a<CX.Count();a++){  // elements
+    Object X = &CX.Element(0);
+    if (X.Tag()=="") Ctrl.SetAttr("Text",X.Content());
+    else             Ctrl.AddXMLContent( X );
+    }
+//]]>
+</method>
+<method name="OnTextEditChange">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+Object X = &idGridEdit.CurrentCell();
+Object Con;
+
+if (X!=null)
+{
+    Con = &X.GetObject();
+
+    if ( Con != null )
+    {
+        Con.SetAttr( "text", idCellText.GetText() );
+        X.SetAttr( "bk", sys::rgb(255, 0, 0 ) );
+        idGridEdit.CalcSizes();
+    }
+}]]>
+</method>
+<method name="OnSourceChange">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+
+Object X = &idGridEdit.CurrentCell();
+Object Con;
+
+if (X!=null)
+{
+    Con = &X.GetObject();
+
+    if ( Con != null )
+    {
+        Con.SetAttr( "source", idSource.GetText() );
+    }
+}]]>
+</method>
+<method name="AttributeModified">
+<param name="szAttribute" type="object" />
+<param name="szValue" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+Object X = &idGridEdit.CurrentCell();
+Object Control;
+
+if (X!=null)
+{
+    Control = &X.GetObject();
+
+    if ( Control != null )
+    {
+        if ( szAttribute == "Font" )
+            Control.SetAttr( "font", szValue );
+        else if ( szAttribute == "FontSize" )
+            Control.SetAttr( "size", szValue );
+        else if ( szAttribute == "FontStyle" )
+            Control.SetAttr( "style", szValue );
+        else if ( szAttribute == "BackColor" )
+        {
+            X.SetAttr( "bk", szValue );
+            Control.SetAttr( "bkc", szValue );
+        }
+        else if ( szAttribute == "ForeColor" )
+        {
+            Control.SetAttr( "tx", szValue );
+            Control.SetAttr( "txc", szValue );
+        }
+        else if ( szAttribute == "lpad" )
+        {
+            X.SetLeftPad( szValue.val() );
+            Control.SetAttr( "lpad", szValue );
+        }
+        else if ( szAttribute == "tpad" )
+        {
+            X.SetTopPad( szValue.val() );
+            Control.SetAttr( "tpad", szValue );
+        }
+        else if ( szAttribute == "rpad" )
+        {
+            X.SetRightPad( szValue.val() );
+            Control.SetAttr( "rpad", szValue );
+        }
+        else if ( szAttribute == "bpad" )
+        {
+            X.SetBottomPad( szValue.val() );
+            Control.SetAttr( "bpad", szValue );
+        }
+        else if ( szAttribute == "align" )
+        {
+            Control.SetAttr( "halign", szValue );
+            idGridEdit.SetCellAttr( "halign", szValue );
+            idGridEdit.CalcSizesIf();
+        }
+        else if ( szAttribute == "List" )
+        {
+            Control.SetAttr( "CalcList", szValue );
+        }
+    }
+}
+
+
+idGridEdit.CalcSizes();
+
+// Notify that the grid has changed.
+GridMod();]]>
+</method>
+<method name="DoCellMerge">
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i]]>
+</method>
+<method name="DoRun">
+<![CDATA[if ( FileName == "" )
+{
+    Message( "Please save the calc before running." );
+    return;
+}
+String ini = Sys::MakeFullName(Path(),"calcs.ini");
+
+String strDefault = sys::GetPrivateProfileString( "Test", FileName, ini );
+
+//string szDefault = "classes::calcs::contact::userscalc::main()";
+classes::core::winputbox::Open( this,
+                                "RunCallback",
+                                "Please enter the calc class and method\nto test the calc\n\ne.g.classes::calcs::contact::userscalc::main();\n\n",
+                                "Select Calc",
+                                strDefault );]]>
+</method>
+<method name="RunCallback">
+<param name="szCalc" type="object" />
+<![CDATA[//@cmember
+//@param
+//@return
+//@version
+//@i
+if ( FileName == "" )
+{
+    Message( "Please save the calc before running." );
+    return;
+}
+
+if ( szCalc == "" )
+{
+    Message( "Please enter a method to test the calc." );
+    DoRun();
+    return;
+}
+
+String ini = Sys::MakeFullName(Path(),"calcs.ini");
+
+sys::WritePrivateProfileString( "Test", FileName, szCalc, ini );
+
+CompileAndExecute( szCalc );]]>
+</method>
+</members>
+<static>
+<method name="main">
+<param name="cmd" type="object" />
+<![CDATA[
+WCalcView Q;
+Q.Init();
+if (cmd)
+    Q.ReadFile(cmd);]]>
+</method>
+<method name="WindowsOpen">
+<param name="cmd" type="object" />
+<param name="val" type="object" />
+<![CDATA[//@version Jonathan.Muir | 26-02-10 13:42 |
+object Q;
+
+if (val==7723) {
+    if (cmd.left(4)=="Open") {
+
+        string fname = cmd.subString(5);
+        if (fname!="") {
+
+            Q = AdvSearch::OpenClassFilePath( fname, "", 0 );
+            if (Q==null) {
+                message("Error: There was a problem opening the class");
+                return;
+            }
+            Q.Show(1);
+        } else {
+            WClassView Q2;
+            Q2.Init();
+            Q = &Q2;
+        }
+
+        Q.setTopMost(1);
+        Q.setTopMost(0);
+    }
+}]]>
+</method>
+<method name="TransformXMLReturns">
+<param name="X" type="XML" />
+<![CDATA[// X = <CLASS or FORM name="  "> TAG
+//
+
+XML methods, rets, tmp, tmp2;
+
+rets = &X.findElement("return");
+if (rets==null) return;
+
+for (int i=0;; i++) {
+    methods = &X.getElement(i);
+    if (methods==null) break;
+
+    for (int m=0;; m++) {
+        tmp = &methods.getElement(m);
+        if (tmp==null) break;
+
+        if (tmp.tag().eq("method")) {   // Found a method, try and match a return type
+
+            string mName = tmp.getAttr("name");
+
+            for (int r=0;; r++) {
+                tmp2 = &rets.getElement(r);
+                if (tmp2==null) break;
+                if (tmp2.getAttr("name").eq(mName))      // Matching Return Type Def.
+                    tmp.addAttr("return", tmp2.getAttr("cls"));
+            }
+        }
+    }
+}
+
+X.removeElement(rets);]]>
+</method>
+<method name="UnTransformXMLReturns">
+<param name="X" type="XML" />
+<![CDATA[// X = <CLASS or FORM name="  "> TAG
+//
+
+XML methods, rets, tmp, tmp2;
+
+rets = &X.createElement("return");
+
+for (int i=0;; i++) {
+    methods = &X.getElement(i);
+    if (methods==null) break;
+
+    for (int m=0;; m++) {
+        tmp = &methods.getElement(m);
+        if (tmp==null) break;
+
+        if (tmp.tag().eq("method")) {   // Found a method, try and match a return type
+
+            string mRet = tmp.getAttr("return");
+            if (mRet!="") {
+                tmp2 = &rets.createElement("rmeth");
+                tmp2.addAttr("name", tmp.getAttr("name"));
+                tmp2.addAttr("cls", mRet);
+            }
+        }
+    }
+}
+
+if (rets.count()==0) X.removeElement(rets);]]>
+</method>
+<method name="OpenWindow">
+<![CDATA[WCalcView Q;
+Q.Init();]]>
+</method>
+</static>
+<grid>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" h="1" align="WH" bk="128,128,128" />
+</row>
+<row>
+<col lpad="0" tpad="0" rpad="0" bpad="0" align="WH">
+<grid>
+<row>
+<col align="WH">
+<grid>
+<row>
+<col lpad="2" tpad="2" bpad="2">
+<grid rpad="2">
+<row>
+<col>
+<Image text="Image" img="des::iopen.bmp" onClick="DoOpen" help="Open a class file" onRightClick="DoConHelp" />
+</col>
+<col>
+<Image text="Image" img="des::iclass.bmp" onClick="DoNew" onRightClick="DoConHelp" help="Create a new class" />
+</col>
+<col align="V">
+<Label text="-- " />
+</col>
+<col>
+<Image text="Image" img="des::isave.bmp" onClick="DoSave" onRightClick="DoConHelp" help="Save the class" />
+</col>
+<col>
+<Image text="Image" img="des::isaveas.bmp" onClick="DoSaveAs" onRightClick="DoConHelp" help="Save the class to a new file" />
+</col>
+<col align="V">
+<Label text="-- " />
+</col>
+<col />
+<col />
+<col align="V" />
+<col rpad="8">
+<Image text="Image" img="des::irun.bmp" onClick="DoRun" onRightClick="DoConHelp" help="Run the class" />
+</col>
+<col align="V" />
+<col w="18" align="CV" />
+<col w="18" align="CV" />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="WH">
+<grid>
+<row>
+<col tpad="2" bpad="3" align="W">
+<grid>
+<row>
+<col rpad="10" align="V">
+<Label text="Cell Text" />
+</col>
+<col w="100" align="X">
+<Edit name="idCellText" onChange="OnTextEditChange" bind="strCellText" />
+</col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
+</row>
+</grid>
+</col>
+</row>
+<row>
+<col align="W">
+<SourceEditor name="idSource" text="SourceEditor" h="100" onChange="OnSourceChange" />
+</col>
+</row>
+<row>
+<col align="W" bk="192,192,192">
+<SizeBar text="SizeBar" vert="1" />
+</col>
+</row>
+<row>
+<col align="WH">
+<grid>
+<row>
+<col align="WH">
+<GridEditor name="idGridEdit" onClick="GridClicked" onMod="GridMod" />
+</col>
+<col align="H">
+<Component name="idCellProperties" cls="cwCellProperties" />
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+</col>
+</row>
+</grid>
+<Menu>
+<Popup text="File">
+<Item text="New Calc" onClick="DoNew" />
+<Item text="Open Calc" onClick="DoOpen" />
+<Separator />
+<Item text="Save" onClick="DoSave" />
+<Item text="Save As" onClick="DoSaveAs" />
+<Separator />
+<Item text="Exit" onClick="OnClose" />
+</Popup>
+<Popup text="Options">
+<Item text="Run Calc" onClick="DoRun" />
+<Item text="Setup Test Parameters..." onClick="DoTestParams" />
+</Popup>
+<Popup text="Help">
+<Item text="Calc Help" onClick="DoCalcHelp" />
+<Separator />
+<Item text="About W2 Calc Builder" name="ABOUT" onClick="OnMenu" />
+</Popup>
+</Menu>
+</form>
