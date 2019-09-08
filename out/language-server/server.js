@@ -152,7 +152,7 @@ connection.onDidChangeWatchedFiles(_change => {
 // This handler provides the initial list of the completion items.
 connection.onCompletion((textDocumentPosition) => {
     const w2file = new w2file_1.W2File(opendoc);
-    return w2file.completionItems(textDocumentPosition);
+    return w2file.completionItems(textDocumentPosition.position.line, textDocumentPosition.position.character);
 });
 // This handler resolves additional information for the item selected in
 // the completion list.

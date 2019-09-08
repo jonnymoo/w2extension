@@ -187,7 +187,10 @@ connection.onDidChangeWatchedFiles(_change => {
 connection.onCompletion(
   (textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
     const w2file = new W2File(opendoc);
-    return w2file.completionItems(textDocumentPosition);
+    return w2file.completionItems(
+      textDocumentPosition.position.line,
+      textDocumentPosition.position.character
+    );
   }
 );
 

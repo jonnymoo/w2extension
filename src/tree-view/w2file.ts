@@ -6,9 +6,24 @@ import {
   CompletionItem,
   CompletionItemKind
 } from "vscode-languageserver-types";
+import { W2 } from "w2core";
+
+// helper class to map nodes to positions in the file
+class NodeToPosition {
+  node: Node;
+  lineNumber: number;
+  columnNumber: number;
+  constructor(node: Node, lineNumber: number, columnNumber: number) {
+    this.node = node;
+    this.lineNumber = lineNumber;
+    this.columnNumber = columnNumber;
+  }
+}
 
 // An object which represents a w2 document
 export class W2File {
+  // Maps nodes to positions in the file
+  private _nodemap: NodeToPosition[] = [];
   // Xml object with the w2 class in it
   private _xmlDocument: Document;
 
@@ -26,6 +41,27 @@ export class W2File {
         "<InvalidDocument />",
         "text/xml"
       );
+    }
+
+    // Create a node to position mapping
+    this._domapping(this._xmlDocument.documentElement);
+  }
+
+  _domapping(node: Node) {
+    this._nodemap.push(
+      // Line number / column numbers start at 1,1
+      // Translate to 0 0
+      new NodeToPosition(
+        node,
+        (node as any).lineNumber - 1,
+        (node as any).columnNumber - 1
+      )
+    );
+
+    if (node.childNodes) {
+      for (let i = 0; i < node.childNodes.length; i++) {
+        this._domapping(node.childNodes[i]);
+      }
     }
   }
 
@@ -92,19 +128,52 @@ export class W2File {
 
   // Get the node at a given position in the file
   getNodeAtPosition(linePosition: number, characterPosition: number): Node {
-    return this._getNodeAtPositionCore(
-      linePosition,
-      characterPosition,
-      this._xmlDocument.documentElement
-    );
+    for (let i = 1; i < this._nodemap.length; i++) {
+      // Are we past this node
+      if (
+        linePosition < this._nodemap[i].lineNumber ||
+        (linePosition === this._nodemap[i].lineNumber &&
+          characterPosition < this._nodemap[i].columnNumber)
+      ) {
+        return this._nodemap[i - 1].node;
+      }
+    }
+    return null;
   }
 
   // Get a list of completion items at a give poition in the file
   completionItems(
-    textDocumentPosition: TextDocumentPositionParams
+    linePosition: number,
+    characterPosition: number
   ): CompletionItem[] {
+    // Work out what node we are on - this gives context
+
+    // Offer appropriate completion items
     let items: CompletionItem[] = [];
 
+    const node: Node = this.getNodeAtPosition(linePosition, characterPosition);
+    if (node) {
+      // If we are a cdata section - w2 code
+      if (node.nodeName === "#cdata-section") {
+        // Call through to the w2 parser to get a list of suggestions
+        const w2: W2 = new W2(".\\classes\\");
+        var result = w2.call(
+          "des\\browse\\w2parser",
+          "getLocals",
+          node.textContent
+        );
+        for (let i = 0; i < result.length; i++) {
+          items.push({
+            label: result[i].name,
+            kind: CompletionItemKind.Variable,
+            detail: result[i].type,
+            documentation: ""
+          });
+        }
+      }
+    }
+    return items;
+    /*
     items.push({
       label: "itemText",
       kind: CompletionItemKind.Text,
@@ -260,79 +329,7 @@ export class W2File {
     });
 
     return items;
-  }
-
-  private _getNodeAtPositionCore(
-    linePosition: number,
-    characterPosition: number,
-    contextNode: Node
-  ): Node {
-    if (!contextNode) {
-      return undefined;
-    }
-
-    const lineNumber = (contextNode as any).lineNumber;
-    const columnNumber = (contextNode as any).columnNumber;
-    const columnRange = [
-      columnNumber,
-      columnNumber + (this._getNodeWidthInCharacters(contextNode) - 1)
-    ];
-
-    if (
-      this._checkRange(lineNumber, linePosition, characterPosition, columnRange)
-    ) {
-      return contextNode;
-    }
-
-    // if the element contains text, check to see if the cursor is present in the text
-    const textContent = (contextNode as Element).textContent;
-
-    if (textContent) {
-      columnRange[1] = columnRange[1] + textContent.length;
-
-      if (
-        this._checkRange(
-          lineNumber,
-          linePosition,
-          characterPosition,
-          columnRange
-        )
-      ) {
-        return contextNode;
-      }
-    }
-
-    const children = this._getChildElementArray(contextNode);
-    let result: Node;
-
-    for (let i = 0; i < children.length; i++) {
-      const child = children[i];
-
-      result = this._getNodeAtPositionCore(
-        linePosition,
-        characterPosition,
-        child
-      );
-
-      if (result) {
-        return result;
-      }
-    }
-
-    return undefined;
-  }
-
-  private _checkRange(
-    lineNumber: number,
-    linePosition: number,
-    characterPosition: number,
-    columnRange: number[]
-  ): boolean {
-    return (
-      lineNumber === linePosition + 1 &&
-      (characterPosition + 1 >= columnRange[0] &&
-        characterPosition + 1 < columnRange[1])
-    );
+    */
   }
 
   // True if node is an element
@@ -356,13 +353,5 @@ export class W2File {
     }
 
     return array;
-  }
-
-  private _getNodeWidthInCharacters(node: Node) {
-    if (this._isElement(node)) {
-      return node.nodeName.length + 2;
-    } else {
-      return node.nodeName.length + node.nodeValue.length + 3;
-    }
   }
 }
