@@ -1,6 +1,0 @@
-<class name="double" fauthor="$Author: Andrew.g $" fdate="$Date: 13/09/02 16:30 $" frevision="$Revision: 1 $">
-<members>
-<Double name="Value" />
-</members>
-<static />
-</class>

@@ -126,6 +126,22 @@ export class W2File {
     }
   }
 
+  getElementAtPosition(
+    linePosition: number,
+    characterPosition: number
+  ): Element {
+    let node = this.getNodeAtPosition(linePosition, characterPosition);
+    // Need to look for nearest element that has attributes
+    while (!this._isElement(node)) {
+      if (node.parentNode) {
+        node = node.parentNode;
+      } else {
+        node = this._xmlDocument.documentElement;
+      }
+    }
+    return node as Element;
+  }
+
   // Get the node at a given position in the file
   getNodeAtPosition(linePosition: number, characterPosition: number): Node {
     for (let i = 1; i < this._nodemap.length; i++) {
@@ -156,7 +172,7 @@ export class W2File {
       // If we are a cdata section - w2 code
       if (node.nodeName === "#cdata-section") {
         // Call through to the w2 parser to get a list of suggestions
-        const w2: W2 = new W2(".\\classes\\");
+        const w2: W2 = new W2();
         var result = w2.call(
           "des\\browse\\w2parser",
           "getLocals",

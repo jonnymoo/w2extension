@@ -21,6 +21,7 @@ let connection = vscode_languageserver_1.createConnection(vscode_languageserver_
 // supports full document sync only
 let documents = new vscode_languageserver_1.TextDocuments();
 let opendoc = "";
+let w2file = null;
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let hasDiagnosticRelatedInformationCapability = false;
@@ -93,6 +94,8 @@ documents.onDidClose(e => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent(change => {
+    opendoc = change.document.getText();
+    w2file = null;
     validateTextDocument(change.document);
 });
 function validateTextDocument(textDocument) {
@@ -151,7 +154,9 @@ connection.onDidChangeWatchedFiles(_change => {
 });
 // This handler provides the initial list of the completion items.
 connection.onCompletion((textDocumentPosition) => {
-    const w2file = new w2file_1.W2File(opendoc);
+    if (w2file === null) {
+        w2file = new w2file_1.W2File(opendoc);
+    }
     return w2file.completionItems(textDocumentPosition.position.line, textDocumentPosition.position.character);
 });
 // This handler resolves additional information for the item selected in
@@ -172,6 +177,7 @@ connection.onDidOpenTextDocument(params => {
     // params.uri uniquely identifies the document. For documents store on disk this is a file URI.
     // params.text the initial full content of the document.
     connection.console.log(`${params.textDocument.uri} opened.`);
+    opendoc = params.textDocument.text;
 });
 connection.onDidChangeTextDocument(params => {
     // The content of a text document did change in VSCode.

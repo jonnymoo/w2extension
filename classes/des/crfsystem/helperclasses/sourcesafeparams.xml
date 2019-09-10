@@ -1,7 +1,0 @@
-<class name="SourceSafeParams" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:37 $" frevision="$Revision: 1 $">
-<members>
-<String name="Mode" />
-<Object name="Form" />
-</members>
-<static />
-</class>

@@ -40,6 +40,7 @@ export class W2TreeDataProvider implements TreeDataProvider<any> {
 
   getTreeItem(element: Element): TreeItem | Thenable<TreeItem> {
     const treeItem = new TreeItem(element.localName);
+
     const w2Item = this._file.getW2Item(element);
     treeItem.label = w2Item.label;
     treeItem.collapsibleState = TreeItemCollapsibleState.Collapsed;
@@ -85,7 +86,7 @@ export class W2TreeDataProvider implements TreeDataProvider<any> {
   }
 
   getNodeAtPosition(position: Position): Node {
-    return this._file.getNodeAtPosition(position.line, position.character);
+    return this._file.getElementAtPosition(position.line, position.character);
   }
 
   private _refreshTree(): void {

@@ -1,9 +1,0 @@
-<class name="fItems" fauthor="$Author: Chris Moran $" fdate="$Date: 8 12 03 11:41 $" frevision="$Revision: 2 $">
-<members>
-<Object name="comobj" cls="classes::com::comobject" />
-<String name="project" />
-<String name="locSpec" />
-<Integer name="score" />
-</members>
-<static />
-</class>

@@ -56,7 +56,7 @@ class W2TreeDataProvider {
         return element.parentNode || element.ownerElement;
     }
     getNodeAtPosition(position) {
-        return this._file.getNodeAtPosition(position.line, position.character);
+        return this._file.getElementAtPosition(position.line, position.character);
     }
     _refreshTree() {
         if (!this.activeEditor ||

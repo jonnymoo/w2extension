@@ -15,6 +15,26 @@ describe("Given a w2 file", () => {
             assert.equal(w2item.label, "class MyClass");
         });
     });
+    describe("When I ask for a w2item for an element that isn't a w2item", () => {
+        it("I expect it to use the nearest w2 parent node", () => {
+            // Assemble
+            const xml = `<class>
+    <members>
+      <method name="setTo">
+      <![CDATA[//@cmember setTo
+      this.code = code;
+      return this;]]>
+      </method>
+    </members>
+  </class>`;
+            const doc = new w2file_1.W2File(xml);
+            // Act - get a CDATA section
+            const node = doc.getElementAtPosition(4, 4);
+            const w2item = doc.getW2Item(node);
+            // Assert
+            assert.equal(w2item.label, "method setTo");
+        });
+    });
     describe("When I get a w2 item without a name", () => {
         it("I expect the label to be just the tag name", () => {
             // Assemble
